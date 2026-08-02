@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, BookOpen, Code2 } from 'lucide-react';
+import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, BookOpen, Heart } from 'lucide-react';
 
 const pillars = [
   {
@@ -16,7 +16,7 @@ const pillars = [
   {
     icon: <Zap className="w-5 h-5 text-yellow-500" />,
     title: 'Cepat & Ringan',
-    desc: 'Dibangun dengan React + Vite + Tailwind. Performa tinggi, antarmuka responsif, bekerja optimal di semua perangkat.',
+    desc: 'Dioptimalkan untuk performa tinggi dan antarmuka yang responsif — bekerja lancar di semua perangkat.',
   },
 ];
 
@@ -34,9 +34,11 @@ export default function About() {
 
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center space-y-5">
-        <div className="inline-flex items-center gap-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-2xl">
-          <Zap className="w-5 h-5" />
-          <span className="font-bold text-lg">Gamato Piranti</span>
+        <div className="inline-flex items-center gap-2.5 bg-white border border-slate-200 shadow-sm pl-2 pr-4 py-2 rounded-2xl">
+          <div className="rounded-xl overflow-hidden w-8 h-8 ring-1 ring-slate-100">
+            <img src="/gamato-piranti.png" alt="Gamato Piranti" className="w-full h-full object-cover" />
+          </div>
+          <span className="font-bold text-lg text-slate-900">Gamato Piranti</span>
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">Tentang Kami</h1>
         <p className="text-xl text-slate-500 leading-relaxed max-w-2xl mx-auto">
@@ -84,18 +86,15 @@ export default function About() {
         </div>
       </motion.section>
 
-      {/* Tech stack */}
+      {/* Craft & commitment */}
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }} className="bg-slate-900 rounded-3xl p-8 md:p-10 text-white">
-        <h2 className="text-2xl font-bold mb-4">Dibangun dengan teknologi open source</h2>
-        <p className="text-slate-400 mb-6 leading-relaxed">Gamato Piranti berdiri di atas ekosistem open source yang solid.</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-          {['React 19', 'Vite', 'Tailwind CSS', 'pdf-lib', 'docx', 'qrcode', 'JsBarcode', 'framer-motion', 'TypeScript'].map((t) => (
-            <div key={t} className="bg-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-300 font-mono border border-slate-700">{t}</div>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 text-slate-400 text-sm border-t border-slate-800 pt-6">
-          <Code2 className="w-4 h-4" />
-          <span>Developed & maintained by</span>
+        <h2 className="text-2xl font-bold mb-4">Dirawat dengan serius, dikembangkan berkelanjutan</h2>
+        <p className="text-slate-400 leading-relaxed max-w-2xl">
+          Setiap alat di Gamato Piranti dirancang, diuji, dan diperbarui secara berkala untuk menjaga performa, kompatibilitas, dan keamanan. Kami terus mendengarkan masukan pengguna untuk membuat setiap alat semakin relevan dengan kebutuhan sehari-hari.
+        </p>
+        <div className="flex items-center gap-2 text-slate-400 text-sm border-t border-slate-800 mt-8 pt-6">
+          <Heart className="w-4 h-4 text-red-400" />
+          <span>Dikembangkan & dirawat oleh</span>
           <span className="text-white font-bold text-base">WisDev</span>
         </div>
       </motion.section>
