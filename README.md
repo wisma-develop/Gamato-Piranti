@@ -1,10 +1,8 @@
-# Gamato Piranti v2.0
+# Gamato Piranti
 
-**Suite alat digital modern — browser-native, gratis, privasi terjaga.**
+**Suite alat digital modern — cepat, gratis, dan privasi terjaga.**
 
-[![Built with React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
-[![Built with Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)](https://vite.dev)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss)](https://tailwindcss.com)
+Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semua proses berjalan langsung di perangkat pengguna — tidak ada file yang diunggah ke server mana pun.
 
 ---
 
@@ -14,61 +12,40 @@
 |------|-----------|
 | **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) + barcode berbagai format, warna & logo kustom |
 | **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF |
-| **Doc Studio** | Editor .docx dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
+| **Doc Studio** | Editor dokumen dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
 | **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing |
 | **Rak Utilitas** | JSON formatter, Base64, bulk teks/data, kalkulator pajak & bunga, statistik, WA link, password & token generator, hapus metadata gambar |
 
 ---
 
-## 🚀 Pengembangan Lokal
+## 🔒 Privasi & Keamanan
+
+- Semua pemrosesan file terjadi di browser pengguna (client-side), tidak ada file yang dikirim atau disimpan di server.
+- Tidak ada akun, tidak ada pelacakan pihak ketiga, tidak ada iklan.
+- Input pengguna disanitasi sebelum digunakan untuk mencegah penyalahgunaan (XSS, tautan berbahaya, dsb).
+
+## 🚀 Menjalankan Secara Lokal
 
 ```bash
 npm install
 npm run dev
 ```
 
-## 📦 Build
+## 📦 Build untuk Produksi
 
 ```bash
 npm run build
 npm run preview
 ```
 
----
-
-## 🛠 Teknologi
-
-- **React 19** + **Vite 7** + **TypeScript**
-- **Tailwind CSS v4** — utility-first styling
-- **framer-motion** — animasi halaman & komponen
-- **lucide-react** — icon set
-- **react-router-dom v7** — client-side routing
-- **pdf-lib** — pemrosesan PDF di browser
-- **docx** — ekspor .docx
-- **qrcode** + **JsBarcode** — generasi QR & barcode
+Proyek ini siap untuk di-deploy ke platform hosting statis modern (mis. Vercel) tanpa konfigurasi tambahan.
 
 ---
 
-## 📁 Struktur Proyek
+## 🤝 Kontribusi
 
-```
-src/
-├── components/
-│   └── layout/
-│       ├── Header.tsx
-│       ├── Footer.tsx
-│       └── Layout.tsx
-├── pages/
-│   ├── Home.tsx
-│   └── About.tsx
-├── utils/
-│   ├── cn.ts
-│   └── sanitize.ts
-├── App.tsx          # Semua logika tool + routing
-├── main.tsx
-└── index.css
-```
+Laporan bug dan saran fitur sangat diterima melalui Issues. Pastikan untuk tidak menyertakan data pribadi atau file sensitif pada laporan yang dibagikan.
 
 ---
 
-© 2025 Gamato Piranti · Powered by **WisDev**
+© 2025 Gamato Piranti · Dikembangkan oleh **WisDev**
