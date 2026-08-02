@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
   SlidersHorizontal, FileImage, AlignLeft, FileText, Trash2, Loader2, Zap,
@@ -8,6 +9,24 @@ import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { Textarea, Input, Select, Btn, SectionBadge } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
+
+type PdfMode = "compress" | "merge" | "split" | "extract" | "delete" | "rotate" | "organize" | "imagesToPdf" | "textToPdf";
+
+// URL slug (Indonesian, kebab-case) <-> internal mode id
+const PDF_MODE_SLUGS: Record<PdfMode, string> = {
+  merge: "gabung",
+  split: "pecah",
+  compress: "kompres",
+  extract: "ekstrak",
+  delete: "hapus-halaman",
+  rotate: "putar",
+  organize: "atur-ulang",
+  imagesToPdf: "gambar-ke-pdf",
+  textToPdf: "teks-ke-pdf",
+};
+const SLUG_TO_PDF_MODE: Record<string, PdfMode> = Object.fromEntries(
+  Object.entries(PDF_MODE_SLUGS).map(([mode, slug]) => [slug, mode as PdfMode])
+);
 
 const PDF_MODES: { id: PdfMode; label: string; icon: React.ReactNode; desc: string }[] = [
   { id: "merge",       label: "Gabung",        icon: <Layers className="w-5 h-5" />,           desc: "Combine multiple PDFs" },
@@ -40,10 +59,9 @@ function parsePageSpec(input: string, totalPages: number): number[] {
   return Array.from(pages).sort((a, b) => a - b);
 }
 
-type PdfMode = "compress" | "merge" | "split" | "extract" | "delete" | "rotate" | "organize" | "imagesToPdf" | "textToPdf";
-
 export const PdfTools: React.FC = () => {
-  const [mode, setMode] = useState<PdfMode>("merge");
+  const { mode: modeSlug } = useParams<{ mode: string }>();
+  const mode: PdfMode = (modeSlug && SLUG_TO_PDF_MODE[modeSlug]) || "merge";
   const [files, setFiles] = useState<File[]>([]);
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -53,6 +71,12 @@ export const PdfTools: React.FC = () => {
   const [rotateDegrees, setRotateDegrees] = useState(90);
   const [textForPdf, setTextForPdf] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+
+  // Reset transient state whenever the active mode (route) changes
+  useEffect(() => {
+    setFiles([]);
+    setInfo(null);
+  }, [mode]);
 
   const isPdfMode = ["compress", "merge", "split", "extract", "delete", "rotate", "organize"].includes(mode);
 
@@ -190,15 +214,15 @@ export const PdfTools: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Mode cards */}
+      {/* Mode cards — submenu with dedicated URL per mode */}
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
         {PDF_MODES.map(m => (
-          <button key={m.id} type="button" onClick={() => { setMode(m.id as PdfMode); setFiles([]); setInfo(null); }}
+          <Link key={m.id} to={`/pdf/${PDF_MODE_SLUGS[m.id]}`}
             className={cn("flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 text-center transition-all",
-              mode === m.id ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50")}>
-            <span className={cn("transition-colors", mode === m.id ? "text-blue-600" : "text-slate-400")}>{m.icon}</span>
-            <span className={cn("text-xs font-bold", mode === m.id ? "text-blue-700" : "text-slate-700")}>{m.label}</span>
-          </button>
+              mode === m.id ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300 hover:bg-slate-50")}>
+            <span className={cn("transition-colors", mode === m.id ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500")}>{m.icon}</span>
+            <span className={cn("text-xs font-bold", mode === m.id ? "text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-200")}>{m.label}</span>
+          </Link>
         ))}
       </div>
 
@@ -207,7 +231,7 @@ export const PdfTools: React.FC = () => {
         <div className="space-y-5">
           {/* Text-to-PDF special */}
           {mode === "textToPdf" ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <Textarea label="Teks untuk dijadikan PDF" rows={12} value={textForPdf} onChange={e => setTextForPdf(e.target.value)} placeholder="Tulis atau tempel teks di sini…" />
               <Btn onClick={handleRun} disabled={isWorking || !textForPdf.trim()} className="w-full py-3.5">
                 {isWorking ? <><Loader2 className="w-4 h-4 animate-spin" />Memproses…</> : <><FileText className="w-4 h-4" />Jadikan PDF</>}
@@ -222,27 +246,27 @@ export const PdfTools: React.FC = () => {
                 multiple={mode === "merge" || mode === "imagesToPdf"}
                 label={mode === "imagesToPdf" ? "Drop gambar JPG/PNG di sini" : "Drop file PDF di sini"}
                 sublabel={mode === "merge" ? "Bisa pilih beberapa file — urutannya bisa diatur" : "atau klik untuk browse"}
-                icon={mode === "imagesToPdf" ? <FileImage className="w-8 h-8 text-slate-400" /> : <FileText className="w-8 h-8 text-slate-400" />}
+                icon={mode === "imagesToPdf" ? <FileImage className="w-8 h-8 text-slate-400 dark:text-slate-500" /> : <FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
                 isDragging={isDragging}
                 setIsDragging={setIsDragging}
               />
 
               {/* File list */}
               {files.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
-                    <p className="text-sm font-bold text-slate-700">{files.length} file dipilih</p>
-                    <span className="text-xs text-slate-400">Total: {totalSizeMb} MB</span>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{files.length} file dipilih</p>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">Total: {totalSizeMb} MB</span>
                   </div>
                   <div className="divide-y divide-slate-100">
                     {files.map((file, i) => (
                       <div key={`${file.name}-${i}`} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors">
-                        <span className={cn("text-slate-400", mode === "imagesToPdf" ? "" : "")}>{mode === "imagesToPdf" ? <FileImage className="w-5 h-5" /> : <FileText className="w-5 h-5" />}</span>
+                        <span className={cn("text-slate-400 dark:text-slate-500", mode === "imagesToPdf" ? "" : "")}>{mode === "imagesToPdf" ? <FileImage className="w-5 h-5" /> : <FileText className="w-5 h-5" />}</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-800 truncate">{file.name}</p>
-                          <p className="text-xs text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                         </div>
-                        <button type="button" onClick={() => removeFile(i)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => removeFile(i)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -251,13 +275,13 @@ export const PdfTools: React.FC = () => {
 
               {/* Options for specific modes */}
               {mode === "compress" && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-                  <p className="text-sm font-bold text-slate-700">Tingkat Kompresi</p>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Tingkat Kompresi</p>
                   <div className="grid grid-cols-3 gap-2">
                     {(["low", "medium", "high"] as const).map(l => (
                       <button key={l} type="button" onClick={() => setCompressLevel(l)}
                         className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all capitalize",
-                          compressLevel === l ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>
+                          compressLevel === l ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}>
                         {l === "low" ? "Ringan" : l === "medium" ? "Sedang" : "Tinggi"}
                       </button>
                     ))}
@@ -266,16 +290,16 @@ export const PdfTools: React.FC = () => {
               )}
 
               {(mode === "extract" || mode === "delete" || mode === "organize") && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
                   <Input label={mode === "organize" ? "Urutan Halaman Baru" : "Rentang Halaman"}
                     value={pageSpec} onChange={e => setPageSpec(e.target.value)}
                     placeholder={mode === "organize" ? "contoh: 3,1,2,5-7" : "contoh: 1-3,5,8-9"} />
-                  <p className="text-xs text-slate-400">Gunakan koma untuk memisah, tanda minus untuk rentang. Halaman mulai dari 1.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Gunakan koma untuk memisah, tanda minus untuk rentang. Halaman mulai dari 1.</p>
                 </div>
               )}
 
               {mode === "rotate" && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
                   <div className="grid grid-cols-2 gap-4">
                     <Select label="Target Halaman" value={rotateSpec} onChange={e => setRotateSpec(e.target.value)}>
                       <option value="semua">Semua halaman</option>
@@ -299,13 +323,13 @@ export const PdfTools: React.FC = () => {
         </div>
 
         {/* RIGHT: Info panel */}
-        <div className="bg-slate-900 rounded-2xl p-5 text-white space-y-4 sticky top-24">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Mode Aktif</p>
+        <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 sticky top-24">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Mode Aktif</p>
           <div className="flex items-center gap-3">
             <span className="text-blue-400">{PDF_MODES.find(m2 => m2.id === mode)?.icon}</span>
             <div>
               <p className="font-bold text-white">{PDF_MODES.find(m2 => m2.id === mode)?.label}</p>
-              <p className="text-xs text-slate-400">{PDF_MODES.find(m2 => m2.id === mode)?.desc}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{PDF_MODES.find(m2 => m2.id === mode)?.desc}</p>
             </div>
           </div>
           <div className="border-t border-slate-800 pt-4 space-y-2 text-sm text-slate-300">

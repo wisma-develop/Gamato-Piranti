@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   Image as ImageIcon, FileDown, ArrowLeftRight, Wand2, RotateCw, Minus, Loader2,
 } from "lucide-react";
@@ -8,6 +9,17 @@ import { Label, Input, Select, Btn, SectionBadge } from "@/components/ui/primiti
 import { Dropzone } from "@/components/ui/Dropzone";
 
 type ImageMode = "compress" | "resize" | "convert" | "rotate";
+
+// URL slug (Indonesian) <-> internal mode id
+const IMAGE_MODE_SLUGS: Record<ImageMode, string> = {
+  compress: "kompres",
+  resize: "resize",
+  convert: "konversi",
+  rotate: "putar",
+};
+const SLUG_TO_IMAGE_MODE: Record<string, ImageMode> = Object.fromEntries(
+  Object.entries(IMAGE_MODE_SLUGS).map(([mode, slug]) => [slug, mode as ImageMode])
+);
 
 const IMG_MODES: { id: ImageMode; label: string; icon: React.ReactNode }[] = [
   { id: "compress", label: "Kompres",         icon: <FileDown      className="w-5 h-5" /> },
@@ -19,7 +31,8 @@ const IMG_MODES: { id: ImageMode; label: string; icon: React.ReactNode }[] = [
 // ─── Image Lab ────────────────────────────────────────────────────────────────
 
 export const ImageTools: React.FC = () => {
-  const [mode, setMode] = useState<ImageMode>("compress");
+  const { mode: modeSlug } = useParams<{ mode: string }>();
+  const mode: ImageMode = (modeSlug && SLUG_TO_IMAGE_MODE[modeSlug]) || "compress";
   const [files, setFiles] = useState<File[]>([]);
   const [quality, setQuality] = useState(75);
   const [maxWidth, setMaxWidth] = useState(1600);
@@ -30,6 +43,13 @@ export const ImageTools: React.FC = () => {
   const [info, setInfo] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+  // Reset transient state whenever the active mode (route) changes
+  useEffect(() => {
+    setFiles([]);
+    setPreviewUrls([]);
+    setInfo(null);
+  }, [mode]);
 
   const totalSizeMb = useMemo(() =>
     files.length ? Math.round(files.reduce((a, f) => a + f.size, 0) / 1024 / 1024 * 10) / 10 : 0,
@@ -90,12 +110,12 @@ export const ImageTools: React.FC = () => {
       {/* Mode tabs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {IMG_MODES.map(m => (
-          <button key={m.id} type="button" onClick={() => { setMode(m.id as ImageMode); setFiles([]); setPreviewUrls([]); setInfo(null); }}
+          <Link key={m.id} to={`/image/${IMAGE_MODE_SLUGS[m.id]}`}
             className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all",
-              mode === m.id ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300")}>
-            <span className={cn("transition-colors", mode === m.id ? "text-blue-600" : "text-slate-400")}>{m.icon}</span>
-            <span className={cn("text-sm font-bold", mode === m.id ? "text-blue-700" : "text-slate-700")}>{m.label}</span>
-          </button>
+              mode === m.id ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300")}>
+            <span className={cn("transition-colors", mode === m.id ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500")}>{m.icon}</span>
+            <span className={cn("text-sm font-bold", mode === m.id ? "text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-200")}>{m.label}</span>
+          </Link>
         ))}
       </div>
 
@@ -105,15 +125,15 @@ export const ImageTools: React.FC = () => {
           {files.length === 0 ? (
             <Dropzone onFiles={addFiles} accept="image/*" multiple label="Drop gambar di sini" sublabel="JPG, PNG, WEBP — bisa beberapa file" icon={<ImageIcon className="w-8 h-8" />} isDragging={isDragging} setIsDragging={setIsDragging} />
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100">
-                <p className="text-sm font-bold text-slate-700">{files.length} gambar · {totalSizeMb} MB</p>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{files.length} gambar · {totalSizeMb} MB</p>
                 <button type="button" onClick={() => { setFiles([]); setPreviewUrls([]); setInfo(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700">Ganti File</button>
               </div>
               <div className="p-4 flex flex-wrap gap-3">
                 {previewUrls.map((url, i) => (
                   <div key={i} className="relative group">
-                    <img src={url} alt="" className="w-20 h-20 object-cover rounded-xl border border-slate-200 shadow-sm" />
+                    <img src={url} alt="" className="w-20 h-20 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" />
                     <button type="button" onClick={() => { setFiles(f => f.filter((_, j) => j !== i)); setPreviewUrls(u => u.filter((_, j) => j !== i)); }}
                       className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs items-center justify-center hidden group-hover:flex"><Minus className="w-3 h-3" /></button>
                   </div>
@@ -123,14 +143,14 @@ export const ImageTools: React.FC = () => {
           )}
 
           {/* Mode-specific options */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Opsi</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Opsi</p>
 
             {mode === "resize" && (
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Lebar Maks (px)" type="number" min={0} value={maxWidth} onChange={e => setMaxWidth(parseInt(e.target.value) || 0)} />
                 <Input label="Tinggi Maks (px)" type="number" min={0} value={maxHeight} onChange={e => setMaxHeight(parseInt(e.target.value) || 0)} />
-                <p className="col-span-2 text-xs text-slate-400">Rasio gambar tetap terjaga. Nilai 0 = mengikuti asli.</p>
+                <p className="col-span-2 text-xs text-slate-400 dark:text-slate-500">Rasio gambar tetap terjaga. Nilai 0 = mengikuti asli.</p>
               </div>
             )}
 
@@ -152,14 +172,14 @@ export const ImageTools: React.FC = () => {
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <Label>Kualitas (JPEG/WEBP)</Label>
-                  <span className="text-sm font-bold text-blue-600">{quality}%</span>
+                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{quality}%</span>
                 </div>
-                <input type="range" min={10} max={100} value={quality} onChange={e => setQuality(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-blue-600 bg-slate-200" />
+                <input type="range" min={10} max={100} value={quality} onChange={e => setQuality(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-blue-600 bg-slate-200 dark:bg-slate-700" />
               </div>
             </div>
           </div>
 
-          {info && <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") || info.startsWith("Tidak") ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200")}>{info}</div>}
+          {info && <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") || info.startsWith("Tidak") ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>{info}</div>}
 
           <Btn onClick={processImages} disabled={isWorking || !files.length} className="w-full py-4 text-base">
             <>{isWorking ? <><Loader2 className="w-4 h-4 animate-spin" />Memproses…</> : <><Wand2 className="w-4 h-4" />Proses {files.length > 0 ? `${files.length} ` : ""}Gambar</>}</>
@@ -167,8 +187,8 @@ export const ImageTools: React.FC = () => {
         </div>
 
         {/* RIGHT: info */}
-        <div className="bg-slate-900 rounded-2xl p-5 text-white space-y-4 sticky top-24">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Info Mode</p>
+        <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 sticky top-24">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Info Mode</p>
           <div className="flex items-center gap-3">
             <span className={cn("text-blue-400")}>{IMG_MODES.find(m2 => m2.id === mode)?.icon}</span>
             <p className="font-bold text-white">{IMG_MODES.find(m2 => m2.id === mode)?.label}</p>

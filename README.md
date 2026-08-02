@@ -16,6 +16,8 @@ Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semu
 | **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing |
 | **Rak Utilitas** | JSON formatter, Base64, bulk teks/data, kalkulator pajak & bunga, statistik, WA link, password & token generator, hapus metadata gambar |
 
+Mendukung mode terang & gelap yang mengikuti preferensi sistem atau bisa diatur manual, dan tersimpan otomatis untuk kunjungan berikutnya.
+
 ---
 
 ## 🔒 Privasi & Keamanan

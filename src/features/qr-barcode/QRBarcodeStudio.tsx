@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   QrCode, Barcode, Link2, Type, Wifi, Mail, Phone,
   Upload, Loader2, Download, ShieldCheck,
@@ -22,9 +23,16 @@ const QR_TEMPLATES: { id: QrTemplate; label: string; icon: React.ReactNode }[] =
 // ─── QR & Barcode Studio ──────────────────────────────────────────────────────
 
 type QrTemplate = "url" | "text" | "wifi" | "email" | "phone";
+type QrMode = "qr-code" | "barcode";
+
+const QR_MODES: { id: QrMode; icon: React.ReactNode; label: string; sub: string }[] = [
+  { id: "qr-code", icon: <QrCode className="w-5 h-5" />, label: "QR Code", sub: "5 template • logo • warna" },
+  { id: "barcode", icon: <Barcode className="w-5 h-5" />, label: "Barcode", sub: "6 format • validasi otomatis" },
+];
 
 export const QRBarcodeStudio: React.FC = () => {
-  const [mode, setMode] = useState<"qr" | "barcode">("qr");
+  const { mode: modeParam } = useParams<{ mode: string }>();
+  const mode: QrMode = modeParam === "barcode" ? "barcode" : "qr-code";
   const [qrTemplate, setQrTemplate] = useState<QrTemplate>("url");
   const [qrUrl, setQrUrl] = useState("https://gamato-piranti.local");
   const [qrText, setQrText] = useState("");
@@ -83,7 +91,7 @@ export const QRBarcodeStudio: React.FC = () => {
     setError(null);
     setIsGenerating(true);
     try {
-      if (mode === "qr") {
+      if (mode === "qr-code") {
         const payload = buildQrPayload();
         if (!payload.trim()) { setError("Isi QR belum lengkap."); return; }
         const baseCanvas = document.createElement("canvas");
@@ -133,7 +141,7 @@ export const QRBarcodeStudio: React.FC = () => {
 
   // Auto-generate QR on change
   useEffect(() => {
-    if (mode !== "qr") return;
+    if (mode !== "qr-code") return;
     const payload = buildQrPayload();
     if (!payload.trim()) return;
     const timer = setTimeout(() => generate(), 300);
@@ -155,33 +163,33 @@ export const QRBarcodeStudio: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Mode toggle */}
+      {/* Mode toggle — now a real submenu with its own URL */}
       <div className="grid grid-cols-2 gap-3">
-        {[{ id: "qr", icon: <QrCode className="w-5 h-5" />, label: "QR Code", sub: "5 template • logo • warna" }, { id: "barcode", icon: <Barcode className="w-5 h-5" />, label: "Barcode", sub: "6 format • validasi otomatis" }].map(m => (
-          <button key={m.id} type="button" onClick={() => setMode(m.id as "qr" | "barcode")}
-            className={cn("rounded-2xl border-2 p-4 text-left transition-all flex items-center gap-3", mode === m.id ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300")}>
-            <span className={cn("shrink-0", mode === m.id ? "text-blue-600" : "text-slate-400")}>{m.icon}</span>
+        {QR_MODES.map(m => (
+          <Link key={m.id} to={`/qr/${m.id}`}
+            className={cn("rounded-2xl border-2 p-4 text-left transition-all flex items-center gap-3", mode === m.id ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300")}>
+            <span className={cn("shrink-0", mode === m.id ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500")}>{m.icon}</span>
             <div>
-              <div className={cn("font-bold text-base", mode === m.id ? "text-blue-700" : "text-slate-900")}>{m.label}</div>
-              <div className="text-xs text-slate-500 mt-0.5">{m.sub}</div>
+              <div className={cn("font-bold text-base", mode === m.id ? "text-blue-700 dark:text-blue-300" : "text-slate-900 dark:text-white")}>{m.label}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{m.sub}</div>
             </div>
-          </button>
+          </Link>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-[1fr_400px] gap-8 items-start">
         {/* LEFT: Controls */}
         <div className="space-y-5">
-          {mode === "qr" && (
+          {mode === "qr-code" && (
             <>
               {/* Template selector */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Template QR</p>
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Template QR</p>
                 <div className="flex flex-wrap gap-2">
                   {QR_TEMPLATES.map(t => (
                     <button key={t.id} type="button" onClick={() => setQrTemplate(t.id)}
                       className={cn("flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
-                        qrTemplate === t.id ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:bg-blue-50")}>
+                        qrTemplate === t.id ? "bg-slate-900 text-white border-slate-900" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-blue-50")}>
                       {t.icon}<span>{t.label}</span>
                     </button>
                   ))}
@@ -189,7 +197,7 @@ export const QRBarcodeStudio: React.FC = () => {
               </div>
 
               {/* Template form */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
                 {qrTemplate === "url" && <Input label="URL / Link" value={qrUrl} onChange={e => setQrUrl(sanitizeUrl(e.target.value))} placeholder="https://example.com" type="url" />}
                 {qrTemplate === "text" && <Textarea label="Teks Bebas" rows={5} value={qrText} onChange={e => setQrText(sanitizeText(e.target.value))} placeholder="Ketik pesan, catatan, atau instruksi…" />}
                 {qrTemplate === "wifi" && (
@@ -203,8 +211,8 @@ export const QRBarcodeStudio: React.FC = () => {
                       </Select>
                       <Input label="Password" type="password" disabled={qrWifiEnc === "nopass"} value={qrWifiPass} onChange={e => setQrWifiPass(sanitizeText(e.target.value))} placeholder={qrWifiEnc === "nopass" ? "—" : "Password WiFi"} />
                     </div>
-                    <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                      <input type="checkbox" checked={qrWifiHidden} onChange={e => setQrWifiHidden(e.target.checked)} className="rounded border-slate-300 accent-blue-600" />
+                    <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+                      <input type="checkbox" checked={qrWifiHidden} onChange={e => setQrWifiHidden(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 accent-blue-600" />
                       Jaringan tersembunyi (hidden SSID)
                     </label>
                   </div>
@@ -224,7 +232,7 @@ export const QRBarcodeStudio: React.FC = () => {
           )}
 
           {mode === "barcode" && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <Textarea label="Konten Barcode" rows={4} value={barcodeContent} onChange={e => setBarcodeContent(sanitizeText(e.target.value))} placeholder="Kode produk, SKU, atau angka…" />
               <div className="grid grid-cols-2 gap-4">
                 <Select label="Format" value={barcodeFormat} onChange={e => setBarcodeFormat(e.target.value)}>
@@ -237,54 +245,54 @@ export const QRBarcodeStudio: React.FC = () => {
                 </Select>
                 <Input label="Tinggi (px)" type="number" min={40} max={200} value={barcodeHeight} onChange={e => setBarcodeHeight(Number(e.target.value) || 80)} />
               </div>
-              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">Format EAN/UPC/ITF hanya mendukung angka dengan panjang tertentu.</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2">Format EAN/UPC/ITF hanya mendukung angka dengan panjang tertentu.</p>
             </div>
           )}
 
           {/* Customization */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Kustomisasi</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Kustomisasi</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Warna Utama</Label>
                 <div className="flex items-center gap-3 mt-1">
-                  <input type="color" value={fgColor} onChange={e => setFgColor(e.target.value)} className="h-11 w-11 rounded-xl border border-slate-200 cursor-pointer p-0.5 shadow-sm" />
-                  <span className="text-sm font-mono text-slate-500">{fgColor}</span>
+                  <input type="color" value={fgColor} onChange={e => setFgColor(e.target.value)} className="h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 shadow-sm" />
+                  <span className="text-sm font-mono text-slate-500 dark:text-slate-400">{fgColor}</span>
                 </div>
               </div>
               <div>
                 <Label>Warna Latar</Label>
                 <div className="flex items-center gap-3 mt-1">
-                  <input type="color" value={bgColor} onChange={e => setBgColor(e.target.value)} className="h-11 w-11 rounded-xl border border-slate-200 cursor-pointer p-0.5 shadow-sm" />
-                  <span className="text-sm font-mono text-slate-500">{bgColor}</span>
+                  <input type="color" value={bgColor} onChange={e => setBgColor(e.target.value)} className="h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 shadow-sm" />
+                  <span className="text-sm font-mono text-slate-500 dark:text-slate-400">{bgColor}</span>
                 </div>
               </div>
             </div>
 
-            {mode === "qr" && (
+            {mode === "qr-code" && (
               <>
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <Label>Ukuran QR</Label>
-                    <span className="text-sm font-bold text-blue-600">{size}px</span>
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{size}px</span>
                   </div>
-                  <input type="range" min={128} max={512} value={size} onChange={e => setSize(Number(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-blue-600 bg-slate-200" />
+                  <input type="range" min={128} max={512} value={size} onChange={e => setSize(Number(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-blue-600 bg-slate-200 dark:bg-slate-700" />
                 </div>
 
                 <div>
                   <Label>Logo Tengah (Opsional)</Label>
-                  <label className="mt-1 flex items-center justify-center border-2 border-dashed border-slate-300 rounded-xl p-5 cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-all group">
+                  <label className="mt-1 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-5 cursor-pointer hover:border-blue-400 hover:bg-blue-50/40 transition-all group">
                     {logoPreview ? (
                       <div className="flex items-center gap-4 w-full">
-                        <img src={logoPreview} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-sm" />
-                        <span className="flex-1 text-sm text-slate-600 font-medium">Logo terpasang </span>
+                        <img src={logoPreview} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
+                        <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium">Logo terpasang </span>
                         <button type="button" onClick={e => { e.preventDefault(); setLogoFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700">Hapus</button>
                       </div>
                     ) : (
                       <div className="text-center">
-                        <div className="flex justify-center mb-2 text-slate-400"><Upload className="w-7 h-7" /></div>
-                        <p className="text-sm font-semibold text-slate-600">Upload Logo <span className="text-blue-600">PNG/JPG</span></p>
-                        <p className="text-xs text-slate-400 mt-1">Akan tampil di tengah QR code</p>
+                        <div className="flex justify-center mb-2 text-slate-400 dark:text-slate-500"><Upload className="w-7 h-7" /></div>
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload Logo <span className="text-blue-600 dark:text-blue-400">PNG/JPG</span></p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Akan tampil di tengah QR code</p>
                       </div>
                     )}
                     <input type="file" className="hidden" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] ?? null)} />
@@ -294,36 +302,36 @@ export const QRBarcodeStudio: React.FC = () => {
             )}
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 flex gap-2"><span></span>{error}</div>}
+          {error && <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3 flex gap-2"><span></span>{error}</div>}
 
-          <Btn onClick={generate} disabled={isGenerating || !(mode === "qr" ? !!buildQrPayload().trim() : !!barcodeContent.trim())} className="w-full py-4 text-base">
-            {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" />Memproses…</> : mode === "qr" ? <><QrCode className="w-4 h-4" />Generate QR Code</> : <><Barcode className="w-4 h-4" />Generate Barcode</>}
+          <Btn onClick={generate} disabled={isGenerating || !(mode === "qr-code" ? !!buildQrPayload().trim() : !!barcodeContent.trim())} className="w-full py-4 text-base">
+            {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" />Memproses…</> : mode === "qr-code" ? <><QrCode className="w-4 h-4" />Generate QR Code</> : <><Barcode className="w-4 h-4" />Generate Barcode</>}
           </Btn>
         </div>
 
         {/* RIGHT: Preview */}
         <div className="sticky top-24 space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 text-center">Preview Real-time</p>
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl border border-slate-200 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
-            {mode === "qr" ? (
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Preview Real-time</p>
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
+            {mode === "qr-code" ? (
               qrUrlImage ? (
-                <div className="bg-white p-5 rounded-2xl shadow-2xl shadow-slate-200/80">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-2xl shadow-slate-200/80">
                   <img src={qrUrlImage} alt="QR Code" className="rounded-xl" style={{ width: Math.min(size, 260), height: Math.min(size, 260) }} />
                 </div>
               ) : (
-                <div className="w-56 h-56 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center">
-                  <p className="text-sm text-slate-400 text-center px-6">Isi form di kiri untuk melihat preview QR</p>
+                <div className="w-56 h-56 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center">
+                  <p className="text-sm text-slate-400 dark:text-slate-500 text-center px-6">Isi form di kiri untuk melihat preview QR</p>
                 </div>
               )
             ) : (
-              <div className="bg-white p-5 rounded-2xl shadow-xl w-full">
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-xl w-full">
                 <canvas ref={barcodeCanvasRef} className="max-w-full" />
-                {!barcodeContent.trim() && <div className="h-28 flex items-center justify-center"><p className="text-sm text-slate-400">Isi konten barcode</p></div>}
+                {!barcodeContent.trim() && <div className="h-28 flex items-center justify-center"><p className="text-sm text-slate-400 dark:text-slate-500">Isi konten barcode</p></div>}
               </div>
             )}
           </div>
 
-          {mode === "qr" ? (
+          {mode === "qr-code" ? (
             <Btn onClick={downloadQR} disabled={!qrUrlImage} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white border-0 text-base shadow-lg shadow-blue-600/20">
               <><Download className="w-4 h-4" />Unduh QR · PNG</>
             </Btn>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   Code2, ListOrdered, Radio, Mail, Calculator, TrendingUp, BarChart3,
   MessageCircle, KeyRound, Eraser, Info, ArrowLeftRight, Copy,
@@ -10,7 +11,26 @@ import { fileToDataUrl, downloadBlob } from "@/lib/file";
 import { Label, Input, Select, Textarea, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 
-const UTILITY_TABS: { id: string; label: string; icon: React.ReactNode }[] = [
+type Tab = "json" | "bulk" | "media" | "alias" | "tax" | "interest" | "stats" | "wa" | "pass" | "meta";
+
+// URL slug (Indonesian) <-> internal tab id
+const UTILITY_TAB_SLUGS: Record<Tab, string> = {
+  json: "json-base64",
+  bulk: "bulk-teks",
+  media: "link-media",
+  alias: "alias-email",
+  tax: "kalkulator-pajak",
+  interest: "kalkulator-bunga",
+  stats: "statistik",
+  wa: "wa-link",
+  pass: "password-token",
+  meta: "hapus-metadata",
+};
+const SLUG_TO_UTILITY_TAB: Record<string, Tab> = Object.fromEntries(
+  Object.entries(UTILITY_TAB_SLUGS).map(([tab, slug]) => [slug, tab as Tab])
+);
+
+const UTILITY_TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "json",     label: "JSON & Base64",  icon: <Code2         className="w-3.5 h-3.5" /> },
   { id: "bulk",     label: "Bulk Teks",      icon: <ListOrdered   className="w-3.5 h-3.5" /> },
   { id: "media",    label: "Link Media",     icon: <Radio         className="w-3.5 h-3.5" /> },
@@ -26,10 +46,10 @@ const UTILITY_TABS: { id: string; label: string; icon: React.ReactNode }[] = [
 // ─── Utility Shelf helpers ────────────────────────────────────────────────────
 
 export const PanelCard: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
-  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm space-y-5">
     <div>
-      <h3 className="font-bold text-slate-900 text-base">{title}</h3>
-      {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
+      <h3 className="font-bold text-slate-900 dark:text-white text-base">{title}</h3>
+      {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{subtitle}</p>}
     </div>
     {children}
   </div>
@@ -38,8 +58,8 @@ export const PanelCard: React.FC<{ title: string; subtitle?: string; children: R
 // ─── Utility Shelf ────────────────────────────────────────────────────────────
 
 export const UtilityShelf: React.FC = () => {
-  type Tab = "json" | "bulk" | "media" | "alias" | "tax" | "interest" | "stats" | "wa" | "pass" | "meta";
-  const [tab, setTab] = useState<Tab>("json");
+  const { mode: tabSlug } = useParams<{ mode: string }>();
+  const tab: Tab = (tabSlug && SLUG_TO_UTILITY_TAB[tabSlug]) || "json";
   const [textInput, setTextInput] = useState("");
   const [jsonPretty, setJsonPretty] = useState("");
   const [base64, setBase64] = useState("");
@@ -222,29 +242,16 @@ export const UtilityShelf: React.FC = () => {
     } catch (err: any) { setMetaInfo("" + (err?.message || "Gagal.")); }
   };
 
-  const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "json",     label: "JSON & Base64",    icon: <Code2 className="w-3.5 h-3.5" /> },
-    { id: "bulk",     label: "Bulk Teks",         icon: <ListOrdered className="w-3.5 h-3.5" /> },
-    { id: "media",    label: "Link Media",         icon: <Radio className="w-3.5 h-3.5" /> },
-    { id: "alias",    label: "Alias Email",        icon: <Mail className="w-3.5 h-3.5" /> },
-    { id: "tax",      label: "Kalk. Pajak",        icon: <Calculator className="w-3.5 h-3.5" /> },
-    { id: "interest", label: "Kalk. Bunga",        icon: <TrendingUp className="w-3.5 h-3.5" /> },
-    { id: "stats",    label: "Statistik",          icon: <BarChart3 className="w-3.5 h-3.5" /> },
-    { id: "wa",       label: "WA Link",            icon: <MessageCircle className="w-3.5 h-3.5" /> },
-    { id: "pass",     label: "Password & Token",   icon: <KeyRound className="w-3.5 h-3.5" /> },
-    { id: "meta",     label: "Hapus Metadata",     icon: <Eraser className="w-3.5 h-3.5" /> },
-  ];
-
   return (
     <div className="space-y-5">
-      {/* Tab selector */}
+      {/* Tab selector — submenu with dedicated URL per tool */}
       <div className="flex flex-wrap gap-2">
         {UTILITY_TABS.map(t => (
-          <button key={t.id} type="button" onClick={() => setTab(t.id as Tab)}
+          <Link key={t.id} to={`/utility/${UTILITY_TAB_SLUGS[t.id]}`}
             className={cn("flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold border-2 transition-all",
-              tab === t.id ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50")}>
+              tab === t.id ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-slate-300 hover:bg-slate-50")}>
             {t.icon}<span>{t.label}</span>
-          </button>
+          </Link>
         ))}
       </div>
 
@@ -285,7 +292,7 @@ export const UtilityShelf: React.FC = () => {
                   <Btn key={k} onClick={() => runBulkOp(k as any)} variant="secondary" className="text-xs py-1.5">{l}</Btn>
                 ))}
               </div>
-              {bulkInfo && <p className="text-xs text-green-600 font-medium">{bulkInfo}</p>}
+              {bulkInfo && <p className="text-xs text-green-600 dark:text-green-400 font-medium">{bulkInfo}</p>}
             </div>
             <div className="space-y-3">
               <Textarea label="Hasil" rows={10} value={bulkOutput} onChange={e => setBulkOutput(e.target.value)} placeholder="Hasil akan tampil di sini…" />
@@ -301,14 +308,14 @@ export const UtilityShelf: React.FC = () => {
           <div className="space-y-4 max-w-xl">
             <Input label="URL Video / File" type="url" value={mediaUrl} onChange={e => setMediaUrl(e.target.value)} placeholder="https://example.com/video.mp4" />
             <Btn onClick={analyzeMedia} variant="secondary" className="gap-2"><Info className="w-4 h-4" />Analisis Link</Btn>
-            {mediaInfo && <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700">{mediaInfo}</div>}
+            {mediaInfo && <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{mediaInfo}</div>}
             {directDownload && (
               <a href={directDownload} download className="flex items-center justify-between gap-3 bg-slate-900 text-white rounded-xl px-5 py-3 font-semibold hover:bg-slate-800 transition-colors">
                 <span>Unduh Langsung</span>
-                <span className="text-xs text-slate-400">Buka tab baru jika gagal</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500">Buka tab baru jika gagal</span>
               </a>
             )}
-            <p className="text-xs text-slate-400 bg-slate-50 rounded-xl p-3">Untuk YouTube/TikTok/Instagram, gunakan: <code className="bg-slate-200 rounded px-1">yt-dlp "URL"</code> di terminal.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-xl p-3">Untuk YouTube/TikTok/Instagram, gunakan: <code className="bg-slate-200 dark:bg-slate-700 rounded px-1">yt-dlp "URL"</code> di terminal.</p>
           </div>
         </PanelCard>
       )}
@@ -324,8 +331,8 @@ export const UtilityShelf: React.FC = () => {
               <Btn onClick={() => copyToClipboard(aliasEmail || "", setAliasInfo)} disabled={!aliasEmail} variant="secondary" className="flex-1 gap-2"><Copy className="w-4 h-4" />Salin</Btn>
             </div>
             {aliasEmail && <div className="bg-slate-900 rounded-xl px-4 py-3 font-mono text-sm text-emerald-400 break-all">{aliasEmail}</div>}
-            {aliasInfo && <p className="text-xs text-slate-500">{aliasInfo}</p>}
-            <p className="text-xs text-slate-400">Gamato Piranti tidak membuat inbox. Gunakan bersama layanan temp-mail atau forwarder pilihan Anda.</p>
+            {aliasInfo && <p className="text-xs text-slate-500 dark:text-slate-400">{aliasInfo}</p>}
+            <p className="text-xs text-slate-400 dark:text-slate-500">Gamato Piranti tidak membuat inbox. Gunakan bersama layanan temp-mail atau forwarder pilihan Anda.</p>
           </div>
         </PanelCard>
       )}
@@ -344,12 +351,12 @@ export const UtilityShelf: React.FC = () => {
                 {[["exclusive", "Eksklusif (belum termasuk pajak)"], ["inclusive", "Inklusif (sudah termasuk pajak)"]].map(([v, l]) => (
                   <button key={v} type="button" onClick={() => setTaxMode(v as any)}
                     className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
-                      taxMode === v ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300")}>{l}</button>
+                      taxMode === v ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}>{l}</button>
                 ))}
               </div>
             </div>
             <Btn onClick={runTaxCalc} className="w-full gap-2"><Calculator className="w-4 h-4" />Hitung Pajak</Btn>
-            {taxOutput && <pre className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 whitespace-pre-wrap">{taxOutput}</pre>}
+            {taxOutput && <pre className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{taxOutput}</pre>}
           </div>
         </PanelCard>
       )}
@@ -370,7 +377,7 @@ export const UtilityShelf: React.FC = () => {
               </Select>
             </div>
             <Btn onClick={runInterestCalc} className="w-full gap-2"><TrendingUp className="w-4 h-4" />Hitung Bunga</Btn>
-            {interestOutput && <pre className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 whitespace-pre-wrap">{interestOutput}</pre>}
+            {interestOutput && <pre className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{interestOutput}</pre>}
           </div>
         </PanelCard>
       )}
@@ -381,7 +388,7 @@ export const UtilityShelf: React.FC = () => {
           <div className="space-y-4 max-w-lg">
             <Textarea label="Angka (pisahkan dengan spasi, koma, atau baris baru)" rows={5} value={statsInput} onChange={e => setStatsInput(e.target.value)} placeholder="10 20 30 40 50&#10;atau&#10;1, 2, 3, 4, 5" />
             <Btn onClick={runStats} className="w-full gap-2"><BarChart3 className="w-4 h-4" />Analisis</Btn>
-            {statsOutput && <pre className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 whitespace-pre-wrap font-mono">{statsOutput}</pre>}
+            {statsOutput && <pre className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap font-mono">{statsOutput}</pre>}
           </div>
         </PanelCard>
       )}
@@ -414,7 +421,7 @@ export const UtilityShelf: React.FC = () => {
             </div>
             {waLink && (
               <div className="space-y-2">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 break-all">{waLink}</div>
+                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 dark:text-slate-200 break-all">{waLink}</div>
                 <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-green-500 text-white rounded-xl py-3 font-semibold hover:bg-green-600 transition-colors">
                   <MessageCircle className="w-4 h-4" /> Buka di WhatsApp
                 </a>
@@ -429,14 +436,14 @@ export const UtilityShelf: React.FC = () => {
         <PanelCard title="Password & Token Generator" subtitle="Berbasis Web Crypto API — aman dan acak">
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <p className="text-sm font-bold text-slate-700">Password Generator</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Password Generator</p>
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Panjang Password" type="number" min={6} max={128} value={pwLength} onChange={e => setPwLength(parseInt(e.target.value) || 16)} />
                 <div>
                   <Label>Karakter</Label>
                   <div className="mt-2 space-y-1.5">
                     {[["pwUpper", "Huruf Besar", pwUpper, setPwUpper], ["pwLower", "Huruf Kecil", pwLower, setPwLower], ["pwNumber", "Angka", pwNumber, setPwNumber], ["pwSymbol", "Simbol", pwSymbol, setPwSymbol]].map(([id, l, v, s]: any) => (
-                      <label key={id} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                      <label key={id} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
                         <input type="checkbox" checked={v} onChange={e => s(e.target.checked)} className="rounded accent-blue-600" />{l}
                       </label>
                     ))}
@@ -452,7 +459,7 @@ export const UtilityShelf: React.FC = () => {
               )}
             </div>
             <div className="space-y-4">
-              <p className="text-sm font-bold text-slate-700">Token Generator</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Token Generator</p>
               <div className="grid grid-cols-2 gap-4">
                 <Input label="Panjang (byte)" type="number" min={4} max={128} value={tokenBytes} onChange={e => setTokenBytes(parseInt(e.target.value) || 32)} />
                 <Select label="Format" value={tokenFormat} onChange={e => setTokenFormat(e.target.value as any)}>
@@ -470,7 +477,7 @@ export const UtilityShelf: React.FC = () => {
               )}
             </div>
           </div>
-          <p className="text-xs text-slate-400 border-t border-slate-100 pt-4">Gamato Piranti tidak mengirim password/token ke server mana pun. Simpan dengan aman di password manager.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-4">Gamato Piranti tidak mengirim password/token ke server mana pun. Simpan dengan aman di password manager.</p>
         </PanelCard>
       )}
 
@@ -480,16 +487,16 @@ export const UtilityShelf: React.FC = () => {
           <div className="space-y-4 max-w-lg">
             <Dropzone onFiles={f => setMetaFiles(f.filter(f2 => f2.type.startsWith("image/")))} accept="image/*" label="Drop gambar di sini" sublabel="Bisa pilih beberapa sekaligus" icon={<ImageIcon className="w-8 h-8" />} />
             {metaFiles.length > 0 && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                <p className="text-sm font-semibold text-slate-700">{metaFiles.length} gambar dipilih</p>
+              <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{metaFiles.length} gambar dipilih</p>
                 <ul className="mt-2 space-y-1">
-                  {metaFiles.map((f, i) => <li key={i} className="text-xs text-slate-500 truncate">• {f.name} ({(f.size / 1024).toFixed(0)} KB)</li>)}
+                  {metaFiles.map((f, i) => <li key={i} className="text-xs text-slate-500 dark:text-slate-400 truncate">• {f.name} ({(f.size / 1024).toFixed(0)} KB)</li>)}
                 </ul>
               </div>
             )}
             <Btn onClick={runMetaClean} disabled={!metaFiles.length} className="w-full gap-2"><Eraser className="w-4 h-4" />Bersihkan Metadata</Btn>
-            {metaInfo && <div className={cn("text-sm rounded-xl px-4 py-3 border", metaInfo.startsWith("Gagal") ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200")}>{metaInfo}</div>}
-            <p className="text-xs text-slate-400">File diunduh ulang — tanpa metadata EXIF. Tidak ada yang dikirim ke server.</p>
+            {metaInfo && <div className={cn("text-sm rounded-xl px-4 py-3 border", metaInfo.startsWith("Gagal") ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>{metaInfo}</div>}
+            <p className="text-xs text-slate-400 dark:text-slate-500">File diunduh ulang — tanpa metadata EXIF. Tidak ada yang dikirim ke server.</p>
           </div>
         </PanelCard>
       )}

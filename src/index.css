@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* ── Dark mode via a toggleable .dark class (instead of only OS preference) ── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Global typeface ── */
+html {
+  font-family: "Alan Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
 /* ── Media elements ── */
 img, canvas, video, svg {
   max-width: 100%;
@@ -11,6 +19,17 @@ img, canvas, video, svg {
 html, body {
   width: 100%;
   overflow-x: hidden;
+}
+
+/* ── Smooth color transition when toggling theme ── */
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+.dark body {
+  background-color: #020617;
+  color: #f1f5f9;
 }
 
 /* ── Prevent zero min-width collapse ── */
@@ -47,9 +66,6 @@ textarea {
 /* ── Smooth scrolling ── */
 .scroll-area {
   -webkit-overflow-scrolling: touch;
-}
-html {
-  scroll-behavior: smooth;
 }
 
 /* ── Visible keyboard focus ── */

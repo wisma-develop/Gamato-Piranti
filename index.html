@@ -14,7 +14,22 @@
     <link rel="icon" type="image/png" href="/gamato-piranti.png" />
     <link rel="apple-touch-icon" href="/gamato-piranti.png" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Alan+Sans:wght@300..900&display=swap" rel="stylesheet" />
+
     <title>Gamato Piranti — Suite Alat Digital</title>
+
+    <script>
+      // Apply the saved/system theme before first paint to avoid a light/dark flash.
+      (function () {
+        try {
+          var stored = localStorage.getItem("gp-theme");
+          var isDark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (isDark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

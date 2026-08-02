@@ -108,36 +108,36 @@ export const DocTools: React.FC = () => {
       {/* Editor */}
       <div className="space-y-4">
         {/* Toolbar */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-200">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-slate-400" />
-              <Input value={fileName} onChange={e => setFileName(sanitizeFileName(e.target.value))} className="border-0 bg-transparent p-0 font-bold text-slate-800 text-base focus:ring-0 shadow-none" placeholder="Nama dokumen" />
+              <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+              <Input value={fileName} onChange={e => setFileName(sanitizeFileName(e.target.value))} className="border-0 bg-transparent p-0 font-bold text-slate-800 dark:text-slate-100 text-base focus:ring-0 shadow-none" placeholder="Nama dokumen" />
             </div>
-            <label className="text-sm text-blue-600 font-semibold cursor-pointer hover:text-blue-700">
+            <label className="text-sm text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:text-blue-700">
               Import .txt <input type="file" accept="text/plain" className="hidden" onChange={e => importTxt(e.target.files)} />
             </label>
           </div>
 
           {/* Quick actions */}
-          <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-slate-100 bg-white">
-            <span className="text-xs font-bold text-slate-400 self-center mr-1">Template:</span>
+          <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 self-center mr-1">Template:</span>
             {[["notulen", "Notulen"], ["surat", "Surat Resmi"], ["catatan", "Catatan Kerja"]].map(([k, l]) => (
-              <button key={k} type="button" onClick={() => generateTemplate(k as any)} className="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors">{l}</button>
+              <button key={k} type="button" onClick={() => generateTemplate(k as any)} className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition-colors">{l}</button>
             ))}
           </div>
-          <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-slate-100 bg-white">
-            <span className="text-xs font-bold text-slate-400 self-center mr-1">Ubah:</span>
+          <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 self-center mr-1">Ubah:</span>
             {[["trim", "Rapikan spasi"], ["noBlank", "Hapus baris kosong"]].map(([k, l]) => (
-              <button key={k} type="button" onClick={() => quickClean(k as any)} className="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg">{l}</button>
+              <button key={k} type="button" onClick={() => quickClean(k as any)} className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg">{l}</button>
             ))}
             {[["upper", "AA"], ["lower", "aa"], ["title", "Aa"]].map(([k, l]) => (
-              <button key={k} type="button" onClick={() => changeCase(k as any)} className="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg">{l}</button>
+              <button key={k} type="button" onClick={() => changeCase(k as any)} className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg">{l}</button>
             ))}
           </div>
 
           {/* Find & Replace */}
-          <div className="flex gap-3 px-5 py-3 border-b border-slate-100 bg-white items-end">
+          <div className="flex gap-3 px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 items-end">
             <div className="flex-1">
               <Input label="Cari" value={findText} onChange={e => setFindText(e.target.value)} placeholder="Teks yang dicari…" className="py-2" />
             </div>
@@ -145,12 +145,12 @@ export const DocTools: React.FC = () => {
               <Input label="Ganti dengan" value={replaceText} onChange={e => setReplaceText(e.target.value)} placeholder="Teks pengganti…" className="py-2" />
             </div>
             <Btn onClick={runFindReplace} disabled={!findText} variant="secondary" className="py-2 shrink-0">Ganti</Btn>
-            <button type="button" onClick={() => { setFindText(""); setReplaceText(""); }} className="text-xs text-slate-400 hover:text-slate-600 shrink-0 pb-0.5">Reset</button>
+            <button type="button" onClick={() => { setFindText(""); setReplaceText(""); }} className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 shrink-0 pb-0.5">Reset</button>
           </div>
 
           {/* Text area */}
           <textarea
-            className="w-full h-80 px-5 py-4 text-sm text-slate-800 leading-relaxed font-mono focus:outline-none resize-none"
+            className="w-full h-80 px-5 py-4 text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-mono focus:outline-none resize-none"
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="Mulai menulis di sini, atau gunakan template di atas…"
@@ -168,38 +168,38 @@ export const DocTools: React.FC = () => {
           <Btn onClick={() => { if (snapshot) { setText(snapshot); setDocInfo("Snapshot dipulihkan."); } }} disabled={!snapshot} variant="ghost">Pulihkan{snapshotLabel ? ` "${snapshotLabel}"` : ""}</Btn>
         </div>
 
-        {docInfo && <div className={cn("text-sm rounded-xl px-4 py-2.5 border font-medium", docInfo.startsWith("Gagal") || docInfo.startsWith("Teks tidak") ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-green-50 text-green-700 border-green-200")}>{docInfo}</div>}
+        {docInfo && <div className={cn("text-sm rounded-xl px-4 py-2.5 border font-medium", docInfo.startsWith("Gagal") || docInfo.startsWith("Teks tidak") ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>{docInfo}</div>}
       </div>
 
       {/* Stats sidebar */}
       <div className="space-y-4 sticky top-24">
-        <div className="bg-slate-900 rounded-2xl p-5 text-white space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Statistik</p>
+        <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Statistik</p>
           <div className="grid grid-cols-3 gap-3">
             {[["Kata", stats.words], ["Karakter", stats.chars], ["Baris", stats.lines]].map(([l, v]) => (
               <div key={l as string} className="text-center bg-slate-800 rounded-xl p-3">
                 <div className="text-2xl font-bold text-white">{v}</div>
-                <div className="text-xs text-slate-400 mt-0.5">{l}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{l}</div>
               </div>
             ))}
           </div>
 
           {/* Preview */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Preview</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Preview</p>
             <div className="bg-slate-800 rounded-xl p-3 max-h-40 overflow-hidden text-xs text-slate-300 leading-relaxed font-mono">
-              {text ? text.split("\n").slice(0, 10).map((l, i) => <p key={i} className="truncate">{l || "​"}</p>) : <p className="text-slate-500">Mulai menulis…</p>}
+              {text ? text.split("\n").slice(0, 10).map((l, i) => <p key={i} className="truncate">{l || "​"}</p>) : <p className="text-slate-500 dark:text-slate-400">Mulai menulis…</p>}
             </div>
           </div>
 
           {/* Outline */}
           {outline.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Outline</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Outline</p>
               <ul className="space-y-1">
                 {outline.slice(0, 8).map(item => (
                   <li key={item.index} className="text-xs text-slate-300 truncate flex gap-1.5">
-                    <span className="text-slate-500">›</span>{item.line}
+                    <span className="text-slate-500 dark:text-slate-400">›</span>{item.line}
                   </li>
                 ))}
               </ul>

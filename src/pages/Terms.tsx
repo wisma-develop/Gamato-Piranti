@@ -5,9 +5,9 @@ export default function Terms() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="max-w-3xl mx-auto space-y-5">
           <div className="text-center space-y-3 pb-2">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Kebijakan</span>
-            <h1 className="text-3xl font-bold text-slate-900">Terms of Service</h1>
-            <p className="text-slate-400 text-sm">Gamato Piranti · Terakhir diperbarui: 2 Maret 2026</p>
+            <span className="inline-block text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1 rounded-full">Kebijakan</span>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Ketentuan Layanan</h1>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">Gamato Piranti · Terakhir diperbarui: 2 Maret 2026</p>
           </div>
           <PolicySection num="1" title="Penerimaan Ketentuan">
             <p>Dengan mengakses situs ini, Anda menerima syarat dan ketentuan ini secara penuh. Hentikan penggunaan jika Anda tidak setuju dengan ketentuan yang berlaku.</p>

@@ -10,7 +10,7 @@ const tools = [
     icon: <QrCode className="w-7 h-7 text-white" />,
     title: 'QR & Barcode Studio',
     desc: 'Buat QR code dengan logo & warna kustom. Barcode multi-format untuk produk, tiket, dan lainnya.',
-    path: '/qr',
+    path: '/qr/qr-code',
     gradient: 'from-teal-400 to-emerald-600',
     badge: 'QR · Barcode',
   },
@@ -18,7 +18,7 @@ const tools = [
     icon: <FileText className="w-7 h-7 text-white" />,
     title: 'PDF Lab – Suite',
     desc: 'Toolkit PDF lengkap: kompres, gabung, pecah, atur ulang halaman, dan konversi.',
-    path: '/pdf',
+    path: '/pdf/gabung',
     gradient: 'from-blue-400 to-indigo-600',
     badge: '9 Mode',
   },
@@ -34,7 +34,7 @@ const tools = [
     icon: <ImageIcon className="w-7 h-7 text-white" />,
     title: 'Image Lab',
     desc: 'Kompres, ubah ukuran, konversi format, dan putar gambar langsung di perangkatmu.',
-    path: '/image',
+    path: '/image/kompres',
     gradient: 'from-orange-400 to-rose-500',
     badge: 'JPG · PNG · WEBP',
   },
@@ -42,7 +42,7 @@ const tools = [
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
     title: 'Rak Utilitas',
     desc: 'JSON formatter, Base64, kalkulator pajak & bunga, WhatsApp link, password generator, dan lainnya.',
-    path: '/utility',
+    path: '/utility/json-base64',
     gradient: 'from-pink-400 to-fuchsia-600',
     badge: '10+ Alat',
   },
@@ -79,27 +79,22 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
-            <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 mb-8">
-              <span className="w-6 h-px bg-indigo-400" />
-              <span>Versi 2.0 — antarmuka lebih rapi, alat semakin lengkap</span>
-            </span>
-
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.08]">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 dark:text-white mb-6 leading-[1.08]">
               Satu tempat untuk<br className="hidden md:block" />
-              {' '}<span className="text-indigo-600">semua alat digitalmu</span>
+              {' '}<span className="text-indigo-600 dark:text-indigo-400">semua alat digitalmu</span>
             </h1>
 
-            <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-500 mb-10 leading-relaxed">
+            <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-500 dark:text-slate-400 mb-10 leading-relaxed">
               Gamato Piranti merapikan kerja harian: QR code, PDF suite, editor dokumen, olah gambar, sampai puluhan utilitas kecil — cepat, aman, dan 100% gratis.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/qr" className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-semibold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2 group">
+              <Link to="/qr/qr-code" className="w-full sm:w-auto px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-lg shadow-slate-900/20 dark:shadow-black/40 flex items-center justify-center gap-2 group">
                 <span>Mulai Eksplorasi</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link to="/pdf" className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-2xl font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-slate-400" />
+              <Link to="/pdf/gabung" className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center justify-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                 <span>Lihat PDF Lab</span>
               </Link>
             </div>
@@ -111,23 +106,23 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <p className="text-sm font-semibold text-indigo-600 uppercase tracking-widest mb-3">Suite Lengkap</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Alat yang benar-benar terpakai</h2>
-          <p className="text-slate-500 mt-3 max-w-xl mx-auto">Tidak perlu pindah-pindah website. Semua kebutuhan digital ada di satu tempat.</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">Alat yang benar-benar terpakai</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-3 max-w-xl mx-auto">Tidak perlu pindah-pindah website. Semua kebutuhan digital ada di satu tempat.</p>
         </div>
 
         <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-80px' }}>
           {tools.map((tool) => (
             <motion.div key={tool.path} variants={cardVariants}>
               <Link to={tool.path} className="group block h-full">
-                <div className="h-full bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+                <div className="h-full bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:shadow-slate-200/60 dark:hover:shadow-black/40 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
                   <div className={`absolute top-0 right-0 w-40 h-40 bg-gradient-to-br ${tool.gradient} opacity-[0.06] rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:opacity-[0.12] transition-opacity`} />
                   <div className="flex items-start justify-between mb-5">
                     <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${tool.gradient} shadow-lg`}>{tool.icon}</div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">{tool.badge}</span>
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-700">{tool.badge}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">{tool.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{tool.desc}</p>
-                  <div className="mt-4 flex items-center text-indigo-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{tool.title}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{tool.desc}</p>
+                  <div className="mt-4 flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                     <span>Buka alat</span>
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </div>
@@ -140,7 +135,7 @@ export default function Home() {
 
       {/* ── Trust section ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-900 rounded-3xl overflow-hidden relative">
+        <div className="bg-slate-900 dark:ring-1 dark:ring-slate-800 rounded-3xl overflow-hidden relative">
           <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" />
           <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl" />
 

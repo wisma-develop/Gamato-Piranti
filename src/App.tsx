@@ -1,8 +1,9 @@
 import type { FC } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
 import { PageShell } from "@/components/PageShell";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import Home from "@/pages/Home";
 import About from "@/pages/About";
@@ -17,11 +18,15 @@ import { UtilityShelf } from "@/features/utility/UtilityShelf";
 
 export const App: FC = () => (
   <BrowserRouter>
+    <ScrollToTop />
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
+
+        {/* Kode — QR & Barcode Studio: /qr/qr-code, /qr/barcode */}
+        <Route path="qr" element={<Navigate to="/qr/qr-code" replace />} />
         <Route
-          path="qr"
+          path="qr/:mode"
           element={
             <PageShell
               badge="Kode"
@@ -32,8 +37,11 @@ export const App: FC = () => (
             </PageShell>
           }
         />
+
+        {/* Dokumen — PDF Lab: 9 mode, masing-masing punya URL sendiri */}
+        <Route path="pdf" element={<Navigate to="/pdf/gabung" replace />} />
         <Route
-          path="pdf"
+          path="pdf/:mode"
           element={
             <PageShell
               badge="Dokumen"
@@ -44,6 +52,8 @@ export const App: FC = () => (
             </PageShell>
           }
         />
+
+        {/* Dokumen — Doc Studio: alat tunggal, tanpa submenu */}
         <Route
           path="docs"
           element={
@@ -56,8 +66,11 @@ export const App: FC = () => (
             </PageShell>
           }
         />
+
+        {/* Gambar — Image Lab: 4 mode */}
+        <Route path="image" element={<Navigate to="/image/kompres" replace />} />
         <Route
-          path="image"
+          path="image/:mode"
           element={
             <PageShell
               badge="Gambar"
@@ -68,8 +81,11 @@ export const App: FC = () => (
             </PageShell>
           }
         />
+
+        {/* Utilitas — Rak Utilitas: 10 alat */}
+        <Route path="utility" element={<Navigate to="/utility/json-base64" replace />} />
         <Route
-          path="utility"
+          path="utility/:mode"
           element={
             <PageShell
               badge="Utilitas"
@@ -80,9 +96,13 @@ export const App: FC = () => (
             </PageShell>
           }
         />
+
         <Route path="about" element={<About />} />
         <Route path="privacy" element={<Privacy />} />
         <Route path="terms" element={<Terms />} />
+
+        {/* Fallback — arahkan path tak dikenal ke beranda */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
   </BrowserRouter>
