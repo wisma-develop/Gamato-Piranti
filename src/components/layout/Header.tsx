@@ -17,11 +17,12 @@ type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | null;
 
 type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
 
-const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode; items: MenuItem[] }[] = [
+const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode; rootPath: string; items: MenuItem[] }[] = [
   {
     id: 'kode',
     title: 'Kode',
     icon: <QrCode className="w-4 h-4" />,
+    rootPath: '/qr',
     items: [
       { name: 'QR Code', path: '/qr/qr-code', icon: <QrCode className="w-4 h-4 text-teal-500" /> },
       { name: 'Barcode', path: '/qr/barcode', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
@@ -31,6 +32,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     id: 'dokumen',
     title: 'Dokumen',
     icon: <FileText className="w-4 h-4" />,
+    rootPath: '/pdf',
     items: [
       { name: 'Gabung PDF',        path: '/pdf/gabung',        icon: <Layers className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
       { name: 'Pecah PDF',         path: '/pdf/pecah',         icon: <FileOutput className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
@@ -48,6 +50,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     id: 'gambar',
     title: 'Gambar',
     icon: <ImageIcon className="w-4 h-4" />,
+    rootPath: '/image',
     items: [
       { name: 'Kompres Gambar', path: '/image/kompres',  icon: <FileDown className="w-4 h-4 text-orange-500" /> },
       { name: 'Ubah Ukuran',    path: '/image/resize',   icon: <ArrowLeftRight className="w-4 h-4 text-orange-500" /> },
@@ -59,6 +62,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     id: 'utilitas',
     title: 'Utilitas',
     icon: <SlidersHorizontal className="w-4 h-4" />,
+    rootPath: '/utility',
     items: [
       { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" /> },
       { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" /> },
@@ -75,6 +79,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     id: 'spesial',
     title: 'Spesial',
     icon: <Sparkles className="w-4 h-4" />,
+    rootPath: '/special',
     items: [
       { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" /> },
       { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" /> },
@@ -198,6 +203,13 @@ export default function Header() {
                         <div className={`p-2 max-h-[70vh] overflow-y-auto ${wide ? 'grid grid-cols-2 gap-0.5' : 'space-y-0.5'}`}>
                           <GroupedItems items={group.items} onNavigate={() => setActiveDropdown(null)} dense={wide} />
                         </div>
+                        <Link
+                          to={group.rootPath}
+                          onClick={() => setActiveDropdown(null)}
+                          className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-500/10 border-t border-slate-100 dark:border-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
+                        >
+                          Lihat semua {group.title}
+                        </Link>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -286,6 +298,13 @@ export default function Header() {
                           <div className="p-1.5">
                             <GroupedItems items={group.items} onNavigate={() => setMobileOpen(false)} />
                           </div>
+                          <Link
+                            to={group.rootPath}
+                            onClick={() => setMobileOpen(false)}
+                            className="flex items-center justify-center gap-1.5 mx-1.5 mb-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
+                          >
+                            Lihat semua {group.title}
+                          </Link>
                         </motion.div>
                       )}
                     </AnimatePresence>

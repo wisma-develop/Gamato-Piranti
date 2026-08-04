@@ -105,11 +105,11 @@ export default function About() {
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Siap mencoba?</h2>
         <p className="text-slate-500 dark:text-slate-400">Tidak perlu daftar. Langsung pakai.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/qr/qr-code" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-lg shadow-slate-900/20 dark:shadow-black/30 group">
+          <Link to="/qr" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-lg shadow-slate-900/20 dark:shadow-black/30 group">
             <span>Buka QR Studio</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
-          <Link to="/pdf/gabung" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+          <Link to="/pdf" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
             PDF Lab
           </Link>
         </div>

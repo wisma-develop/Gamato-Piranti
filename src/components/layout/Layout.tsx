@@ -4,11 +4,11 @@ import Footer from './Footer';
 import { ChevronRight, Home } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, string> = {
-  qr: 'QR & Barcode Studio',
-  pdf: 'PDF Lab – Suite',
+  qr: 'Kode',
+  pdf: 'Dokumen',
   docs: 'Doc Studio',
-  image: 'Image Lab',
-  utility: 'Rak Utilitas',
+  image: 'Gambar',
+  utility: 'Utilitas',
   special: 'Spesial',
   about: 'Tentang Kami',
   privacy: 'Kebijakan Privasi',

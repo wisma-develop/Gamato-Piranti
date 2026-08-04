@@ -10,7 +10,7 @@ const tools = [
     icon: <QrCode className="w-7 h-7 text-white" />,
     title: 'QR & Barcode Studio',
     desc: 'QR code full custom — bentuk, warna, dan logo bebas diatur. Barcode multi-format dengan cetak massal ke PDF.',
-    path: '/qr/qr-code',
+    path: '/qr',
     gradient: 'from-teal-400 to-emerald-600',
     badge: 'QR · Barcode',
   },
@@ -18,7 +18,7 @@ const tools = [
     icon: <FileText className="w-7 h-7 text-white" />,
     title: 'PDF Lab – Suite',
     desc: 'Toolkit PDF lengkap: kompres, gabung, pecah, atur ulang halaman, dan konversi.',
-    path: '/pdf/gabung',
+    path: '/pdf',
     gradient: 'from-blue-400 to-indigo-600',
     badge: '9 Mode',
   },
@@ -34,7 +34,7 @@ const tools = [
     icon: <ImageIcon className="w-7 h-7 text-white" />,
     title: 'Image Lab',
     desc: 'Kompres, ubah ukuran, konversi format, dan putar gambar langsung di perangkatmu.',
-    path: '/image/kompres',
+    path: '/image',
     gradient: 'from-orange-400 to-rose-500',
     badge: 'JPG · PNG · WEBP',
   },
@@ -42,7 +42,7 @@ const tools = [
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
     title: 'Rak Utilitas',
     desc: 'JSON formatter, Base64, kalkulator pajak & bunga, statistik, password generator, dan lainnya.',
-    path: '/utility/json-base64',
+    path: '/utility',
     gradient: 'from-pink-400 to-fuchsia-600',
     badge: '9 Alat',
   },
@@ -50,7 +50,7 @@ const tools = [
     icon: <Award className="w-7 h-7 text-white" />,
     title: 'Spesial',
     desc: 'Generator sertifikat & piagam massal full custom, WA link, dan fitur andalan lainnya.',
-    path: '/special/sertifikat',
+    path: '/special',
     gradient: 'from-amber-400 to-orange-600',
     badge: 'Unggulan',
   },
@@ -97,11 +97,11 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/qr/qr-code" className="w-full sm:w-auto px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-lg shadow-slate-900/20 dark:shadow-black/40 flex items-center justify-center gap-2 group">
+              <Link to="/qr" className="w-full sm:w-auto px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-lg shadow-slate-900/20 dark:shadow-black/40 flex items-center justify-center gap-2 group">
                 <span>Mulai Eksplorasi</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link to="/pdf/gabung" className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center justify-center gap-2">
+              <Link to="/pdf" className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-2xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center justify-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                 <span>Lihat PDF Lab</span>
               </Link>
