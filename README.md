@@ -10,11 +10,12 @@ Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semu
 
 | Alat | Deskripsi |
 |------|-----------|
-| **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) + barcode berbagai format, warna & logo kustom |
+| **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) dengan bentuk & warna full custom (bukan QR generik) plus logo tengah; barcode berbagai format dengan cetak massal langsung ke PDF rapi |
 | **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF |
 | **Doc Studio** | Editor dokumen dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
 | **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing |
-| **Rak Utilitas** | JSON formatter, Base64, bulk teks/data, kalkulator pajak & bunga, statistik, WA link, password & token generator, hapus metadata gambar |
+| **Rak Utilitas** | JSON formatter, Base64, bulk teks/data, kalkulator pajak & bunga, statistik, password & token generator, hapus metadata gambar |
+| **Spesial** | Generator sertifikat & piagam massal full custom (template sendiri, font, warna, posisi bebas, ekspor ZIP/PDF), WA link, dan fitur unggulan lainnya |
 
 Mendukung mode terang & gelap yang mengikuti preferensi sistem atau bisa diatur manual, dan tersimpan otomatis untuk kunjungan berikutnya.
 

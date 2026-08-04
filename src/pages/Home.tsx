@@ -2,14 +2,14 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   QrCode, FileText, Image as ImageIcon, SlidersHorizontal, BookOpen,
-  ArrowRight, ShieldCheck, Cpu, Lock, Gauge
+  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award
 } from 'lucide-react';
 
 const tools = [
   {
     icon: <QrCode className="w-7 h-7 text-white" />,
     title: 'QR & Barcode Studio',
-    desc: 'Buat QR code dengan logo & warna kustom. Barcode multi-format untuk produk, tiket, dan lainnya.',
+    desc: 'QR code full custom — bentuk, warna, dan logo bebas diatur. Barcode multi-format dengan cetak massal ke PDF.',
     path: '/qr/qr-code',
     gradient: 'from-teal-400 to-emerald-600',
     badge: 'QR · Barcode',
@@ -41,10 +41,18 @@ const tools = [
   {
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
     title: 'Rak Utilitas',
-    desc: 'JSON formatter, Base64, kalkulator pajak & bunga, WhatsApp link, password generator, dan lainnya.',
+    desc: 'JSON formatter, Base64, kalkulator pajak & bunga, statistik, password generator, dan lainnya.',
     path: '/utility/json-base64',
     gradient: 'from-pink-400 to-fuchsia-600',
-    badge: '10+ Alat',
+    badge: '9 Alat',
+  },
+  {
+    icon: <Award className="w-7 h-7 text-white" />,
+    title: 'Spesial',
+    desc: 'Generator sertifikat & piagam massal full custom, WA link, dan fitur andalan lainnya.',
+    path: '/special/sertifikat',
+    gradient: 'from-amber-400 to-orange-600',
+    badge: 'Unggulan',
   },
 ];
 

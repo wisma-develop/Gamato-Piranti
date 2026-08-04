@@ -15,6 +15,7 @@ import { PdfTools } from "@/features/pdf/PdfTools";
 import { DocTools } from "@/features/docs/DocTools";
 import { ImageTools } from "@/features/image/ImageTools";
 import { UtilityShelf } from "@/features/utility/UtilityShelf";
+import { SpecialHub } from "@/features/special/SpecialHub";
 
 export const App: FC = () => (
   <BrowserRouter>
@@ -90,9 +91,24 @@ export const App: FC = () => (
             <PageShell
               badge="Utilitas"
               title="Rak Utilitas"
-              subtitle="10+ alat kecil: JSON formatter, Base64, bulk teks, kalkulator pajak & bunga, WA link, password & token generator, hapus metadata."
+              subtitle="10+ alat kecil: JSON formatter, Base64, bulk teks, kalkulator pajak & bunga, password & token generator, hapus metadata."
             >
               <UtilityShelf />
+            </PageShell>
+          }
+        />
+
+        {/* Spesial — fitur unggulan & power tools */}
+        <Route path="special" element={<Navigate to="/special/sertifikat" replace />} />
+        <Route
+          path="special/:mode"
+          element={
+            <PageShell
+              badge="Spesial"
+              title="Spesial"
+              subtitle="Fitur andalan Gamato Piranti — generator sertifikat massal full custom, WA link, dan alat khusus lainnya."
+            >
+              <SpecialHub />
             </PageShell>
           }
         />

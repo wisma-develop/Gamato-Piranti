@@ -33,6 +33,7 @@ export default function Footer() {
               <li><Link to="/docs" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Doc Studio</Link></li>
               <li><Link to="/image/kompres" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Image Lab</Link></li>
               <li><Link to="/utility/json-base64" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Rak Utilitas</Link></li>
+              <li><Link to="/special/sertifikat" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Spesial</Link></li>
             </ul>
           </div>
 

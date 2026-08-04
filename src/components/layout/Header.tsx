@@ -8,12 +8,12 @@ import {
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
   FileImage, AlignLeft, ArrowLeftRight, Wand2,
   ListOrdered, Radio, Mail, Calculator, TrendingUp, BarChart3,
-  MessageCircle, KeyRound, Eraser, Sun, Moon,
+  MessageCircle, KeyRound, Eraser, Sun, Moon, Sparkles, Award,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
 
-type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | null;
+type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | null;
 
 type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
 
@@ -67,9 +67,17 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Kalkulator Pajak', path: '/utility/kalkulator-pajak', icon: <Calculator className="w-4 h-4 text-pink-500" /> },
       { name: 'Kalkulator Bunga', path: '/utility/kalkulator-bunga', icon: <TrendingUp className="w-4 h-4 text-pink-500" /> },
       { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" /> },
-      { name: 'WA Link',          path: '/utility/wa-link',          icon: <MessageCircle className="w-4 h-4 text-pink-500" /> },
       { name: 'Password & Token', path: '/utility/password-token',   icon: <KeyRound className="w-4 h-4 text-pink-500" /> },
       { name: 'Hapus Metadata',   path: '/utility/hapus-metadata',   icon: <Eraser className="w-4 h-4 text-pink-500" /> },
+    ],
+  },
+  {
+    id: 'spesial',
+    title: 'Spesial',
+    icon: <Sparkles className="w-4 h-4" />,
+    items: [
+      { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" /> },
+      { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" /> },
     ],
   },
 ];

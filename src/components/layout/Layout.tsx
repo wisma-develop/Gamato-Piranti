@@ -9,6 +9,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   docs: 'Doc Studio',
   image: 'Image Lab',
   utility: 'Rak Utilitas',
+  special: 'Spesial',
   about: 'Tentang Kami',
   privacy: 'Kebijakan Privasi',
   terms: 'Ketentuan Layanan',
@@ -45,9 +46,12 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kalkulator-pajak': 'Kalkulator Pajak',
     'kalkulator-bunga': 'Kalkulator Bunga',
     'statistik': 'Statistik',
-    'wa-link': 'WA Link',
     'password-token': 'Password & Token',
     'hapus-metadata': 'Hapus Metadata',
+  },
+  special: {
+    'sertifikat': 'Sertifikat & Piagam',
+    'wa-link': 'WA Link',
   },
 };
 

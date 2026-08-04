@@ -2,16 +2,17 @@ import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Code2, ListOrdered, Radio, Mail, Calculator, TrendingUp, BarChart3,
-  MessageCircle, KeyRound, Eraser, Info, ArrowLeftRight, Copy,
+  KeyRound, Eraser, Info, ArrowLeftRight, Copy,
   Image as ImageIcon, Zap,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { sanitizeText, sanitizeUrl, sanitizeFileName, sanitizeNumberString, sanitizePhone } from "@/utils/sanitize";
 import { fileToDataUrl, downloadBlob } from "@/lib/file";
 import { Label, Input, Select, Textarea, Btn } from "@/components/ui/primitives";
+import { PanelCard } from "@/components/ui/PanelCard";
 import { Dropzone } from "@/components/ui/Dropzone";
 
-type Tab = "json" | "bulk" | "media" | "alias" | "tax" | "interest" | "stats" | "wa" | "pass" | "meta";
+type Tab = "json" | "bulk" | "media" | "alias" | "tax" | "interest" | "stats" | "pass" | "meta";
 
 // URL slug (Indonesian) <-> internal tab id
 const UTILITY_TAB_SLUGS: Record<Tab, string> = {
@@ -22,7 +23,6 @@ const UTILITY_TAB_SLUGS: Record<Tab, string> = {
   tax: "kalkulator-pajak",
   interest: "kalkulator-bunga",
   stats: "statistik",
-  wa: "wa-link",
   pass: "password-token",
   meta: "hapus-metadata",
 };
@@ -38,22 +38,12 @@ const UTILITY_TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "tax",      label: "Kalk. Pajak",    icon: <Calculator    className="w-3.5 h-3.5" /> },
   { id: "interest", label: "Kalk. Bunga",    icon: <TrendingUp    className="w-3.5 h-3.5" /> },
   { id: "stats",    label: "Statistik",      icon: <BarChart3     className="w-3.5 h-3.5" /> },
-  { id: "wa",       label: "WA Link",        icon: <MessageCircle className="w-3.5 h-3.5" /> },
   { id: "pass",     label: "Password & Token", icon: <KeyRound    className="w-3.5 h-3.5" /> },
   { id: "meta",     label: "Hapus Metadata", icon: <Eraser        className="w-3.5 h-3.5" /> },
 ];
 
 // ─── Utility Shelf helpers ────────────────────────────────────────────────────
-
-export const PanelCard: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({ title, subtitle, children }) => (
-  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm space-y-5">
-    <div>
-      <h3 className="font-bold text-slate-900 dark:text-white text-base">{title}</h3>
-      {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{subtitle}</p>}
-    </div>
-    {children}
-  </div>
-);
+// PanelCard now lives in @/components/ui/PanelCard (shared with the Spesial menu)
 
 // ─── Utility Shelf ────────────────────────────────────────────────────────────
 
@@ -84,9 +74,6 @@ export const UtilityShelf: React.FC = () => {
   const [interestOutput, setInterestOutput] = useState("");
   const [statsInput, setStatsInput] = useState("");
   const [statsOutput, setStatsOutput] = useState("");
-  const [waPhone, setWaPhone] = useState("");
-  const [waMessage, setWaMessage] = useState("");
-  const [waLink, setWaLink] = useState("");
   const [pwLength, setPwLength] = useState(16);
   const [pwUpper, setPwUpper] = useState(true);
   const [pwLower, setPwLower] = useState(true);
@@ -183,12 +170,6 @@ export const UtilityShelf: React.FC = () => {
     const median = count % 2 === 1 ? sorted[(count - 1) / 2] : (sorted[count / 2 - 1] + sorted[count / 2]) / 2;
     const stdev = Math.sqrt(nums.reduce((a, x) => a + Math.pow(x - mean, 2), 0) / count);
     setStatsOutput(`n = ${count}\nΣ = ${sum}\nMean = ${mean}\nMedian = ${median}\nMin = ${sorted[0]}\nMax = ${sorted[sorted.length - 1]}\nStdev = ${stdev.toFixed(4)}`);
-  };
-
-  const buildWa = () => {
-    const phone = sanitizePhone(waPhone), msg = sanitizeText(waMessage);
-    if (!phone) { setWaLink(""); return; }
-    setWaLink(`https://wa.me/${phone.replace(/^\+/, "")}${msg ? `?text=${encodeURIComponent(msg)}` : ""}`);
   };
 
   const generatePassword = () => {
@@ -389,44 +370,6 @@ export const UtilityShelf: React.FC = () => {
             <Textarea label="Angka (pisahkan dengan spasi, koma, atau baris baru)" rows={5} value={statsInput} onChange={e => setStatsInput(e.target.value)} placeholder="10 20 30 40 50&#10;atau&#10;1, 2, 3, 4, 5" />
             <Btn onClick={runStats} className="w-full gap-2"><BarChart3 className="w-4 h-4" />Analisis</Btn>
             {statsOutput && <pre className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap font-mono">{statsOutput}</pre>}
-          </div>
-        </PanelCard>
-      )}
-
-      {/* WA */}
-      {tab === "wa" && (
-        <PanelCard title="WhatsApp Direct Link" subtitle="Buka chat WA langsung tanpa perlu menyimpan kontak">
-          <div className="space-y-5">
-            <div className="grid md:grid-cols-2 gap-5">
-              <Input label="Nomor Telepon (dengan kode negara)" value={waPhone} onChange={e => setWaPhone(sanitizePhone(e.target.value))} placeholder="+62812xxxxxxx" />
-              <div>
-                <Label>Template Pesan Cepat</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {[
-                    { label: "Salam", fn: () => { const name = prompt("Nama penerima (opsional):") || ""; const safe = sanitizeText(name); setWaMessage((safe ? `Halo ${safe}, ` : "Halo, ") + "apa kabar? Saya ingin menghubungi terkait sesuatu."); } },
-                    { label: "Follow-up", fn: () => { const inv = sanitizeText(prompt("Nomor invoice:") || ""); const amt = sanitizeText(prompt("Jumlah (opsional):") || ""); setWaMessage(`Halo, ini tindak lanjut terkait invoice ${inv}. ${amt ? `Total ${amt}. ` : ""}Mohon konfirmasi penerimaan atau bila ada pertanyaan.`); } },
-                    { label: "Konfirmasi Bayar", fn: () => { const inv = sanitizeText(prompt("Nomor invoice/kode:") || ""); setWaMessage(`Halo, pembayaran untuk ${inv} telah kami terima. Terima kasih! Jika ada yang perlu dibantu lagi, kabari ya.`); } },
-                    { label: "Kirim Alamat", fn: () => { const addr = sanitizeText(prompt("Alamat/tautan lokasi:") || ""); const time = sanitizeText(prompt("Estimasi waktu (opsional):") || ""); setWaMessage(`Halo, berikut alamat/lokasi tujuan: ${addr}. ${time ? `Estimasi waktu: ${time}. ` : ""}Terima kasih.`); } },
-                    { label: "Reminder", fn: () => { const date = sanitizeText(prompt("Tanggal (mis. 12/03/2026):") || ""); const hour = sanitizeText(prompt("Jam (opsional):") || ""); const topic = sanitizeText(prompt("Topik/agenda (opsional):") || ""); setWaMessage(`Halo, mengingatkan jadwal pada ${date}${hour ? ` pukul ${hour}` : ""}${topic ? ` untuk ${topic}` : ""}. Terima kasih.`); } },
-                  ].map(t => (
-                    <Btn key={t.label} onClick={t.fn} variant="secondary" className="text-xs py-1.5">{t.label}</Btn>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <Textarea label="Pesan (opsional)" rows={4} value={waMessage} onChange={e => setWaMessage(sanitizeText(e.target.value))} placeholder="Tulis pesan Anda di sini, atau gunakan template di atas…" />
-            <div className="flex gap-3">
-              <Btn onClick={buildWa} className="flex-1 gap-2"><MessageCircle className="w-4 h-4" />Buat Link WA</Btn>
-              {waLink && <Btn onClick={() => copyToClipboard(waLink, setAliasInfo)} variant="secondary" className="flex-1 gap-2"><Copy className="w-4 h-4" />Salin Link</Btn>}
-            </div>
-            {waLink && (
-              <div className="space-y-2">
-                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 dark:text-slate-200 break-all">{waLink}</div>
-                <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-green-500 text-white rounded-xl py-3 font-semibold hover:bg-green-600 transition-colors">
-                  <MessageCircle className="w-4 h-4" /> Buka di WhatsApp
-                </a>
-              </div>
-            )}
           </div>
         </PanelCard>
       )}

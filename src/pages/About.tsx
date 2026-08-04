@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, BookOpen, Heart } from 'lucide-react';
+import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, BookOpen, Heart, Award } from 'lucide-react';
 
 const pillars = [
   {
@@ -21,11 +21,12 @@ const pillars = [
 ];
 
 const toolSuite = [
-  { icon: <QrCode className="w-5 h-5" />, label: 'QR & Barcode Studio', desc: 'QR code multi-template (URL, WiFi, email, telepon) dan barcode berbagai format dengan kustomisasi warna & logo.' },
+  { icon: <QrCode className="w-5 h-5" />, label: 'QR & Barcode Studio', desc: 'QR code full custom — bentuk titik & sudut, warna, hingga logo — bukan QR generik. Barcode berbagai format dengan cetak massal langsung ke PDF.' },
   { icon: <FileText className="w-5 h-5" />, label: 'PDF Lab – Suite', desc: '9 mode pemrosesan PDF: kompres, gabung, pecah, ekstrak, hapus, putar, atur halaman, gambar→PDF, dan teks→PDF.' },
   { icon: <BookOpen className="w-5 h-5" />, label: 'Doc Studio', desc: 'Editor teks ringan dengan ekspor .docx, .pdf, .txt. Dilengkapi Find & Replace, format case, snapshot sesi, dan template cepat.' },
   { icon: <ImageIcon className="w-5 h-5" />, label: 'Image Lab', desc: 'Kompres, ubah ukuran, konversi format (JPG/PNG/WEBP), dan putar gambar secara batch langsung di perangkatmu.' },
-  { icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Rak Utilitas', desc: '10+ alat kecil: JSON formatter, Base64, bulk teks, kalkulator pajak & bunga, statistik, WA link, password/token generator, dan hapus metadata gambar.' },
+  { icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Rak Utilitas', desc: '9 alat kecil: JSON formatter, Base64, bulk teks, kalkulator pajak & bunga, statistik, password/token generator, dan hapus metadata gambar.' },
+  { icon: <Award className="w-5 h-5" />, label: 'Spesial', desc: 'Generator sertifikat & piagam massal full custom (template, font, posisi bebas), WA link, dan fitur unggulan lainnya.' },
 ];
 
 export default function About() {
