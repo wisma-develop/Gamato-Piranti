@@ -1,0 +1,292 @@
+import React, { useState } from "react";
+import { Smile, Image as ImageIcon, Plus, Trash2, Loader2, Download } from "lucide-react";
+import { cn } from "@/utils/cn";
+import { downloadBlob } from "@/lib/file";
+import { loadImageFromUrl, canvasToBlob, makeCanvas } from "@/lib/canvas";
+import { Btn, Label, Textarea } from "@/components/ui/primitives";
+import { Dropzone } from "@/components/ui/Dropzone";
+import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+
+interface MemeLayer {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+  stroke: string;
+  strokeWidth: number;
+  uppercase: boolean;
+}
+
+const makeId = () => Math.random().toString(36).slice(2, 9);
+
+const defaultLayers = (): MemeLayer[] => [
+  { id: makeId(), text: "TOP TEXT", x: 0.5, y: 0.1, size: 9, color: "#ffffff", stroke: "#000000", strokeWidth: 14, uppercase: true },
+  { id: makeId(), text: "BOTTOM TEXT", x: 0.5, y: 0.9, size: 9, color: "#ffffff", stroke: "#000000", strokeWidth: 14, uppercase: true },
+];
+
+export const MemeGenerator: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
+  const [layers, setLayers] = useState<MemeLayer[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isWorking, setIsWorking] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const selected = layers.find((l) => l.id === selectedId) || null;
+  const updateSelected = (patch: Partial<MemeLayer>) => {
+    if (!selectedId) return;
+    setLayers((prev) => prev.map((l) => (l.id === selectedId ? { ...l, ...patch } : l)));
+  };
+
+  const addFiles = async (incoming: File[]) => {
+    const f = incoming.find((x) => x.type.startsWith("image/"));
+    if (!f) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    const url = URL.createObjectURL(f);
+    const img = await loadImageFromUrl(url);
+    setFile(f);
+    setPreviewUrl(url);
+    setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
+    const initial = defaultLayers();
+    setLayers(initial);
+    setSelectedId(initial[0].id);
+    setInfo(null);
+  };
+
+  const addLayer = () => {
+    const layer: MemeLayer = { id: makeId(), text: "Teks baru", x: 0.5, y: 0.5, size: 7, color: "#ffffff", stroke: "#000000", strokeWidth: 12, uppercase: false };
+    setLayers((prev) => [...prev, layer]);
+    setSelectedId(layer.id);
+  };
+
+  const removeLayer = (id: string) => {
+    setLayers((prev) => prev.filter((l) => l.id !== id));
+    if (selectedId === id) setSelectedId(null);
+  };
+
+  const startDrag = (id: string) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedId(id);
+    const rect = containerRef.current?.getBoundingClientRect();
+    const layer = layers.find((l) => l.id === id);
+    if (!rect || !layer) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startPos = { x: layer.x, y: layer.y };
+    const onMove = (ev: PointerEvent) => {
+      const dx = (ev.clientX - startX) / rect.width;
+      const dy = (ev.clientY - startY) / rect.height;
+      const x = Math.min(1, Math.max(0, startPos.x + dx));
+      const y = Math.min(1, Math.max(0, startPos.y + dy));
+      setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, x, y } : l)));
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  const handleExport = async () => {
+    if (!previewUrl || !naturalSize) return;
+    setIsWorking(true);
+    setInfo(null);
+    try {
+      const img = await loadImageFromUrl(previewUrl);
+      const { canvas, ctx } = makeCanvas(naturalSize.w, naturalSize.h);
+      ctx.drawImage(img, 0, 0);
+      layers.forEach((l) => {
+        const size = (l.size / 100) * canvas.width;
+        ctx.font = `900 ${size}px Impact, 'Arial Black', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.lineJoin = "round";
+        ctx.miterLimit = 2;
+        const lines = (l.uppercase ? l.text.toUpperCase() : l.text).split("\n");
+        const lineHeight = size * 1.15;
+        const startY = l.y * canvas.height - ((lines.length - 1) * lineHeight) / 2;
+        lines.forEach((line, i) => {
+          const yy = startY + i * lineHeight;
+          const lw = (l.strokeWidth / 100) * size;
+          if (lw > 0) {
+            ctx.lineWidth = lw;
+            ctx.strokeStyle = l.stroke;
+            ctx.strokeText(line, l.x * canvas.width, yy);
+          }
+          ctx.fillStyle = l.color;
+          ctx.fillText(line, l.x * canvas.width, yy);
+        });
+      });
+      const blob = await canvasToBlob(canvas, "image/png");
+      const base = (file?.name || "meme").replace(/\.[^.]+$/, "");
+      downloadBlob(blob, `${base}-meme.png`);
+      setInfo("Meme berhasil dibuat!");
+    } catch (err: any) {
+      setInfo("" + (err?.message || "Gagal membuat meme."));
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+      <div className="space-y-5">
+        {!previewUrl ? (
+          <Dropzone
+            onFiles={addFiles}
+            accept="image/*"
+            multiple={false}
+            label="Drop gambar dasar meme di sini"
+            sublabel="JPG, PNG, WEBP"
+            icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
+            isDragging={isDragging}
+            setIsDragging={setIsDragging}
+          />
+        ) : (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{file?.name}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  URL.revokeObjectURL(previewUrl);
+                  setFile(null);
+                  setPreviewUrl(null);
+                  setNaturalSize(null);
+                  setLayers([]);
+                  setSelectedId(null);
+                  setInfo(null);
+                }}
+                className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
+              >
+                Ganti File
+              </button>
+            </div>
+            <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-950">
+              <div ref={containerRef} className="relative select-none max-w-full" style={{ width: "min(100%, 560px)", aspectRatio: naturalSize ? `${naturalSize.w} / ${naturalSize.h}` : undefined }}>
+                <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none" draggable={false} />
+                {layers.map((l) => (
+                  <div
+                    key={l.id}
+                    onPointerDown={startDrag(l.id)}
+                    className={cn("absolute -translate-x-1/2 -translate-y-1/2 px-1 cursor-move touch-none whitespace-pre text-center font-black", selectedId === l.id && "outline outline-2 outline-indigo-400 outline-dashed")}
+                    style={{
+                      left: `${l.x * 100}%`,
+                      top: `${l.y * 100}%`,
+                      fontSize: `${l.size}cqw`,
+                      color: l.color,
+                      WebkitTextStroke: `${Math.max(0.5, l.strokeWidth / 14)}px ${l.stroke}`,
+                      fontFamily: "Impact, 'Arial Black', sans-serif",
+                      containerType: "inline-size",
+                    }}
+                  >
+                    {l.uppercase ? l.text.toUpperCase() : l.text}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {info && (
+          <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
+            {info}
+          </div>
+        )}
+
+        <Btn onClick={handleExport} disabled={isWorking || !previewUrl || !layers.length} className="w-full py-4 text-base">
+          {isWorking ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Memproses…
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              Buat &amp; Unduh Meme
+            </>
+          )}
+        </Btn>
+      </div>
+
+      <div className="space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Lapisan Teks</p>
+            <button type="button" onClick={addLayer} disabled={!previewUrl} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
+              <Plus className="w-3.5 h-3.5" /> Tambah
+            </button>
+          </div>
+          <div className="space-y-1.5">
+            {layers.map((l) => (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setSelectedId(l.id)}
+                className={cn("w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left", selectedId === l.id ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300")}
+              >
+                <span className="truncate flex-1">{l.text || "(kosong)"}</span>
+                <Trash2
+                  className="w-3.5 h-3.5 text-slate-400 hover:text-red-500 shrink-0 ml-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeLayer(l.id);
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selected && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Teks Terpilih</p>
+            <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value })} />
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" checked={selected.uppercase} onChange={(e) => updateSelected({ uppercase: e.target.checked })} className="rounded accent-indigo-600" />
+              HURUF BESAR otomatis
+            </label>
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <Label>Ukuran</Label>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.size}%</span>
+              </div>
+              <input type="range" min={2} max={20} value={selected.size} onChange={(e) => updateSelected({ size: parseInt(e.target.value) })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <Label>Ketebalan Outline</Label>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.strokeWidth}%</span>
+              </div>
+              <input type="range" min={0} max={30} value={selected.strokeWidth} onChange={(e) => updateSelected({ strokeWidth: parseInt(e.target.value) })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Warna Teks</Label>
+                <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+              </div>
+              <div>
+                <Label>Warna Outline</Label>
+                <input type="color" value={selected.stroke} onChange={(e) => updateSelected({ stroke: e.target.value })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ToolInfoPanel
+          icon={<Smile className="w-5 h-5" />}
+          label="Meme Generator"
+          desc="Teks bebas geser"
+          points={["Tarik teks langsung di atas gambar untuk mengatur posisi.", "Tambah lapisan teks sebanyak yang kamu mau."]}
+        />
+      </div>
+    </div>
+  );
+};
