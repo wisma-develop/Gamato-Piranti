@@ -14,7 +14,7 @@ Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semu
 | **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF |
 | **Doc Studio** | Editor dokumen dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
 | **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing |
-| **Rak Utilitas** | JSON formatter, Base64, bulk teks/data, kalkulator pajak & bunga, statistik, password & token generator, hapus metadata gambar |
+| **Rak Utilitas** | Kalkulator serba-guna (standar, pajak, bunga, investasi, cicilan/hutang, rumus, HPP/COGS), Kamus Dunia (terjemahan puluhan bahasa), HTML Preview, Diagram & Rumus Studio (flowchart/struktur/chart + LaTeX), Pengukur Kekuatan Suara, JSON formatter, Base64, bulk teks/data, statistik, password & token generator, dan lainnya |
 | **Spesial** | Generator sertifikat & piagam massal full custom (template sendiri, font, warna, posisi bebas, ekspor ZIP/PDF), WA link, dan fitur unggulan lainnya |
 
 Mendukung mode terang & gelap yang mengikuti preferensi sistem atau bisa diatur manual, dan tersimpan otomatis untuk kunjungan berikutnya.
@@ -26,6 +26,7 @@ Mendukung mode terang & gelap yang mengikuti preferensi sistem atau bisa diatur 
 - Semua pemrosesan file terjadi di browser pengguna (client-side), tidak ada file yang dikirim atau disimpan di server.
 - Tidak ada akun, tidak ada pelacakan pihak ketiga, tidak ada iklan.
 - Input pengguna disanitasi sebelum digunakan untuk mencegah penyalahgunaan (XSS, tautan berbahaya, dsb).
+- Satu-satunya pengecualian: **Kamus Dunia** memanggil layanan terjemahan pihak ketiga (MyMemory) langsung dari browser karena kamus dunia offline penuh membutuhkan dataset raksasa — teks yang diterjemahkan tidak pernah singgah di server Gamato Piranti (karena memang tidak ada server pemrosesan).
 
 ## 🚀 Menjalankan Secara Lokal
 
