@@ -76,6 +76,11 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kalkulator-bunga': 'Kalkulator Bunga',
     'statistik': 'Statistik',
     'password-token': 'Password & Token',
+    'kamus-dunia': 'Kamus Dunia',
+    'html-preview': 'HTML Preview',
+    'diagram-rumus': 'Diagram & Rumus Studio',
+    'pengukur-suara': 'Pengukur Kekuatan Suara',
+    'kalkulator': 'Kalkulator',
   },
   special: {
     'sertifikat': 'Sertifikat & Piagam',

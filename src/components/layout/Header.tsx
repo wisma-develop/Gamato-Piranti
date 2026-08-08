@@ -7,9 +7,10 @@ import {
   Barcode, Info, BookOpen, Code2,
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
   FileImage, AlignLeft, ArrowLeftRight, Wand2,
-  ListOrdered, Radio, Mail, Calculator, TrendingUp, BarChart3,
+  ListOrdered, Radio, Mail, Calculator, BarChart3,
   MessageCircle, KeyRound, Eraser, Sun, Moon, Sparkles, Award,
   Camera, Crop, Smile, PenSquare, PenLine, ScanLine, Type, ShieldCheck, Mic, Volume2,
+  Languages, AppWindow, Workflow, Gauge,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -94,14 +95,17 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     icon: <SlidersHorizontal className="w-4 h-4" />,
     rootPath: '/utility',
     items: [
-      { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" /> },
-      { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" /> },
-      { name: 'Link Media',       path: '/utility/link-media',       icon: <Radio className="w-4 h-4 text-pink-500" /> },
-      { name: 'Alias Email',      path: '/utility/alias-email',      icon: <Mail className="w-4 h-4 text-pink-500" /> },
-      { name: 'Kalkulator Pajak', path: '/utility/kalkulator-pajak', icon: <Calculator className="w-4 h-4 text-pink-500" /> },
-      { name: 'Kalkulator Bunga', path: '/utility/kalkulator-bunga', icon: <TrendingUp className="w-4 h-4 text-pink-500" /> },
-      { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" /> },
-      { name: 'Password & Token', path: '/utility/password-token',   icon: <KeyRound className="w-4 h-4 text-pink-500" /> },
+      { name: 'Kalkulator',       path: '/utility/kalkulator',       icon: <Calculator className="w-4 h-4 text-pink-500" />, section: 'Kalkulator' },
+      { name: 'Kamus Dunia',      path: '/utility/kamus-dunia',      icon: <Languages className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
+      { name: 'HTML Preview',     path: '/utility/html-preview',     icon: <AppWindow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
+      { name: 'Diagram & Rumus Studio', path: '/utility/diagram-rumus', icon: <Workflow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
+      { name: 'Pengukur Kekuatan Suara', path: '/utility/pengukur-suara', icon: <Gauge className="w-4 h-4 text-pink-500" />, section: 'Perangkat & Audio' },
+      { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
+      { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
+      { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
+      { name: 'Link Media',       path: '/utility/link-media',       icon: <Radio className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
+      { name: 'Alias Email',      path: '/utility/alias-email',      icon: <Mail className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
+      { name: 'Password & Token', path: '/utility/password-token',   icon: <KeyRound className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
     ],
   },
   {
