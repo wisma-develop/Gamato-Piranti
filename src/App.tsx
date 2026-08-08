@@ -73,6 +73,11 @@ import { UtilityTaxCalculator } from "@/features/utility/UtilityTaxCalculator";
 import { UtilityInterestCalculator } from "@/features/utility/UtilityInterestCalculator";
 import { UtilityStatistics } from "@/features/utility/UtilityStatistics";
 import { UtilityPasswordToken } from "@/features/utility/UtilityPasswordToken";
+import { UtilityWorldDictionary } from "@/features/utility/UtilityWorldDictionary";
+import { UtilityHtmlPreview } from "@/features/utility/UtilityHtmlPreview";
+import { UtilityDiagramFormula } from "@/features/utility/UtilityDiagramFormula";
+import { UtilitySoundMeter } from "@/features/utility/UtilitySoundMeter";
+import { CalculatorHub } from "@/features/utility/calculator/CalculatorHub";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -524,6 +529,46 @@ export const App: FC = () => (
           element={
             <PageShell badge="Utilitas" title="Password & Token" subtitle="Generator password & token berbasis Web Crypto API — aman dan acak.">
               <UtilityPasswordToken />
+            </PageShell>
+          }
+        />
+        <Route
+          path="utility/kamus-dunia"
+          element={
+            <PageShell badge="Utilitas" title="Kamus Dunia" subtitle="Cari arti kata & terjemahkan kalimat lintas puluhan bahasa dunia.">
+              <UtilityWorldDictionary />
+            </PageShell>
+          }
+        />
+        <Route
+          path="utility/html-preview"
+          element={
+            <PageShell badge="Utilitas" title="HTML Preview" subtitle="Tulis HTML, CSS, dan JavaScript, lihat hasilnya langsung secara real-time.">
+              <UtilityHtmlPreview />
+            </PageShell>
+          }
+        />
+        <Route
+          path="utility/diagram-rumus"
+          element={
+            <PageShell badge="Utilitas" title="Diagram & Rumus Studio" subtitle="Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).">
+              <UtilityDiagramFormula />
+            </PageShell>
+          }
+        />
+        <Route
+          path="utility/pengukur-suara"
+          element={
+            <PageShell badge="Utilitas" title="Pengukur Kekuatan Suara" subtitle="Meteran level suara real-time langsung dari mikrofon browser.">
+              <UtilitySoundMeter />
+            </PageShell>
+          }
+        />
+        <Route
+          path="utility/kalkulator"
+          element={
+            <PageShell badge="Utilitas" title="Kalkulator" subtitle="Satu tempat untuk semua kalkulator: standar, pajak, bunga, investasi, cicilan, rumus, hingga HPP/COGS.">
+              <CalculatorHub />
             </PageShell>
           }
         />
