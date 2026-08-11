@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, BookOpen, Heart, Award } from 'lucide-react';
+import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, BookOpen, Heart, Award, Clapperboard } from 'lucide-react';
 
 const pillars = [
   {
@@ -25,8 +25,9 @@ const toolSuite = [
   { icon: <FileText className="w-5 h-5" />, label: 'PDF Lab – Suite', desc: '9 mode pemrosesan PDF: kompres, gabung, pecah, ekstrak, hapus, putar, atur halaman, gambar→PDF, dan teks→PDF.' },
   { icon: <BookOpen className="w-5 h-5" />, label: 'Doc Studio', desc: 'Editor teks ringan dengan ekspor .docx, .pdf, .txt. Dilengkapi Find & Replace, format case, snapshot sesi, dan template cepat.' },
   { icon: <ImageIcon className="w-5 h-5" />, label: 'Image Lab', desc: 'Kompres, ubah ukuran, konversi format (JPG/PNG/WEBP), dan putar gambar secara batch langsung di perangkatmu.' },
-  { icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Rak Utilitas', desc: '9 alat kecil: JSON formatter, Base64, bulk teks, kalkulator pajak & bunga, statistik, password/token generator, dan hapus metadata gambar.' },
-  { icon: <Award className="w-5 h-5" />, label: 'Spesial', desc: 'Generator sertifikat & piagam massal full custom (template, font, posisi bebas), WA link, dan fitur unggulan lainnya.' },
+  { icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Rak Utilitas', desc: '11 alat: kalkulator serba-guna, kamus dunia, HTML preview, diagram & rumus, JSON formatter, Base64, bulk teks, statistik, password/token generator, dan lainnya.' },
+  { icon: <Clapperboard className="w-5 h-5" />, label: 'Video Studio', desc: 'Editor video ringan: potong/cut, crop & resize, teks & subtitle (CC), gabung dengan transisi, kecepatan & filter warna — tanpa upload ke server.' },
+  { icon: <Award className="w-5 h-5" />, label: 'Spesial', desc: 'Kwitansi, invoice, dan struk/nota profesional dengan logo custom, generator sertifikat & piagam massal full custom, WA link, dan fitur unggulan lainnya.' },
 ];
 
 export default function About() {

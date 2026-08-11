@@ -15,6 +15,7 @@ import DokumenCategory from "@/pages/categories/DokumenCategory";
 import GambarCategory from "@/pages/categories/GambarCategory";
 import UtilitasCategory from "@/pages/categories/UtilitasCategory";
 import SpesialCategory from "@/pages/categories/SpesialCategory";
+import VideoCategory from "@/pages/categories/VideoCategory";
 
 import { QrCodeGenerator } from "@/features/qr-barcode/QrCodeGenerator";
 import { BarcodeGenerator } from "@/features/qr-barcode/BarcodeGenerator";
@@ -81,6 +82,14 @@ import { CalculatorHub } from "@/features/utility/calculator/CalculatorHub";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
+import { KwitansiGenerator } from "@/features/special/KwitansiGenerator";
+import { InvoiceGenerator } from "@/features/special/InvoiceGenerator";
+import { StrukGenerator } from "@/features/special/StrukGenerator";
+import { VideoTrim } from "@/features/video/VideoTrim";
+import { VideoCrop } from "@/features/video/VideoCrop";
+import { VideoSubtitle } from "@/features/video/VideoSubtitle";
+import { VideoMerge } from "@/features/video/VideoMerge";
+import { VideoFilter } from "@/features/video/VideoFilter";
 
 export const App: FC = () => (
   <BrowserRouter>
@@ -576,6 +585,30 @@ export const App: FC = () => (
         {/* ── Spesial ──────────────────────────────────────────────────── */}
         <Route path="special" element={<SpesialCategory />} />
         <Route
+          path="special/kwitansi"
+          element={
+            <PageShell badge="Spesial" title="Kwitansi" subtitle="Kwitansi pembayaran profesional dengan logo custom — export PNG & PDF, siap cetak.">
+              <KwitansiGenerator />
+            </PageShell>
+          }
+        />
+        <Route
+          path="special/invoice"
+          element={
+            <PageShell badge="Spesial" title="Invoice" subtitle="Invoice profesional dengan item dinamis, logo custom, diskon & pajak — export PNG & PDF.">
+              <InvoiceGenerator />
+            </PageShell>
+          }
+        />
+        <Route
+          path="special/struk"
+          element={
+            <PageShell badge="Spesial" title="Struk / Nota" subtitle="Struk kasir custom dengan logo — export PNG & PDF, cetak langsung ke printer USB/Bluetooth.">
+              <StrukGenerator />
+            </PageShell>
+          }
+        />
+        <Route
           path="special/sertifikat"
           element={
             <PageShell badge="Spesial" title="Sertifikat & Piagam" subtitle="Generator sertifikat massal, full custom — template, font, dan posisi bebas diatur.">
@@ -588,6 +621,49 @@ export const App: FC = () => (
           element={
             <PageShell badge="Spesial" title="WA Link" subtitle="Buka chat WhatsApp langsung tanpa perlu menyimpan kontak.">
               <WaLink />
+            </PageShell>
+          }
+        />
+
+        {/* ── Video ────────────────────────────────────────────────────── */}
+        <Route path="video" element={<VideoCategory />} />
+        <Route
+          path="video/potong"
+          element={
+            <PageShell badge="Video" title="Potong Video" subtitle="Trim satu bagian atau buang beberapa bagian sekaligus, langsung di browser.">
+              <VideoTrim />
+            </PageShell>
+          }
+        />
+        <Route
+          path="video/crop"
+          element={
+            <PageShell badge="Video" title="Crop & Resize Video" subtitle="Pas-kan video ke rasio 1:1, 9:16, 16:9, dan lainnya untuk media sosial.">
+              <VideoCrop />
+            </PageShell>
+          }
+        />
+        <Route
+          path="video/subtitle"
+          element={
+            <PageShell badge="Video" title="Teks & Subtitle (CC)" subtitle="Tambah teks bertempo — ekspor sebagai .SRT/.VTT ringan atau bakar langsung ke video.">
+              <VideoSubtitle />
+            </PageShell>
+          }
+        />
+        <Route
+          path="video/gabung"
+          element={
+            <PageShell badge="Video" title="Gabung & Transisi" subtitle="Satukan beberapa klip berurutan dengan transisi cut atau crossfade.">
+              <VideoMerge />
+            </PageShell>
+          }
+        />
+        <Route
+          path="video/filter"
+          element={
+            <PageShell badge="Video" title="Kecepatan & Filter" subtitle="Atur kecepatan putar dan filter warna — preview langsung sesuai hasil ekspor.">
+              <VideoFilter />
             </PageShell>
           }
         />

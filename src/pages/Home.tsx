@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   QrCode, FileText, Image as ImageIcon, SlidersHorizontal, BookOpen,
-  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award
+  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard
 } from 'lucide-react';
 
 const tools = [
@@ -41,15 +41,23 @@ const tools = [
   {
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
     title: 'Rak Utilitas',
-    desc: 'JSON formatter, Base64, kalkulator pajak & bunga, statistik, password generator, dan lainnya.',
+    desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, diagram & rumus, JSON, Base64, dan lainnya.',
     path: '/utility',
     gradient: 'from-pink-400 to-fuchsia-600',
-    badge: '9 Alat',
+    badge: '11 Alat',
+  },
+  {
+    icon: <Clapperboard className="w-7 h-7 text-white" />,
+    title: 'Video Studio',
+    desc: 'Potong, crop, teks/subtitle, gabung dengan transisi, sampai kecepatan & filter — ringan tanpa upload.',
+    path: '/video',
+    gradient: 'from-rose-400 to-red-600',
+    badge: '5 Alat',
   },
   {
     icon: <Award className="w-7 h-7 text-white" />,
     title: 'Spesial',
-    desc: 'Generator sertifikat & piagam massal full custom, WA link, dan fitur andalan lainnya.',
+    desc: 'Kwitansi, invoice, struk profesional, generator sertifikat & piagam massal, dan fitur andalan lainnya.',
     path: '/special',
     gradient: 'from-amber-400 to-orange-600',
     badge: 'Unggulan',
