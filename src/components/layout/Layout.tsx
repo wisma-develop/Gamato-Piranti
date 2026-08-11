@@ -10,6 +10,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   image: 'Gambar',
   utility: 'Utilitas',
   special: 'Spesial',
+  video: 'Video',
   about: 'Tentang Kami',
   privacy: 'Kebijakan Privasi',
   terms: 'Ketentuan Layanan',
@@ -83,8 +84,18 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kalkulator': 'Kalkulator',
   },
   special: {
+    'kwitansi': 'Kwitansi',
+    'invoice': 'Invoice',
+    'struk': 'Struk / Nota',
     'sertifikat': 'Sertifikat & Piagam',
     'wa-link': 'WA Link',
+  },
+  video: {
+    'potong': 'Potong Video',
+    'crop': 'Crop & Resize',
+    'subtitle': 'Teks & Subtitle (CC)',
+    'gabung': 'Gabung & Transisi',
+    'filter': 'Kecepatan & Filter',
   },
 };
 

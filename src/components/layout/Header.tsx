@@ -11,11 +11,13 @@ import {
   MessageCircle, KeyRound, Eraser, Sun, Moon, Sparkles, Award,
   Camera, Crop, Smile, PenSquare, PenLine, ScanLine, Type, ShieldCheck, Mic, Volume2,
   Languages, AppWindow, Workflow, Gauge,
+  Receipt, FileSpreadsheet, ShoppingBag,
+  Clapperboard, Scissors, Captions,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
 
-type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | null;
+type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | 'video' | null;
 
 type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
 
@@ -114,8 +116,24 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     icon: <Sparkles className="w-4 h-4" />,
     rootPath: '/special',
     items: [
-      { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" /> },
-      { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" /> },
+      { name: 'Kwitansi',            path: '/special/kwitansi',   icon: <Receipt className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
+      { name: 'Invoice',             path: '/special/invoice',    icon: <FileSpreadsheet className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
+      { name: 'Struk / Nota',        path: '/special/struk',      icon: <ShoppingBag className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
+      { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
+      { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
+    ],
+  },
+  {
+    id: 'video',
+    title: 'Video',
+    icon: <Clapperboard className="w-4 h-4" />,
+    rootPath: '/video',
+    items: [
+      { name: 'Potong Video',      path: '/video/potong',   icon: <Scissors className="w-4 h-4 text-rose-500" /> },
+      { name: 'Crop & Resize',     path: '/video/crop',     icon: <Crop className="w-4 h-4 text-rose-500" /> },
+      { name: 'Teks & Subtitle (CC)', path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
+      { name: 'Gabung & Transisi', path: '/video/gabung',   icon: <Layers className="w-4 h-4 text-rose-500" /> },
+      { name: 'Kecepatan & Filter', path: '/video/filter',  icon: <Sparkles className="w-4 h-4 text-rose-500" /> },
     ],
   },
 ];
