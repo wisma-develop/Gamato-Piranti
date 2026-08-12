@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calculator, Receipt, TrendingUp, PiggyBank, Landmark, Sigma, Boxes } from "lucide-react";
+import { Calculator, Receipt, TrendingUp, PiggyBank, Landmark, Sigma, Boxes, Ruler } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { CalcStandard } from "./CalcStandard";
@@ -9,8 +9,9 @@ import { CalcInvestment } from "./CalcInvestment";
 import { CalcLoan } from "./CalcLoan";
 import { CalcFormula } from "./CalcFormula";
 import { CalcHpp } from "./CalcHpp";
+import { CalcUnit } from "./CalcUnit";
 
-type CalcId = "standar" | "pajak" | "bunga" | "investasi" | "cicilan" | "rumus" | "hpp";
+type CalcId = "standar" | "pajak" | "bunga" | "investasi" | "cicilan" | "rumus" | "hpp" | "satuan";
 
 const CALCULATORS: { id: CalcId; label: string; icon: React.ReactNode; title: string; subtitle: string }[] = [
   { id: "standar", label: "Standar", icon: <Calculator className="w-4 h-4" />, title: "Kalkulator Standar", subtitle: "Kalkulator harian — tambah, kurang, kali, bagi." },
@@ -20,6 +21,7 @@ const CALCULATORS: { id: CalcId; label: string; icon: React.ReactNode; title: st
   { id: "cicilan", label: "Cicilan / Hutang", icon: <Landmark className="w-4 h-4" />, title: "Kalkulator Cicilan & Hutang", subtitle: "Cicilan bulanan pinjaman sistem anuitas." },
   { id: "rumus", label: "Rumus", icon: <Sigma className="w-4 h-4" />, title: "Kalkulator Rumus", subtitle: "Hitung rumus custom dengan variabel bebas." },
   { id: "hpp", label: "HPP / COGS", icon: <Boxes className="w-4 h-4" />, title: "Kalkulator HPP / COGS", subtitle: "Harga Pokok Penjualan — usaha dagang & manufaktur." },
+  { id: "satuan", label: "Konversi Satuan", icon: <Ruler className="w-4 h-4" />, title: "Konversi Satuan", subtitle: "Panjang, berat, suhu, volume, luas, kecepatan, data digital." },
 ];
 
 export const CalculatorHub: React.FC = () => {
@@ -55,6 +57,7 @@ export const CalculatorHub: React.FC = () => {
         {active === "cicilan" && <CalcLoan />}
         {active === "rumus" && <CalcFormula />}
         {active === "hpp" && <CalcHpp />}
+        {active === "satuan" && <CalcUnit />}
       </PanelCard>
     </div>
   );
