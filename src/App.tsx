@@ -21,6 +21,7 @@ import { QrCodeGenerator } from "@/features/qr-barcode/QrCodeGenerator";
 import { BarcodeGenerator } from "@/features/qr-barcode/BarcodeGenerator";
 import { HidScanner } from "@/features/qr-barcode/HidScanner";
 import { MorseCode } from "@/features/qr-barcode/MorseCode";
+import { QrScanner } from "@/features/qr-barcode/QrScanner";
 
 import { PdfMerge } from "@/features/pdf/PdfMerge";
 import { PdfSplit } from "@/features/pdf/PdfSplit";
@@ -41,6 +42,7 @@ import { PdfHtmlToPdf } from "@/features/pdf/PdfHtmlToPdf";
 import { PdfPageNumbers } from "@/features/pdf/PdfPageNumbers";
 import { PdfUnlock } from "@/features/pdf/PdfUnlock";
 import { PdfReader } from "@/features/pdf/PdfReader";
+import { PdfRedact } from "@/features/pdf/PdfRedact";
 import { PdfScan } from "@/features/pdf/PdfScan";
 import { PdfToImage } from "@/features/pdf/PdfToImage";
 import { PdfToWord } from "@/features/pdf/PdfToWord";
@@ -64,6 +66,7 @@ import { ImageRemoveBg } from "@/features/image/ImageRemoveBg";
 import { ImageWatermark } from "@/features/image/ImageWatermark";
 import { HtmlToImage } from "@/features/image/HtmlToImage";
 import { MemeGenerator } from "@/features/image/MemeGenerator";
+import { ColorPicker } from "@/features/image/ColorPicker";
 import { PhotoEditor } from "@/features/image/PhotoEditor";
 
 import { UtilityJsonBase64 } from "@/features/utility/UtilityJsonBase64";
@@ -85,11 +88,13 @@ import { WaLink } from "@/features/special/WaLink";
 import { KwitansiGenerator } from "@/features/special/KwitansiGenerator";
 import { InvoiceGenerator } from "@/features/special/InvoiceGenerator";
 import { StrukGenerator } from "@/features/special/StrukGenerator";
+import { BusinessCardGenerator } from "@/features/special/BusinessCardGenerator";
 import { VideoTrim } from "@/features/video/VideoTrim";
 import { VideoCrop } from "@/features/video/VideoCrop";
 import { VideoSubtitle } from "@/features/video/VideoSubtitle";
 import { VideoMerge } from "@/features/video/VideoMerge";
 import { VideoFilter } from "@/features/video/VideoFilter";
+import { VideoAudioThumbnail } from "@/features/video/VideoAudioThumbnail";
 
 export const App: FC = () => (
   <BrowserRouter>
@@ -130,6 +135,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Kode" title="Kode Morse" subtitle="Konversi teks ke kode Morse (dan sebaliknya), lengkap dengan audio beep yang bisa diunduh.">
               <MorseCode />
+            </PageShell>
+          }
+        />
+        <Route
+          path="qr/scan-qr"
+          element={
+            <PageShell badge="Kode" title="QR Code Scanner" subtitle="Baca QR code dari gambar yang diunggah atau langsung dari kamera.">
+              <QrScanner />
             </PageShell>
           }
         />
@@ -286,6 +299,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Dokumen" title="PDF Reader" subtitle="Baca PDF langsung di browser, lengkap dengan info dokumen.">
               <PdfReader />
+            </PageShell>
+          }
+        />
+        <Route
+          path="pdf/sensor"
+          element={
+            <PageShell badge="Dokumen" title="Sensor / Redaksi PDF" subtitle="Hitamkan informasi sensitif secara permanen — halaman disensor diubah jadi gambar agar teks di baliknya tak bisa diambil lagi.">
+              <PdfRedact />
             </PageShell>
           }
         />
@@ -474,6 +495,14 @@ export const App: FC = () => (
             </PageShell>
           }
         />
+        <Route
+          path="image/color-picker"
+          element={
+            <PageShell badge="Gambar" title="Color Picker & Palette" subtitle="Ambil warna dari gambar (HEX/RGB/HSL) dan ekstrak palet warna dominan otomatis.">
+              <ColorPicker />
+            </PageShell>
+          }
+        />
 
         {/* ── Utilitas ─────────────────────────────────────────────────── */}
         <Route path="utility" element={<UtilitasCategory />} />
@@ -609,6 +638,14 @@ export const App: FC = () => (
           }
         />
         <Route
+          path="special/kartu-nama"
+          element={
+            <PageShell badge="Spesial" title="Kartu Nama" subtitle="Kartu nama profesional dengan logo custom — export PNG & PDF, siap cetak.">
+              <BusinessCardGenerator />
+            </PageShell>
+          }
+        />
+        <Route
           path="special/sertifikat"
           element={
             <PageShell badge="Spesial" title="Sertifikat & Piagam" subtitle="Generator sertifikat massal, full custom — template, font, dan posisi bebas diatur.">
@@ -664,6 +701,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Video" title="Kecepatan & Filter" subtitle="Atur kecepatan putar dan filter warna — preview langsung sesuai hasil ekspor.">
               <VideoFilter />
+            </PageShell>
+          }
+        />
+        <Route
+          path="video/audio-thumbnail"
+          element={
+            <PageShell badge="Video" title="Ekstrak Audio & Thumbnail" subtitle="Ambil track audio sebagai file terpisah, atau tangkap satu frame video sebagai gambar.">
+              <VideoAudioThumbnail />
             </PageShell>
           }
         />

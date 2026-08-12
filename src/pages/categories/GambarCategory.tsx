@@ -1,4 +1,4 @@
-import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal } from "lucide-react";
+import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal, Pipette } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -26,6 +26,7 @@ export default function GambarCategory() {
               { name: "Watermark Gambar", desc: "Tempel watermark teks atau logo, sekali atau berulang (tile).", path: "/image/watermark", icon: <Layers className="w-6 h-6" /> },
               { name: "Meme Generator", desc: "Tambahkan teks bergaya meme yang bisa digeser bebas.", path: "/image/meme-generator", icon: <Smile className="w-6 h-6" /> },
               { name: "HTML ke Gambar", desc: "Render kode HTML/CSS jadi gambar PNG — kartu kutipan, badge, banner.", path: "/image/html-ke-gambar", icon: <Code2 className="w-6 h-6" /> },
+              { name: "Color Picker & Palette", desc: "Ambil warna dari gambar (HEX/RGB/HSL) dan ekstrak palet dominan otomatis.", path: "/image/color-picker", icon: <Pipette className="w-6 h-6" /> },
             ],
           },
           {

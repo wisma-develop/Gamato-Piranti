@@ -240,6 +240,106 @@ export async function exportSegmentedVideo(opts: {
   return blob;
 }
 
+const AUDIO_CANDIDATE_FORMATS: ExportFormat[] = [
+  { mimeType: "audio/webm;codecs=opus", ext: "webm", label: "WebM Audio (Opus)" },
+  { mimeType: "audio/ogg;codecs=opus", ext: "ogg", label: "OGG Audio (Opus)" },
+  { mimeType: "audio/webm", ext: "webm", label: "WebM Audio" },
+];
+
+export function getSupportedAudioFormats(): ExportFormat[] {
+  if (typeof MediaRecorder === "undefined") return [];
+  return AUDIO_CANDIDATE_FORMATS.filter((f) => {
+    try {
+      return MediaRecorder.isTypeSupported(f.mimeType);
+    } catch {
+      return false;
+    }
+  });
+}
+
+export function getBestAudioFormat(): ExportFormat | null {
+  return getSupportedAudioFormats()[0] ?? null;
+}
+
+/** Extracts just the audio track of a video segment as a standalone audio file. */
+export async function extractAudioFromVideo(opts: {
+  sourceUrl: string;
+  start: number;
+  end: number;
+  onProgress?: ExportProgressCallback;
+}): Promise<Blob> {
+  const { sourceUrl, start, end, onProgress } = opts;
+  const format = getBestAudioFormat();
+  if (!format) throw new Error("Browser ini tidak mendukung ekstraksi audio (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru.");
+
+  const video = createOffscreenVideo(sourceUrl);
+  video.muted = false;
+  await new Promise<void>((resolve, reject) => {
+    video.onloadedmetadata = () => resolve();
+    video.onerror = () => reject(new Error("Gagal memuat video untuk diekstrak audionya."));
+  });
+
+  const audioCtx = newAudioContext();
+  if (audioCtx.state === "suspended") await audioCtx.resume();
+  const audioStream = createAudioStreamFromVideo(video, audioCtx);
+
+  const recorder = new MediaRecorder(audioStream, { mimeType: format.mimeType });
+  const chunks: BlobPart[] = [];
+  recorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) chunks.push(e.data);
+  };
+  const resultPromise = new Promise<Blob>((resolve, reject) => {
+    recorder.onstop = () => resolve(new Blob(chunks, { type: format.mimeType.split(";")[0] }));
+    recorder.onerror = (e: any) => reject(new Error(e?.error?.message || "Ekstraksi audio gagal."));
+  });
+
+  recorder.start(250);
+  await waitSeeked(video, start);
+  await video.play();
+
+  await new Promise<void>((resolve) => {
+    runRenderLoop({
+      shouldContinue: () => !video.ended && video.currentTime < end,
+      onFrame: () => onProgress?.(Math.min(1, (video.currentTime - start) / Math.max(0.001, end - start))),
+      onDone: () => {
+        video.pause();
+        resolve();
+      },
+    });
+  });
+
+  recorder.stop();
+  const blob = await resultPromise;
+  audioCtx.close().catch(() => {});
+  onProgress?.(1);
+  return blob;
+}
+
+/** Grabs a single frame from a video at a given time as a PNG image. */
+export async function captureVideoFrame(sourceUrl: string, atTime: number): Promise<Blob> {
+  const video = createOffscreenVideo(sourceUrl);
+  video.muted = true;
+  await new Promise<void>((resolve, reject) => {
+    video.onloadedmetadata = () => resolve();
+    video.onerror = () => reject(new Error("Gagal memuat video untuk mengambil thumbnail."));
+  });
+  await waitSeeked(video, atTime);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Gagal membuat gambar dari video."));
+    }, "image/png");
+  });
+}
+
 export type MergeClip = { sourceUrl: string; start: number; end: number };
 export type TransitionType = "cut" | "fade";
 

@@ -1,6 +1,6 @@
 import {
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
-  SlidersHorizontal, FileImage, AlignLeft, BookOpen, BarChart3,
+  SlidersHorizontal, FileImage, AlignLeft, BookOpen, BarChart3, EyeOff,
   PenSquare, PenLine, Code2, ListOrdered, KeyRound, ScanLine,
   FileText, Type, ShieldCheck, Mic, Volume2,
 } from "lucide-react";
@@ -63,6 +63,7 @@ export default function DokumenCategory() {
             section: "Baca & Pindai",
             items: [
               { name: "PDF Reader", desc: "Baca PDF langsung di browser + info dokumen.", path: "/pdf/reader", icon: <BookOpen className="w-6 h-6" /> },
+              { name: "Sensor / Redaksi PDF", desc: "Hitamkan informasi sensitif secara permanen dengan menggambar kotak sensor.", path: "/pdf/sensor", icon: <EyeOff className="w-6 h-6" /> },
               { name: "Scan PDF", desc: "Ubah foto dokumen menjadi PDF hasil scan.", path: "/pdf/scan", icon: <ScanLine className="w-6 h-6" /> },
             ],
           },

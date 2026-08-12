@@ -1,4 +1,4 @@
-import { QrCode, Barcode, Radio } from "lucide-react";
+import { QrCode, Barcode, Radio, ScanLine } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -36,6 +36,12 @@ export default function KodeCategory() {
                 desc: "Konversi teks ke Morse (dan sebaliknya), lengkap audio beep yang bisa diunduh.",
                 path: "/qr/kode-morse",
                 icon: <Radio className="w-6 h-6" />,
+              },
+              {
+                name: "QR Code Scanner",
+                desc: "Baca QR code dari gambar yang diunggah atau langsung dari kamera.",
+                path: "/qr/scan-qr",
+                icon: <ScanLine className="w-6 h-6" />,
               },
             ],
           },

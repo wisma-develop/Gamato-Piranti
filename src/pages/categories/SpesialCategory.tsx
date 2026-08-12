@@ -1,4 +1,4 @@
-import { Award, MessageCircle, Receipt, FileSpreadsheet, ShoppingBag } from "lucide-react";
+import { Award, MessageCircle, Receipt, FileSpreadsheet, ShoppingBag, IdCard } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -17,6 +17,7 @@ export default function SpesialCategory() {
               { name: "Kwitansi", desc: "Kwitansi pembayaran profesional dengan logo custom — export PNG & PDF, siap cetak.", path: "/special/kwitansi", icon: <Receipt className="w-6 h-6" /> },
               { name: "Invoice", desc: "Invoice profesional dengan item dinamis, logo custom, diskon & pajak — export PNG & PDF.", path: "/special/invoice", icon: <FileSpreadsheet className="w-6 h-6" /> },
               { name: "Struk / Nota", desc: "Struk kasir custom dengan logo — export PNG & PDF, cetak langsung ke printer USB/Bluetooth.", path: "/special/struk", icon: <ShoppingBag className="w-6 h-6" /> },
+              { name: "Kartu Nama", desc: "Kartu nama profesional dengan logo custom — export PNG & PDF, siap cetak.", path: "/special/kartu-nama", icon: <IdCard className="w-6 h-6" /> },
             ],
           },
           {

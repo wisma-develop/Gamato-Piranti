@@ -23,6 +23,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'barcode': 'Barcode',
     'scan-hid': 'Scan HID',
     'kode-morse': 'Kode Morse',
+    'scan-qr': 'QR Code Scanner',
   },
   pdf: {
     'gabung': 'Gabung PDF',
@@ -44,6 +45,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'nomor-halaman': 'Nomor Halaman',
     'unlock': 'Unlock PDF',
     'reader': 'PDF Reader',
+    'sensor': 'Sensor / Redaksi PDF',
     'scan': 'Scan PDF',
     'ke-gambar': 'PDF ke Gambar',
     'ke-word': 'PDF ke Word',
@@ -65,6 +67,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'hapus-background': 'Hapus Background',
     'watermark': 'Watermark Gambar',
     'html-ke-gambar': 'HTML ke Gambar',
+    'color-picker': 'Color Picker & Palette',
     'meme-generator': 'Meme Generator',
     'photo-editor': 'Photo Editor',
   },
@@ -87,6 +90,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kwitansi': 'Kwitansi',
     'invoice': 'Invoice',
     'struk': 'Struk / Nota',
+    'kartu-nama': 'Kartu Nama',
     'sertifikat': 'Sertifikat & Piagam',
     'wa-link': 'WA Link',
   },
@@ -96,6 +100,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'subtitle': 'Teks & Subtitle (CC)',
     'gabung': 'Gabung & Transisi',
     'filter': 'Kecepatan & Filter',
+    'audio-thumbnail': 'Ekstrak Audio & Thumbnail',
   },
 };
 

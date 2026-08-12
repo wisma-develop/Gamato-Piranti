@@ -22,7 +22,7 @@ export default function UtilitasCategory() {
                 desc: "Satu tempat untuk semua kalkulator: standar, pajak, bunga, investasi, cicilan/hutang, rumus, hingga HPP/COGS.",
                 path: "/utility/kalkulator",
                 icon: <Calculator className="w-6 h-6" />,
-                badge: "7 Mode",
+                badge: "8 Mode",
               },
             ],
           },

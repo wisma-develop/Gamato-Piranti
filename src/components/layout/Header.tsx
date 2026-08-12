@@ -13,6 +13,10 @@ import {
   Languages, AppWindow, Workflow, Gauge,
   Receipt, FileSpreadsheet, ShoppingBag,
   Clapperboard, Scissors, Captions,
+  Pipette,
+  IdCard,
+  AudioLines,
+  EyeOff,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -32,6 +36,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Barcode', path: '/qr/barcode', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
       { name: 'Scan HID', path: '/qr/scan-hid', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
       { name: 'Kode Morse', path: '/qr/kode-morse', icon: <Radio className="w-4 h-4 text-teal-500" /> },
+      { name: 'QR Code Scanner', path: '/qr/scan-qr', icon: <ScanLine className="w-4 h-4 text-teal-500" /> },
     ],
   },
   {
@@ -64,6 +69,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Protect PDF',       path: '/pdf/protect',       icon: <ShieldCheck className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
       { name: 'Unlock PDF',        path: '/pdf/unlock',        icon: <KeyRound className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
       { name: 'PDF Reader',        path: '/pdf/reader',        icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
+      { name: 'Sensor / Redaksi PDF', path: '/pdf/sensor',     icon: <EyeOff className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
       { name: 'Scan PDF',          path: '/pdf/scan',          icon: <ScanLine className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
       { name: 'Doc Studio',        path: '/docs',              icon: <BookOpen className="w-4 h-4 text-violet-500" />, section: 'Doc Studio' },
       { name: 'Doc Reader',        path: '/pdf/baca-dokumen',  icon: <BookOpen className="w-4 h-4 text-violet-500" />, section: 'Doc Studio' },
@@ -84,6 +90,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Watermark Gambar', path: '/image/watermark',       icon: <Layers className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
       { name: 'Meme Generator', path: '/image/meme-generator',    icon: <Smile className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
       { name: 'HTML ke Gambar', path: '/image/html-ke-gambar',    icon: <Code2 className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
+      { name: 'Color Picker & Palette', path: '/image/color-picker', icon: <Pipette className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
       { name: 'Kompres Gambar', path: '/image/kompres',  icon: <FileDown className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
       { name: 'Ubah Ukuran',    path: '/image/resize',   icon: <ArrowLeftRight className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
       { name: 'Konversi Format',path: '/image/konversi', icon: <Wand2 className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
@@ -119,6 +126,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Kwitansi',            path: '/special/kwitansi',   icon: <Receipt className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Invoice',             path: '/special/invoice',    icon: <FileSpreadsheet className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Struk / Nota',        path: '/special/struk',      icon: <ShoppingBag className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
+      { name: 'Kartu Nama',          path: '/special/kartu-nama', icon: <IdCard className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
       { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
     ],
@@ -134,6 +142,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Teks & Subtitle (CC)', path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
       { name: 'Gabung & Transisi', path: '/video/gabung',   icon: <Layers className="w-4 h-4 text-rose-500" /> },
       { name: 'Kecepatan & Filter', path: '/video/filter',  icon: <Sparkles className="w-4 h-4 text-rose-500" /> },
+      { name: 'Ekstrak Audio & Thumbnail', path: '/video/audio-thumbnail', icon: <AudioLines className="w-4 h-4 text-rose-500" /> },
     ],
   },
 ];
