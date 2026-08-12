@@ -10,13 +10,13 @@ Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semu
 
 | Alat | Deskripsi |
 |------|-----------|
-| **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) dengan bentuk & warna full custom (bukan QR generik) plus logo tengah; barcode berbagai format dengan cetak massal langsung ke PDF rapi |
-| **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF |
+| **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) dengan bentuk & warna full custom (bukan QR generik) plus logo tengah; barcode berbagai format dengan cetak massal langsung ke PDF rapi; QR Code Scanner (unggah gambar atau kamera langsung) |
+| **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF, plus Sensor/Redaksi PDF (hitamkan info sensitif secara permanen) |
 | **Doc Studio** | Editor dokumen dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
-| **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing |
-| **Rak Utilitas** | Kalkulator serba-guna (standar, pajak, bunga, investasi, cicilan/hutang, rumus, HPP/COGS), Kamus Dunia (terjemahan puluhan bahasa), HTML Preview, Diagram & Rumus Studio (flowchart/struktur/chart + LaTeX), Pengukur Kekuatan Suara, JSON formatter, Base64, bulk teks/data, statistik, password & token generator, dan lainnya |
-| **Video Studio** | Potong/cut video, crop & resize (rasio 1:1/9:16/16:9/dst), teks & subtitle (CC — ekspor .SRT/.VTT atau bakar ke video), gabung klip dengan transisi cut/crossfade, kecepatan & filter warna — semua ringan, native browser (video+canvas+MediaRecorder), tanpa upload ke server |
-| **Spesial** | Kwitansi, Invoice, dan Struk/Nota profesional (logo custom, ekspor PNG & PDF, cetak langsung ke printer USB/Bluetooth), generator sertifikat & piagam massal full custom, WA link |
+| **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing, plus Color Picker & Palette Extractor |
+| **Rak Utilitas** | Kalkulator serba-guna (standar, pajak, bunga, investasi, cicilan/hutang, rumus, HPP/COGS, konversi satuan), Kamus Dunia (terjemahan puluhan bahasa), HTML Preview, Diagram & Rumus Studio (flowchart/struktur/chart + LaTeX), Pengukur Kekuatan Suara, JSON formatter, Base64, bulk teks/data, statistik, password & token generator, dan lainnya |
+| **Video Studio** | Potong/cut video, crop & resize (rasio 1:1/9:16/16:9/dst), teks & subtitle (CC — ekspor .SRT/.VTT atau bakar ke video), gabung klip dengan transisi cut/crossfade, kecepatan & filter warna, ekstrak audio & thumbnail — semua ringan, native browser (video+canvas+MediaRecorder), tanpa upload ke server |
+| **Spesial** | Kwitansi, Invoice, Struk/Nota, dan Kartu Nama profesional (logo custom, ekspor PNG & PDF, cetak langsung ke printer USB/Bluetooth), generator sertifikat & piagam massal full custom, WA link |
 
 Mendukung mode terang & gelap yang mengikuti preferensi sistem atau bisa diatur manual, dan tersimpan otomatis untuk kunjungan berikutnya.
 
