@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Bold, Italic, ListOrdered, Link2, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Type } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { fileToDataUrl } from "@/lib/file";
+import { useDialog } from "@/hooks/useDialog";
 import {
   cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSuperscript,
   cmdUndo, cmdRedo, cmdOrderedList, cmdUnorderedList, cmdAlign, cmdForeColor, cmdHighlight,
@@ -50,6 +51,7 @@ export const RichToolbar: React.FC<{
   editorRef: React.RefObject<HTMLDivElement>;
   onAfterCommand: () => void;
 }> = ({ editorRef, onAfterCommand }) => {
+  const dialog = useDialog();
   const [fontSize, setFontSize] = useState(16);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,8 +61,17 @@ export const RichToolbar: React.FC<{
     onAfterCommand();
   };
 
-  const handleInsertLink = () => {
-    const url = window.prompt("Masukkan URL tautan (https://...)");
+  const handleInsertLink = async () => {
+    const values = await dialog.form({
+      title: "Sisipkan Tautan",
+      description: "Masukkan alamat URL yang ingin ditautkan ke teks terpilih.",
+      icon: <Link2 className="w-5 h-5" />,
+      submitLabel: "Sisipkan",
+      fields: [
+        { key: "url", label: "URL Tautan", placeholder: "https://example.com", required: true, type: "text" },
+      ],
+    });
+    const url = values?.url?.trim();
     if (!url) return;
     withFocus(() => cmdInsertLink(url));
   };
