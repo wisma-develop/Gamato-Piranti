@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { sanitizeNumberString } from "@/utils/sanitize";
 import { Input, Select, Btn } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { formatIDR } from "@/lib/utilityHelpers";
 
@@ -32,7 +33,7 @@ export const UtilityInterestCalculator: React.FC = () => {
     <PanelCard title="Kalkulator Bunga" subtitle="Hitung bunga sederhana & majemuk">
       <div className="space-y-4 max-w-xl">
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Pokok (Rp)" value={princ} onChange={(e) => setPrinc(e.target.value)} placeholder="5000000" />
+          <MoneyInput label="Pokok (Rp)" value={princ} onChange={setPrinc} placeholder="5000000" prefix="Rp" />
           <Input label="Bunga Tahunan (%)" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="10" />
           <Input label="Durasi (tahun)" value={years} onChange={(e) => setYears(e.target.value)} placeholder="3" />
           <Select label="Frekuensi Majemuk" value={compoundPerYear} onChange={(e) => setCompoundPerYear(parseInt(e.target.value))}>

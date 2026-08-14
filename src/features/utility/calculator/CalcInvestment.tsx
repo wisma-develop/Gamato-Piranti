@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { PiggyBank } from "lucide-react";
 import { sanitizeNumberString } from "@/utils/sanitize";
 import { Input, Btn } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { formatIDR } from "@/lib/utilityHelpers";
 
 export const CalcInvestment: React.FC = () => {
@@ -35,8 +36,8 @@ export const CalcInvestment: React.FC = () => {
   return (
     <div className="space-y-4 max-w-xl">
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Modal Awal (Rp)" value={initial} onChange={(e) => setInitial(e.target.value)} placeholder="5000000" />
-        <Input label="Setoran Rutin / Bulan (Rp)" value={monthly} onChange={(e) => setMonthly(e.target.value)} placeholder="500000" />
+        <MoneyInput label="Modal Awal (Rp)" value={initial} onChange={setInitial} placeholder="5000000" prefix="Rp" />
+        <MoneyInput label="Setoran Rutin / Bulan (Rp)" value={monthly} onChange={setMonthly} placeholder="500000" prefix="Rp" />
         <Input label="Estimasi Imbal Hasil / Tahun (%)" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="8" />
         <Input label="Durasi (tahun)" value={years} onChange={(e) => setYears(e.target.value)} placeholder="5" />
       </div>

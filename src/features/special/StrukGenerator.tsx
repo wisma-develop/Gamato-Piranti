@@ -12,6 +12,7 @@ import { printCanvasImage } from "@/lib/printCanvas";
 import { buildReceiptPrintJob } from "@/lib/escpos";
 import { isWebUsbSupported, printViaWebUsb, WebUsbPrintError } from "@/lib/webUsbPrinter";
 import { Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
@@ -430,8 +431,8 @@ export function StrukGenerator() {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Input label="Qty" type="number" min={0} value={item.qty} onChange={(e) => updateItem(item.id, { qty: e.target.value })} />
-                  <Input label="Harga (Rp)" value={item.price} onChange={(e) => updateItem(item.id, { price: sanitizeNumberString(e.target.value) })} />
+                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v })} placeholder="1" />
+                  <MoneyInput label="Harga (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v })} placeholder="0" prefix="Rp" />
                 </div>
               </div>
             ))}
@@ -448,7 +449,7 @@ export function StrukGenerator() {
               <Input label="Diskon (%)" value={discountPct} onChange={(e) => setDiscountPct(sanitizeNumberString(e.target.value))} />
               <Input label="Pajak (%)" value={taxPct} onChange={(e) => setTaxPct(sanitizeNumberString(e.target.value))} />
             </div>
-            <Input label="Jumlah Dibayar (Rp)" value={amountPaid} onChange={(e) => setAmountPaid(sanitizeNumberString(e.target.value))} placeholder="Kosongkan bila tidak perlu ditampilkan" />
+            <MoneyInput label="Jumlah Dibayar (Rp)" value={amountPaid} onChange={(v) => setAmountPaid(v)} placeholder="Kosongkan bila tidak perlu ditampilkan" prefix="Rp" />
             <Textarea label="Pesan Footer" rows={2} value={footerMessage} onChange={(e) => setFooterMessage(e.target.value)} />
             <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
               Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>

@@ -3,6 +3,7 @@ import { Calculator } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { sanitizeNumberString } from "@/utils/sanitize";
 import { Label, Input, Btn } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { formatIDR } from "@/lib/utilityHelpers";
 
@@ -35,7 +36,7 @@ export const UtilityTaxCalculator: React.FC = () => {
     <PanelCard title="Kalkulator Pajak" subtitle="Hitung PPN eksklusif atau inklusif">
       <div className="space-y-4 max-w-xl">
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Nilai Dasar (Rp)" value={taxBase} onChange={(e) => setTaxBase(e.target.value)} placeholder="1000000" />
+          <MoneyInput label="Nilai Dasar (Rp)" value={taxBase} onChange={setTaxBase} placeholder="1000000" prefix="Rp" />
           <Input label="Tarif Pajak (%)" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="11" />
         </div>
         <div>

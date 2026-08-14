@@ -3,6 +3,7 @@ import { Boxes } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { sanitizeNumberString } from "@/utils/sanitize";
 import { Label, Input, Btn } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { formatIDR } from "@/lib/utilityHelpers";
 
 type HppMode = "dagang" | "manufaktur";
@@ -101,9 +102,9 @@ export const CalcHpp: React.FC = () => {
       {mode === "dagang" ? (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            <Input label="Persediaan Awal (Rp)" value={persAwal} onChange={(e) => setPersAwal(e.target.value)} placeholder="0" />
-            <Input label="Pembelian Bersih (Rp)" value={pembelian} onChange={(e) => setPembelian(e.target.value)} placeholder="0" />
-            <Input label="Persediaan Akhir (Rp)" value={persAkhir} onChange={(e) => setPersAkhir(e.target.value)} placeholder="0" />
+            <MoneyInput label="Persediaan Awal (Rp)" value={persAwal} onChange={setPersAwal} placeholder="0" prefix="Rp" />
+            <MoneyInput label="Pembelian Bersih (Rp)" value={pembelian} onChange={setPembelian} placeholder="0" prefix="Rp" />
+            <MoneyInput label="Persediaan Akhir (Rp)" value={persAkhir} onChange={setPersAkhir} placeholder="0" prefix="Rp" />
           </div>
           <Btn onClick={runDagang} className="w-full gap-2">
             <Boxes className="w-4 h-4" />
@@ -113,11 +114,11 @@ export const CalcHpp: React.FC = () => {
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            <Input label="Bahan Baku (Rp)" value={bahanBaku} onChange={(e) => setBahanBaku(e.target.value)} placeholder="0" />
-            <Input label="Tenaga Kerja (Rp)" value={tenagaKerja} onChange={(e) => setTenagaKerja(e.target.value)} placeholder="0" />
-            <Input label="Overhead (Rp)" value={overhead} onChange={(e) => setOverhead(e.target.value)} placeholder="0" />
-            <Input label="BDP Awal (Rp)" value={bdpAwal} onChange={(e) => setBdpAwal(e.target.value)} placeholder="0" />
-            <Input label="BDP Akhir (Rp)" value={bdpAkhir} onChange={(e) => setBdpAkhir(e.target.value)} placeholder="0" />
+            <MoneyInput label="Bahan Baku (Rp)" value={bahanBaku} onChange={setBahanBaku} placeholder="0" prefix="Rp" />
+            <MoneyInput label="Tenaga Kerja (Rp)" value={tenagaKerja} onChange={setTenagaKerja} placeholder="0" prefix="Rp" />
+            <MoneyInput label="Overhead (Rp)" value={overhead} onChange={setOverhead} placeholder="0" prefix="Rp" />
+            <MoneyInput label="BDP Awal (Rp)" value={bdpAwal} onChange={setBdpAwal} placeholder="0" prefix="Rp" />
+            <MoneyInput label="BDP Akhir (Rp)" value={bdpAkhir} onChange={setBdpAkhir} placeholder="0" prefix="Rp" />
           </div>
           <Btn onClick={runManufaktur} className="w-full gap-2">
             <Boxes className="w-4 h-4" />
@@ -135,7 +136,7 @@ export const CalcHpp: React.FC = () => {
       <div className="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-3">
         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Bonus: Harga Jual dari Margin</p>
         <div className="grid grid-cols-2 gap-3">
-          <Input label="HPP per Unit (Rp)" value={hppUnit} onChange={(e) => setHppUnit(e.target.value)} placeholder="10000" />
+          <MoneyInput label="HPP per Unit (Rp)" value={hppUnit} onChange={setHppUnit} placeholder="10000" prefix="Rp" />
           <Input label="Target Margin (%)" value={marginPct} onChange={(e) => setMarginPct(e.target.value)} placeholder="30" />
         </div>
         <Btn onClick={runMargin} variant="secondary" className="w-full gap-2">

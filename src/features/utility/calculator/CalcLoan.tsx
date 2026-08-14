@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Landmark } from "lucide-react";
 import { sanitizeNumberString } from "@/utils/sanitize";
 import { Input, Btn } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { formatIDR } from "@/lib/utilityHelpers";
 
 export const CalcLoan: React.FC = () => {
@@ -30,7 +31,7 @@ export const CalcLoan: React.FC = () => {
   return (
     <div className="space-y-4 max-w-xl">
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Jumlah Pinjaman (Rp)" value={principal} onChange={(e) => setPrincipal(e.target.value)} placeholder="20000000" />
+        <MoneyInput label="Jumlah Pinjaman (Rp)" value={principal} onChange={setPrincipal} placeholder="20000000" prefix="Rp" />
         <Input label="Bunga per Tahun (%)" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="6" />
         <Input label="Tenor (bulan)" value={months} onChange={(e) => setMonths(e.target.value)} placeholder="12" />
       </div>

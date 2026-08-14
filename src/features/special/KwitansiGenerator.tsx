@@ -10,6 +10,7 @@ import { todayISODate, formatDateID } from "@/lib/dateFormat";
 import { drawWrappedText, drawDashedLine, drawSolidLine, drawLogoFit, roundRect, ensureFontReady } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { Label, Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
@@ -294,11 +295,12 @@ export function KwitansiGenerator() {
           <div className="space-y-3">
             <Input label="No. Kwitansi" value={nomor} onChange={(e) => setNomor(e.target.value)} />
             <Input label="Telah Terima Dari" value={receivedFrom} onChange={(e) => setReceivedFrom(e.target.value)} placeholder="Nama pembayar" />
-            <Input
+            <MoneyInput
               label="Jumlah (Rp)"
               value={amount}
-              onChange={(e) => setAmount(sanitizeNumberString(e.target.value))}
+              onChange={(v) => setAmount(v)}
               placeholder="1500000"
+              prefix="Rp"
             />
             <Textarea label="Untuk Pembayaran" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Contoh: Pembayaran sewa ruko bulan Agustus 2026" />
             <div className="grid grid-cols-2 gap-3">

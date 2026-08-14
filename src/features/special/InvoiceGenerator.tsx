@@ -10,6 +10,7 @@ import { todayISODate, formatDateID } from "@/lib/dateFormat";
 import { drawWrappedText, drawSolidLine, drawLogoFit, roundRect, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { Label, Input, Textarea, Select, Btn, SectionBadge } from "@/components/ui/primitives";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
@@ -478,8 +479,8 @@ export function InvoiceGenerator() {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Input label="Qty" type="number" min={0} value={item.qty} onChange={(e) => updateItem(item.id, { qty: e.target.value })} />
-                  <Input label="Harga Satuan (Rp)" value={item.price} onChange={(e) => updateItem(item.id, { price: sanitizeNumberString(e.target.value) })} />
+                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v })} placeholder="1" />
+                  <MoneyInput label="Harga Satuan (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v })} placeholder="0" prefix="Rp" />
                 </div>
               </div>
             ))}
