@@ -15,10 +15,15 @@ img, canvas, video, svg {
   display: block;
 }
 
-/* ── Base layout ── */
+/* ── Base layout ──
+   overflow-x: clip (not "hidden") on purpose: "hidden" turns html/body into
+   a scroll container, which breaks position:sticky for descendants like the
+   navbar in a lot of browsers. "clip" prevents the same horizontal overflow
+   bleed without creating that scroll container, so the sticky header keeps
+   working correctly while scrolling the page. ── */
 html, body {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ── Smooth color transition when toggling theme ── */
