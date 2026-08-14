@@ -129,6 +129,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Kartu Nama',          path: '/special/kartu-nama', icon: <IdCard className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
       { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
+      { name: 'Pembuat CV',          path: '/special/pembuat-cv', icon: <FileText className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
     ],
   },
   {

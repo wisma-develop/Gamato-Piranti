@@ -36,3 +36,43 @@ export function printCanvasImage(canvas: HTMLCanvasElement, opts: { widthMm?: nu
 </html>`);
   win.document.close();
 }
+
+/**
+ * Prints multiple canvases as consecutive A4 pages (one <img> per page, each
+ * forced onto its own sheet via `page-break-after`). Used by multi-page
+ * documents like the CV Maker, where a single print job can span several
+ * pages generated independently as separate canvases.
+ */
+export function printCanvasPages(pages: HTMLCanvasElement[], opts: { title?: string } = {}): void {
+  if (!pages.length) return;
+  const win = window.open("", "_blank", "width=480,height=680");
+  if (!win) {
+    throw new Error("Popup diblokir browser. Izinkan popup untuk domain ini agar bisa mencetak.");
+  }
+  const title = opts.title ?? "Cetak — Gamato Piranti";
+  const imgs = pages
+    .map((p, i) => `<img src="${p.toDataURL("image/png")}" alt="${title} — Halaman ${i + 1}" />`)
+    .join("\n");
+
+  win.document.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<title>${title}</title>
+<style>
+  @page { size: A4; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  img { width: 100%; display: block; page-break-after: always; }
+  img:last-child { page-break-after: auto; }
+</style>
+</head>
+<body>
+  ${imgs}
+  <script>
+    window.onload = function () { window.focus(); window.print(); };
+    window.onafterprint = function () { window.close(); };
+  </script>
+</body>
+</html>`);
+  win.document.close();
+}

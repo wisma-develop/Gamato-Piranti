@@ -89,6 +89,7 @@ import { KwitansiGenerator } from "@/features/special/KwitansiGenerator";
 import { InvoiceGenerator } from "@/features/special/InvoiceGenerator";
 import { StrukGenerator } from "@/features/special/StrukGenerator";
 import { BusinessCardGenerator } from "@/features/special/BusinessCardGenerator";
+import { CvMaker } from "@/features/special/CvMaker";
 import { VideoTrim } from "@/features/video/VideoTrim";
 import { VideoCrop } from "@/features/video/VideoCrop";
 import { VideoSubtitle } from "@/features/video/VideoSubtitle";
@@ -658,6 +659,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Spesial" title="WA Link" subtitle="Buka chat WhatsApp langsung tanpa perlu menyimpan kontak.">
               <WaLink />
+            </PageShell>
+          }
+        />
+        <Route
+          path="special/pembuat-cv"
+          element={
+            <PageShell badge="Spesial" title="Pembuat CV" subtitle="Buat CV/resume profesional dengan 5 pilihan template, halaman otomatis mengikuti panjang isi — export PDF & PNG.">
+              <CvMaker />
             </PageShell>
           }
         />

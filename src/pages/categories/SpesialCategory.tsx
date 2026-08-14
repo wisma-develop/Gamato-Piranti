@@ -1,4 +1,4 @@
-import { Award, MessageCircle, Receipt, FileSpreadsheet, ShoppingBag, IdCard } from "lucide-react";
+import { Award, MessageCircle, Receipt, FileSpreadsheet, ShoppingBag, IdCard, FileText } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -7,7 +7,7 @@ export default function SpesialCategory() {
     <PageShell
       badge="Spesial"
       title="Spesial"
-      subtitle="Fitur andalan Gamato Piranti — dokumen bisnis profesional, generator sertifikat massal, dan WA link."
+      subtitle="Fitur andalan Gamato Piranti — dokumen bisnis profesional, generator sertifikat massal, pembuat CV, dan WA link."
     >
       <CategoryGrid
         groups={[
@@ -23,6 +23,7 @@ export default function SpesialCategory() {
           {
             section: "Lainnya",
             items: [
+              { name: "Pembuat CV", desc: "CV/resume profesional dengan 5 pilihan template, halaman otomatis mengikuti panjang isi — export PDF & PNG.", path: "/special/pembuat-cv", icon: <FileText className="w-6 h-6" /> },
               { name: "Sertifikat & Piagam", desc: "Generator massal, full custom — template, font, dan posisi bebas.", path: "/special/sertifikat", icon: <Award className="w-6 h-6" /> },
               { name: "WA Link", desc: "Buka chat WhatsApp langsung tanpa perlu menyimpan kontak.", path: "/special/wa-link", icon: <MessageCircle className="w-6 h-6" /> },
             ],

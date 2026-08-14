@@ -93,6 +93,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kartu-nama': 'Kartu Nama',
     'sertifikat': 'Sertifikat & Piagam',
     'wa-link': 'WA Link',
+    'pembuat-cv': 'Pembuat CV',
   },
   video: {
     'potong': 'Potong Video',
