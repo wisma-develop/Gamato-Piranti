@@ -2,12 +2,15 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Award, Upload, Plus, Trash2, Download, Loader2, Move, Type,
   Bold, Italic, AlignLeft, AlignCenter, AlignRight, Users, Image as ImageIcon,
+  FileSpreadsheet, FileDown, PenLine, X, Info,
 } from "lucide-react";
 import JSZip from "jszip";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
+import { csvToRecipients, certificateCsvTemplate, type CsvRecipient } from "@/lib/csv";
+import { loadCustomFont, type CustomFontEntry } from "@/lib/customFont";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
 
@@ -62,11 +65,13 @@ function defaultLayers(): TextLayer[] {
   ];
 }
 
-function applyPlaceholders(text: string, ctx: { nama: string; nomor: string; tanggal: string }) {
-  return text
-    .split("{nama}").join(ctx.nama)
-    .split("{nomor}").join(ctx.nomor)
-    .split("{tanggal}").join(ctx.tanggal);
+function applyPlaceholders(text: string, fields: Record<string, string>): string {
+  let result = text;
+  for (const [key, value] of Object.entries(fields)) {
+    if (!key) continue;
+    result = result.split(`{${key}}`).join(value);
+  }
+  return result;
 }
 
 function todayLong() {
@@ -124,7 +129,7 @@ function renderToCanvas(
   canvas: HTMLCanvasElement,
   templateImg: HTMLImageElement | null,
   layers: TextLayer[],
-  placeholderCtx: { nama: string; nomor: string; tanggal: string }
+  fields: Record<string, string>
 ) {
   const { w, h } = resolveCanvasSize(templateImg);
   canvas.width = w;
@@ -137,7 +142,7 @@ function renderToCanvas(
   else drawDefaultTemplate(ctx, w, h);
 
   for (const layer of layers) {
-    const text = applyPlaceholders(layer.text, placeholderCtx);
+    const text = applyPlaceholders(layer.text, fields);
     if (!text.trim()) continue;
     const weight = layer.bold ? "700" : "400";
     const style = layer.italic ? "italic" : "normal";
@@ -162,7 +167,16 @@ export function CertificateGenerator() {
   const [templateImg, setTemplateImg] = useState<HTMLImageElement | null>(null);
   const [layers, setLayers] = useState<TextLayer[]>(defaultLayers);
   const [selectedLayerId, setSelectedLayerId] = useState<string>(() => layers[2]?.id ?? layers[0].id);
+  const [recipientMode, setRecipientMode] = useState<"manual" | "csv">("manual");
   const [recipientsText, setRecipientsText] = useState("");
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvRecipients, setCsvRecipients] = useState<CsvRecipient[]>([]);
+  const [csvExtraColumns, setCsvExtraColumns] = useState<string[]>([]);
+  const [csvError, setCsvError] = useState<string | null>(null);
+  const [fileNameMode, setFileNameMode] = useState<"recipient" | "system">("recipient");
+  const [customFonts, setCustomFonts] = useState<CustomFontEntry[]>([]);
+  const [isFontLoading, setIsFontLoading] = useState(false);
+  const [fontError, setFontError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -171,12 +185,83 @@ export function CertificateGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewWrapRef = useRef<HTMLDivElement>(null);
 
-  const recipients = useMemo(
-    () => recipientsText.split(/\r?\n/).map(l => l.trim()).filter(Boolean),
-    [recipientsText]
+  // Manual (one name per line) and CSV modes both resolve into the same
+  // shape: a list of { nama, fields } records. In manual mode each line
+  // only carries `{nama}`; in CSV mode every extra column becomes an
+  // additional placeholder available in text layers.
+  const recipients: CsvRecipient[] = useMemo(() => {
+    if (recipientMode === "csv") return csvRecipients;
+    return recipientsText
+      .split(/\r?\n/)
+      .map(l => l.trim())
+      .filter(Boolean)
+      .map(nama => ({ nama, fields: { nama } }));
+  }, [recipientMode, recipientsText, csvRecipients]);
+
+  // Read + parse the uploaded CSV whenever it changes.
+  useEffect(() => {
+    if (!csvFile) { setCsvRecipients([]); setCsvExtraColumns([]); setCsvError(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const text = await csvFile.text();
+        if (cancelled) return;
+        const result = csvToRecipients(text);
+        setCsvRecipients(result.recipients);
+        setCsvExtraColumns(result.extraColumns);
+        setCsvError(result.error);
+      } catch {
+        if (!cancelled) {
+          setCsvRecipients([]);
+          setCsvExtraColumns([]);
+          setCsvError("Gagal membaca file CSV. Pastikan file tidak rusak.");
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [csvFile]);
+
+  const fontOptions = useMemo(
+    () => [...FONT_OPTIONS, ...customFonts.map(f => ({ id: f.family, label: `${f.fileName} (Custom)` }))],
+    [customFonts]
   );
 
-  const previewName = recipients[0] || "Nama Contoh";
+  const handleFontUpload = async (file: File | null) => {
+    if (!file) return;
+    setFontError(null);
+    setIsFontLoading(true);
+    try {
+      const entry = await loadCustomFont(file);
+      setCustomFonts(prev => [...prev, entry]);
+    } catch (err: any) {
+      setFontError(err?.message || "Gagal memuat font kustom.");
+    } finally {
+      setIsFontLoading(false);
+    }
+  };
+
+  const removeCustomFont = (id: string) => {
+    setCustomFonts(prev => prev.filter(f => f.id !== id));
+    // Any layer using this font falls back to a safe default instead of
+    // silently rendering blank/invisible text once the font is gone.
+    setLayers(prev => prev.map(l => (l.fontFamily === id ? { ...l, fontFamily: "Alan Sans" } : l)));
+  };
+
+  const downloadCsvTemplate = () => {
+    const csv = certificateCsvTemplate();
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    downloadBlob(blob, "template-daftar-penerima.csv");
+  };
+
+  const previewRecipient = recipients[0];
+  const previewFields: Record<string, string> = useMemo(() => {
+    const base: Record<string, string> = previewRecipient ? { ...previewRecipient.fields } : {};
+    if (!base.nama || !base.nama.trim()) base.nama = previewRecipient?.nama || "Nama Contoh";
+    if (!base.nomor || !base.nomor.trim()) base.nomor = "1";
+    if (!base.tanggal || !base.tanggal.trim()) base.tanggal = todayLong();
+    return base;
+  }, [previewRecipient]);
+  const previewName = previewFields.nama;
   const selectedLayer = layers.find(l => l.id === selectedLayerId) ?? layers[0];
 
   // Load the uploaded template as an <img> element usable by canvas.
@@ -200,10 +285,10 @@ export function CertificateGenerator() {
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      renderToCanvas(canvas, templateImg, layers, { nama: previewName, nomor: "1", tanggal: todayLong() });
+      renderToCanvas(canvas, templateImg, layers, previewFields);
     })();
     return () => { cancelled = true; };
-  }, [layers, templateImg, previewName]);
+  }, [layers, templateImg, previewFields]);
 
   const updateLayer = (id: string, patch: Partial<TextLayer>) => {
     setLayers(prev => prev.map(l => (l.id === id ? { ...l, ...patch } : l)));
@@ -239,14 +324,20 @@ export function CertificateGenerator() {
   // ── Export ──
   const buildBlobsForAllRecipients = async (): Promise<{ name: string; blob: Blob }[]> => {
     await ensureFontsReady(layers);
-    const names = recipients.length ? recipients : [previewName];
+    const list = recipients.length ? recipients : [{ nama: previewName, fields: { nama: previewName } }];
     const offscreen = document.createElement("canvas");
     const results: { name: string; blob: Blob }[] = [];
-    for (let i = 0; i < names.length; i++) {
-      renderToCanvas(offscreen, templateImg, layers, { nama: names[i], nomor: String(i + 1), tanggal: todayLong() });
+    for (let i = 0; i < list.length; i++) {
+      const rec = list[i];
+      const fields: Record<string, string> = { ...rec.fields, nama: rec.nama };
+      if (!fields.nomor || !fields.nomor.trim()) fields.nomor = String(i + 1);
+      if (!fields.tanggal || !fields.tanggal.trim()) fields.tanggal = todayLong();
+      renderToCanvas(offscreen, templateImg, layers, fields);
       const blob = await canvasToBlob(offscreen);
-      results.push({ name: sanitizeFileName(names[i]) || `sertifikat-${i + 1}`, blob });
-      setProgress({ done: i + 1, total: names.length });
+      const systemName = `sertifikat-${String(i + 1).padStart(3, "0")}`;
+      const baseName = fileNameMode === "recipient" ? (sanitizeFileName(rec.nama) || systemName) : systemName;
+      results.push({ name: baseName, blob });
+      setProgress({ done: i + 1, total: list.length });
       // Yield to the browser so the UI (progress text) can actually repaint between iterations.
       await new Promise(r => setTimeout(r, 0));
     }
@@ -383,13 +474,47 @@ export function CertificateGenerator() {
                   onChange={e => updateLayer(selectedLayer.id, { text: e.target.value })}
                   placeholder="Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis"
                 />
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">Placeholder: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{tanggal}'}</code></p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">
+                  Placeholder: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{tanggal}'}</code>
+                  {recipientMode === "csv" && csvExtraColumns.length > 0 && (
+                    <>
+                      {" "}{csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1">{`{${col}}`}</code>)}
+                    </>
+                  )}
+                </p>
 
                 <div className="grid grid-cols-2 gap-3">
                   <Select label="Font" value={selectedLayer.fontFamily} onChange={e => updateLayer(selectedLayer.id, { fontFamily: e.target.value })}>
-                    {FONT_OPTIONS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+                    {fontOptions.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
                   </Select>
                   <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 })} />
+                </div>
+
+                <div>
+                  <label className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300">
+                    {isFontLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    Upload Font Kustom (.ttf / .otf / .woff)
+                    <input
+                      type="file"
+                      accept=".ttf,.otf,.woff,.woff2"
+                      className="hidden"
+                      disabled={isFontLoading}
+                      onChange={e => { handleFontUpload(e.target.files?.[0] ?? null); e.target.value = ""; }}
+                    />
+                  </label>
+                  {fontError && <p className="text-xs text-red-500 mt-1">{fontError}</p>}
+                  {customFonts.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {customFonts.map(f => (
+                        <span key={f.id} className="inline-flex items-center gap-1 text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">
+                          {f.fileName}
+                          <button type="button" onClick={() => removeCustomFont(f.id)} className="hover:text-red-500 transition-colors" aria-label={`Hapus font ${f.fileName}`}>
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 items-end">
@@ -423,17 +548,112 @@ export function CertificateGenerator() {
             )}
           </PanelCard>
 
-          <PanelCard title="Daftar Penerima" subtitle="Satu nama per baris — akan dicetak sebagai satu sertifikat masing-masing">
-            <Textarea
-              rows={6}
-              value={recipientsText}
-              onChange={e => setRecipientsText(e.target.value)}
-              placeholder={"Budi Santoso\nSiti Aminah\nAhmad Fauzi\n..."}
-            />
+          <PanelCard title="Daftar Penerima" subtitle="Satu sertifikat akan dibuat untuk setiap nama pada daftar">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setRecipientMode("manual")}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
+                  recipientMode === "manual" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                )}
+              >
+                <PenLine className="w-3.5 h-3.5" /> Tulis Manual
+              </button>
+              <button
+                type="button"
+                onClick={() => setRecipientMode("csv")}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
+                  recipientMode === "csv" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                )}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" /> Upload CSV
+              </button>
+            </div>
+
+            {recipientMode === "manual" ? (
+              <Textarea
+                rows={6}
+                value={recipientsText}
+                onChange={e => setRecipientsText(e.target.value)}
+                placeholder={"Budi Santoso\nSiti Aminah\nAhmad Fauzi\n..."}
+              />
+            ) : (
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={downloadCsvTemplate}
+                  className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-xl py-2.5 transition-colors"
+                >
+                  <FileDown className="w-3.5 h-3.5" /> Unduh Template CSV
+                </button>
+
+                <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all">
+                  {csvFile ? (
+                    <div className="flex items-center gap-3 w-full">
+                      <FileSpreadsheet className="w-6 h-6 text-indigo-500 shrink-0" />
+                      <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium truncate">{csvFile.name}</span>
+                      <button type="button" onClick={e => { e.preventDefault(); setCsvFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0">Hapus</button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="flex justify-center mb-1.5 text-slate-400 dark:text-slate-500"><Upload className="w-6 h-6" /></div>
+                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload File <span className="text-indigo-600 dark:text-indigo-400">.CSV</span></p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Kolom wajib: nama. Kolom lain jadi placeholder tambahan.</p>
+                    </div>
+                  )}
+                  <input type="file" accept=".csv,text/csv" className="hidden" onChange={e => setCsvFile(e.target.files?.[0] ?? null)} />
+                </label>
+
+                {csvError && (
+                  <p className="flex items-start gap-1.5 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl px-3 py-2">
+                    <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {csvError}
+                  </p>
+                )}
+                {csvExtraColumns.length > 0 && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Placeholder tambahan dari CSV: {csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1 mr-1">{`{${col}}`}</code>)}
+                    — bisa dipakai di lapisan teks manapun.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-2">
               <Users className="w-3.5 h-3.5" />
               <span>{recipients.length} nama siap dicetak</span>
             </div>
+          </PanelCard>
+
+          <PanelCard title="Nama File Hasil Unduhan" subtitle="Berlaku untuk unduhan ZIP/PDF bulk semua penerima">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setFileNameMode("recipient")}
+                className={cn(
+                  "py-2.5 rounded-xl text-xs font-semibold border-2 transition-all",
+                  fileNameMode === "recipient" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                )}
+              >
+                Sesuai Nama Penerima
+              </button>
+              <button
+                type="button"
+                onClick={() => setFileNameMode("system")}
+                className={cn(
+                  "py-2.5 rounded-xl text-xs font-semibold border-2 transition-all",
+                  fileNameMode === "system" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                )}
+              >
+                Default Sistem
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+              Contoh nama file: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">
+                {fileNameMode === "recipient" ? (sanitizeFileName(recipients[0]?.nama || "budi-santoso") || "budi-santoso") : "sertifikat-001"}.png
+              </code>
+            </p>
           </PanelCard>
         </div>
 

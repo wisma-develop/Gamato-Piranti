@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Link2, Type, Wifi, Mail, Phone, Upload, Download, ShieldCheck, Sparkles, AlertTriangle,
+  Link2, Type, Wifi, Mail, Phone, Upload, Download, Sparkles, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import { cn } from "@/utils/cn";
 import { sanitizeText, sanitizeUrl } from "@/utils/sanitize";
 import { fileToDataUrl } from "@/lib/file";
+import { buildFramedLogoDataUrl } from "@/lib/qrLogo";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 
 type QrTemplate = "url" | "text" | "wifi" | "email" | "phone";
@@ -136,11 +137,22 @@ export function QrCodeGenerator() {
     [qrTemplate, qrUrl, qrText, qrWifiSsid, qrWifiPass, qrWifiEnc, qrWifiHidden, qrEmailTo, qrEmailSubject, qrEmailBody, qrPhone]
   );
 
-  // Load the uploaded logo as a data URL usable by qr-code-styling's `image` option.
+  // Load the uploaded logo, then run it through buildFramedLogoDataUrl so it
+  // always comes out as a clean rounded-square "app icon" style badge —
+  // regardless of whether the source PNG is transparent, has its own
+  // background, or an odd aspect ratio.
   useEffect(() => {
     if (!logoFile) { setLogoDataUrl(null); return; }
     let cancelled = false;
-    fileToDataUrl(logoFile).then(url => { if (!cancelled) setLogoDataUrl(url); });
+    (async () => {
+      try {
+        const rawUrl = await fileToDataUrl(logoFile);
+        const framed = await buildFramedLogoDataUrl(rawUrl);
+        if (!cancelled) setLogoDataUrl(framed);
+      } catch {
+        if (!cancelled) setLogoDataUrl(null);
+      }
+    })();
     return () => { cancelled = true; };
   }, [logoFile]);
 
@@ -187,6 +199,18 @@ export function QrCodeGenerator() {
 
   const download = (extension: "png" | "jpeg" | "webp" | "svg") => {
     qrInstanceRef.current?.download({ name: "gamato-qr", extension });
+  };
+
+  // Manual, always-works fallback: fully clears and re-mounts the QR
+  // instance into the preview container. Exposed as a small "Buat Preview"
+  // button so the user has a one-click fix if the live preview ever looks
+  // stale or blank for any reason.
+  const refreshPreview = () => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+    const instance = new QRCodeStyling(currentOptions());
+    qrInstanceRef.current = instance;
+    instance.append(containerRef.current);
   };
 
   const contrast = useMemo(() => contrastRatio(dotsColor, bgColor), [dotsColor, bgColor]);
@@ -368,15 +392,34 @@ export function QrCodeGenerator() {
         {/* RIGHT: Preview */}
         <div className="sticky top-24 space-y-4">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Preview Real-time</p>
-          <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
-            {payload.trim() ? (
-              <div className="bg-white p-5 rounded-2xl shadow-2xl shadow-slate-200/80 dark:shadow-black/40">
-                <div
-                  ref={containerRef}
-                  className="[&>canvas]:max-w-full [&>canvas]:h-auto [&>svg]:max-w-full [&>svg]:h-auto"
-                />
-              </div>
-            ) : (
+          <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
+            <button
+              type="button"
+              onClick={refreshPreview}
+              title="Muat ulang preview bila tidak muncul"
+              className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-white dark:hover:bg-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Buat Preview
+            </button>
+
+            {/* The QR container div is ALWAYS mounted (never conditionally
+                removed) — qr-code-styling's canvas is appended into it once
+                and only ever `.update()`d afterwards. If this div were
+                conditionally unmounted whenever the payload is briefly
+                empty (e.g. switching to an empty template field) and later
+                remounted, the library would have no way to re-attach its
+                canvas to the new DOM node, leaving the preview blank even
+                though content exists. Visibility is toggled with CSS
+                instead of JSX so the DOM node — and the library's handle
+                to it — never disappears. */}
+            <div className={cn("bg-white p-5 rounded-2xl shadow-2xl shadow-slate-200/80 dark:shadow-black/40", !payload.trim() && "absolute opacity-0 pointer-events-none")}>
+              <div
+                ref={containerRef}
+                className="[&>canvas]:max-w-full [&>canvas]:h-auto [&>svg]:max-w-full [&>svg]:h-auto"
+              />
+            </div>
+            {!payload.trim() && (
               <div className="w-56 h-56 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center">
                 <p className="text-sm text-slate-400 dark:text-slate-500 text-center px-6">Isi form di kiri untuk melihat preview QR</p>
               </div>
