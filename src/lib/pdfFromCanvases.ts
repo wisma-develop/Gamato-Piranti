@@ -1,5 +1,6 @@
 import { PDFDocument } from "pdf-lib";
 import { canvasToBlob } from "@/lib/canvas";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 
 // True A4 dimensions in PDF points (1pt = 1/72in). 210mm × 297mm.
 export const A4_PT_W = 595.28;
@@ -23,6 +24,7 @@ export async function canvasesToA4PdfBlob(canvases: HTMLCanvasElement[], title: 
     const page = pdfDoc.addPage([A4_PT_W, A4_PT_H]);
     page.drawImage(img, { x: 0, y: 0, width: A4_PT_W, height: A4_PT_H });
   }
+  await stampGamatoBranding(pdfDoc);
   const pdfBytes = await pdfDoc.save();
   return new Blob([pdfBytes], { type: "application/pdf" });
 }

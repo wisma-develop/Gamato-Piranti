@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { SlideContent } from "./officeReaders";
+import { stampGamatoBranding } from "./pdfBranding";
 
 function wrapText(text: string, font: any, size: number, maxWidth: number): string[] {
   const words = text.split(/\s+/).filter(Boolean);
@@ -54,5 +55,6 @@ export async function slidesToPdfBlob(slides: SlideContent[], title: string): Pr
     }
   }
 
+  await stampGamatoBranding(pdfDoc);
   return new Blob([await pdfDoc.save()], { type: "application/pdf" });
 }

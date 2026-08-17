@@ -40,6 +40,18 @@ body {
 /* ── Prevent zero min-width collapse ── */
 * { min-width: 0; }
 
+/* ── Guard icon-only buttons against being crushed to invisibility ──
+   Root cause of the "missing icon" bug: `* { min-width: 0 }` above removes a
+   flex item's natural min-content floor, and `svg { max-width: 100% }` below
+   makes icons shrink together with their button. In a tight row (e.g. several
+   Bold/Italic/Align toggle buttons side by side in a narrow sidebar), the
+   buttons get compressed by flexbox and their icons collapse to near-zero
+   size. This rule guarantees any button whose only child is an icon keeps
+   its natural size and never gets squeezed by a flex/grid parent. ── */
+button:has(> svg:only-child) {
+  flex-shrink: 0;
+}
+
 /* ── Mobile: prevent input zoom on iOS (font-size < 16px triggers zoom) ── */
 input[type="text"],
 input[type="email"],
