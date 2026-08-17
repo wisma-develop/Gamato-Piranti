@@ -44,6 +44,15 @@ export interface UseHistoryStateReturn<T> {
 export function useHistoryState<T>(initial: T | (() => T), options: UseHistoryStateOptions = {}): UseHistoryStateReturn<T> {
   const limit = options.limit ?? 100;
   const [state, setState] = useState<T>(initial);
+  // Kept in sync with `state` synchronously (not just after re-render) so
+  // `set()` always reads the true latest value even when called multiple
+  // times in the same event handler. This also keeps the history bookkeeping
+  // as a plain side effect *outside* the setState updater — updater
+  // functions passed to setState should stay pure, since React (especially
+  // in StrictMode / concurrent rendering) may invoke them more than once.
+  const stateRef = useRef<T>(state);
+  stateRef.current = state;
+
   const past = useRef<T[]>([]);
   const future = useRef<T[]>([]);
   const pendingBase = useRef<T | null>(null);
@@ -61,22 +70,22 @@ export function useHistoryState<T>(initial: T | (() => T), options: UseHistorySt
 
   const set = useCallback(
     (updater: T | ((prev: T) => T), opts?: { commit?: boolean }) => {
-      setState((prev) => {
-        const next = typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
-        if (opts?.commit === false) {
-          if (!hasPending.current) {
-            pendingBase.current = prev;
-            hasPending.current = true;
-          }
-        } else {
-          const base = hasPending.current ? (pendingBase.current as T) : prev;
-          pushPast(base);
-          hasPending.current = false;
-          pendingBase.current = null;
-          future.current = [];
+      const prev = stateRef.current;
+      const next = typeof updater === "function" ? (updater as (p: T) => T)(prev) : updater;
+      if (opts?.commit === false) {
+        if (!hasPending.current) {
+          pendingBase.current = prev;
+          hasPending.current = true;
         }
-        return next;
-      });
+      } else {
+        const base = hasPending.current ? (pendingBase.current as T) : prev;
+        pushPast(base);
+        hasPending.current = false;
+        pendingBase.current = null;
+        future.current = [];
+      }
+      stateRef.current = next;
+      setState(next);
     },
     [pushPast]
   );
@@ -93,31 +102,33 @@ export function useHistoryState<T>(initial: T | (() => T), options: UseHistorySt
 
   const undo = useCallback(() => {
     commit();
-    setState((prev) => {
-      if (!past.current.length) return prev;
-      const last = past.current.pop() as T;
-      future.current.push(prev);
-      return last;
-    });
+    if (!past.current.length) return;
+    const last = past.current.pop() as T;
+    future.current.push(stateRef.current);
+    stateRef.current = last;
+    setState(last);
   }, [commit]);
 
   const redo = useCallback(() => {
-    setState((prev) => {
-      if (!future.current.length) return prev;
-      const next = future.current.pop() as T;
-      past.current.push(prev);
-      return next;
-    });
+    if (!future.current.length) return;
+    const next = future.current.pop() as T;
+    past.current.push(stateRef.current);
+    stateRef.current = next;
+    setState(next);
   }, []);
 
-  const reset = useCallback((value: T) => {
-    past.current = [];
-    future.current = [];
-    pendingBase.current = null;
-    hasPending.current = false;
-    setState(value);
-    bump();
-  }, [bump]);
+  const reset = useCallback(
+    (value: T) => {
+      past.current = [];
+      future.current = [];
+      pendingBase.current = null;
+      hasPending.current = false;
+      stateRef.current = value;
+      setState(value);
+      bump();
+    },
+    [bump]
+  );
 
   return {
     state,

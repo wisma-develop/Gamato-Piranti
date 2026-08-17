@@ -64,14 +64,23 @@ export function drawSolidLine(ctx: CanvasRenderingContext2D, x1: number, y: numb
   ctx.restore();
 }
 
-/** Draws an image inside a bounding box, preserving aspect ratio and centering it. */
+/**
+ * Draws an image inside a bounding box, preserving aspect ratio and centering
+ * it. By default the drawn image gets gentle rounded corners automatically —
+ * even if the uploaded file itself is a hard-edged square — so every logo
+ * insertion (business card, invoice, kwitansi, struk, ...) looks polished
+ * without the user having to pre-round their source file. Pass
+ * `{ rounded: false }` to opt out for a specific placement if a perfectly
+ * square/sharp logo is ever wanted.
+ */
 export function drawLogoFit(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   x: number,
   y: number,
   boxW: number,
-  boxH: number
+  boxH: number,
+  options?: { rounded?: boolean; radiusRatio?: number }
 ) {
   const iw = img.naturalWidth || img.width || 1;
   const ih = img.naturalHeight || img.height || 1;
@@ -80,7 +89,18 @@ export function drawLogoFit(
   const h = ih * scale;
   const dx = x + (boxW - w) / 2;
   const dy = y + (boxH - h) / 2;
-  ctx.drawImage(img, dx, dy, w, h);
+
+  const rounded = options?.rounded ?? true;
+  if (rounded && w > 0 && h > 0) {
+    const radius = Math.min(Math.min(w, h) * (options?.radiusRatio ?? 0.16), w / 2, h / 2);
+    ctx.save();
+    roundRect(ctx, dx, dy, w, h, radius);
+    ctx.clip();
+    ctx.drawImage(img, dx, dy, w, h);
+    ctx.restore();
+  } else {
+    ctx.drawImage(img, dx, dy, w, h);
+  }
 }
 
 export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
