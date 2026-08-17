@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FilePlus, FileText, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { parsePageSpec } from "@/lib/pdf";
 import { Input, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -33,6 +34,7 @@ export const PdfExtract: React.FC = () => {
       }
       const doc = await PDFDocument.create();
       (await doc.copyPages(src, indices)).forEach((p) => doc.addPage(p));
+      await stampGamatoBranding(doc);
       downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), "gamato-extract.pdf");
       setInfo(`${indices.length} halaman diekstrak.`);
     } catch (err: any) {

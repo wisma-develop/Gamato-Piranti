@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { IdCard, Download, Printer, Loader2 } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { sanitizeFileName } from "@/utils/sanitize";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
 import { drawWrappedText, drawLogoFit, ensureFontReady } from "@/lib/businessDocCanvas";
@@ -10,6 +11,8 @@ import { Label, Input, Btn, SectionBadge } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155", "#7c3aed"];
 
@@ -94,25 +97,31 @@ function renderCardToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement
 }
 
 export function BusinessCardGenerator() {
-  const [name, setName] = useState("Nama Lengkap");
-  const [title, setTitle] = useState("Jabatan / Posisi");
-  const [company, setCompany] = useState("Nama Usaha / Perusahaan");
-  const [phone, setPhone] = useState("0812-3456-7890");
-  const [email, setEmail] = useState("nama@usaha.com");
-  const [website, setWebsite] = useState("www.usaha.com");
-  const [address, setAddress] = useState("");
+  // Semua field kartu nama punya riwayat Undo/Redo. Mengetik digabung jadi
+  // satu langkah setelah jeda; pilih warna preset/upload logo langsung commit.
+  const history = useHistoryState<CardData>({
+    name: "Nama Lengkap",
+    title: "Jabatan / Posisi",
+    company: "Nama Usaha / Perusahaan",
+    phone: "0812-3456-7890",
+    email: "nama@usaha.com",
+    website: "www.usaha.com",
+    address: "",
+    accentColor: ACCENT_PRESETS[0],
+  });
+  const data = history.state;
+  const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
+  const updateField = <K extends keyof CardData>(key: K, value: CardData[K], opts?: { continuous?: boolean }) => {
+    history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleCommit();
+  };
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [accentColor, setAccentColor] = useState(ACCENT_PRESETS[0]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
-
-  const data: CardData = useMemo(
-    () => ({ name, title, company, phone, email, website, address, accentColor }),
-    [name, title, company, phone, email, website, address, accentColor]
-  );
 
   useEffect(() => {
     let cancelled = false;
@@ -135,7 +144,7 @@ export function BusinessCardGenerator() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const blob = await canvasToBlob(canvas);
-      downloadBlob(blob, `${sanitizeFileName(name) || "kartu-nama"}.png`);
+      downloadBlob(blob, `${sanitizeFileName(data.name) || "kartu-nama"}.png`);
       setInfo("Kartu nama berhasil diunduh sebagai PNG.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat kartu nama.");
@@ -156,8 +165,9 @@ export function BusinessCardGenerator() {
       const img = await pdfDoc.embedPng(bytes);
       const page = pdfDoc.addPage([img.width, img.height]);
       page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
-      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(name) || "kartu-nama"}.pdf`);
+      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(data.name) || "kartu-nama"}.pdf`);
       setInfo("Kartu nama berhasil diunduh sebagai PDF.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat PDF.");
@@ -171,7 +181,7 @@ export function BusinessCardGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { title: `Kartu Nama ${name}` });
+      printCanvasImage(canvas, { title: `Kartu Nama ${data.name}` });
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuka dialog cetak.");
     }
@@ -180,26 +190,31 @@ export function BusinessCardGenerator() {
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
       <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Kartu Nama</span>
+          <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
+        </div>
+
         <PanelCard title="Identitas" subtitle="Data pemilik kartu nama">
           <div className="space-y-3">
             <LogoUpload file={logoFile} onChange={setLogoFile} />
-            <Input label="Nama Lengkap" value={name} onChange={(e) => setName(e.target.value)} />
-            <Input label="Jabatan / Posisi" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <Input label="Nama Perusahaan" value={company} onChange={(e) => setCompany(e.target.value)} />
+            <Input label="Nama Lengkap" value={data.name} onChange={(e) => updateField("name", e.target.value, { continuous: true })} />
+            <Input label="Jabatan / Posisi" value={data.title} onChange={(e) => updateField("title", e.target.value, { continuous: true })} />
+            <Input label="Nama Perusahaan" value={data.company} onChange={(e) => updateField("company", e.target.value, { continuous: true })} />
             <div>
               <Label>Warna Aksen</Label>
-              <div className="flex items-center gap-2 mt-1.5">
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 {ACCENT_PRESETS.map((c) => (
                   <button
                     key={c}
                     type="button"
-                    onClick={() => setAccentColor(c)}
+                    onClick={() => updateField("accentColor", c)}
                     style={{ backgroundColor: c }}
-                    className={`w-8 h-8 rounded-lg border-2 transition-transform ${accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
+                    className={`shrink-0 w-8 h-8 rounded-lg border-2 transition-transform ${data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
                     title={c}
                   />
                 ))}
-                <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
+                <input type="color" value={data.accentColor} onChange={(e) => updateField("accentColor", e.target.value, { continuous: true })} className="shrink-0 w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
               </div>
             </div>
           </div>
@@ -207,10 +222,10 @@ export function BusinessCardGenerator() {
 
         <PanelCard title="Kontak" subtitle="Tampil di bagian bawah kartu">
           <div className="space-y-3">
-            <Input label="Telepon" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <Input label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Input label="Website" value={website} onChange={(e) => setWebsite(e.target.value)} />
-            <Input label="Alamat (opsional)" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Alamat singkat" />
+            <Input label="Telepon" value={data.phone} onChange={(e) => updateField("phone", e.target.value, { continuous: true })} />
+            <Input label="Email" value={data.email} onChange={(e) => updateField("email", e.target.value, { continuous: true })} />
+            <Input label="Website" value={data.website} onChange={(e) => updateField("website", e.target.value, { continuous: true })} />
+            <Input label="Alamat (opsional)" value={data.address} onChange={(e) => updateField("address", e.target.value, { continuous: true })} placeholder="Alamat singkat" />
           </div>
         </PanelCard>
       </div>

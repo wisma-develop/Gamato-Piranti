@@ -3,6 +3,7 @@ import { ScanLine, Image as ImageIcon, Trash2, Loader2, Zap, ArrowUp, ArrowDown 
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { Btn, Select, Label } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -71,6 +72,7 @@ export const PdfScan: React.FC = () => {
         const page = pdfDoc.addPage([embedded.width, embedded.height]);
         page.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
       }
+      await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-scan.pdf");
       setInfo(`${items.length} halaman berhasil dijadikan PDF hasil scan.`);
     } catch (err: any) {

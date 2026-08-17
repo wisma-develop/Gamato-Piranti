@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FileSpreadsheet, Download, Printer, Loader2, Plus, Trash2 } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
@@ -14,6 +15,8 @@ import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
@@ -295,46 +298,53 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
 }
 
 export function InvoiceGenerator() {
-  const [companyName, setCompanyName] = useState("Nama Usaha / Perusahaan");
-  const [companyAddress, setCompanyAddress] = useState("Jl. Contoh Alamat No. 123, Kota");
-  const [companyPhone, setCompanyPhone] = useState("0812-3456-7890");
-  const [companyEmail, setCompanyEmail] = useState("halo@usaha.com");
+  // Semua field invoice (kop, klien, item, pembayaran) punya riwayat
+  // Undo/Redo. Tambah/hapus item, ganti status, dan pilih warna langsung
+  // commit; mengetik teks digabung jadi satu langkah setelah jeda.
+  const history = useHistoryState<InvoiceData>(() => ({
+    companyName: "Nama Usaha / Perusahaan",
+    companyAddress: "Jl. Contoh Alamat No. 123, Kota",
+    companyPhone: "0812-3456-7890",
+    companyEmail: "halo@usaha.com",
+    invoiceNo: `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-001`,
+    invoiceDate: todayISODate(),
+    dueDate: todayISODate(),
+    status: "belum",
+    clientName: "",
+    clientAddress: "",
+    clientPhone: "",
+    bankName: "",
+    bankAccount: "",
+    bankHolder: "",
+    items: defaultItems(),
+    discountPct: "0",
+    taxPct: "11",
+    notes: "Pembayaran dapat dilakukan melalui transfer bank sesuai info pembayaran di atas.",
+    accentColor: ACCENT_PRESETS[0],
+  }));
+  const data = history.state;
+  const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
+  const updateField = <K extends keyof InvoiceData>(key: K, value: InvoiceData[K], opts?: { continuous?: boolean }) => {
+    history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleCommit();
+  };
+  const updateItem = (id: string, patch: Partial<InvoiceItem>, opts?: { continuous?: boolean }) => {
+    history.set((prev) => ({ ...prev, items: prev.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleCommit();
+  };
+  const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), desc: "Item baru", qty: "1", price: "0" }] }));
+  const removeItem = (id: string) => history.set((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [invoiceNo, setInvoiceNo] = useState(() => `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-001`);
-  const [invoiceDate, setInvoiceDate] = useState(todayISODate());
-  const [dueDate, setDueDate] = useState(todayISODate());
-  const [status, setStatus] = useState<"lunas" | "belum" | "">("belum");
-  const [clientName, setClientName] = useState("");
-  const [clientAddress, setClientAddress] = useState("");
-  const [clientPhone, setClientPhone] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [bankAccount, setBankAccount] = useState("");
-  const [bankHolder, setBankHolder] = useState("");
-  const [items, setItems] = useState<InvoiceItem[]>(defaultItems);
-  const [discountPct, setDiscountPct] = useState("0");
-  const [taxPct, setTaxPct] = useState("11");
-  const [notes, setNotes] = useState("Pembayaran dapat dilakukan melalui transfer bank sesuai info pembayaran di atas.");
-  const [accentColor, setAccentColor] = useState(ACCENT_PRESETS[0]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
 
-  const data: InvoiceData = useMemo(
-    () => ({
-      companyName, companyAddress, companyPhone, companyEmail,
-      invoiceNo, invoiceDate, dueDate, status,
-      clientName, clientAddress, clientPhone,
-      bankName, bankAccount, bankHolder,
-      items, discountPct, taxPct, notes, accentColor,
-    }),
-    [companyName, companyAddress, companyPhone, companyEmail, invoiceNo, invoiceDate, dueDate, status, clientName, clientAddress, clientPhone, bankName, bankAccount, bankHolder, items, discountPct, taxPct, notes, accentColor]
-  );
-
   const totals = useMemo(
-    () => computeTotals(items, parseFloat(sanitizeNumberString(discountPct || "0")) || 0, parseFloat(sanitizeNumberString(taxPct || "0")) || 0),
-    [items, discountPct, taxPct]
+    () => computeTotals(data.items, parseFloat(sanitizeNumberString(data.discountPct || "0")) || 0, parseFloat(sanitizeNumberString(data.taxPct || "0")) || 0),
+    [data.items, data.discountPct, data.taxPct]
   );
 
   useEffect(() => {
@@ -351,12 +361,6 @@ export function InvoiceGenerator() {
     };
   }, [data, logoImg]);
 
-  const updateItem = (id: string, patch: Partial<InvoiceItem>) => {
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
-  };
-  const addItem = () => setItems((prev) => [...prev, { id: newItemId(), desc: "Item baru", qty: "1", price: "0" }]);
-  const removeItem = (id: string) => setItems((prev) => prev.filter((it) => it.id !== id));
-
   const downloadPng = async () => {
     setInfo(null);
     setIsGenerating(true);
@@ -364,7 +368,7 @@ export function InvoiceGenerator() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const blob = await canvasToBlob(canvas);
-      downloadBlob(blob, `${sanitizeFileName(invoiceNo) || "invoice"}.png`);
+      downloadBlob(blob, `${sanitizeFileName(data.invoiceNo) || "invoice"}.png`);
       setInfo("Invoice berhasil diunduh sebagai PNG.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat invoice.");
@@ -385,8 +389,9 @@ export function InvoiceGenerator() {
       const img = await pdfDoc.embedPng(bytes);
       const page = pdfDoc.addPage([img.width, img.height]);
       page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
-      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(invoiceNo) || "invoice"}.pdf`);
+      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(data.invoiceNo) || "invoice"}.pdf`);
       setInfo("Invoice berhasil diunduh sebagai PDF.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat PDF.");
@@ -400,7 +405,7 @@ export function InvoiceGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { title: `Invoice ${invoiceNo}` });
+      printCanvasImage(canvas, { title: `Invoice ${data.invoiceNo}` });
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuka dialog cetak.");
     }
@@ -409,29 +414,34 @@ export function InvoiceGenerator() {
   return (
     <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
       <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Invoice</span>
+          <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
+        </div>
+
         <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop invoice">
           <div className="space-y-3">
             <LogoUpload file={logoFile} onChange={setLogoFile} />
-            <Input label="Nama Perusahaan / Usaha" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-            <Textarea label="Alamat" rows={2} value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} />
+            <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+            <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Telepon" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} />
-              <Input label="Email" value={companyEmail} onChange={(e) => setCompanyEmail(e.target.value)} />
+              <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+              <Input label="Email" value={data.companyEmail} onChange={(e) => updateField("companyEmail", e.target.value, { continuous: true })} />
             </div>
             <div>
               <Label>Warna Aksen</Label>
-              <div className="flex items-center gap-2 mt-1.5">
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 {ACCENT_PRESETS.map((c) => (
                   <button
                     key={c}
                     type="button"
-                    onClick={() => setAccentColor(c)}
+                    onClick={() => updateField("accentColor", c)}
                     style={{ backgroundColor: c }}
-                    className={cn("w-8 h-8 rounded-lg border-2 transition-transform", accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent")}
+                    className={cn("shrink-0 w-8 h-8 rounded-lg border-2 transition-transform", data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent")}
                     title={c}
                   />
                 ))}
-                <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
+                <input type="color" value={data.accentColor} onChange={(e) => updateField("accentColor", e.target.value, { continuous: true })} className="shrink-0 w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
               </div>
             </div>
           </div>
@@ -439,12 +449,12 @@ export function InvoiceGenerator() {
 
         <PanelCard title="Detail Invoice" subtitle="Nomor, tanggal, dan status pembayaran">
           <div className="space-y-3">
-            <Input label="No. Invoice" value={invoiceNo} onChange={(e) => setInvoiceNo(e.target.value)} />
+            <Input label="No. Invoice" value={data.invoiceNo} onChange={(e) => updateField("invoiceNo", e.target.value, { continuous: true })} />
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Tanggal" type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-              <Input label="Jatuh Tempo" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <Input label="Tanggal" type="date" value={data.invoiceDate} onChange={(e) => updateField("invoiceDate", e.target.value)} />
+              <Input label="Jatuh Tempo" type="date" value={data.dueDate} onChange={(e) => updateField("dueDate", e.target.value)} />
             </div>
-            <Select label="Status Pembayaran" value={status} onChange={(e) => setStatus(e.target.value as any)}>
+            <Select label="Status Pembayaran" value={data.status} onChange={(e) => updateField("status", e.target.value as InvoiceData["status"])}>
               <option value="">Tanpa status</option>
               <option value="belum">Belum Lunas</option>
               <option value="lunas">Lunas</option>
@@ -454,33 +464,33 @@ export function InvoiceGenerator() {
 
         <PanelCard title="Ditagihkan Kepada" subtitle="Data klien / pelanggan">
           <div className="space-y-3">
-            <Input label="Nama Klien" value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="PT Contoh Sejahtera" />
-            <Textarea label="Alamat" rows={2} value={clientAddress} onChange={(e) => setClientAddress(e.target.value)} />
-            <Input label="Telepon" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} />
+            <Input label="Nama Klien" value={data.clientName} onChange={(e) => updateField("clientName", e.target.value, { continuous: true })} placeholder="PT Contoh Sejahtera" />
+            <Textarea label="Alamat" rows={2} value={data.clientAddress} onChange={(e) => updateField("clientAddress", e.target.value, { continuous: true })} />
+            <Input label="Telepon" value={data.clientPhone} onChange={(e) => updateField("clientPhone", e.target.value, { continuous: true })} />
           </div>
         </PanelCard>
 
         <PanelCard title="Info Pembayaran" subtitle="Opsional — kosongkan bila tidak perlu ditampilkan">
           <div className="space-y-3">
-            <Input label="Nama Bank" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="Bank Central Asia" />
-            <Input label="No. Rekening" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} placeholder="1234567890" />
-            <Input label="Atas Nama" value={bankHolder} onChange={(e) => setBankHolder(e.target.value)} />
+            <Input label="Nama Bank" value={data.bankName} onChange={(e) => updateField("bankName", e.target.value, { continuous: true })} placeholder="Bank Central Asia" />
+            <Input label="No. Rekening" value={data.bankAccount} onChange={(e) => updateField("bankAccount", e.target.value, { continuous: true })} placeholder="1234567890" />
+            <Input label="Atas Nama" value={data.bankHolder} onChange={(e) => updateField("bankHolder", e.target.value, { continuous: true })} />
           </div>
         </PanelCard>
 
         <PanelCard title="Item / Layanan" subtitle="Tambah baris sebanyak yang dibutuhkan">
           <div className="space-y-3">
-            {items.map((item) => (
+            {data.items.map((item) => (
               <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Input value={item.desc} onChange={(e) => updateItem(item.id, { desc: e.target.value })} placeholder="Deskripsi item" className="flex-1" />
+                  <Input value={item.desc} onChange={(e) => updateItem(item.id, { desc: e.target.value }, { continuous: true })} placeholder="Deskripsi item" className="flex-1" />
                   <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v })} placeholder="1" />
-                  <MoneyInput label="Harga Satuan (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v })} placeholder="0" prefix="Rp" />
+                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
+                  <MoneyInput label="Harga Satuan (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
                 </div>
               </div>
             ))}
@@ -494,10 +504,10 @@ export function InvoiceGenerator() {
         <PanelCard title="Diskon, Pajak & Catatan" subtitle="Opsional">
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Diskon (%)" value={discountPct} onChange={(e) => setDiscountPct(sanitizeNumberString(e.target.value))} />
-              <Input label="Pajak / PPN (%)" value={taxPct} onChange={(e) => setTaxPct(sanitizeNumberString(e.target.value))} />
+              <Input label="Diskon (%)" value={data.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+              <Input label="Pajak / PPN (%)" value={data.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
             </div>
-            <Textarea label="Catatan" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Textarea label="Catatan" rows={2} value={data.notes} onChange={(e) => updateField("notes", e.target.value, { continuous: true })} />
             <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
               Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
             </div>

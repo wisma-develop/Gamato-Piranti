@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Receipt, Download, Printer, Loader2 } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
 import { formatIDR } from "@/lib/utilityHelpers";
@@ -14,6 +15,8 @@ import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
@@ -174,31 +177,38 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
 }
 
 export function KwitansiGenerator() {
-  const [companyName, setCompanyName] = useState("Nama Usaha / Perusahaan");
-  const [companyAddress, setCompanyAddress] = useState("Jl. Contoh Alamat No. 123, Kota");
-  const [companyPhone, setCompanyPhone] = useState("0812-3456-7890");
+  // Semua field kwitansi (kop perusahaan + detail pembayaran) punya riwayat
+  // Undo/Redo. Mengetik digabung jadi satu langkah setelah jeda; pilih warna
+  // preset/tanggal/logo langsung commit sebagai satu langkah.
+  const history = useHistoryState<KwitansiData>(() => ({
+    companyName: "Nama Usaha / Perusahaan",
+    companyAddress: "Jl. Contoh Alamat No. 123, Kota",
+    companyPhone: "0812-3456-7890",
+    nomor: (() => {
+      const now = new Date();
+      return `001/KWT/${now.getMonth() + 1}/${now.getFullYear()}`;
+    })(),
+    receivedFrom: "",
+    amount: "",
+    description: "",
+    date: todayISODate(),
+    city: "",
+    receiverName: "",
+    accentColor: ACCENT_PRESETS[0],
+  }));
+  const data = history.state;
+  const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
+  const updateField = <K extends keyof KwitansiData>(key: K, value: KwitansiData[K], opts?: { continuous?: boolean }) => {
+    history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleCommit();
+  };
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [nomor, setNomor] = useState(() => {
-    const now = new Date();
-    return `001/KWT/${now.getMonth() + 1}/${now.getFullYear()}`;
-  });
-  const [receivedFrom, setReceivedFrom] = useState("");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState(todayISODate());
-  const [city, setCity] = useState("");
-  const [receiverName, setReceiverName] = useState("");
-  const [accentColor, setAccentColor] = useState(ACCENT_PRESETS[0]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
-
-  const data: KwitansiData = useMemo(
-    () => ({ companyName, companyAddress, companyPhone, nomor, receivedFrom, amount, description, date, city, receiverName, accentColor }),
-    [companyName, companyAddress, companyPhone, nomor, receivedFrom, amount, description, date, city, receiverName, accentColor]
-  );
 
   useEffect(() => {
     let cancelled = false;
@@ -221,7 +231,7 @@ export function KwitansiGenerator() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const blob = await canvasToBlob(canvas);
-      downloadBlob(blob, `${sanitizeFileName(nomor) || "kwitansi"}.png`);
+      downloadBlob(blob, `${sanitizeFileName(data.nomor) || "kwitansi"}.png`);
       setInfo("Kwitansi berhasil diunduh sebagai PNG.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat kwitansi.");
@@ -242,8 +252,9 @@ export function KwitansiGenerator() {
       const img = await pdfDoc.embedPng(bytes);
       const page = pdfDoc.addPage([img.width, img.height]);
       page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
-      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(nomor) || "kwitansi"}.pdf`);
+      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(data.nomor) || "kwitansi"}.pdf`);
       setInfo("Kwitansi berhasil diunduh sebagai PDF.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat PDF.");
@@ -257,7 +268,7 @@ export function KwitansiGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { title: `Kwitansi ${nomor}` });
+      printCanvasImage(canvas, { title: `Kwitansi ${data.nomor}` });
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuka dialog cetak.");
     }
@@ -266,26 +277,31 @@ export function KwitansiGenerator() {
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
       <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Kwitansi</span>
+          <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
+        </div>
+
         <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop kwitansi">
           <div className="space-y-3">
             <LogoUpload file={logoFile} onChange={setLogoFile} />
-            <Input label="Nama Perusahaan / Usaha" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-            <Textarea label="Alamat" rows={2} value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} />
-            <Input label="Telepon" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} />
+            <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+            <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+            <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
             <div>
               <Label>Warna Aksen</Label>
-              <div className="flex items-center gap-2 mt-1.5">
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 {ACCENT_PRESETS.map((c) => (
                   <button
                     key={c}
                     type="button"
-                    onClick={() => setAccentColor(c)}
+                    onClick={() => updateField("accentColor", c)}
                     style={{ backgroundColor: c }}
-                    className={`w-8 h-8 rounded-lg border-2 transition-transform ${accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
+                    className={`shrink-0 w-8 h-8 rounded-lg border-2 transition-transform ${data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
                     title={c}
                   />
                 ))}
-                <input type="color" value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
+                <input type="color" value={data.accentColor} onChange={(e) => updateField("accentColor", e.target.value, { continuous: true })} className="shrink-0 w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
               </div>
             </div>
           </div>
@@ -293,21 +309,21 @@ export function KwitansiGenerator() {
 
         <PanelCard title="Detail Pembayaran" subtitle="Isi data transaksi yang akan tercetak">
           <div className="space-y-3">
-            <Input label="No. Kwitansi" value={nomor} onChange={(e) => setNomor(e.target.value)} />
-            <Input label="Telah Terima Dari" value={receivedFrom} onChange={(e) => setReceivedFrom(e.target.value)} placeholder="Nama pembayar" />
+            <Input label="No. Kwitansi" value={data.nomor} onChange={(e) => updateField("nomor", e.target.value, { continuous: true })} />
+            <Input label="Telah Terima Dari" value={data.receivedFrom} onChange={(e) => updateField("receivedFrom", e.target.value, { continuous: true })} placeholder="Nama pembayar" />
             <MoneyInput
               label="Jumlah (Rp)"
-              value={amount}
-              onChange={(v) => setAmount(v)}
+              value={data.amount}
+              onChange={(v) => updateField("amount", v, { continuous: true })}
               placeholder="1500000"
               prefix="Rp"
             />
-            <Textarea label="Untuk Pembayaran" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Contoh: Pembayaran sewa ruko bulan Agustus 2026" />
+            <Textarea label="Untuk Pembayaran" rows={2} value={data.description} onChange={(e) => updateField("description", e.target.value, { continuous: true })} placeholder="Contoh: Pembayaran sewa ruko bulan Agustus 2026" />
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Tanggal" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-              <Input label="Kota" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Denpasar" />
+              <Input label="Tanggal" type="date" value={data.date} onChange={(e) => updateField("date", e.target.value)} />
+              <Input label="Kota" value={data.city} onChange={(e) => updateField("city", e.target.value, { continuous: true })} placeholder="Denpasar" />
             </div>
-            <Input label="Nama Penerima (opsional)" value={receiverName} onChange={(e) => setReceiverName(e.target.value)} placeholder="Dikosongkan = garis tanda tangan kosong" />
+            <Input label="Nama Penerima (opsional)" value={data.receiverName} onChange={(e) => updateField("receiverName", e.target.value, { continuous: true })} placeholder="Dikosongkan = garis tanda tangan kosong" />
           </div>
         </PanelCard>
       </div>

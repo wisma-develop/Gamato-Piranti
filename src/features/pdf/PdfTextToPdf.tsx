@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { AlignLeft, FileText, Loader2 } from "lucide-react";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { downloadBlob } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -42,6 +43,7 @@ export const PdfTextToPdf: React.FC = () => {
         if (line) page.drawText(line, { x: margin, y: y - lineHeight, size: fontSize, font, color: rgb(0, 0, 0) });
         y -= lineHeight;
       }
+      await stampGamatoBranding(pdfDoc);
       const blob = new Blob([await pdfDoc.save()], { type: "application/pdf" });
       downloadBlob(blob, "gamato-text.pdf");
       setInfo("Teks berhasil dikonversi ke PDF.");

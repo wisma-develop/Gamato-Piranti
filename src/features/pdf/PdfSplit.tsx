@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FileOutput, FileText, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
@@ -27,6 +28,7 @@ export const PdfSplit: React.FC = () => {
       for (let i = 0; i < src.getPageCount(); i++) {
         const doc = await PDFDocument.create();
         doc.addPage((await doc.copyPages(src, [i]))[0]);
+        await stampGamatoBranding(doc);
         downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), `gamato-page-${i + 1}.pdf`);
       }
       setInfo(`PDF dipecah menjadi ${src.getPageCount()} file.`);

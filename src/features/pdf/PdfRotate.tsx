@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { RotateCw, FileText, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument, degrees } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { parsePageSpec } from "@/lib/pdf";
 import { Input, Select, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -31,6 +32,7 @@ export const PdfRotate: React.FC = () => {
       const total = src.getPageCount();
       const target = rotateSpec === "semua" ? Array.from({ length: total }, (_, i) => i) : parsePageSpec(pageSpec, total);
       target.forEach((idx) => src.getPage(idx).setRotation(degrees(rotateDegrees)));
+      await stampGamatoBranding(src);
       downloadBlob(new Blob([await src.save()], { type: "application/pdf" }), "gamato-rotated.pdf");
       setInfo(`${target.length} halaman diputar ${rotateDegrees}°.`);
     } catch (err: any) {

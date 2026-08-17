@@ -3,6 +3,7 @@ import { Layers, FileText, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Input, Select, Label, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
@@ -78,6 +79,7 @@ export const PdfWatermark: React.FC = () => {
         draw(x, y);
       });
 
+      await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-watermarked.pdf");
       setInfo(`Watermark diterapkan ke ${pages.length} halaman.`);
     } catch (err: any) {

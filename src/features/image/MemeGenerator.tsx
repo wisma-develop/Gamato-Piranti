@@ -6,6 +6,8 @@ import { loadImageFromUrl, canvasToBlob, makeCanvas } from "@/lib/canvas";
 import { Btn, Label, Textarea } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 interface MemeLayer {
   id: string;
@@ -30,7 +32,12 @@ export const MemeGenerator: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
-  const [layers, setLayers] = useState<MemeLayer[]>([]);
+  // Lapisan teks meme punya riwayat Undo/Redo. Mengetik/menyeret digabung
+  // jadi satu langkah setelah jeda; tambah/hapus lapisan langsung commit.
+  const layersHistory = useHistoryState<MemeLayer[]>([]);
+  const layers = layersHistory.state;
+  const setLayers = layersHistory.set;
+  const { schedule: scheduleLayersCommit, flushNow: flushLayersCommit } = useDebouncedCommit(layersHistory.commit, 600);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -38,9 +45,10 @@ export const MemeGenerator: React.FC = () => {
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const selected = layers.find((l) => l.id === selectedId) || null;
-  const updateSelected = (patch: Partial<MemeLayer>) => {
+  const updateSelected = (patch: Partial<MemeLayer>, opts?: { continuous?: boolean }) => {
     if (!selectedId) return;
-    setLayers((prev) => prev.map((l) => (l.id === selectedId ? { ...l, ...patch } : l)));
+    setLayers((prev) => prev.map((l) => (l.id === selectedId ? { ...l, ...patch } : l)), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleLayersCommit();
   };
 
   const addFiles = async (incoming: File[]) => {
@@ -53,7 +61,7 @@ export const MemeGenerator: React.FC = () => {
     setPreviewUrl(url);
     setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
     const initial = defaultLayers();
-    setLayers(initial);
+    layersHistory.reset(initial); // gambar baru = mulai riwayat baru
     setSelectedId(initial[0].id);
     setInfo(null);
   };
@@ -84,11 +92,13 @@ export const MemeGenerator: React.FC = () => {
       const dy = (ev.clientY - startY) / rect.height;
       const x = Math.min(1, Math.max(0, startPos.x + dx));
       const y = Math.min(1, Math.max(0, startPos.y + dy));
-      setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, x, y } : l)));
+      setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, x, y } : l)), { commit: false });
+      scheduleLayersCommit();
     };
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      flushLayersCommit(); // seret selesai → satu langkah Undo
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -160,7 +170,7 @@ export const MemeGenerator: React.FC = () => {
                   setFile(null);
                   setPreviewUrl(null);
                   setNaturalSize(null);
-                  setLayers([]);
+                  layersHistory.reset([]);
                   setSelectedId(null);
                   setInfo(null);
                 }}
@@ -220,9 +230,12 @@ export const MemeGenerator: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Lapisan Teks</p>
-            <button type="button" onClick={addLayer} disabled={!previewUrl} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
-              <Plus className="w-3.5 h-3.5" /> Tambah
-            </button>
+            <div className="flex items-center gap-2">
+              <UndoRedoBar canUndo={layersHistory.canUndo} canRedo={layersHistory.canRedo} onUndo={layersHistory.undo} onRedo={layersHistory.redo} hideLabel />
+              <button type="button" onClick={addLayer} disabled={!previewUrl} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40 shrink-0">
+                <Plus className="w-3.5 h-3.5" /> Tambah
+              </button>
+            </div>
           </div>
           <div className="space-y-1.5">
             {layers.map((l) => (
@@ -248,7 +261,7 @@ export const MemeGenerator: React.FC = () => {
         {selected && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Teks Terpilih</p>
-            <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value })} />
+            <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
             <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
               <input type="checkbox" checked={selected.uppercase} onChange={(e) => updateSelected({ uppercase: e.target.checked })} className="rounded accent-indigo-600" />
               HURUF BESAR otomatis
@@ -258,23 +271,23 @@ export const MemeGenerator: React.FC = () => {
                 <Label>Ukuran</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.size}%</span>
               </div>
-              <input type="range" min={2} max={20} value={selected.size} onChange={(e) => updateSelected({ size: parseInt(e.target.value) })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <input type="range" min={2} max={20} value={selected.size} onChange={(e) => updateSelected({ size: parseInt(e.target.value) }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
             </div>
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <Label>Ketebalan Outline</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.strokeWidth}%</span>
               </div>
-              <input type="range" min={0} max={30} value={selected.strokeWidth} onChange={(e) => updateSelected({ strokeWidth: parseInt(e.target.value) })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <input type="range" min={0} max={30} value={selected.strokeWidth} onChange={(e) => updateSelected({ strokeWidth: parseInt(e.target.value) }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Warna Teks</Label>
-                <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value }, { continuous: true })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
               </div>
               <div>
                 <Label>Warna Outline</Label>
-                <input type="color" value={selected.stroke} onChange={(e) => updateSelected({ stroke: e.target.value })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <input type="color" value={selected.stroke} onChange={(e) => updateSelected({ stroke: e.target.value }, { continuous: true })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
               </div>
             </div>
           </div>

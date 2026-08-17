@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { BlockModel, RunModel } from "./parseEditor";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 
 function hexToColor(hex?: string) {
   if (!hex) return rgb(0.06, 0.09, 0.16); // slate-900 fallback
@@ -161,5 +162,6 @@ export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): 
     y -= 6;
   }
 
+  await stampGamatoBranding(pdfDoc);
   return new Blob([await pdfDoc.save()], { type: "application/pdf" });
 }

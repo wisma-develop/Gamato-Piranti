@@ -3,10 +3,13 @@ import { Barcode, Download, Loader2, FileDown, Layers } from "lucide-react";
 import JsBarcode from "jsbarcode";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { cn } from "@/utils/cn";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeText } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const NUMERIC_FORMATS = ["EAN13", "EAN8", "UPC", "ITF14"];
 
@@ -42,17 +45,46 @@ function todayLong() {
   return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
 }
 
+type BarcodeConfig = {
+  barcodeContent: string;
+  barcodeFormat: string;
+  barcodeHeight: number;
+  fgColor: string;
+  bgColor: string;
+  bulkText: string;
+};
+
 export function BarcodeGenerator() {
-  const [barcodeContent, setBarcodeContent] = useState("123456789012");
-  const [barcodeFormat, setBarcodeFormat] = useState<string>("CODE128");
-  const [barcodeHeight, setBarcodeHeight] = useState(80);
-  const [fgColor, setFgColor] = useState("#020617");
-  const [bgColor, setBgColor] = useState("#ffffff");
+  // Konten, format, warna, tinggi, dan daftar cetak massal semuanya punya
+  // riwayat Undo/Redo (digabung jadi satu langkah setelah jeda singkat).
+  // Nama variabel & setter dipertahankan sama persis supaya JSX di bawah
+  // tidak perlu diubah satu per satu.
+  const bcHistory = useHistoryState<BarcodeConfig>(() => ({
+    barcodeContent: "123456789012",
+    barcodeFormat: "CODE128",
+    barcodeHeight: 80,
+    fgColor: "#020617",
+    bgColor: "#ffffff",
+    bulkText: "",
+  }));
+  const bcConfig = bcHistory.state;
+  const { schedule: scheduleBcCommit } = useDebouncedCommit(bcHistory.commit, 600);
+  function setBcField<K extends keyof BarcodeConfig>(key: K, value: BarcodeConfig[K]) {
+    bcHistory.set((prev) => ({ ...prev, [key]: value }), { commit: false });
+    scheduleBcCommit();
+  }
+  const { barcodeContent, barcodeFormat, barcodeHeight, fgColor, bgColor, bulkText } = bcConfig;
+  const setBarcodeContent = (v: string) => setBcField("barcodeContent", v);
+  const setBarcodeFormat = (v: string) => setBcField("barcodeFormat", v);
+  const setBarcodeHeight = (v: number) => setBcField("barcodeHeight", v);
+  const setFgColor = (v: string) => setBcField("fgColor", v);
+  const setBgColor = (v: string) => setBcField("bgColor", v);
+  const setBulkText = (v: string) => setBcField("bulkText", v);
+
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const barcodeCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [bulkText, setBulkText] = useState("");
   const [bulkInfo, setBulkInfo] = useState<string | null>(null);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [isBulkWorking, setIsBulkWorking] = useState(false);
@@ -160,6 +192,7 @@ export function BarcodeGenerator() {
         await new Promise(r => setTimeout(r, 0));
       }
 
+      await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), "gamato-barcode-massal.pdf");
       setBulkInfo(
@@ -180,6 +213,11 @@ export function BarcodeGenerator() {
       <div className="grid lg:grid-cols-[1fr_400px] gap-8 items-start">
         {/* LEFT: Controls */}
         <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Barcode</p>
+            <UndoRedoBar canUndo={bcHistory.canUndo} canRedo={bcHistory.canRedo} onUndo={bcHistory.undo} onRedo={bcHistory.redo} />
+          </div>
+
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
             <Textarea label="Konten Barcode" rows={4} value={barcodeContent} onChange={e => setBarcodeContent(sanitizeText(e.target.value))} placeholder="Kode produk, SKU, atau angka…" />
             <div className="grid grid-cols-2 gap-4">

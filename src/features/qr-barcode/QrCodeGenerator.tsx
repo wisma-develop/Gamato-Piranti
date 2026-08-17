@@ -8,6 +8,8 @@ import { sanitizeText, sanitizeUrl } from "@/utils/sanitize";
 import { fileToDataUrl } from "@/lib/file";
 import { buildFramedLogoDataUrl } from "@/lib/qrLogo";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type QrTemplate = "url" | "text" | "wifi" | "email" | "phone";
 type DotType = "square" | "dots" | "rounded" | "classy" | "classy-rounded" | "extra-rounded";
@@ -76,26 +78,80 @@ function contrastRatio(hex1: string, hex2: string): number {
   return l1 > l2 ? l1 / l2 : l2 / l1;
 }
 
-export function QrCodeGenerator() {
-  const [qrTemplate, setQrTemplate] = useState<QrTemplate>("url");
-  const [qrUrl, setQrUrl] = useState("https://gamato-piranti.local");
-  const [qrText, setQrText] = useState("");
-  const [qrWifiSsid, setQrWifiSsid] = useState("");
-  const [qrWifiPass, setQrWifiPass] = useState("");
-  const [qrWifiEnc, setQrWifiEnc] = useState<"WPA" | "WEP" | "nopass">("WPA");
-  const [qrWifiHidden, setQrWifiHidden] = useState(false);
-  const [qrEmailTo, setQrEmailTo] = useState("");
-  const [qrEmailSubject, setQrEmailSubject] = useState("");
-  const [qrEmailBody, setQrEmailBody] = useState("");
-  const [qrPhone, setQrPhone] = useState("");
+type QrConfig = {
+  qrTemplate: QrTemplate;
+  qrUrl: string;
+  qrText: string;
+  qrWifiSsid: string;
+  qrWifiPass: string;
+  qrWifiEnc: "WPA" | "WEP" | "nopass";
+  qrWifiHidden: boolean;
+  qrEmailTo: string;
+  qrEmailSubject: string;
+  qrEmailBody: string;
+  qrPhone: string;
+  size: number;
+  dotsType: DotType;
+  cornersSquareType: CornerSquareType;
+  cornersDotType: CornerDotType;
+  dotsColor: string;
+  cornersColor: string;
+  bgColor: string;
+};
 
-  const [size, setSize] = useState(320);
-  const [dotsType, setDotsType] = useState<DotType>("rounded");
-  const [cornersSquareType, setCornersSquareType] = useState<CornerSquareType>("extra-rounded");
-  const [cornersDotType, setCornersDotType] = useState<CornerDotType>("dot");
-  const [dotsColor, setDotsColor] = useState("#4f46e5");
-  const [cornersColor, setCornersColor] = useState("#4f46e5");
-  const [bgColor, setBgColor] = useState("#ffffff");
+const DEFAULT_QR_CONFIG: QrConfig = {
+  qrTemplate: "url",
+  qrUrl: "https://gamato-piranti.local",
+  qrText: "",
+  qrWifiSsid: "",
+  qrWifiPass: "",
+  qrWifiEnc: "WPA",
+  qrWifiHidden: false,
+  qrEmailTo: "",
+  qrEmailSubject: "",
+  qrEmailBody: "",
+  qrPhone: "",
+  size: 320,
+  dotsType: "rounded",
+  cornersSquareType: "extra-rounded",
+  cornersDotType: "dot",
+  dotsColor: "#4f46e5",
+  cornersColor: "#4f46e5",
+  bgColor: "#ffffff",
+};
+
+export function QrCodeGenerator() {
+  // Seluruh pengaturan QR (isi, gaya titik/sudut, warna, ukuran) punya
+  // riwayat Undo/Redo, digabung jadi satu langkah setelah jeda singkat.
+  // Nama variabel & setter di bawah sengaja dipertahankan sama persis
+  // (qrUrl/setQrUrl, dotsColor/setDotsColor, dst.) supaya seluruh JSX di
+  // bawahnya tetap jalan tanpa perlu diubah satu per satu.
+  const qrHistory = useHistoryState<QrConfig>(() => DEFAULT_QR_CONFIG);
+  const qrConfig = qrHistory.state;
+  const { schedule: scheduleQrCommit } = useDebouncedCommit(qrHistory.commit, 600);
+  function setQrField<K extends keyof QrConfig>(key: K, value: QrConfig[K]) {
+    qrHistory.set((prev) => ({ ...prev, [key]: value }), { commit: false });
+    scheduleQrCommit();
+  }
+  const { qrTemplate, qrUrl, qrText, qrWifiSsid, qrWifiPass, qrWifiEnc, qrWifiHidden, qrEmailTo, qrEmailSubject, qrEmailBody, qrPhone, size, dotsType, cornersSquareType, cornersDotType, dotsColor, cornersColor, bgColor } = qrConfig;
+  const setQrTemplate = (v: QrTemplate) => setQrField("qrTemplate", v);
+  const setQrUrl = (v: string) => setQrField("qrUrl", v);
+  const setQrText = (v: string) => setQrField("qrText", v);
+  const setQrWifiSsid = (v: string) => setQrField("qrWifiSsid", v);
+  const setQrWifiPass = (v: string) => setQrField("qrWifiPass", v);
+  const setQrWifiEnc = (v: "WPA" | "WEP" | "nopass") => setQrField("qrWifiEnc", v);
+  const setQrWifiHidden = (v: boolean) => setQrField("qrWifiHidden", v);
+  const setQrEmailTo = (v: string) => setQrField("qrEmailTo", v);
+  const setQrEmailSubject = (v: string) => setQrField("qrEmailSubject", v);
+  const setQrEmailBody = (v: string) => setQrField("qrEmailBody", v);
+  const setQrPhone = (v: string) => setQrField("qrPhone", v);
+  const setSize = (v: number) => setQrField("size", v);
+  const setDotsType = (v: DotType) => setQrField("dotsType", v);
+  const setCornersSquareType = (v: CornerSquareType) => setQrField("cornersSquareType", v);
+  const setCornersDotType = (v: CornerDotType) => setQrField("cornersDotType", v);
+  const setDotsColor = (v: string) => setQrField("dotsColor", v);
+  const setCornersColor = (v: string) => setQrField("cornersColor", v);
+  const setBgColor = (v: string) => setQrField("bgColor", v);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
 
@@ -221,6 +277,11 @@ export function QrCodeGenerator() {
       <div className="grid lg:grid-cols-[1fr_400px] gap-8 items-start">
         {/* LEFT: Controls */}
         <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor QR Code</p>
+            <UndoRedoBar canUndo={qrHistory.canUndo} canRedo={qrHistory.canRedo} onUndo={qrHistory.undo} onRedo={qrHistory.redo} />
+          </div>
+
           {/* Template selector */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Isi QR</p>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ShoppingBag, Download, Printer, Usb, Loader2, Plus, Trash2 } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
@@ -16,6 +17,8 @@ import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type StrukItem = { id: string; name: string; qty: string; price: string };
 
@@ -253,23 +256,56 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   footerLines.forEach((line, i) => ctx.fillText(line, W / 2, dy + 10 + i * 17));
 }
 
+type StrukFormData = {
+  companyName: string;
+  companyAddress: string;
+  companyPhone: string;
+  paperWidth: "58" | "80";
+  transactionNo: string;
+  cashierName: string;
+  date: string;
+  items: StrukItem[];
+  discountPct: string;
+  taxPct: string;
+  amountPaid: string;
+  footerMessage: string;
+};
+
 export function StrukGenerator() {
-  const [companyName, setCompanyName] = useState("Nama Usaha");
-  const [companyAddress, setCompanyAddress] = useState("Jl. Contoh Alamat No. 123, Kota");
-  const [companyPhone, setCompanyPhone] = useState("0812-3456-7890");
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [paperWidth, setPaperWidth] = useState<"58" | "80">("58");
-  const [transactionNo, setTransactionNo] = useState(() => `TRX-${Date.now().toString().slice(-8)}`);
-  const [cashierName, setCashierName] = useState("");
-  const [date, setDate] = useState(todayISODate());
-  const [items, setItems] = useState<StrukItem[]>(defaultItems);
-  const [discountPct, setDiscountPct] = useState("0");
-  const [taxPct, setTaxPct] = useState("0");
-  const [amountPaid, setAmountPaid] = useState("");
-  const [footerMessage, setFooterMessage] = useState("Terima kasih atas kunjungan Anda!");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+
+  // Semua field struk (kop usaha, info transaksi, daftar item, diskon/pajak)
+  // punya riwayat Undo/Redo. Tambah/hapus item & pilih lebar kertas langsung
+  // commit; mengetik nama/harga/qty digabung jadi satu langkah setelah jeda.
+  const history = useHistoryState<StrukFormData>(() => ({
+    companyName: "Nama Usaha",
+    companyAddress: "Jl. Contoh Alamat No. 123, Kota",
+    companyPhone: "0812-3456-7890",
+    paperWidth: "58",
+    transactionNo: `TRX-${Date.now().toString().slice(-8)}`,
+    cashierName: "",
+    date: todayISODate(),
+    items: defaultItems(),
+    discountPct: "0",
+    taxPct: "0",
+    amountPaid: "",
+    footerMessage: "Terima kasih atas kunjungan Anda!",
+  }));
+  const form = history.state;
+  const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
+  const updateField = <K extends keyof StrukFormData>(key: K, value: StrukFormData[K], opts?: { continuous?: boolean }) => {
+    history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleCommit();
+  };
+  const updateItem = (id: string, patch: Partial<StrukItem>, opts?: { continuous?: boolean }) => {
+    history.set((prev) => ({ ...prev, items: prev.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleCommit();
+  };
+  const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), name: "Item baru", qty: "1", price: "0" }] }));
+  const removeItem = (id: string) => history.set((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
@@ -277,22 +313,31 @@ export function StrukGenerator() {
 
   const data: StrukData = useMemo(
     () => ({
-      companyName, companyAddress, companyPhone,
-      paperWidth: paperWidth === "58" ? 384 : 576,
-      transactionNo, cashierName, date, items, discountPct, taxPct, amountPaid, footerMessage,
+      companyName: form.companyName,
+      companyAddress: form.companyAddress,
+      companyPhone: form.companyPhone,
+      paperWidth: form.paperWidth === "58" ? 384 : 576,
+      transactionNo: form.transactionNo,
+      cashierName: form.cashierName,
+      date: form.date,
+      items: form.items,
+      discountPct: form.discountPct,
+      taxPct: form.taxPct,
+      amountPaid: form.amountPaid,
+      footerMessage: form.footerMessage,
     }),
-    [companyName, companyAddress, companyPhone, paperWidth, transactionNo, cashierName, date, items, discountPct, taxPct, amountPaid, footerMessage]
+    [form]
   );
 
   const totals = useMemo(
     () =>
       computeStrukTotals(
-        items,
-        parseFloat(sanitizeNumberString(discountPct || "0")) || 0,
-        parseFloat(sanitizeNumberString(taxPct || "0")) || 0,
-        parseFloat(sanitizeNumberString(amountPaid || "0")) || 0
+        form.items,
+        parseFloat(sanitizeNumberString(form.discountPct || "0")) || 0,
+        parseFloat(sanitizeNumberString(form.taxPct || "0")) || 0,
+        parseFloat(sanitizeNumberString(form.amountPaid || "0")) || 0
       ),
-    [items, discountPct, taxPct, amountPaid]
+    [form.items, form.discountPct, form.taxPct, form.amountPaid]
   );
 
   useEffect(() => {
@@ -309,12 +354,6 @@ export function StrukGenerator() {
     };
   }, [data, logoImg]);
 
-  const updateItem = (id: string, patch: Partial<StrukItem>) => {
-    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
-  };
-  const addItem = () => setItems((prev) => [...prev, { id: newItemId(), name: "Item baru", qty: "1", price: "0" }]);
-  const removeItem = (id: string) => setItems((prev) => prev.filter((it) => it.id !== id));
-
   const downloadPng = async () => {
     setInfo(null);
     setIsGenerating(true);
@@ -322,7 +361,7 @@ export function StrukGenerator() {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const blob = await canvasToBlob(canvas);
-      downloadBlob(blob, `${sanitizeFileName(transactionNo) || "struk"}.png`);
+      downloadBlob(blob, `${sanitizeFileName(form.transactionNo) || "struk"}.png`);
       setInfo("Struk berhasil diunduh sebagai PNG.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat struk.");
@@ -343,8 +382,9 @@ export function StrukGenerator() {
       const img = await pdfDoc.embedPng(bytes);
       const page = pdfDoc.addPage([img.width, img.height]);
       page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
-      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(transactionNo) || "struk"}.pdf`);
+      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(form.transactionNo) || "struk"}.pdf`);
       setInfo("Struk berhasil diunduh sebagai PDF.");
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuat PDF.");
@@ -358,7 +398,7 @@ export function StrukGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { widthMm: paperWidth === "58" ? 58 : 80, title: `Struk ${transactionNo}` });
+      printCanvasImage(canvas, { widthMm: form.paperWidth === "58" ? 58 : 80, title: `Struk ${form.transactionNo}` });
     } catch (err: any) {
       setInfo(err?.message || "Gagal membuka dialog cetak.");
     }
@@ -383,12 +423,17 @@ export function StrukGenerator() {
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
       <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Struk</span>
+          <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
+        </div>
+
         <PanelCard title="Identitas Usaha" subtitle="Tampil di kop struk">
           <div className="space-y-3">
             <LogoUpload file={logoFile} onChange={setLogoFile} label="Logo Usaha" />
-            <Input label="Nama Usaha" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-            <Textarea label="Alamat" rows={2} value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} />
-            <Input label="Telepon" value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} />
+            <Input label="Nama Usaha" value={form.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+            <Textarea label="Alamat" rows={2} value={form.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+            <Input label="Telepon" value={form.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
             <div>
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Lebar Kertas</p>
               <div className="grid grid-cols-2 gap-2">
@@ -396,10 +441,10 @@ export function StrukGenerator() {
                   <button
                     key={w}
                     type="button"
-                    onClick={() => setPaperWidth(w)}
+                    onClick={() => updateField("paperWidth", w)}
                     className={cn(
                       "py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
-                      paperWidth === w
+                      form.paperWidth === w
                         ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
                         : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"
                     )}
@@ -414,25 +459,25 @@ export function StrukGenerator() {
 
         <PanelCard title="Info Transaksi" subtitle="Nomor, kasir, dan tanggal">
           <div className="space-y-3">
-            <Input label="No. Transaksi" value={transactionNo} onChange={(e) => setTransactionNo(e.target.value)} />
-            <Input label="Nama Kasir (opsional)" value={cashierName} onChange={(e) => setCashierName(e.target.value)} />
-            <Input label="Tanggal" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input label="No. Transaksi" value={form.transactionNo} onChange={(e) => updateField("transactionNo", e.target.value, { continuous: true })} />
+            <Input label="Nama Kasir (opsional)" value={form.cashierName} onChange={(e) => updateField("cashierName", e.target.value, { continuous: true })} />
+            <Input label="Tanggal" type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} />
           </div>
         </PanelCard>
 
         <PanelCard title="Item Belanja" subtitle="Tambah baris sebanyak yang dibutuhkan">
           <div className="space-y-3">
-            {items.map((item) => (
+            {form.items.map((item) => (
               <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <Input value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value })} placeholder="Nama barang" className="flex-1" />
+                  <Input value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value }, { continuous: true })} placeholder="Nama barang" className="flex-1" />
                   <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v })} placeholder="1" />
-                  <MoneyInput label="Harga (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v })} placeholder="0" prefix="Rp" />
+                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
+                  <MoneyInput label="Harga (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
                 </div>
               </div>
             ))}
@@ -446,11 +491,11 @@ export function StrukGenerator() {
         <PanelCard title="Diskon, Pajak & Pembayaran" subtitle="Opsional">
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <Input label="Diskon (%)" value={discountPct} onChange={(e) => setDiscountPct(sanitizeNumberString(e.target.value))} />
-              <Input label="Pajak (%)" value={taxPct} onChange={(e) => setTaxPct(sanitizeNumberString(e.target.value))} />
+              <Input label="Diskon (%)" value={form.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+              <Input label="Pajak (%)" value={form.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
             </div>
-            <MoneyInput label="Jumlah Dibayar (Rp)" value={amountPaid} onChange={(v) => setAmountPaid(v)} placeholder="Kosongkan bila tidak perlu ditampilkan" prefix="Rp" />
-            <Textarea label="Pesan Footer" rows={2} value={footerMessage} onChange={(e) => setFooterMessage(e.target.value)} />
+            <MoneyInput label="Jumlah Dibayar (Rp)" value={form.amountPaid} onChange={(v) => updateField("amountPaid", v, { continuous: true })} placeholder="Kosongkan bila tidak perlu ditampilkan" prefix="Rp" />
+            <Textarea label="Pesan Footer" rows={2} value={form.footerMessage} onChange={(e) => updateField("footerMessage", e.target.value, { continuous: true })} />
             <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
               Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
             </div>
@@ -461,7 +506,7 @@ export function StrukGenerator() {
       <div className="space-y-4 lg:sticky lg:top-24">
         <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
         <div className="flex justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-          <div className="rounded-xl overflow-hidden shadow-lg bg-white" style={{ maxWidth: paperWidth === "58" ? 300 : 380 }}>
+          <div className="rounded-xl overflow-hidden shadow-lg bg-white" style={{ maxWidth: form.paperWidth === "58" ? 300 : 380 }}>
             <canvas ref={canvasRef} className="w-full h-auto block" />
           </div>
         </div>

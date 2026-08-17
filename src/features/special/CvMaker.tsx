@@ -45,6 +45,8 @@ import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { useDialog } from "@/hooks/useDialog";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import JSZip from "jszip";
 
 type TabId = "profil" | "ringkasan" | "keahlian" | "bahasa" | "pengalaman" | "pendidikan" | "sertifikasi" | "organisasi";
@@ -102,7 +104,17 @@ const EmptyHint: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 export const CvMaker: React.FC = () => {
   const dialog = useDialog();
-  const [data, setData] = useState<CvData>(() => defaultCvData());
+  // Seluruh data CV (profil, ringkasan, keahlian, bahasa, pengalaman,
+  // pendidikan, sertifikasi, organisasi, template & warna) punya riwayat
+  // Undo/Redo. Setiap perubahan digabung jadi satu langkah setelah jeda
+  // singkat, supaya mengetik tidak menghasilkan ratusan langkah undo.
+  const cvHistory = useHistoryState<CvData>(() => defaultCvData());
+  const data = cvHistory.state;
+  const { schedule: scheduleCvCommit } = useDebouncedCommit(cvHistory.commit, 700);
+  const setData: React.Dispatch<React.SetStateAction<CvData>> = (updater) => {
+    cvHistory.set(updater, { commit: false });
+    scheduleCvCommit();
+  };
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const photoImg = useImageFromFile(photoFile);
   const [tab, setTab] = useState<TabId>("profil");
@@ -160,7 +172,7 @@ export const CvMaker: React.FC = () => {
       danger: true,
     });
     if (!ok) return;
-    setData(defaultCvData());
+    cvHistory.reset(defaultCvData());
     setPhotoFile(null);
     setInfo({ type: "success", text: "CV dikembalikan ke data contoh." });
   };
@@ -222,6 +234,11 @@ export const CvMaker: React.FC = () => {
     <div className="grid lg:grid-cols-[1fr_420px] gap-6 items-start">
       {/* LEFT: form */}
       <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor CV</span>
+          <UndoRedoBar canUndo={cvHistory.canUndo} canRedo={cvHistory.canRedo} onUndo={cvHistory.undo} onRedo={cvHistory.redo} />
+        </div>
+
         {/* Template picker */}
         <PanelCard title="Pilih Template" subtitle="Semua template mendukung banyak halaman otomatis jika isi CV Anda panjang">
           <div className="grid sm:grid-cols-2 gap-3">

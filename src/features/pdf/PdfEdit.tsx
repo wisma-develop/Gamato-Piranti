@@ -3,6 +3,7 @@ import { PenSquare, FileText, Type, Square, Trash2, Loader2, Zap } from "lucide-
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Input, Textarea, Btn, Label } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
@@ -134,6 +135,7 @@ export const PdfEdit: React.FC = () => {
         }
       });
 
+      await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-edited.pdf");
       setInfo(`${elements.length} elemen berhasil ditambahkan ke PDF.`);
     } catch (err: any) {

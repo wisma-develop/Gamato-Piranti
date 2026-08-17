@@ -3,6 +3,7 @@ import { Code2, Loader2, Download } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { renderHtmlToCanvas } from "@/lib/htmlRender";
 import { Btn, Input, Label, Textarea } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
@@ -36,6 +37,7 @@ export const PdfHtmlToPdf: React.FC = () => {
       const page = pdfDoc.addPage([width, height]);
       page.drawImage(img, { x: 0, y: 0, width, height });
 
+      await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-html-to-pdf.pdf");
       setInfo("PDF berhasil dibuat dari HTML.");
     } catch (err: any) {

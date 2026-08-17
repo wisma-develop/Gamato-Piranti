@@ -7,12 +7,15 @@ import {
 import JSZip from "jszip";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { csvToRecipients, certificateCsvTemplate, type CsvRecipient } from "@/lib/csv";
 import { loadCustomFont, type CustomFontEntry } from "@/lib/customFont";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -165,7 +168,14 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 export function CertificateGenerator() {
   const [templateFile, setTemplateFile] = useState<File | null>(null);
   const [templateImg, setTemplateImg] = useState<HTMLImageElement | null>(null);
-  const [layers, setLayers] = useState<TextLayer[]>(defaultLayers);
+  // Layers punya riwayat Undo/Redo penuh: setiap aksi diskrit (tambah/hapus
+  // lapisan, ganti font, toggle bold/italic/align) langsung tercatat sebagai
+  // satu langkah; mengetik teks / menyeret slider posisi & warna digabung
+  // jadi satu langkah setelah jeda singkat (lihat updateLayer di bawah).
+  const layersHistory = useHistoryState<TextLayer[]>(defaultLayers);
+  const layers = layersHistory.state;
+  const setLayers = layersHistory.set;
+  const { schedule: scheduleLayersCommit, flushNow: flushLayersCommit } = useDebouncedCommit(layersHistory.commit, 600);
   const [selectedLayerId, setSelectedLayerId] = useState<string>(() => layers[2]?.id ?? layers[0].id);
   const [recipientMode, setRecipientMode] = useState<"manual" | "csv">("manual");
   const [recipientsText, setRecipientsText] = useState("");
@@ -290,8 +300,16 @@ export function CertificateGenerator() {
     return () => { cancelled = true; };
   }, [layers, templateImg, previewFields]);
 
-  const updateLayer = (id: string, patch: Partial<TextLayer>) => {
-    setLayers(prev => prev.map(l => (l.id === id ? { ...l, ...patch } : l)));
+  /**
+   * Updates one layer. Discrete actions (toggle bold/italic/align, pick a
+   * font, add/remove) commit to the Undo/Redo history immediately. Pass
+   * `continuous: true` while the user is still typing text or dragging a
+   * slider/color picker — those get batched into a single Undo step once
+   * they pause, instead of one step per keystroke/pixel.
+   */
+  const updateLayer = (id: string, patch: Partial<TextLayer>, opts?: { continuous?: boolean }) => {
+    setLayers(prev => prev.map(l => (l.id === id ? { ...l, ...patch } : l)), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleLayersCommit();
   };
 
   const addLayer = () => {
@@ -317,9 +335,12 @@ export function CertificateGenerator() {
     const rect = previewWrapRef.current.getBoundingClientRect();
     const xPct = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
     const yPct = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
-    updateLayer(dragLayerId, { xPct: Math.round(xPct * 10) / 10, yPct: Math.round(yPct * 10) / 10 });
+    updateLayer(dragLayerId, { xPct: Math.round(xPct * 10) / 10, yPct: Math.round(yPct * 10) / 10 }, { continuous: true });
   };
-  const onPointerUpPreview = () => setDragLayerId(null);
+  const onPointerUpPreview = () => {
+    setDragLayerId(null);
+    flushLayersCommit(); // seret selesai → catat sebagai satu langkah Undo
+  };
 
   // ── Export ──
   const buildBlobsForAllRecipients = async (): Promise<{ name: string; blob: Blob }[]> => {
@@ -402,6 +423,7 @@ export function CertificateGenerator() {
         const page = pdfDoc.addPage([img.width, img.height]);
         page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
       }
+      await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), "sertifikat-gamato-piranti.pdf");
       setInfo(`${items.length} sertifikat berhasil digabung menjadi satu PDF.`);
@@ -438,6 +460,16 @@ export function CertificateGenerator() {
           </PanelCard>
 
           <PanelCard title="Lapisan Teks" subtitle="Klik salah satu untuk diedit, atau seret langsung di pratinjau">
+            <div className="flex items-center justify-between -mt-1">
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">Ctrl+Z untuk urungkan, Ctrl+Y untuk ulangi</span>
+              <UndoRedoBar
+                canUndo={layersHistory.canUndo}
+                canRedo={layersHistory.canRedo}
+                onUndo={layersHistory.undo}
+                onRedo={layersHistory.redo}
+                hideLabel
+              />
+            </div>
             <div className="space-y-2">
               {layers.map(layer => (
                 <button
@@ -466,12 +498,12 @@ export function CertificateGenerator() {
 
             {selectedLayer && (
               <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
-                <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value })} />
+                <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
                 <Textarea
                   label="Isi Teks"
                   rows={2}
                   value={selectedLayer.text}
-                  onChange={e => updateLayer(selectedLayer.id, { text: e.target.value })}
+                  onChange={e => updateLayer(selectedLayer.id, { text: e.target.value }, { continuous: true })}
                   placeholder="Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis"
                 />
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">
@@ -487,7 +519,7 @@ export function CertificateGenerator() {
                   <Select label="Font" value={selectedLayer.fontFamily} onChange={e => updateLayer(selectedLayer.id, { fontFamily: e.target.value })}>
                     {fontOptions.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
                   </Select>
-                  <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 })} />
+                  <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 }, { continuous: true })} />
                 </div>
 
                 <div>
@@ -517,31 +549,68 @@ export function CertificateGenerator() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 items-end">
+                <div className="space-y-3">
                   <div>
                     <Label>Warna</Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <input type="color" value={selectedLayer.color} onChange={e => updateLayer(selectedLayer.id, { color: e.target.value })} className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
+                      <input type="color" value={selectedLayer.color} onChange={e => updateLayer(selectedLayer.id, { color: e.target.value }, { continuous: true })} className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 shrink-0" />
                       <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{selectedLayer.color}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <button type="button" onClick={() => updateLayer(selectedLayer.id, { bold: !selectedLayer.bold })} className={cn("p-2.5 rounded-lg border-2", selectedLayer.bold ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400")}><Bold className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => updateLayer(selectedLayer.id, { italic: !selectedLayer.italic })} className={cn("p-2.5 rounded-lg border-2", selectedLayer.italic ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400")}><Italic className="w-4 h-4" /></button>
-                    {([["left", AlignLeft], ["center", AlignCenter], ["right", AlignRight]] as const).map(([val, Icon]) => (
-                      <button key={val} type="button" onClick={() => updateLayer(selectedLayer.id, { align: val })} className={cn("p-2.5 rounded-lg border-2", selectedLayer.align === val ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400")}><Icon className="w-4 h-4" /></button>
-                    ))}
+                  <div>
+                    <Label>Format Teks</Label>
+                    {/* shrink-0 + flex-wrap: mencegah tombol/ikon "diperas" hilang saat ruang sidebar sempit */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      <button
+                        type="button"
+                        onClick={() => updateLayer(selectedLayer.id, { bold: !selectedLayer.bold })}
+                        aria-pressed={selectedLayer.bold}
+                        aria-label="Tebal (bold)"
+                        title="Tebal (bold)"
+                        className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.bold ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
+                      >
+                        <Bold className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateLayer(selectedLayer.id, { italic: !selectedLayer.italic })}
+                        aria-pressed={selectedLayer.italic}
+                        aria-label="Miring (italic)"
+                        title="Miring (italic)"
+                        className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.italic ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
+                      >
+                        <Italic className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                      </button>
+                      <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
+                      {([
+                        ["left", AlignLeft, "Rata kiri"],
+                        ["center", AlignCenter, "Rata tengah"],
+                        ["right", AlignRight, "Rata kanan"],
+                      ] as const).map(([val, Icon, titleText]) => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => updateLayer(selectedLayer.id, { align: val })}
+                          aria-pressed={selectedLayer.align === val}
+                          aria-label={titleText}
+                          title={titleText}
+                          className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.align === val ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
+                        >
+                          <Icon className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
-                    <input type="range" min={0} max={100} value={selectedLayer.xPct} onChange={e => updateLayer(selectedLayer.id, { xPct: Number(e.target.value) })} className="w-full accent-indigo-600" />
+                    <input type="range" min={0} max={100} value={selectedLayer.xPct} onChange={e => updateLayer(selectedLayer.id, { xPct: Number(e.target.value) }, { continuous: true })} className="w-full accent-indigo-600" />
                   </div>
                   <div>
                     <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
-                    <input type="range" min={0} max={100} value={selectedLayer.yPct} onChange={e => updateLayer(selectedLayer.id, { yPct: Number(e.target.value) })} className="w-full accent-indigo-600" />
+                    <input type="range" min={0} max={100} value={selectedLayer.yPct} onChange={e => updateLayer(selectedLayer.id, { yPct: Number(e.target.value) }, { continuous: true })} className="w-full accent-indigo-600" />
                   </div>
                 </div>
               </div>

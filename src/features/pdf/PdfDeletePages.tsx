@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FileX, FileText, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { parsePageSpec } from "@/lib/pdf";
 import { Input, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -31,6 +32,7 @@ export const PdfDeletePages: React.FC = () => {
       const keep = Array.from({ length: total }, (_, i) => i).filter((i) => !toRemove.has(i));
       const doc = await PDFDocument.create();
       (await doc.copyPages(src, keep)).forEach((p) => doc.addPage(p));
+      await stampGamatoBranding(doc);
       downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), "gamato-clean.pdf");
       setInfo(`${toRemove.size} halaman dihapus. Sisa ${keep.length} halaman.`);
     } catch (err: any) {

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { FileImage, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
@@ -36,6 +37,7 @@ export const PdfImagesToPdf: React.FC = () => {
         const pg = pdfDoc.addPage([width, height]);
         pg.drawImage(image, { x: 0, y: 0, width, height });
       }
+      await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-images.pdf");
       setInfo(`${files.length} gambar digabung menjadi PDF.`);
     } catch (err: any) {

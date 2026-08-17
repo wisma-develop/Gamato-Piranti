@@ -8,6 +8,8 @@ import { fileToArrayBuffer, downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { loadPdfDocument, renderPageToCanvas } from "@/lib/pdfRender";
+import { useHistoryState } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type Box = { x: number; y: number; w: number; h: number };
 
@@ -18,7 +20,11 @@ export function PdfRedact() {
   const [file, setFile] = useState<File | null>(null);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [boxesByPage, setBoxesByPage] = useState<Record<number, Box[]>>({});
+  // Setiap kotak sensor yang digambar/dihapus punya riwayat Undo/Redo penuh
+  // (lintas halaman), selain tombol cepat "Batalkan Kotak Terakhir" yang sudah ada.
+  const boxesHistory = useHistoryState<Record<number, Box[]>>({});
+  const boxesByPage = boxesHistory.state;
+  const setBoxesByPage = boxesHistory.set;
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
@@ -66,7 +72,7 @@ export function PdfRedact() {
       setFile(f);
       setPageCount(pdf.numPages);
       setCurrentPage(1);
-      setBoxesByPage({});
+      boxesHistory.reset({});
       await renderCurrentPage(pdf, 1);
     } catch (err: any) {
       setError(err?.message || "Gagal membuka file PDF.");
@@ -205,7 +211,9 @@ export function PdfRedact() {
             <div className="p-4 overflow-auto max-h-[70vh] flex justify-center bg-slate-100 dark:bg-slate-950">
               <canvas ref={displayCanvasRef} onPointerDown={beginDraw} className="max-w-full h-auto cursor-crosshair shadow-sm bg-white" />
             </div>
-            <div className="flex flex-wrap gap-2 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
+              <UndoRedoBar canUndo={boxesHistory.canUndo} canRedo={boxesHistory.canRedo} onUndo={boxesHistory.undo} onRedo={boxesHistory.redo} />
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
               <Btn onClick={undoLastBox} variant="secondary" className="gap-2 text-xs" disabled={!(boxesByPage[currentPage] || []).length}>
                 <Undo2 className="w-3.5 h-3.5" />
                 Batalkan Kotak Terakhir
@@ -240,7 +248,7 @@ export function PdfRedact() {
               type="button"
               onClick={() => {
                 setFile(null);
-                setBoxesByPage({});
+                boxesHistory.reset({});
                 pdfRef.current = null;
               }}
               className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold"

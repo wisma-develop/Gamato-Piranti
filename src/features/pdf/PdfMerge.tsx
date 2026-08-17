@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Layers, FileText, Trash2, Loader2, Zap } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
+import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
@@ -33,6 +34,7 @@ export const PdfMerge: React.FC = () => {
         const src = await PDFDocument.load(await fileToArrayBuffer(file));
         (await doc.copyPages(src, src.getPageIndices())).forEach((p) => doc.addPage(p));
       }
+      await stampGamatoBranding(doc);
       downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), "gamato-merged.pdf");
       setInfo(`${files.length} PDF berhasil digabung.`);
     } catch (err: any) {
