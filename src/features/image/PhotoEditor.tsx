@@ -6,26 +6,47 @@ import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { Btn, Label, Select } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const DEFAULTS = { brightness: 100, contrast: 100, saturation: 100, blur: 0, grayscale: 0, sepia: 0, invert: 0, hue: 0 };
+
+type PhotoAdjustments = typeof DEFAULTS & { rotateDeg: number; flipH: boolean; flipV: boolean; outputFormat: "png" | "jpeg" };
+
+const DEFAULT_ADJUSTMENTS: PhotoAdjustments = { ...DEFAULTS, rotateDeg: 0, flipH: false, flipV: false, outputFormat: "png" };
 
 export const PhotoEditor: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [brightness, setBrightness] = useState(DEFAULTS.brightness);
-  const [contrast, setContrast] = useState(DEFAULTS.contrast);
-  const [saturation, setSaturation] = useState(DEFAULTS.saturation);
-  const [blur, setBlur] = useState(DEFAULTS.blur);
-  const [grayscale, setGrayscale] = useState(DEFAULTS.grayscale);
-  const [sepia, setSepia] = useState(DEFAULTS.sepia);
-  const [invert, setInvert] = useState(DEFAULTS.invert);
-  const [hue, setHue] = useState(DEFAULTS.hue);
-  const [rotateDeg, setRotateDeg] = useState(0);
-  const [flipH, setFlipH] = useState(false);
-  const [flipV, setFlipV] = useState(false);
-  const [outputFormat, setOutputFormat] = useState<"png" | "jpeg">("png");
+  // Semua slider penyesuaian, rotasi/flip, dan format output punya riwayat
+  // Undo/Redo (digabung jadi satu langkah setelah jeda singkat). Nama
+  // variabel & setter dipertahankan sama persis supaya JSX di bawah tidak
+  // perlu diubah satu per satu.
+  const adjHistory = useHistoryState<PhotoAdjustments>(() => DEFAULT_ADJUSTMENTS);
+  const adjustments = adjHistory.state;
+  const { schedule: scheduleAdjCommit } = useDebouncedCommit(adjHistory.commit, 500);
+  function setAdjField<K extends keyof PhotoAdjustments>(key: K, value: PhotoAdjustments[K]) {
+    adjHistory.set((prev) => ({ ...prev, [key]: value }), { commit: false });
+    scheduleAdjCommit();
+  }
+  const { brightness, contrast, saturation, blur, grayscale, sepia, invert, hue, rotateDeg, flipH, flipV, outputFormat } = adjustments;
+  const setBrightness = (v: number) => setAdjField("brightness", v);
+  const setContrast = (v: number) => setAdjField("contrast", v);
+  const setSaturation = (v: number) => setAdjField("saturation", v);
+  const setBlur = (v: number) => setAdjField("blur", v);
+  const setGrayscale = (v: number) => setAdjField("grayscale", v);
+  const setSepia = (v: number) => setAdjField("sepia", v);
+  const setInvert = (v: number) => setAdjField("invert", v);
+  const setHue = (v: number) => setAdjField("hue", v);
+  const setRotateDeg = (updater: number | ((prev: number) => number)) =>
+    setAdjField("rotateDeg", typeof updater === "function" ? (updater as (p: number) => number)(rotateDeg) : updater);
+  const setFlipH = (updater: boolean | ((prev: boolean) => boolean)) =>
+    setAdjField("flipH", typeof updater === "function" ? (updater as (p: boolean) => boolean)(flipH) : updater);
+  const setFlipV = (updater: boolean | ((prev: boolean) => boolean)) =>
+    setAdjField("flipV", typeof updater === "function" ? (updater as (p: boolean) => boolean)(flipV) : updater);
+  const setOutputFormat = (v: "png" | "jpeg") => setAdjField("outputFormat", v);
 
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -39,22 +60,12 @@ export const PhotoEditor: React.FC = () => {
     URL.revokeObjectURL(url);
     setFile(f);
     setImg(image);
-    resetAdjustments();
+    adjHistory.reset(DEFAULT_ADJUSTMENTS); // gambar baru = mulai riwayat baru
     setInfo(null);
   };
 
   const resetAdjustments = () => {
-    setBrightness(DEFAULTS.brightness);
-    setContrast(DEFAULTS.contrast);
-    setSaturation(DEFAULTS.saturation);
-    setBlur(DEFAULTS.blur);
-    setGrayscale(DEFAULTS.grayscale);
-    setSepia(DEFAULTS.sepia);
-    setInvert(DEFAULTS.invert);
-    setHue(DEFAULTS.hue);
-    setRotateDeg(0);
-    setFlipH(false);
-    setFlipV(false);
+    adjHistory.set(DEFAULT_ADJUSTMENTS);
   };
 
   const render = () => {
@@ -147,9 +158,12 @@ export const PhotoEditor: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Putar &amp; Balik</p>
-            <button type="button" onClick={resetAdjustments} disabled={!img} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
-              <RefreshCw className="w-3.5 h-3.5" /> Reset semua
-            </button>
+            <div className="flex items-center gap-2">
+              <UndoRedoBar canUndo={adjHistory.canUndo} canRedo={adjHistory.canRedo} onUndo={adjHistory.undo} onRedo={adjHistory.redo} hideLabel />
+              <button type="button" onClick={resetAdjustments} disabled={!img} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40 shrink-0">
+                <RefreshCw className="w-3.5 h-3.5" /> Reset semua
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Btn onClick={() => setRotateDeg((d) => (d + 90) % 360)} disabled={!img} variant="secondary" className="text-xs gap-1.5">

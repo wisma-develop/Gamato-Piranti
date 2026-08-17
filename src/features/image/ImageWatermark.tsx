@@ -3,9 +3,12 @@ import { Layers, Image as ImageIcon, Loader2, Download, Type } from "lucide-reac
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
+import { roundRect } from "@/lib/businessDocCanvas";
 import { Btn, Select, Label, Textarea } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type Position = "top-left" | "top-center" | "top-right" | "middle-left" | "center" | "middle-right" | "bottom-left" | "bottom-center" | "bottom-right" | "tile";
 
@@ -36,22 +39,60 @@ function anchorCenter(pos: Position, cw: number, ch: number, boxW: number, boxH:
   return [x, y];
 }
 
+type WatermarkConfig = {
+  mode: "text" | "logo";
+  text: string;
+  fontFamily: string;
+  sizePercent: number;
+  color: string;
+  opacity: number;
+  rotation: number;
+  position: Position;
+  spacing: number;
+  outputFormat: "png" | "jpeg";
+};
+
+const DEFAULT_WATERMARK_CONFIG: WatermarkConfig = {
+  mode: "text",
+  text: "Gamato Piranti",
+  fontFamily: FONT_FAMILIES[0],
+  sizePercent: 6,
+  color: "#ffffff",
+  opacity: 55,
+  rotation: -25,
+  position: "center",
+  spacing: 14,
+  outputFormat: "png",
+};
+
 export const ImageWatermark: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [baseImg, setBaseImg] = useState<HTMLImageElement | null>(null);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [mode, setMode] = useState<"text" | "logo">("text");
-  const [text, setText] = useState("Gamato Piranti");
-  const [fontFamily, setFontFamily] = useState(FONT_FAMILIES[0]);
-  const [sizePercent, setSizePercent] = useState(6);
-  const [color, setColor] = useState("#ffffff");
-  const [opacity, setOpacity] = useState(55);
-  const [rotation, setRotation] = useState(-25);
-  const [position, setPosition] = useState<Position>("center");
-  const [spacing, setSpacing] = useState(14);
-  const [outputFormat, setOutputFormat] = useState<"png" | "jpeg">("png");
+  // Seluruh pengaturan watermark (teks/logo, gaya, posisi) punya riwayat
+  // Undo/Redo, digabung jadi satu langkah setelah jeda singkat. Nama
+  // variabel & setter dipertahankan sama persis supaya JSX di bawah tidak
+  // perlu diubah satu per satu.
+  const wmHistory = useHistoryState<WatermarkConfig>(() => DEFAULT_WATERMARK_CONFIG);
+  const wmConfig = wmHistory.state;
+  const { schedule: scheduleWmCommit } = useDebouncedCommit(wmHistory.commit, 600);
+  function setWmField<K extends keyof WatermarkConfig>(key: K, value: WatermarkConfig[K]) {
+    wmHistory.set((prev) => ({ ...prev, [key]: value }), { commit: false });
+    scheduleWmCommit();
+  }
+  const { mode, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing, outputFormat } = wmConfig;
+  const setMode = (v: "text" | "logo") => setWmField("mode", v);
+  const setText = (v: string) => setWmField("text", v);
+  const setFontFamily = (v: string) => setWmField("fontFamily", v);
+  const setSizePercent = (v: number) => setWmField("sizePercent", v);
+  const setColor = (v: string) => setWmField("color", v);
+  const setOpacity = (v: number) => setWmField("opacity", v);
+  const setRotation = (v: number) => setWmField("rotation", v);
+  const setPosition = (v: Position) => setWmField("position", v);
+  const setSpacing = (v: number) => setWmField("spacing", v);
+  const setOutputFormat = (v: "png" | "jpeg") => setWmField("outputFormat", v);
 
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -122,6 +163,10 @@ export const ImageWatermark: React.FC = () => {
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate((rotation * Math.PI) / 180);
+        // Rounded corners otomatis, walau logo yang diunggah berbentuk kotak tajam.
+        const radius = Math.min(boxW, boxH) * 0.16;
+        roundRect(ctx, -boxW / 2, -boxH / 2, boxW, boxH, radius);
+        ctx.clip();
         ctx.drawImage(logoImg, -boxW / 2, -boxH / 2, boxW, boxH);
         ctx.restore();
       };
@@ -197,6 +242,10 @@ export const ImageWatermark: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between -mt-1 mb-1">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pengaturan Watermark</p>
+            <UndoRedoBar canUndo={wmHistory.canUndo} canRedo={wmHistory.canRedo} onUndo={wmHistory.undo} onRedo={wmHistory.redo} hideLabel />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             {([
               ["text", "Teks", <Type key="t" className="w-4 h-4" />],

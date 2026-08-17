@@ -6,6 +6,8 @@ import { loadImageFromUrl, canvasToBlob, makeCanvas } from "@/lib/canvas";
 import { Btn, Select } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type DragMode = "move" | "nw" | "ne" | "sw" | "se";
 interface Sel {
@@ -30,7 +32,12 @@ export const ImageCrop: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
-  const [sel, setSel] = useState<Sel>({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
+  // Kotak seleksi crop punya riwayat Undo/Redo. Menyeret digabung jadi satu
+  // langkah setelah dilepas; pilih preset rasio langsung commit.
+  const selHistory = useHistoryState<Sel>({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
+  const sel = selHistory.state;
+  const setSel = selHistory.set;
+  const { schedule: scheduleSelCommit, flushNow: flushSelCommit } = useDebouncedCommit(selHistory.commit, 400);
   const [activePreset, setActivePreset] = useState("Bebas");
   const [outputFormat, setOutputFormat] = useState<"png" | "jpeg">("png");
   const [isWorking, setIsWorking] = useState(false);
@@ -47,7 +54,7 @@ export const ImageCrop: React.FC = () => {
     setFile(f);
     setPreviewUrl(url);
     setNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
-    setSel({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
+    selHistory.reset({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 }); // gambar baru = mulai riwayat baru
     setActivePreset("Bebas");
     setInfo(null);
   };
@@ -82,7 +89,8 @@ export const ImageCrop: React.FC = () => {
       if (mode === "move") {
         const x = clamp(startSel.x + dx, 0, 1 - startSel.w);
         const y = clamp(startSel.y + dy, 0, 1 - startSel.h);
-        setSel({ ...startSel, x, y });
+        setSel({ ...startSel, x, y }, { commit: false });
+        scheduleSelCommit();
         return;
       }
       let left = startSel.x;
@@ -93,11 +101,13 @@ export const ImageCrop: React.FC = () => {
       if (mode.includes("w")) left = clamp(left + dx, 0, right - 0.04);
       if (mode.includes("s")) bottom = clamp(bottom + dy, top + 0.04, 1);
       if (mode.includes("n")) top = clamp(top + dy, 0, bottom - 0.04);
-      setSel({ x: left, y: top, w: right - left, h: bottom - top });
+      setSel({ x: left, y: top, w: right - left, h: bottom - top }, { commit: false });
+      scheduleSelCommit();
     };
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      flushSelCommit(); // seret selesai → satu langkah Undo
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -190,7 +200,10 @@ export const ImageCrop: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Rasio Crop</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Rasio Crop</p>
+            <UndoRedoBar canUndo={selHistory.canUndo} canRedo={selHistory.canRedo} onUndo={selHistory.undo} onRedo={selHistory.redo} hideLabel />
+          </div>
           <div className="flex flex-wrap gap-2">
             {PRESETS.map((p) => (
               <button

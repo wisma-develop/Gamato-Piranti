@@ -1,26 +1,44 @@
-import React, { useState } from "react";
+import React from "react";
 import { ArrowLeftRight, Copy } from "lucide-react";
 import { sanitizeText } from "@/utils/sanitize";
 import { Textarea, Btn } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { copyToClipboard } from "@/lib/utilityHelpers";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+
+type JsonB64State = { textInput: string; jsonPretty: string; base64: string };
 
 export const UtilityJsonBase64: React.FC = () => {
-  const [textInput, setTextInput] = useState("");
-  const [jsonPretty, setJsonPretty] = useState("");
-  const [base64, setBase64] = useState("");
+  // Ketiga kotak teks punya riwayat Undo/Redo, digabung jadi satu langkah
+  // setelah jeda; tombol Format/Encode/Decode langsung commit.
+  const history = useHistoryState<JsonB64State>({ textInput: "", jsonPretty: "", base64: "" });
+  const { textInput, jsonPretty, base64 } = history.state;
+  const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
+  const setTextInput = (v: string) => {
+    history.set((prev) => ({ ...prev, textInput: v }), { commit: false });
+    scheduleCommit();
+  };
+  const setJsonPretty = (v: string) => {
+    history.set((prev) => ({ ...prev, jsonPretty: v }), { commit: false });
+    scheduleCommit();
+  };
+  const setBase64 = (v: string) => {
+    history.set((prev) => ({ ...prev, base64: v }), { commit: false });
+    scheduleCommit();
+  };
 
   const toJsonPretty = () => {
     try {
-      setJsonPretty(JSON.stringify(JSON.parse(textInput), null, 2));
+      history.set((prev) => ({ ...prev, jsonPretty: JSON.stringify(JSON.parse(prev.textInput), null, 2) }));
     } catch {
-      setJsonPretty("Bukan JSON yang valid.");
+      history.set((prev) => ({ ...prev, jsonPretty: "Bukan JSON yang valid." }));
     }
   };
-  const toBase64 = () => setBase64(btoa(unescape(encodeURIComponent(sanitizeText(textInput)))));
+  const toBase64 = () => history.set((prev) => ({ ...prev, base64: btoa(unescape(encodeURIComponent(sanitizeText(prev.textInput)))) }));
   const fromBase64 = () => {
     try {
-      setTextInput(sanitizeText(decodeURIComponent(escape(atob(base64)))));
+      history.set((prev) => ({ ...prev, textInput: sanitizeText(decodeURIComponent(escape(atob(prev.base64)))) }));
     } catch {
       // ignore invalid base64 input
     }
@@ -28,6 +46,9 @@ export const UtilityJsonBase64: React.FC = () => {
 
   return (
     <PanelCard title="JSON Formatter & Base64 Encoder" subtitle="Format JSON, encode/decode Base64">
+      <div className="flex justify-end -mt-2 mb-1">
+        <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
+      </div>
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="space-y-3">
           <Textarea label="Input Teks / JSON" rows={8} value={textInput} onChange={(e) => setTextInput(e.target.value)} placeholder="Tempel JSON atau teks di sini…" />

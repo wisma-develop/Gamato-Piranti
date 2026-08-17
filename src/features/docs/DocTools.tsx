@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FileText, Download, Copy } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { sanitizeFileName } from "@/utils/sanitize";
+import { sanitizeFileName, sanitizeText } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { Input, Btn, SectionBadge } from "@/components/ui/primitives";
 import { RichToolbar } from "./richtext/RichToolbar";
@@ -219,7 +219,7 @@ export const DocTools: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <Input
                 value={fileName}
-                onChange={(e) => setFileName(sanitizeFileName(e.target.value))}
+                onChange={(e) => setFileName(sanitizeText(e.target.value))}
                 className="border-0 bg-transparent p-0 font-bold text-slate-800 dark:text-slate-100 text-base focus:ring-0 shadow-none"
                 placeholder="Nama dokumen"
               />

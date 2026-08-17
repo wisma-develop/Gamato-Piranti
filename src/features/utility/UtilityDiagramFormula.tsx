@@ -8,6 +8,8 @@ import { useDarkMode } from "@/hooks/useDarkMode";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, makeCanvas, canvasToBlob } from "@/lib/canvas";
 import { copyToClipboard } from "@/lib/utilityHelpers";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type Mode = "diagram" | "formula";
 
@@ -62,12 +64,28 @@ export const UtilityDiagramFormula: React.FC = () => {
   const { isDark } = useDarkMode();
   const [mode, setMode] = useState<Mode>("diagram");
 
-  const [diagramCode, setDiagramCode] = useState<string>(DIAGRAM_TEMPLATES[0].code);
+  // Kode diagram (Mermaid) dan kode rumus (LaTeX) masing-masing punya
+  // riwayat Undo/Redo sendiri (digabung jadi satu langkah setelah jeda).
+  const diagramHistory = useHistoryState<string>(DIAGRAM_TEMPLATES[0].code);
+  const diagramCode = diagramHistory.state;
+  const { schedule: scheduleDiagramCommit } = useDebouncedCommit(diagramHistory.commit, 600);
+  const setDiagramCode = (v: string) => {
+    diagramHistory.set(v, { commit: false });
+    scheduleDiagramCommit();
+  };
   const [diagramSvg, setDiagramSvg] = useState("");
   const [diagramError, setDiagramError] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState(false);
 
-  const [formulaCode, setFormulaCode] = useState<string>(FORMULA_TEMPLATES[0].code);
+  // Kode rumus (LaTeX) punya riwayat Undo/Redo sendiri (digabung jadi satu
+  // langkah setelah jeda).
+  const formulaHistory = useHistoryState<string>(FORMULA_TEMPLATES[0].code);
+  const formulaCode = formulaHistory.state;
+  const { schedule: scheduleFormulaCommit } = useDebouncedCommit(formulaHistory.commit, 600);
+  const setFormulaCode = (v: string) => {
+    formulaHistory.set(v, { commit: false });
+    scheduleFormulaCommit();
+  };
   const formulaRef = useRef<HTMLDivElement>(null);
   const [formulaError, setFormulaError] = useState<string | null>(null);
 
@@ -196,17 +214,20 @@ export const UtilityDiagramFormula: React.FC = () => {
 
         {mode === "diagram" ? (
           <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {DIAGRAM_TEMPLATES.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setDiagramCode(t.code)}
-                  className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  {t.label}
-                </button>
-              ))}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
+                {DIAGRAM_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setDiagramCode(t.code)}
+                    className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <UndoRedoBar canUndo={diagramHistory.canUndo} canRedo={diagramHistory.canRedo} onUndo={diagramHistory.undo} onRedo={diagramHistory.redo} hideLabel />
             </div>
             <Textarea
               label="Sintaks Diagram (Mermaid)"
@@ -240,17 +261,20 @@ export const UtilityDiagramFormula: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {FORMULA_TEMPLATES.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setFormulaCode(t.code)}
-                  className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  {t.label}
-                </button>
-              ))}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
+                {FORMULA_TEMPLATES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setFormulaCode(t.code)}
+                    className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <UndoRedoBar canUndo={formulaHistory.canUndo} canRedo={formulaHistory.canRedo} onUndo={formulaHistory.undo} onRedo={formulaHistory.redo} hideLabel />
             </div>
             <Textarea
               label="Kode Rumus (LaTeX)"

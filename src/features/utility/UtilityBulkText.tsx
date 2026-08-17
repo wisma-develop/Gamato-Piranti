@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { Copy } from "lucide-react";
 import { Textarea, Btn } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { copyToClipboard } from "@/lib/utilityHelpers";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type BulkOp = "unique" | "sortAsc" | "sortDesc" | "shuffle" | "number" | "prefix" | "suffix";
 
@@ -16,10 +18,22 @@ const OPS: [BulkOp, string][] = [
   ["suffix", "Tambah Suffix"],
 ];
 
+type BulkState = { bulkInput: string; bulkOutput: string; bulkInfo: string | null };
+
 export const UtilityBulkText: React.FC = () => {
-  const [bulkInput, setBulkInput] = useState("");
-  const [bulkOutput, setBulkOutput] = useState("");
-  const [bulkInfo, setBulkInfo] = useState<string | null>(null);
+  // Input & hasil punya riwayat Undo/Redo. Mengetik digabung jadi satu
+  // langkah setelah jeda; menjalankan operasi (Sort/Acak/dll.) langsung commit.
+  const history = useHistoryState<BulkState>({ bulkInput: "", bulkOutput: "", bulkInfo: null });
+  const { bulkInput, bulkOutput, bulkInfo } = history.state;
+  const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
+  const setBulkInput = (v: string) => {
+    history.set((prev) => ({ ...prev, bulkInput: v }), { commit: false });
+    scheduleCommit();
+  };
+  const setBulkOutput = (v: string) => {
+    history.set((prev) => ({ ...prev, bulkOutput: v }), { commit: false });
+    scheduleCommit();
+  };
 
   const runBulkOp = (kind: BulkOp) => {
     if (!bulkInput.trim()) return;
@@ -58,12 +72,14 @@ export const UtilityBulkText: React.FC = () => {
       result = lines.map((l) => `${l} #`);
       info = "Suffix ditambahkan.";
     }
-    setBulkOutput(result.join("\n"));
-    setBulkInfo(info);
+    history.set((prev) => ({ ...prev, bulkOutput: result.join("\n"), bulkInfo: info }));
   };
 
   return (
     <PanelCard title="Bulk Teks & Data Lab" subtitle="Manipulasi daftar teks — email, ID, nama, dll.">
+      <div className="flex justify-end -mt-2 mb-1">
+        <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
+      </div>
       <div className="grid lg:grid-cols-2 gap-5">
         <div className="space-y-3">
           <Textarea label="Input (satu item per baris)" rows={10} value={bulkInput} onChange={(e) => setBulkInput(e.target.value)} placeholder={"item1\nitem2\nitem3"} />

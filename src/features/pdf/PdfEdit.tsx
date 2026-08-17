@@ -7,6 +7,8 @@ import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Input, Textarea, Btn, Label } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const makeId = () => Math.random().toString(36).slice(2, 9);
@@ -31,7 +33,13 @@ export const PdfEdit: React.FC = () => {
   const [pageCount, setPageCount] = useState(0);
   const [pageSizes, setPageSizes] = useState<{ w: number; h: number }[]>([]);
   const [activePage, setActivePage] = useState(1);
-  const [elements, setElements] = useState<EditElement[]>([]);
+  // Elemen anotasi (teks/kotak) punya riwayat Undo/Redo penuh. Menyeret &
+  // mengetik digabung jadi satu langkah setelah jeda; tambah/hapus elemen
+  // langsung commit.
+  const elementsHistory = useHistoryState<EditElement[]>([]);
+  const elements = elementsHistory.state;
+  const setElements = elementsHistory.set;
+  const { schedule: scheduleElementsCommit, flushNow: flushElementsCommit } = useDebouncedCommit(elementsHistory.commit, 600);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -39,9 +47,10 @@ export const PdfEdit: React.FC = () => {
   const placeholderRef = useRef<HTMLDivElement>(null);
 
   const selected = elements.find((e) => e.id === selectedId) || null;
-  const updateSelected = (patch: Partial<EditElement>) => {
+  const updateSelected = (patch: Partial<EditElement>, opts?: { continuous?: boolean }) => {
     if (!selectedId) return;
-    setElements((prev) => prev.map((e) => (e.id === selectedId ? { ...e, ...patch } : e)));
+    setElements((prev) => prev.map((e) => (e.id === selectedId ? { ...e, ...patch } : e)), { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleElementsCommit();
   };
 
   const addFiles = async (incoming: File[]) => {
@@ -55,7 +64,7 @@ export const PdfEdit: React.FC = () => {
     setPageCount(pdfDoc.getPageCount());
     setPageSizes(pdfDoc.getPages().map((p) => ({ w: p.getSize().width, h: p.getSize().height })));
     setActivePage(1);
-    setElements([]);
+    elementsHistory.reset([]); // file baru = mulai riwayat baru
     setSelectedId(null);
     setInfo(null);
   };
@@ -96,11 +105,13 @@ export const PdfEdit: React.FC = () => {
     const onMove = (ev: PointerEvent) => {
       const dx = (ev.clientX - startX) / rect.width;
       const dy = (ev.clientY - startY) / rect.height;
-      setElements((prev) => prev.map((it) => (it.id === id ? { ...it, x: clamp(start.x + dx, 0, 1 - it.w), y: clamp(start.y + dy, 0, 1 - it.h) } : it)));
+      setElements((prev) => prev.map((it) => (it.id === id ? { ...it, x: clamp(start.x + dx, 0, 1 - it.w), y: clamp(start.y + dy, 0, 1 - it.h) } : it)), { commit: false });
+      scheduleElementsCommit();
     };
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      flushElementsCommit(); // seret selesai → satu langkah Undo
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -230,13 +241,16 @@ export const PdfEdit: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Elemen</p>
-            <div className="flex gap-1.5">
+            <div className="flex items-center gap-2">
+              <UndoRedoBar canUndo={elementsHistory.canUndo} canRedo={elementsHistory.canRedo} onUndo={elementsHistory.undo} onRedo={elementsHistory.redo} hideLabel />
+              <div className="flex gap-1.5">
               <button type="button" onClick={() => addElement("text")} disabled={!file} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
                 <Type className="w-3.5 h-3.5" /> Teks
               </button>
               <button type="button" onClick={() => addElement("box")} disabled={!file} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
                 <Square className="w-3.5 h-3.5" /> Kotak
               </button>
+              </div>
             </div>
           </div>
           <div className="space-y-1.5">
@@ -271,20 +285,20 @@ export const PdfEdit: React.FC = () => {
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Elemen</p>
             {selected.type === "text" && (
               <>
-                <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value })} />
-                <Input label="Ukuran Font (pt)" type="number" min={6} max={72} value={selected.fontSize} onChange={(e) => updateSelected({ fontSize: parseInt(e.target.value) || 16 })} />
+                <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
+                <Input label="Ukuran Font (pt)" type="number" min={6} max={72} value={selected.fontSize} onChange={(e) => updateSelected({ fontSize: parseInt(e.target.value) || 16 }, { continuous: true })} />
               </>
             )}
             <div>
               <Label>Warna</Label>
-              <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+              <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value }, { continuous: true })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
             </div>
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <Label>Opacity</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.opacity}%</span>
               </div>
-              <input type="range" min={5} max={100} value={selected.opacity} onChange={(e) => updateSelected({ opacity: parseInt(e.target.value) })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <input type="range" min={5} max={100} value={selected.opacity} onChange={(e) => updateSelected({ opacity: parseInt(e.target.value) }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
             </div>
             {selected.type === "box" && (
               <>
@@ -293,14 +307,14 @@ export const PdfEdit: React.FC = () => {
                     <Label>Lebar</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(selected.w * 100)}%</span>
                   </div>
-                  <input type="range" min={5} max={90} value={Math.round(selected.w * 100)} onChange={(e) => updateSelected({ w: parseInt(e.target.value) / 100 })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <input type="range" min={5} max={90} value={Math.round(selected.w * 100)} onChange={(e) => updateSelected({ w: parseInt(e.target.value) / 100 }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <Label>Tinggi</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(selected.h * 100)}%</span>
                   </div>
-                  <input type="range" min={2} max={90} value={Math.round(selected.h * 100)} onChange={(e) => updateSelected({ h: parseInt(e.target.value) / 100 })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <input type="range" min={2} max={90} value={Math.round(selected.h * 100)} onChange={(e) => updateSelected({ h: parseInt(e.target.value) / 100 }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
                 </div>
               </>
             )}

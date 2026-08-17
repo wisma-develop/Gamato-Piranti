@@ -4,6 +4,8 @@ import { cn } from "@/utils/cn";
 import { Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { downloadBlob } from "@/lib/file";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const STARTER = `<!DOCTYPE html>
 <html lang="id">
@@ -34,7 +36,16 @@ const DEVICE_ICONS: { id: Device; icon: typeof Smartphone }[] = [
 ];
 
 export const UtilityHtmlPreview: React.FC = () => {
-  const [code, setCode] = useState(STARTER);
+  // Kode HTML/CSS/JS punya riwayat Undo/Redo (digabung jadi satu langkah
+  // setelah jeda singkat). Debounce preview iframe di bawah ini terpisah dan
+  // tidak berubah.
+  const codeHistory = useHistoryState<string>(STARTER);
+  const code = codeHistory.state;
+  const { schedule: scheduleCodeCommit } = useDebouncedCommit(codeHistory.commit, 600);
+  const setCode = (v: string) => {
+    codeHistory.set(v, { commit: false });
+    scheduleCodeCommit();
+  };
   const [previewCode, setPreviewCode] = useState(STARTER);
   const [device, setDevice] = useState<Device>("desktop");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,7 +70,7 @@ export const UtilityHtmlPreview: React.FC = () => {
   };
 
   const reset = () => {
-    setCode(STARTER);
+    codeHistory.reset(STARTER);
     setPreviewCode(STARTER);
   };
 
@@ -68,14 +79,17 @@ export const UtilityHtmlPreview: React.FC = () => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Kode HTML / CSS / JS</p>
-          <button
-            type="button"
-            onClick={reset}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset ke Template
-          </button>
+          <div className="flex items-center gap-2">
+            <UndoRedoBar canUndo={codeHistory.canUndo} canRedo={codeHistory.canRedo} onUndo={codeHistory.undo} onRedo={codeHistory.redo} hideLabel />
+            <button
+              type="button"
+              onClick={reset}
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset ke Template
+            </button>
+          </div>
         </div>
         <textarea
           value={code}
