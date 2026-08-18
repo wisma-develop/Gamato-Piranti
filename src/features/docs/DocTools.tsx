@@ -56,6 +56,21 @@ export const DocTools: React.FC = () => {
     }
   }, []);
 
+  // Editor kontenEditable diinisialisasi SEKALI secara imperatif (bukan lewat
+  // dangerouslySetInnerHTML di JSX). Ini sengaja dipisah total dari siklus
+  // render React: sejak baris ini jalan, isi editor 100% dikuasai oleh DOM
+  // asli / ketikan pengguna — React tidak pernah lagi menyentuh innerHTML-nya
+  // sampai kita panggil setEditorHtml() secara eksplisit (template/import/
+  // snapshot). Ini menghilangkan segala kemungkinan ambigu reconciliation
+  // yang bisa mereset kursor/ketikan di tengah jalan.
+  useEffect(() => {
+    const el = editorRef.current;
+    if (!el) return;
+    el.innerHTML = initialHtmlRef.current;
+    setPlainText(el.innerText || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const syncFromDom = () => {
     const el = editorRef.current;
     if (!el) return;
@@ -296,7 +311,6 @@ export const DocTools: React.FC = () => {
             ref={editorRef}
             contentEditable
             suppressContentEditableWarning
-            dangerouslySetInnerHTML={{ __html: initialHtmlRef.current }}
             onInput={syncFromDom}
             onBlur={syncFromDom}
             data-placeholder="Mulai menulis di sini, atau gunakan template di atas…"

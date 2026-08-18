@@ -298,7 +298,7 @@ export function QrCodeGenerator() {
 
           {/* Template form */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            {qrTemplate === "url" && <Input label="URL / Link" value={qrUrl} onChange={e => setQrUrl(sanitizeUrl(e.target.value))} placeholder="https://example.com" type="url" />}
+            {qrTemplate === "url" && <Input label="URL / Link" value={qrUrl} onChange={e => setQrUrl(sanitizeText(e.target.value))} placeholder="https://example.com" type="text" />}
             {qrTemplate === "text" && <Textarea label="Teks Bebas" rows={5} value={qrText} onChange={e => setQrText(sanitizeText(e.target.value))} placeholder="Ketik pesan, catatan, atau instruksi…" />}
             {qrTemplate === "wifi" && (
               <div className="space-y-3">
