@@ -161,6 +161,24 @@ function parseInline(
     if (tag === "SUP") next.sup = true;
     if (tag === "A") next.link = el.getAttribute("href") || undefined;
 
+    // execCommand doesn't always produce semantic tags (<b>/<i>/<u>/<s>) —
+    // depending on the browser and the existing formatting under the
+    // selection, it can just as easily wrap the text in a <span> with an
+    // inline style instead. Checking tag name alone silently dropped bold/
+    // italic/underline/strikethrough whenever that happened, so every style
+    // property is checked too, independent of which element it lands on.
+    const styleEl = el.style;
+    if (styleEl) {
+      const fw = styleEl.fontWeight;
+      if (fw && (fw === "bold" || fw === "bolder" || parseInt(fw, 10) >= 600)) next.bold = true;
+      if (styleEl.fontStyle === "italic" || styleEl.fontStyle === "oblique") next.italic = true;
+      const decoLine = styleEl.textDecorationLine || styleEl.textDecoration || "";
+      if (decoLine.includes("underline")) next.underline = true;
+      if (decoLine.includes("line-through")) next.strike = true;
+      if (styleEl.verticalAlign === "sub") next.sub = true;
+      if (styleEl.verticalAlign === "super") next.sup = true;
+    }
+
     if (el.style?.color) {
       const hex = rgbStringToHex(el.style.color);
       if (hex) next.color = hex;

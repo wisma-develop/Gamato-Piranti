@@ -4,11 +4,10 @@ import { cn } from "@/utils/cn";
 import { fileToDataUrl } from "@/lib/file";
 import { useDialog } from "@/hooks/useDialog";
 import { ColorSwatchPicker } from "./ColorSwatchPicker";
-import {
-  cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSuperscript,
+import { cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSuperscript,
   cmdUndo, cmdRedo, cmdOrderedList, cmdUnorderedList, cmdAlign, cmdForeColor, cmdHighlight,
-  cmdFontName, cmdFontSize, cmdUppercaseSelection, cmdInsertLink, cmdInsertImage, cmdRemoveFormat,
-  cmdSetLineHeight, cmdSetSpaceAfter, cmdInsertShape, type ShapeKind,
+  cmdFontName, cmdFontSize, cmdChangeCaseSelection, cmdInsertLink, cmdInsertImage, cmdRemoveFormat,
+  cmdSetLineHeight, cmdSetSpaceAfter, cmdInsertShape, type ShapeKind, type CaseMode,
 } from "./commands";
 
 const FONT_FAMILIES = [
@@ -94,9 +93,30 @@ export const RichToolbar: React.FC<{
     sel.addRange(savedRangeRef.current);
   };
 
+  /**
+   * For plain toolbar buttons (Bold, Italic, lists, align, ...): these never
+   * lose focus/selection in the first place (ToolBtn's onMouseDown already
+   * prevents that), so this must NOT touch the selection at all — doing so
+   * previously clobbered a perfectly fresh selection with a stale one saved
+   * from an earlier, unrelated color/font pick.
+   */
   const withFocus = (fn: () => void) => {
     editorRef.current?.focus();
+    fn();
+    onAfterCommand();
+  };
+
+  /**
+   * For controls that DO lose the selection (native color inputs, <select>
+   * dropdowns, and anything that opens an async modal like the link
+   * dialog): restores the Range captured by saveSelection() right before
+   * running the command, then immediately discards it so it can never leak
+   * into a later, unrelated action.
+   */
+  const withRestoredSelection = (fn: () => void) => {
+    editorRef.current?.focus();
     restoreSelection();
+    savedRangeRef.current = null;
     fn();
     onAfterCommand();
   };
@@ -135,9 +155,14 @@ export const RichToolbar: React.FC<{
   }, []);
 
   const handleInsertLink = async () => {
+    // Snapshot the selection right now, BEFORE the async modal dialog opens
+    // and steals focus — otherwise cmdInsertLink sees no selection at all
+    // and falls back to inserting the raw URL as new text instead of
+    // turning the user's selected words into a hyperlink.
+    saveSelection();
     const values = await dialog.form({
       title: "Sisipkan Tautan",
-      description: "Masukkan alamat URL yang ingin ditautkan ke teks terpilih.",
+      description: "Masukkan alamat URL. Jika ada teks yang sedang diblok, teks itu akan otomatis menjadi hyperlink ke alamat ini — persis seperti di Word.",
       icon: <Link2 className="w-5 h-5" />,
       submitLabel: "Sisipkan",
       fields: [
@@ -146,7 +171,7 @@ export const RichToolbar: React.FC<{
     });
     const url = values?.url?.trim();
     if (!url) return;
-    withFocus(() => cmdInsertLink(url));
+    withRestoredSelection(() => cmdInsertLink(url));
   };
 
   const handleInsertImage = () => imageInputRef.current?.click();
@@ -171,6 +196,7 @@ export const RichToolbar: React.FC<{
     setShapeColorOpen(null);
     editorRef.current?.focus();
     restoreSelection();
+    savedRangeRef.current = null;
     await cmdInsertShape(kind, { stroke: shapeStroke, fill: shapeFill });
     onAfterCommand();
   };
@@ -188,7 +214,7 @@ export const RichToolbar: React.FC<{
         title="Jenis font"
         onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
         onFocus={saveSelection}
-        onChange={(e) => withFocus(() => cmdFontName(e.target.value))}
+        onChange={(e) => withRestoredSelection(() => cmdFontName(e.target.value))}
         defaultValue=""
         className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 max-w-[8.5rem]"
       >
@@ -213,7 +239,7 @@ export const RichToolbar: React.FC<{
           onChange={(e) => {
             const px = parseInt(e.target.value);
             setFontSize(px);
-            if (editorRef.current) withFocus(() => cmdFontSize(px, editorRef.current!));
+            if (editorRef.current) withRestoredSelection(() => cmdFontSize(px, editorRef.current!));
           }}
           className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 w-16"
         >
@@ -239,8 +265,21 @@ export const RichToolbar: React.FC<{
       <ToolBtn title="Coret (Strikethrough)" onClick={() => withFocus(cmdStrikethrough)} active={activeStates.strikethrough} className="line-through">
         S
       </ToolBtn>
-      <ToolBtn title="HURUF BESAR (dari teks terpilih)" onClick={() => withFocus(cmdUppercaseSelection)}>
+
+      <Sep />
+
+      {/* Case conversion — all operate on the currently selected/blocked text */}
+      <ToolBtn title="HURUF BESAR SEMUA (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("upper"))}>
         AA
+      </ToolBtn>
+      <ToolBtn title="Huruf Besar Per Kata (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("title"))}>
+        Aa
+      </ToolBtn>
+      <ToolBtn title="Kalimat Awal Kapital (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("sentence"))}>
+        A.a
+      </ToolBtn>
+      <ToolBtn title="huruf kecil semua (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("lower"))}>
+        aa
       </ToolBtn>
 
       <Sep />
@@ -255,7 +294,7 @@ export const RichToolbar: React.FC<{
             presets={TEXT_COLOR_PRESETS}
             onCustomPickerOpen={saveSelection}
             onClose={() => setTextColorOpen(false)}
-            onPick={(color) => withFocus(() => cmdForeColor(color))}
+            onPick={(color) => withRestoredSelection(() => cmdForeColor(color))}
           />
         )}
       </div>
@@ -272,7 +311,7 @@ export const RichToolbar: React.FC<{
             noneLabel="Hapus sorotan"
             onCustomPickerOpen={saveSelection}
             onClose={() => setHighlightOpen(false)}
-            onPick={(color) => withFocus(() => cmdHighlight(color))}
+            onPick={(color) => withRestoredSelection(() => cmdHighlight(color))}
           />
         )}
       </div>
@@ -304,7 +343,7 @@ export const RichToolbar: React.FC<{
           onFocus={saveSelection}
           onChange={(e) => {
             const v = parseFloat(e.target.value);
-            if (editorRef.current) withFocus(() => cmdSetLineHeight(v, editorRef.current!));
+            if (editorRef.current) withRestoredSelection(() => cmdSetLineHeight(v, editorRef.current!));
           }}
           className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 w-[4.5rem]"
         >
@@ -326,7 +365,7 @@ export const RichToolbar: React.FC<{
         onFocus={saveSelection}
         onChange={(e) => {
           const v = parseInt(e.target.value);
-          if (editorRef.current) withFocus(() => cmdSetSpaceAfter(v, editorRef.current!));
+          if (editorRef.current) withRestoredSelection(() => cmdSetSpaceAfter(v, editorRef.current!));
         }}
         className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 w-[6.5rem]"
       >

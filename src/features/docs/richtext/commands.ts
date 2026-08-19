@@ -56,6 +56,13 @@ export function cmdFontSize(px: number, editorRoot: HTMLElement) {
 
 /** Uppercases only the selected text, preserving surrounding formatting. */
 export function cmdUppercaseSelection() {
+  cmdChangeCaseSelection("upper");
+}
+
+export type CaseMode = "upper" | "lower" | "sentence" | "title";
+
+/** Changes the case of only the selected text, preserving surrounding formatting. */
+export function cmdChangeCaseSelection(mode: CaseMode) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
   const range = sel.getRangeAt(0);
@@ -66,12 +73,43 @@ export function cmdUppercaseSelection() {
     if (range.intersectsNode(node)) nodes.push(node as Text);
     node = walker.nextNode();
   }
+  // "Sentence case" needs to know whether we're at the start of a new
+  // sentence across node boundaries, so track it as we go.
+  let atSentenceStart = true;
   nodes.forEach((textNode) => {
     const full = textNode.textContent || "";
     const start = textNode === range.startContainer ? range.startOffset : 0;
     const end = textNode === range.endContainer ? range.endOffset : full.length;
     if (start >= end) return;
-    textNode.textContent = full.slice(0, start) + full.slice(start, end).toUpperCase() + full.slice(end);
+    const before = full.slice(0, start);
+    const middle = full.slice(start, end);
+    const after = full.slice(end);
+
+    let transformed: string;
+    if (mode === "upper") {
+      transformed = middle.toUpperCase();
+    } else if (mode === "lower") {
+      transformed = middle.toLowerCase();
+    } else if (mode === "title") {
+      transformed = middle.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+    } else {
+      // sentence case: lowercase everything, then capitalize the first
+      // letter after start-of-text or after . ! ?
+      let out = "";
+      for (let i = 0; i < middle.length; i++) {
+        const ch = middle[i];
+        if (/[a-zA-Z]/.test(ch)) {
+          out += atSentenceStart ? ch.toUpperCase() : ch.toLowerCase();
+          atSentenceStart = false;
+        } else {
+          out += ch;
+          if (/[.!?]/.test(ch)) atSentenceStart = true;
+          else if (!/\s/.test(ch)) atSentenceStart = false;
+        }
+      }
+      transformed = out;
+    }
+    textNode.textContent = before + transformed + after;
   });
 }
 
