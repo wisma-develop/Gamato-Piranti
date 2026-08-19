@@ -94,5 +94,139 @@ export function cmdInsertLink(url: string) {
 }
 
 export function cmdInsertImage(dataUrl: string) {
-  document.execCommand("insertHTML", false, `<img src="${dataUrl}" style="max-width:100%;border-radius:8px;margin:8px 0;" />`);
+  document.execCommand("insertHTML", false, `<img src="${dataUrl}" data-align="center" style="max-width:100%;border-radius:8px;margin:8px auto;display:block;" />`);
+}
+
+// ─── Paragraph spacing ──────────────────────────────────────────────────────
+// execCommand has no native "line spacing" / "space after paragraph" command,
+// so these work directly on whichever top-level editor blocks (or list
+// items) the current selection touches.
+
+function getSelectedFormatTargets(editorRoot: HTMLElement): HTMLElement[] {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return [];
+  const range = sel.getRangeAt(0);
+  const targets: HTMLElement[] = [];
+  Array.from(editorRoot.children).forEach((child) => {
+    if (!(child instanceof HTMLElement)) return;
+    if (!range.intersectsNode(child)) return;
+    if (child.tagName === "UL" || child.tagName === "OL") {
+      Array.from(child.children).forEach((li) => {
+        if (li instanceof HTMLElement && li.tagName === "LI" && range.intersectsNode(li)) targets.push(li);
+      });
+    } else {
+      targets.push(child);
+    }
+  });
+  return targets;
+}
+
+/** Sets line spacing (as a CSS multiplier, e.g. 1 / 1.15 / 1.5 / 2) on the selected paragraph(s). */
+export function cmdSetLineHeight(multiplier: number, editorRoot: HTMLElement) {
+  const targets = getSelectedFormatTargets(editorRoot);
+  targets.forEach((el) => {
+    el.style.lineHeight = String(multiplier);
+  });
+}
+
+/** Sets the space *after* the selected paragraph(s), in pixels. */
+export function cmdSetSpaceAfter(px: number, editorRoot: HTMLElement) {
+  const targets = getSelectedFormatTargets(editorRoot);
+  targets.forEach((el) => {
+    el.style.marginBottom = `${px}px`;
+  });
+}
+
+// ─── Shapes ─────────────────────────────────────────────────────────────────
+// Shapes are drawn as SVG, then rasterized to a PNG and inserted through the
+// exact same path as an uploaded image — this guarantees a shape looks
+// 100% identical in the editor, the PDF export, and the DOCX export, since
+// by the time it's exported it *is* just an image.
+
+export type ShapeKind = "rectangle" | "circle" | "line" | "arrow";
+
+function shapeSvgMarkup(kind: ShapeKind, w: number, h: number, stroke: string, fill: string): string {
+  const strokeW = 4;
+  switch (kind) {
+    case "rectangle":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="${strokeW}" y="${strokeW}" width="${w - strokeW * 2}" height="${h - strokeW * 2}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/></svg>`;
+    case "circle":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2 - strokeW}" ry="${h / 2 - strokeW}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/></svg>`;
+    case "line":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="${strokeW}" y1="${h / 2}" x2="${w - strokeW}" y2="${h / 2}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linecap="round"/></svg>`;
+    case "arrow":
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><marker id="gp-arrowhead" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${stroke}"/></marker></defs><line x1="${strokeW}" y1="${h / 2}" x2="${w - 16}" y2="${h / 2}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linecap="round" marker-end="url(#gp-arrowhead)"/></svg>`;
+  }
+}
+
+async function rasterizeSvg(svgMarkup: string, w: number, h: number): Promise<string> {
+  const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgMarkup)))}`;
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error("Gagal membuat bentuk."));
+    el.src = svgDataUrl;
+  });
+  const dpr = 2; // render at 2x so shape edges stay crisp when resized later
+  const canvas = document.createElement("canvas");
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D context tidak tersedia.");
+  ctx.scale(dpr, dpr);
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/png");
+}
+
+/** Draws the given shape and inserts it at the cursor, same as inserting an uploaded image. */
+export async function cmdInsertShape(kind: ShapeKind, options?: { stroke?: string; fill?: string }): Promise<void> {
+  const stroke = options?.stroke ?? "#4f46e5";
+  const fill = options?.fill ?? "transparent";
+  const w = kind === "circle" ? 200 : 260;
+  const h = kind === "line" || kind === "arrow" ? 50 : kind === "circle" ? 200 : 150;
+  const svg = shapeSvgMarkup(kind, w, h, stroke, fill);
+  const dataUrl = await rasterizeSvg(svg, w, h);
+  cmdInsertImage(dataUrl);
+}
+
+// ─── Image alignment / positioning ─────────────────────────────────────────
+
+export type ImageAlignValue = "left" | "center" | "right" | "float-left" | "float-right";
+
+/** Applies an alignment/position to a specific inserted <img>, matching what parseEditor.ts reads back on export. */
+export function cmdSetImageAlign(img: HTMLImageElement, align: ImageAlignValue) {
+  img.setAttribute("data-align", align);
+  img.style.float = "";
+  img.style.display = "";
+  img.style.marginLeft = "";
+  img.style.marginRight = "";
+  img.style.margin = "";
+  switch (align) {
+    case "center":
+      img.style.display = "block";
+      img.style.marginLeft = "auto";
+      img.style.marginRight = "auto";
+      break;
+    case "left":
+      img.style.display = "block";
+      img.style.marginRight = "auto";
+      break;
+    case "right":
+      img.style.display = "block";
+      img.style.marginLeft = "auto";
+      break;
+    case "float-left":
+      img.style.float = "left";
+      img.style.margin = "4px 16px 8px 0";
+      break;
+    case "float-right":
+      img.style.float = "right";
+      img.style.margin = "4px 0 8px 16px";
+      break;
+  }
+}
+
+/** Removes an image node from the editor entirely. */
+export function cmdDeleteImage(img: HTMLImageElement) {
+  img.remove();
 }

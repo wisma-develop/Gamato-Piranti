@@ -4,6 +4,7 @@
 // without needing to touch the DOM again.
 
 export type Align = "left" | "center" | "right" | "justify";
+export type ImageAlign = "left" | "center" | "right" | "float-left" | "float-right";
 
 export interface RunModel {
   text: string;
@@ -20,8 +21,8 @@ export interface RunModel {
 }
 
 export type BlockModel =
-  | { kind: "text"; listType?: "bullet" | "number"; align: Align; runs: RunModel[] }
-  | { kind: "image"; dataUrl: string; width: number; height: number };
+  | { kind: "text"; listType?: "bullet" | "number"; align: Align; runs: RunModel[]; lineHeight?: number; spaceAfterPx?: number }
+  | { kind: "image"; dataUrl: string; width: number; height: number; align?: ImageAlign };
 
 function rgbStringToHex(input: string): string | undefined {
   const m = input.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
@@ -42,6 +43,27 @@ function getAlign(el: HTMLElement): Align {
   return "left";
 }
 
+function getSpacing(el: HTMLElement): { lineHeight?: number; spaceAfterPx?: number } {
+  const result: { lineHeight?: number; spaceAfterPx?: number } = {};
+  const lh = el.style?.lineHeight;
+  if (lh) {
+    const n = parseFloat(lh);
+    if (Number.isFinite(n) && n > 0) result.lineHeight = n;
+  }
+  const mb = el.style?.marginBottom;
+  if (mb && mb.endsWith("px")) {
+    const n = parseFloat(mb);
+    if (Number.isFinite(n) && n >= 0) result.spaceAfterPx = n;
+  }
+  return result;
+}
+
+function getImageAlign(el: HTMLElement): ImageAlign | undefined {
+  const attr = el.getAttribute("data-align");
+  if (attr === "left" || attr === "center" || attr === "right" || attr === "float-left" || attr === "float-right") return attr;
+  return undefined;
+}
+
 interface StyleCtx {
   bold?: boolean;
   italic?: boolean;
@@ -59,7 +81,7 @@ function parseInline(
   node: Node,
   ctx: StyleCtx,
   runs: RunModel[],
-  images: { dataUrl: string; width: number; height: number }[]
+  images: { dataUrl: string; width: number; height: number; align?: ImageAlign }[]
 ) {
   node.childNodes.forEach((child) => {
     if (child.nodeType === Node.TEXT_NODE) {
@@ -73,7 +95,7 @@ function parseInline(
 
     if (tag === "IMG") {
       const img = el as HTMLImageElement;
-      images.push({ dataUrl: img.src, width: img.naturalWidth || 500, height: img.naturalHeight || 350 });
+      images.push({ dataUrl: img.src, width: img.naturalWidth || 500, height: img.naturalHeight || 350, align: getImageAlign(img) });
       return;
     }
     if (tag === "BR") {
@@ -112,12 +134,13 @@ function parseInline(
 
 function pushTextBlock(blocks: BlockModel[], el: HTMLElement, listType?: "bullet" | "number") {
   const runs: RunModel[] = [];
-  const images: { dataUrl: string; width: number; height: number }[] = [];
+  const images: { dataUrl: string; width: number; height: number; align?: ImageAlign }[] = [];
   parseInline(el, {}, runs, images);
   const align = getAlign(el);
+  const spacing = getSpacing(el);
   const hasText = runs.some((r) => r.text.replace(/\n/g, "").trim() !== "");
   if (hasText || runs.length === 0) {
-    blocks.push({ kind: "text", listType, align, runs: runs.length ? runs : [{ text: "" }] });
+    blocks.push({ kind: "text", listType, align, runs: runs.length ? runs : [{ text: "" }], ...spacing });
   }
   images.forEach((img) => blocks.push({ kind: "image", ...img }));
 }
@@ -144,7 +167,7 @@ export function parseEditor(root: HTMLElement): BlockModel[] {
     }
     if (tag === "IMG") {
       const img = el as HTMLImageElement;
-      blocks.push({ kind: "image", dataUrl: img.src, width: img.naturalWidth || 500, height: img.naturalHeight || 350 });
+      blocks.push({ kind: "image", dataUrl: img.src, width: img.naturalWidth || 500, height: img.naturalHeight || 350, align: getImageAlign(img) });
       return;
     }
     if (tag === "BR") {

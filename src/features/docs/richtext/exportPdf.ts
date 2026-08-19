@@ -74,7 +74,11 @@ export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): 
         const w = img.width * scale;
         const h = img.height * scale;
         if (y - h < margin) newPage();
-        page.drawImage(img, { x: margin, y: y - h, width: w, height: h });
+        let x = margin; // left / float-left
+        const align = block.align ?? "left";
+        if (align === "center") x = margin + (maxWidth - w) / 2;
+        else if (align === "right" || align === "float-right") x = margin + (maxWidth - w);
+        page.drawImage(img, { x, y: y - h, width: w, height: h });
         y -= h + 14;
       } catch {
         // Unsupported image format (e.g. webp/gif) — skip gracefully.
@@ -122,7 +126,7 @@ export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): 
     if (current.length) lines.push(current);
 
     for (const line of lines) {
-      const lineHeight = Math.max(16, ...line.map((w) => w.size * 1.4));
+      const lineHeight = Math.max(16, ...line.map((w) => w.size * 1.4 * (block.lineHeight ?? 1)));
       if (y - lineHeight < margin) newPage();
 
       const totalWidth = line.reduce((a, w) => a + w.width, 0);
@@ -159,7 +163,7 @@ export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): 
       }
       y -= lineHeight;
     }
-    y -= 6;
+    y -= 6 + (block.spaceAfterPx ? block.spaceAfterPx * 0.75 : 0);
   }
 
   await stampGamatoBranding(pdfDoc);

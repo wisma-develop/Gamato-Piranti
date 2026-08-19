@@ -5,6 +5,7 @@ import { sanitizeFileName, sanitizeText } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { Input, Btn, SectionBadge } from "@/components/ui/primitives";
 import { RichToolbar } from "./richtext/RichToolbar";
+import { ImageInspector } from "./richtext/ImageInspector";
 import { parseEditor } from "./richtext/parseEditor";
 import { exportDocxFromBlocks } from "./richtext/exportDocx";
 import { exportPdfFromBlocks } from "./richtext/exportPdf";
@@ -37,6 +38,7 @@ const TEMPLATES: Record<"notulen" | "surat" | "catatan", { name: string; text: s
 
 export const DocTools: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const editorWrapRef = useRef<HTMLDivElement>(null);
   const initialHtmlRef = useRef<string>("<p><br></p>");
 
   const [fileName, setFileName] = useState("Gamato Piranti Dokumen");
@@ -47,6 +49,7 @@ export const DocTools: React.FC = () => {
   const [snapshotLabel, setSnapshotLabel] = useState<string | null>(null);
   const [plainText, setPlainText] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedImg, setSelectedImg] = useState<HTMLImageElement | null>(null);
 
   useEffect(() => {
     try {
@@ -71,10 +74,36 @@ export const DocTools: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [hasImages, setHasImages] = useState(false);
   const syncFromDom = () => {
     const el = editorRef.current;
     if (!el) return;
     setPlainText(el.innerText || "");
+    setHasImages(!!el.querySelector("img"));
+  };
+
+  // Deselect the currently-selected image when the user clicks anywhere
+  // outside it and outside its floating inspector toolbar/handles.
+  useEffect(() => {
+    if (!selectedImg) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target === selectedImg) return;
+      if (target.closest("[data-image-inspector]")) return;
+      setSelectedImg(null);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [selectedImg]);
+
+  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG") {
+      setSelectedImg(target as HTMLImageElement);
+    } else if (selectedImg) {
+      setSelectedImg(null);
+    }
   };
 
   const setEditorHtml = (html: string) => {
@@ -91,6 +120,10 @@ export const DocTools: React.FC = () => {
     }),
     [plainText]
   );
+
+  // A document containing only an image (no typed text) should still be
+  // exportable — don't gate the export buttons on plainText alone.
+  const hasContent = plainText.trim().length > 0 || hasImages;
 
   const outline = useMemo(() => {
     return plainText.split(/\r?\n/).reduce<{ line: string; index: number }[]>((acc, line, idx) => {
@@ -188,7 +221,7 @@ export const DocTools: React.FC = () => {
 
   const exportDocx = async () => {
     const el = editorRef.current;
-    if (!el || !plainText.trim()) return;
+    if (!el || !hasContent) return;
     setIsExporting(true);
     try {
       const blocks = parseEditor(el);
@@ -204,7 +237,7 @@ export const DocTools: React.FC = () => {
 
   const exportPdf = async () => {
     const el = editorRef.current;
-    if (!el || !plainText.trim()) return;
+    if (!el || !hasContent) return;
     setIsExporting(true);
     try {
       const blocks = parseEditor(el);
@@ -307,39 +340,52 @@ export const DocTools: React.FC = () => {
           <RichToolbar editorRef={editorRef} onAfterCommand={syncFromDom} />
 
           {/* Editable canvas */}
-          <div
-            ref={editorRef}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={syncFromDom}
-            onBlur={syncFromDom}
-            data-placeholder="Mulai menulis di sini, atau gunakan template di atas…"
-            className={cn(
-              "w-full min-h-[24rem] px-5 py-4 text-sm text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none",
-              "empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 dark:empty:before:text-slate-500",
-              "[&_p]:min-h-[1.4em] [&_p]:my-1",
-              "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-1",
-              "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-1",
-              "[&_a]:text-indigo-600 dark:[&_a]:text-indigo-400 [&_a]:underline",
-              "[&_img]:rounded-lg [&_img]:my-2 [&_img]:max-w-full"
+          <div ref={editorWrapRef} className="relative">
+            <div
+              ref={editorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={syncFromDom}
+              onBlur={syncFromDom}
+              onClick={handleEditorClick}
+              data-placeholder="Mulai menulis di sini, atau gunakan template di atas…"
+              className={cn(
+                "w-full min-h-[24rem] px-5 py-4 text-sm text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none",
+                "empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 dark:empty:before:text-slate-500",
+                "[&_p]:min-h-[1.4em] [&_p]:my-1",
+                "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-1",
+                "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-1",
+                "[&_a]:text-indigo-600 dark:[&_a]:text-indigo-400 [&_a]:underline",
+                "[&_img]:rounded-lg [&_img]:cursor-pointer [&_img]:max-w-full [&_img]:my-2"
+              )}
+            />
+            {selectedImg && editorWrapRef.current && (
+              <div data-image-inspector>
+                <ImageInspector
+                  containerRef={editorWrapRef}
+                  img={selectedImg}
+                  onChanged={syncFromDom}
+                  onDeselect={() => setSelectedImg(null)}
+                />
+              </div>
             )}
-          />
+          </div>
         </div>
 
         {/* Export buttons */}
         <div className="flex flex-wrap gap-3">
-          <Btn onClick={exportDocx} disabled={isExporting || !plainText.trim()} className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-md shadow-indigo-600/20">
+          <Btn onClick={exportDocx} disabled={isExporting || !hasContent} className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-md shadow-indigo-600/20">
             Unduh .docx
           </Btn>
-          <Btn onClick={exportPdf} disabled={isExporting || !plainText.trim()} variant="secondary" className="gap-2">
+          <Btn onClick={exportPdf} disabled={isExporting || !hasContent} variant="secondary" className="gap-2">
             <Download className="w-4 h-4" />
             Unduh .pdf
           </Btn>
-          <Btn onClick={downloadTxt} disabled={!plainText} variant="secondary" className="gap-2">
+          <Btn onClick={downloadTxt} disabled={!plainText.trim()} variant="secondary" className="gap-2">
             <Download className="w-4 h-4" />
             Unduh .txt
           </Btn>
-          <Btn onClick={saveSnapshot} disabled={!plainText} variant="ghost" className="gap-2">
+          <Btn onClick={saveSnapshot} disabled={!hasContent} variant="ghost" className="gap-2">
             <Copy className="w-4 h-4" />
             Snapshot
           </Btn>
@@ -362,7 +408,7 @@ export const DocTools: React.FC = () => {
         )}
 
         <p className="text-xs text-slate-400 dark:text-slate-500 px-1">
-          Catatan: gambar yang disisipkan tampil penuh di editor &amp; ekspor <b>.pdf</b>. Pada ekspor <b>.docx</b>, posisi gambar ditandai sebagai keterangan teks (batasan format Word saat ini).
+          Gambar yang disisipkan (termasuk hasil crop, ukuran, dan posisinya) ikut tersimpan utuh baik di ekspor <b>.pdf</b> maupun <b>.docx</b> — sama seperti yang tampil di editor.
         </p>
       </div>
 
