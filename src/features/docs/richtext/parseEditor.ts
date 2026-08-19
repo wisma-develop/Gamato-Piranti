@@ -64,6 +64,54 @@ function getImageAlign(el: HTMLElement): ImageAlign | undefined {
   return undefined;
 }
 
+function getImageRotation(el: HTMLElement): number {
+  const attr = el.getAttribute("data-rotate");
+  const n = attr ? parseFloat(attr) : 0;
+  return Number.isFinite(n) ? n : 0;
+}
+
+/**
+ * Resolves what an <img> in the editor should export as: its DISPLAYED size
+ * (what the user actually dragged/resized it to — NOT the raw pixel
+ * resolution of the uploaded file, which is what naturalWidth/naturalHeight
+ * report and was the source of "image comes out huge in the export" bugs),
+ * with any rotation baked directly into a fresh bitmap so every exporter
+ * can just draw it as a plain axis-aligned image.
+ */
+function resolveImageForExport(img: HTMLImageElement): { dataUrl: string; width: number; height: number } {
+  // offsetWidth/offsetHeight reflect the element's own layout box, which
+  // (unlike getBoundingClientRect) is NOT affected by a CSS `transform`
+  // rotation — exactly the "size before rotation" we need here.
+  const displayW = img.offsetWidth || img.naturalWidth || 300;
+  const displayH = img.offsetHeight || img.naturalHeight || 200;
+  const rotateDeg = getImageRotation(img);
+
+  if (!rotateDeg) {
+    return { dataUrl: img.src, width: displayW, height: displayH };
+  }
+
+  try {
+    const rad = (rotateDeg * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+    const boundW = Math.round(displayW * cos + displayH * sin);
+    const boundH = Math.round(displayW * sin + displayH * cos);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, boundW);
+    canvas.height = Math.max(1, boundH);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return { dataUrl: img.src, width: displayW, height: displayH };
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(rad);
+    ctx.drawImage(img, -displayW / 2, -displayH / 2, displayW, displayH);
+    return { dataUrl: canvas.toDataURL("image/png"), width: canvas.width, height: canvas.height };
+  } catch {
+    // Cross-origin or otherwise tainted canvas — fall back to the
+    // unrotated image rather than failing the whole export.
+    return { dataUrl: img.src, width: displayW, height: displayH };
+  }
+}
+
 interface StyleCtx {
   bold?: boolean;
   italic?: boolean;
@@ -95,7 +143,8 @@ function parseInline(
 
     if (tag === "IMG") {
       const img = el as HTMLImageElement;
-      images.push({ dataUrl: img.src, width: img.naturalWidth || 500, height: img.naturalHeight || 350, align: getImageAlign(img) });
+      const resolved = resolveImageForExport(img);
+      images.push({ ...resolved, align: getImageAlign(img) });
       return;
     }
     if (tag === "BR") {
@@ -167,7 +216,8 @@ export function parseEditor(root: HTMLElement): BlockModel[] {
     }
     if (tag === "IMG") {
       const img = el as HTMLImageElement;
-      blocks.push({ kind: "image", dataUrl: img.src, width: img.naturalWidth || 500, height: img.naturalHeight || 350, align: getImageAlign(img) });
+      const resolved = resolveImageForExport(img);
+      blocks.push({ kind: "image", ...resolved, align: getImageAlign(img) });
       return;
     }
     if (tag === "BR") {

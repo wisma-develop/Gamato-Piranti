@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlignLeft, AlignCenter, AlignRight, WrapText, Crop as CropIcon, Trash2, Check, X } from "lucide-react";
-import { cmdSetImageAlign, cmdDeleteImage, type ImageAlignValue } from "../richtext/commands";
+import { AlignLeft, AlignCenter, AlignRight, WrapText, Crop as CropIcon, Trash2, Check, X, RotateCw, Move } from "lucide-react";
+import { cmdSetImageAlign, cmdDeleteImage, cmdSetImageRotation, type ImageAlignValue } from "./commands";
 
 interface Rect {
   top: number;
@@ -81,6 +81,74 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
     cmdDeleteImage(img);
     onChanged();
     onDeselect();
+  };
+
+  // ─── Rotate (drag handle above the image, angle from image center) ────
+  const currentRotation = () => parseFloat(img.getAttribute("data-rotate") || "0") || 0;
+
+  const startRotate = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const box = img.getBoundingClientRect();
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+    const onMove = (ev: PointerEvent) => {
+      const angleRad = Math.atan2(ev.clientY - cy, ev.clientX - cx);
+      // 0° handle sits above the image (north), so offset by +90°.
+      let deg = angleRad * (180 / Math.PI) + 90;
+      // Hold Shift to snap to 15° steps — makes it easy to land on 0/90/180/270.
+      if (ev.shiftKey) deg = Math.round(deg / 15) * 15;
+      cmdSetImageRotation(img, deg);
+      refresh();
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      onChanged();
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  // ─── Move (drag anywhere in the document to reposition) ───────────────
+  const startMove = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    let dropTarget: { node: Node; offset: number } | null = null;
+    const onMove = (ev: PointerEvent) => {
+      const doc = document as Document & {
+        caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null;
+      };
+      if (typeof document.caretRangeFromPoint === "function") {
+        const range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
+        if (range) dropTarget = { node: range.startContainer, offset: range.startOffset };
+      } else if (typeof doc.caretPositionFromPoint === "function") {
+        const pos = doc.caretPositionFromPoint(ev.clientX, ev.clientY);
+        if (pos) dropTarget = { node: pos.offsetNode, offset: pos.offset };
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      if (dropTarget) {
+        try {
+          const range = document.createRange();
+          if (dropTarget.node.nodeType === Node.TEXT_NODE) {
+            range.setStart(dropTarget.node, dropTarget.offset);
+          } else {
+            range.setStart(dropTarget.node, Math.min(dropTarget.offset, dropTarget.node.childNodes.length));
+          }
+          range.collapse(true);
+          range.insertNode(img);
+          onChanged();
+          requestAnimationFrame(refresh);
+        } catch {
+          // If the drop point wasn't a valid editor position, just leave the image where it was.
+        }
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   };
 
   // ─── Resize (corner handles, aspect-ratio locked) ──────────────────────
@@ -189,21 +257,33 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
 
   return (
     <>
-      {/* Selection outline + resize handles */}
+      {/* Selection outline + resize handles + rotate handle */}
       <div
         className="absolute pointer-events-none border-2 border-indigo-500 rounded-sm"
-        style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }}
+        style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height, transform: `rotate(${currentRotation()}deg)` }}
       >
-        {!cropMode &&
-          (["nw", "ne", "sw", "se"] as const).map((corner) => (
+        {!cropMode && (
+          <>
+            {(["nw", "ne", "sw", "se"] as const).map((corner) => (
+              <div
+                key={corner}
+                onPointerDown={startResize(corner)}
+                className={`pointer-events-auto absolute w-3.5 h-3.5 bg-indigo-600 border-2 border-white rounded-full shadow ${
+                  corner === "nw" ? "-top-1.5 -left-1.5 cursor-nwse-resize" : corner === "ne" ? "-top-1.5 -right-1.5 cursor-nesw-resize" : corner === "sw" ? "-bottom-1.5 -left-1.5 cursor-nesw-resize" : "-bottom-1.5 -right-1.5 cursor-nwse-resize"
+                }`}
+              />
+            ))}
+            {/* Rotate handle — a small grip above the image, connected by a stem */}
+            <div className="pointer-events-none absolute left-1/2 -top-7 -translate-x-1/2 w-px h-5 bg-indigo-500" />
             <div
-              key={corner}
-              onPointerDown={startResize(corner)}
-              className={`pointer-events-auto absolute w-3.5 h-3.5 bg-indigo-600 border-2 border-white rounded-full shadow ${
-                corner === "nw" ? "-top-1.5 -left-1.5 cursor-nwse-resize" : corner === "ne" ? "-top-1.5 -right-1.5 cursor-nesw-resize" : corner === "sw" ? "-bottom-1.5 -left-1.5 cursor-nesw-resize" : "-bottom-1.5 -right-1.5 cursor-nwse-resize"
-              }`}
-            />
-          ))}
+              onPointerDown={startRotate}
+              title="Putar (tahan Shift untuk kelipatan 15°)"
+              className="pointer-events-auto absolute left-1/2 -top-9 -translate-x-1/2 w-5 h-5 bg-white border-2 border-indigo-600 rounded-full shadow flex items-center justify-center cursor-grab active:cursor-grabbing"
+            >
+              <RotateCw className="w-3 h-3 text-indigo-600" />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Crop rectangle overlay — four dimming panels around the selection,
@@ -249,6 +329,15 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
           </>
         ) : (
           <>
+            <button
+              type="button"
+              title="Geser (seret ke posisi baru dalam teks)"
+              onPointerDown={startMove}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0 cursor-grab active:cursor-grabbing"
+            >
+              <Move className="w-4 h-4" />
+            </button>
+            <div className="w-px h-5 bg-white/20 mx-0.5 shrink-0" />
             {ALIGN_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -261,7 +350,13 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
               </button>
             ))}
             <div className="w-px h-5 bg-white/20 mx-0.5 shrink-0" />
-            <button type="button" title="Potong (crop)" onClick={enterCropMode} className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0">
+            <button
+              type="button"
+              title={currentRotation() ? "Kembalikan rotasi ke 0° dulu untuk memotong" : "Potong (crop)"}
+              onClick={() => currentRotation() === 0 && enterCropMode()}
+              disabled={currentRotation() !== 0}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0 disabled:opacity-30 disabled:pointer-events-none"
+            >
               <CropIcon className="w-4 h-4" />
             </button>
             <button type="button" title="Hapus gambar" onClick={handleDelete} className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-red-500/80 shrink-0">

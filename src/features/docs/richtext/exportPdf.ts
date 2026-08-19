@@ -70,9 +70,16 @@ export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): 
         const bytes = dataUrlToBytes(block.dataUrl);
         const isPng = block.dataUrl.startsWith("data:image/png");
         const img = isPng ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
-        const scale = Math.min(1, maxWidth / img.width);
-        const w = img.width * scale;
-        const h = img.height * scale;
+        // block.width/height are the image's DISPLAYED size in the editor,
+        // in CSS pixels (already rotation-baked) — convert to PDF points
+        // with the same 96dpi assumption used for font sizes below, so the
+        // exported image lands at the exact size the user set, not the raw
+        // pixel resolution of the uploaded file.
+        const targetWidthPt = block.width * 0.75;
+        const targetHeightPt = block.height * 0.75;
+        const scale = Math.min(1, maxWidth / targetWidthPt);
+        const w = targetWidthPt * scale;
+        const h = targetHeightPt * scale;
         if (y - h < margin) newPage();
         let x = margin; // left / float-left
         const align = block.align ?? "left";

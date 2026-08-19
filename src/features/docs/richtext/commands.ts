@@ -93,8 +93,9 @@ export function cmdInsertLink(url: string) {
   });
 }
 
-export function cmdInsertImage(dataUrl: string) {
-  document.execCommand("insertHTML", false, `<img src="${dataUrl}" data-align="center" style="max-width:100%;border-radius:8px;margin:8px auto;display:block;" />`);
+export function cmdInsertImage(dataUrl: string, displaySize?: { width: number; height: number }) {
+  const sizeStyle = displaySize ? `width:${Math.round(displaySize.width)}px;height:${Math.round(displaySize.height)}px;` : "";
+  document.execCommand("insertHTML", false, `<img src="${dataUrl}" data-align="center" data-rotate="0" style="max-width:100%;border-radius:8px;margin:8px auto;display:block;${sizeStyle}" />`);
 }
 
 // ─── Paragraph spacing ──────────────────────────────────────────────────────
@@ -186,7 +187,10 @@ export async function cmdInsertShape(kind: ShapeKind, options?: { stroke?: strin
   const h = kind === "line" || kind === "arrow" ? 50 : kind === "circle" ? 200 : 150;
   const svg = shapeSvgMarkup(kind, w, h, stroke, fill);
   const dataUrl = await rasterizeSvg(svg, w, h);
-  cmdInsertImage(dataUrl);
+  // rasterizeSvg renders at 2x pixel density for crisp edges — pass the
+  // *intended* CSS display size explicitly so the shape doesn't show up
+  // (and export) twice as large as designed.
+  cmdInsertImage(dataUrl, { width: w, height: h });
 }
 
 // ─── Image alignment / positioning ─────────────────────────────────────────
@@ -229,4 +233,11 @@ export function cmdSetImageAlign(img: HTMLImageElement, align: ImageAlignValue) 
 /** Removes an image node from the editor entirely. */
 export function cmdDeleteImage(img: HTMLImageElement) {
   img.remove();
+}
+
+/** Sets rotation (in degrees) on an image/shape, both for live preview and for parseEditor.ts to bake into the export. */
+export function cmdSetImageRotation(img: HTMLImageElement, degrees: number) {
+  const normalized = ((degrees % 360) + 360) % 360;
+  img.setAttribute("data-rotate", String(normalized));
+  img.style.transform = normalized ? `rotate(${normalized}deg)` : "";
 }

@@ -1,8 +1,9 @@
-import React, { useRef, useState } from "react";
-import { Bold, Italic, ListOrdered, Link2, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Type, Rows3, Square, Circle, Minus, ArrowRight, Shapes } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Bold, Italic, ListOrdered, Link2, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Type, Rows3, Square, Circle, Minus, ArrowRight, Shapes, Palette, Highlighter } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { fileToDataUrl } from "@/lib/file";
 import { useDialog } from "@/hooks/useDialog";
+import { ColorSwatchPicker } from "./ColorSwatchPicker";
 import {
   cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSuperscript,
   cmdUndo, cmdRedo, cmdOrderedList, cmdUnorderedList, cmdAlign, cmdForeColor, cmdHighlight,
@@ -20,6 +21,10 @@ const FONT_FAMILIES = [
 ];
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
+
+const TEXT_COLOR_PRESETS = ["#0f172a", "#dc2626", "#ea580c", "#ca8a04", "#16a34a", "#0891b2", "#2563eb", "#4f46e5", "#a21caf", "#db2777", "#64748b", "#ffffff"];
+const HIGHLIGHT_COLOR_PRESETS = ["#fef08a", "#fde68a", "#bbf7d0", "#a7f3d0", "#bfdbfe", "#c7d2fe", "#fbcfe8", "#fecaca"];
+const SHAPE_COLOR_PRESETS = ["#4f46e5", "#0f172a", "#dc2626", "#ea580c", "#16a34a", "#0891b2", "#a21caf", "#64748b"];
 
 /** Small pill/square button used throughout the toolbar. */
 const ToolBtn: React.FC<{
@@ -55,6 +60,11 @@ export const RichToolbar: React.FC<{
   const dialog = useDialog();
   const [fontSize, setFontSize] = useState(16);
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
+  const [textColorOpen, setTextColorOpen] = useState(false);
+  const [highlightOpen, setHighlightOpen] = useState(false);
+  const [shapeStroke, setShapeStroke] = useState("#4f46e5");
+  const [shapeFill, setShapeFill] = useState("transparent");
+  const [shapeColorOpen, setShapeColorOpen] = useState<"stroke" | "fill" | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   // Native <input type="color"> and <select> steal window focus the instant
   // their picker/dropdown opens, which collapses whatever text selection the
@@ -91,6 +101,39 @@ export const RichToolbar: React.FC<{
     onAfterCommand();
   };
 
+  // ─── Active-state indicators (bold/italic/align/list/etc. light up when
+  // the current selection already has that formatting, like every other
+  // word processor) ───────────────────────────────────────────────────────
+  const [activeStates, setActiveStates] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const update = () => {
+      const el = editorRef.current;
+      const sel = window.getSelection();
+      if (!el || !sel || !sel.anchorNode || !el.contains(sel.anchorNode)) return;
+      try {
+        setActiveStates({
+          bold: document.queryCommandState("bold"),
+          italic: document.queryCommandState("italic"),
+          underline: document.queryCommandState("underline"),
+          strikethrough: document.queryCommandState("strikeThrough"),
+          subscript: document.queryCommandState("subscript"),
+          superscript: document.queryCommandState("superscript"),
+          insertUnorderedList: document.queryCommandState("insertUnorderedList"),
+          insertOrderedList: document.queryCommandState("insertOrderedList"),
+          justifyLeft: document.queryCommandState("justifyLeft"),
+          justifyCenter: document.queryCommandState("justifyCenter"),
+          justifyRight: document.queryCommandState("justifyRight"),
+          justifyFull: document.queryCommandState("justifyFull"),
+        });
+      } catch {
+        // queryCommandState can throw on an empty/detached selection — safe to ignore.
+      }
+    };
+    document.addEventListener("selectionchange", update);
+    return () => document.removeEventListener("selectionchange", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleInsertLink = async () => {
     const values = await dialog.form({
       title: "Sisipkan Tautan",
@@ -125,9 +168,10 @@ export const RichToolbar: React.FC<{
 
   const handleInsertShape = async (kind: ShapeKind) => {
     setShapeMenuOpen(false);
+    setShapeColorOpen(null);
     editorRef.current?.focus();
     restoreSelection();
-    await cmdInsertShape(kind);
+    await cmdInsertShape(kind, { stroke: shapeStroke, fill: shapeFill });
     onAfterCommand();
   };
 
@@ -183,16 +227,16 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Tebal (Bold)" onClick={() => withFocus(cmdBold)}>
+      <ToolBtn title="Tebal (Bold)" onClick={() => withFocus(cmdBold)} active={activeStates.bold}>
         <Bold className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Miring (Italic)" onClick={() => withFocus(cmdItalic)}>
+      <ToolBtn title="Miring (Italic)" onClick={() => withFocus(cmdItalic)} active={activeStates.italic}>
         <Italic className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Garis bawah (Underline)" onClick={() => withFocus(cmdUnderline)} className="underline">
+      <ToolBtn title="Garis bawah (Underline)" onClick={() => withFocus(cmdUnderline)} active={activeStates.underline} className="underline">
         U
       </ToolBtn>
-      <ToolBtn title="Coret (Strikethrough)" onClick={() => withFocus(cmdStrikethrough)} className="line-through">
+      <ToolBtn title="Coret (Strikethrough)" onClick={() => withFocus(cmdStrikethrough)} active={activeStates.strikethrough} className="line-through">
         S
       </ToolBtn>
       <ToolBtn title="HURUF BESAR (dari teks terpilih)" onClick={() => withFocus(cmdUppercaseSelection)}>
@@ -202,42 +246,49 @@ export const RichToolbar: React.FC<{
       <Sep />
 
       {/* Text color */}
-      <label title="Warna teks" className="relative h-8 w-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer text-slate-600 dark:text-slate-300 font-bold text-sm">
-        A
-        <input
-          type="color"
-          defaultValue="#0f172a"
-          onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
-          onChange={(e) => withFocus(() => cmdForeColor(e.target.value))}
-          className="absolute inset-x-0 bottom-0 h-1.5 w-full cursor-pointer opacity-0"
-          style={{ colorScheme: "light" }}
-        />
-      </label>
+      <div className="relative">
+        <ToolBtn title="Warna teks" onClick={() => { saveSelection(); setTextColorOpen((v) => !v); }} active={textColorOpen}>
+          <Palette className="w-4 h-4" />
+        </ToolBtn>
+        {textColorOpen && (
+          <ColorSwatchPicker
+            presets={TEXT_COLOR_PRESETS}
+            onCustomPickerOpen={saveSelection}
+            onClose={() => setTextColorOpen(false)}
+            onPick={(color) => withFocus(() => cmdForeColor(color))}
+          />
+        )}
+      </div>
 
       {/* Highlight color */}
-      <label title="Sorot teks (highlight)" className="relative h-8 w-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer bg-yellow-100 text-slate-700 font-bold text-sm">
-        H
-        <input
-          type="color"
-          defaultValue="#fef08a"
-          onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
-          onChange={(e) => withFocus(() => cmdHighlight(e.target.value))}
-          className="absolute inset-x-0 bottom-0 h-1.5 w-full cursor-pointer opacity-0"
-        />
-      </label>
+      <div className="relative">
+        <ToolBtn title="Sorot teks (highlight)" onClick={() => { saveSelection(); setHighlightOpen((v) => !v); }} active={highlightOpen}>
+          <Highlighter className="w-4 h-4" />
+        </ToolBtn>
+        {highlightOpen && (
+          <ColorSwatchPicker
+            presets={HIGHLIGHT_COLOR_PRESETS}
+            allowNone
+            noneLabel="Hapus sorotan"
+            onCustomPickerOpen={saveSelection}
+            onClose={() => setHighlightOpen(false)}
+            onPick={(color) => withFocus(() => cmdHighlight(color))}
+          />
+        )}
+      </div>
 
       <Sep />
 
-      <ToolBtn title="Rata kiri" onClick={() => withFocus(() => cmdAlign("left"))}>
+      <ToolBtn title="Rata kiri" onClick={() => withFocus(() => cmdAlign("left"))} active={activeStates.justifyLeft}>
         <AlignLeft className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata tengah" onClick={() => withFocus(() => cmdAlign("center"))}>
+      <ToolBtn title="Rata tengah" onClick={() => withFocus(() => cmdAlign("center"))} active={activeStates.justifyCenter}>
         <AlignCenter className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata kanan" onClick={() => withFocus(() => cmdAlign("right"))}>
+      <ToolBtn title="Rata kanan" onClick={() => withFocus(() => cmdAlign("right"))} active={activeStates.justifyRight}>
         <AlignRight className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata kiri-kanan (justify)" onClick={() => withFocus(() => cmdAlign("justify"))}>
+      <ToolBtn title="Rata kiri-kanan (justify)" onClick={() => withFocus(() => cmdAlign("justify"))} active={activeStates.justifyFull}>
         ≣
       </ToolBtn>
 
@@ -290,21 +341,21 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Daftar bullet" onClick={() => withFocus(cmdUnorderedList)}>
+      <ToolBtn title="Daftar bullet" onClick={() => withFocus(cmdUnorderedList)} active={activeStates.insertUnorderedList}>
         •≡
       </ToolBtn>
-      <ToolBtn title="Daftar bernomor" onClick={() => withFocus(cmdOrderedList)}>
+      <ToolBtn title="Daftar bernomor" onClick={() => withFocus(cmdOrderedList)} active={activeStates.insertOrderedList}>
         <ListOrdered className="w-4 h-4" />
       </ToolBtn>
 
       <Sep />
 
-      <ToolBtn title="Subscript (mis. H₂O)" onClick={() => withFocus(cmdSubscript)}>
+      <ToolBtn title="Subscript (mis. H₂O)" onClick={() => withFocus(cmdSubscript)} active={activeStates.subscript}>
         <span>
           X<sub>2</sub>
         </span>
       </ToolBtn>
-      <ToolBtn title="Superscript (mis. x²)" onClick={() => withFocus(cmdSuperscript)}>
+      <ToolBtn title="Superscript (mis. x²)" onClick={() => withFocus(cmdSuperscript)} active={activeStates.superscript}>
         <span>
           X<sup>2</sup>
         </span>
@@ -327,20 +378,54 @@ export const RichToolbar: React.FC<{
         </ToolBtn>
         {shapeMenuOpen && (
           <>
-            <div className="fixed inset-0 z-10" onClick={() => setShapeMenuOpen(false)} />
-            <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-1.5 flex gap-1 min-w-max">
-              {SHAPE_OPTIONS.map((s) => (
-                <button
-                  key={s.kind}
-                  type="button"
-                  title={s.label}
-                  onMouseDown={(e) => { e.preventDefault(); saveSelection(); }}
-                  onClick={() => handleInsertShape(s.kind)}
-                  className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                >
-                  {s.icon}
-                </button>
-              ))}
+            <div className="fixed inset-0 z-10" onClick={() => { setShapeMenuOpen(false); setShapeColorOpen(null); }} />
+            <div className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2.5 w-64">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">Warna bentuk</p>
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="relative flex-1">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setShapeColorOpen(shapeColorOpen === "stroke" ? null : "stroke")}
+                    className="w-full h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300"
+                  >
+                    <span className="w-4 h-4 rounded-full border-2 shrink-0" style={{ borderColor: shapeStroke }} />
+                    Garis (stroke)
+                  </button>
+                  {shapeColorOpen === "stroke" && (
+                    <ColorSwatchPicker presets={SHAPE_COLOR_PRESETS} onClose={() => setShapeColorOpen(null)} onPick={setShapeStroke} />
+                  )}
+                </div>
+                <div className="relative flex-1">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setShapeColorOpen(shapeColorOpen === "fill" ? null : "fill")}
+                    className="w-full h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300"
+                  >
+                    <span className="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 shrink-0" style={{ backgroundColor: shapeFill === "transparent" ? undefined : shapeFill }} />
+                    Isi (fill)
+                  </button>
+                  {shapeColorOpen === "fill" && (
+                    <ColorSwatchPicker presets={SHAPE_COLOR_PRESETS} allowNone noneLabel="Tanpa isi" onClose={() => setShapeColorOpen(null)} onPick={setShapeFill} />
+                  )}
+                </div>
+              </div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">Pilih bentuk</p>
+              <div className="flex gap-1">
+                {SHAPE_OPTIONS.map((s) => (
+                  <button
+                    key={s.kind}
+                    type="button"
+                    title={s.label}
+                    onMouseDown={(e) => { e.preventDefault(); saveSelection(); }}
+                    onClick={() => handleInsertShape(s.kind)}
+                    className="h-10 w-10 inline-flex items-center justify-center rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    {s.icon}
+                  </button>
+                ))}
+              </div>
             </div>
           </>
         )}
