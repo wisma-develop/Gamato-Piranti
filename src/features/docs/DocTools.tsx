@@ -9,6 +9,7 @@ import { ImageInspector } from "./richtext/ImageInspector";
 import { parseEditor } from "./richtext/parseEditor";
 import { exportDocxFromBlocks } from "./richtext/exportDocx";
 import { exportPdfFromBlocks } from "./richtext/exportPdf";
+import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -59,6 +60,52 @@ export const DocTools: React.FC = () => {
     }
   }, []);
 
+  // ─── Undo/Redo covering EVERY kind of edit, not just typing ─────────────
+  // document.execCommand("undo") only reliably tracks the browser's own
+  // native typing history — it has no idea about formatting commands,
+  // image resize/rotate/crop/align, shapes, paragraph spacing, or any of
+  // the other DOM surgery this editor does directly. So instead of relying
+  // on it, the editor's entire innerHTML is snapshotted: once immediately
+  // after every discrete action (a toolbar click, an image edit, find &
+  // replace, a template load, ...), and — while the user is simply typing —
+  // debounced so a whole burst of keystrokes becomes one undo step instead
+  // of one per character.
+  const contentHistory = useHistoryState<string>("<p><br></p>");
+  const { schedule: scheduleContentCommit, flushNow: flushContentCommit } = useDebouncedCommit(contentHistory.commit, 800);
+  const commitHistory = (opts?: { continuous?: boolean }) => {
+    const el = editorRef.current;
+    if (!el) return;
+    contentHistory.set(el.innerHTML, { commit: !opts?.continuous });
+    if (opts?.continuous) scheduleContentCommit();
+  };
+  const applyRestoredHtml = (html: string | undefined) => {
+    if (html === undefined) return;
+    const el = editorRef.current;
+    if (!el) return;
+    el.innerHTML = html;
+    setSelectedImg(null); // any selected <img> reference may no longer exist in the new DOM
+    syncFromDom();
+  };
+  const handleUndo = () => applyRestoredHtml(contentHistory.undo());
+  const handleRedo = () => applyRestoredHtml(contentHistory.redo());
+
+  // Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z inside the editor go through the custom
+  // history above — and we explicitly stop the browser's own native undo
+  // from *also* firing, since the two would operate on separate, now
+  // out-of-sync histories and produce confusing, inconsistent results.
+  const handleEditorKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const meta = e.ctrlKey || e.metaKey;
+    if (!meta) return;
+    const key = e.key.toLowerCase();
+    if (key === "z" && !e.shiftKey) {
+      e.preventDefault();
+      handleUndo();
+    } else if (key === "y" || (key === "z" && e.shiftKey)) {
+      e.preventDefault();
+      handleRedo();
+    }
+  };
+
   // Editor kontenEditable diinisialisasi SEKALI secara imperatif (bukan lewat
   // dangerouslySetInnerHTML di JSX). Ini sengaja dipisah total dari siklus
   // render React: sejak baris ini jalan, isi editor 100% dikuasai oleh DOM
@@ -80,6 +127,12 @@ export const DocTools: React.FC = () => {
     if (!el) return;
     setPlainText(el.innerText || "");
     setHasImages(!!el.querySelector("img"));
+  };
+
+  /** For every discrete edit (toolbar command, image edit, find & replace, template load, ...): sync stats AND record an undo step immediately. */
+  const afterEdit = () => {
+    syncFromDom();
+    commitHistory();
   };
 
   // Deselect the currently-selected image when the user clicks anywhere
@@ -109,7 +162,7 @@ export const DocTools: React.FC = () => {
   const setEditorHtml = (html: string) => {
     if (!editorRef.current) return;
     editorRef.current.innerHTML = html;
-    syncFromDom();
+    afterEdit();
   };
 
   const stats = useMemo(
@@ -159,7 +212,7 @@ export const DocTools: React.FC = () => {
       });
       setDocInfo("Baris kosong dihapus.");
     }
-    syncFromDom();
+    afterEdit();
   };
 
   const runFindReplace = () => {
@@ -177,7 +230,7 @@ export const DocTools: React.FC = () => {
       node = walker.nextNode();
     }
     setDocInfo(count === 0 ? "Teks tidak ditemukan." : `${count} kemunculan diganti.`);
-    syncFromDom();
+    afterEdit();
   };
 
   const changeCase = (kind: "upper" | "lower" | "title") => {
@@ -192,7 +245,7 @@ export const DocTools: React.FC = () => {
       node = walker.nextNode();
     }
     setDocInfo("Huruf diubah.");
-    syncFromDom();
+    afterEdit();
   };
 
   const importTxt = (files: FileList | null) => {
@@ -337,7 +390,7 @@ export const DocTools: React.FC = () => {
           </div>
 
           {/* Rich text formatting toolbar */}
-          <RichToolbar editorRef={editorRef} onAfterCommand={syncFromDom} />
+          <RichToolbar editorRef={editorRef} onAfterCommand={afterEdit} onUndo={handleUndo} onRedo={handleRedo} canUndo={contentHistory.canUndo} canRedo={contentHistory.canRedo} />
 
           {/* Editable canvas */}
           <div ref={editorWrapRef} className="relative">
@@ -345,8 +398,15 @@ export const DocTools: React.FC = () => {
               ref={editorRef}
               contentEditable
               suppressContentEditableWarning
-              onInput={syncFromDom}
-              onBlur={syncFromDom}
+              onInput={() => {
+                syncFromDom();
+                commitHistory({ continuous: true });
+              }}
+              onBlur={() => {
+                syncFromDom();
+                flushContentCommit();
+              }}
+              onKeyDown={handleEditorKeyDown}
               onClick={handleEditorClick}
               data-placeholder="Mulai menulis di sini, atau gunakan template di atas…"
               className={cn(
@@ -364,12 +424,13 @@ export const DocTools: React.FC = () => {
                 <ImageInspector
                   containerRef={editorWrapRef}
                   img={selectedImg}
-                  onChanged={syncFromDom}
+                  onChanged={afterEdit}
                   onDeselect={() => setSelectedImg(null)}
                 />
               </div>
             )}
           </div>
+
         </div>
 
         {/* Export buttons */}

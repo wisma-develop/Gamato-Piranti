@@ -15,8 +15,6 @@ export const cmdSubscript = () => exec("subscript");
 export const cmdSuperscript = () => exec("superscript");
 export const cmdUndo = () => exec("undo");
 export const cmdRedo = () => exec("redo");
-export const cmdOrderedList = () => exec("insertOrderedList");
-export const cmdUnorderedList = () => exec("insertUnorderedList");
 export const cmdIndent = () => exec("indent");
 export const cmdOutdent = () => exec("outdent");
 export const cmdRemoveFormat = () => exec("removeFormat");
@@ -66,7 +64,16 @@ export function cmdChangeCaseSelection(mode: CaseMode) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
   const range = sel.getRangeAt(0);
-  const walker = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_TEXT);
+  // If the selection lies entirely inside one text node (extremely common —
+  // e.g. selecting a couple of words in a plain paragraph), that text node
+  // itself IS range.commonAncestorContainer. A TreeWalker never returns its
+  // own root via nextNode() — only descendants — so walking from the text
+  // node directly finds zero nodes and silently does nothing. Rooting the
+  // walker at an actual element (the text node's parent when needed) fixes
+  // this for every selection shape.
+  const rawRoot = range.commonAncestorContainer;
+  const walkerRoot: Node = rawRoot.nodeType === Node.TEXT_NODE ? rawRoot.parentNode || rawRoot : rawRoot;
+  const walker = document.createTreeWalker(walkerRoot, NodeFilter.SHOW_TEXT);
   const nodes: Text[] = [];
   let node = walker.nextNode();
   while (node) {
@@ -112,6 +119,103 @@ export function cmdChangeCaseSelection(mode: CaseMode) {
     textNode.textContent = before + transformed + after;
   });
 }
+
+// ─── Lists ──────────────────────────────────────────────────────────────────
+// execCommand('insertOrderedList'/'insertUnorderedList') is notoriously
+// inconsistent about the exact markup it produces (it can leave the list
+// nested unexpectedly, or represent it via CSS instead of real <ul>/<ol>
+// depending on browser/selection state) — that inconsistency is exactly why
+// bullet/numbered lists sometimes weren't recognized on export. This
+// implementation builds the <ul>/<ol><li> structure directly, so the
+// output is 100% predictable and always matches what parseEditor.ts (and
+// therefore the .docx/.pdf exporters) expect.
+
+function findListContext(editorRoot: HTMLElement): { li: HTMLElement | null; topBlock: HTMLElement | null } {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return { li: null, topBlock: null };
+  let node: Node | null = sel.getRangeAt(0).commonAncestorContainer;
+  let li: HTMLElement | null = null;
+  let topBlock: HTMLElement | null = null;
+  while (node && node !== editorRoot) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement;
+      if (el.tagName === "LI" && !li) li = el;
+      if (el.parentElement === editorRoot) topBlock = el;
+    }
+    node = node.parentNode;
+  }
+  return { li, topBlock };
+}
+
+/** Removes `li` from `list`, splitting the list in two around it if it was in the middle, and inserts `replacement` in its place. */
+function splitListAndReplace(list: HTMLElement, li: HTMLElement, replacement: HTMLElement) {
+  const parent = list.parentElement;
+  if (!parent) return;
+  const items = Array.from(list.children);
+  const idx = items.indexOf(li);
+  if (idx === -1) return;
+  const before = items.slice(0, idx);
+  const after = items.slice(idx + 1);
+
+  if (before.length) {
+    const beforeList = document.createElement(list.tagName.toLowerCase());
+    before.forEach((item) => beforeList.appendChild(item));
+    parent.insertBefore(beforeList, list);
+  }
+  parent.insertBefore(replacement, list);
+  if (after.length) {
+    const afterList = document.createElement(list.tagName.toLowerCase());
+    after.forEach((item) => afterList.appendChild(item));
+    parent.insertBefore(afterList, list);
+  }
+  parent.removeChild(list);
+}
+
+function placeCaretAtEnd(el: HTMLElement) {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel?.removeAllRanges();
+  sel?.addRange(range);
+}
+
+/** Toggles the current paragraph/list-item between a plain paragraph and a bullet/numbered list item. */
+export function cmdToggleList(kind: "bullet" | "number", editorRoot: HTMLElement) {
+  const tagWanted = kind === "bullet" ? "UL" : "OL";
+  const { li, topBlock } = findListContext(editorRoot);
+
+  if (li) {
+    const list = li.parentElement as HTMLElement | null;
+    if (!list) return;
+    if (list.tagName === tagWanted) {
+      // Already this list type → un-list just this item.
+      const p = document.createElement("p");
+      p.innerHTML = li.innerHTML || "<br>";
+      splitListAndReplace(list, li, p);
+      placeCaretAtEnd(p);
+    } else {
+      // A list item of the other kind → convert just this item to the new kind.
+      const newLi = document.createElement("li");
+      newLi.innerHTML = li.innerHTML || "<br>";
+      const wrapper = document.createElement(tagWanted.toLowerCase());
+      wrapper.appendChild(newLi);
+      splitListAndReplace(list, li, wrapper);
+      placeCaretAtEnd(newLi);
+    }
+    return;
+  }
+
+  if (topBlock) {
+    const list = document.createElement(tagWanted.toLowerCase());
+    const newLi = document.createElement("li");
+    newLi.innerHTML = topBlock.innerHTML || "<br>";
+    list.appendChild(newLi);
+    topBlock.replaceWith(list);
+    placeCaretAtEnd(newLi);
+  }
+}
+
 
 export function cmdInsertLink(url: string) {
   if (!url.trim()) return;

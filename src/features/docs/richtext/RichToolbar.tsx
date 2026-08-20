@@ -5,7 +5,7 @@ import { fileToDataUrl } from "@/lib/file";
 import { useDialog } from "@/hooks/useDialog";
 import { ColorSwatchPicker } from "./ColorSwatchPicker";
 import { cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSuperscript,
-  cmdUndo, cmdRedo, cmdOrderedList, cmdUnorderedList, cmdAlign, cmdForeColor, cmdHighlight,
+  cmdToggleList, cmdAlign, cmdForeColor, cmdHighlight,
   cmdFontName, cmdFontSize, cmdChangeCaseSelection, cmdInsertLink, cmdInsertImage, cmdRemoveFormat,
   cmdSetLineHeight, cmdSetSpaceAfter, cmdInsertShape, type ShapeKind, type CaseMode,
 } from "./commands";
@@ -55,7 +55,11 @@ const Sep: React.FC = () => <div className="w-px h-6 bg-slate-200 dark:bg-slate-
 export const RichToolbar: React.FC<{
   editorRef: React.RefObject<HTMLDivElement>;
   onAfterCommand: () => void;
-}> = ({ editorRef, onAfterCommand }) => {
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+}> = ({ editorRef, onAfterCommand, onUndo, onRedo, canUndo, canRedo }) => {
   const dialog = useDialog();
   const [fontSize, setFontSize] = useState(16);
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
@@ -203,9 +207,9 @@ export const RichToolbar: React.FC<{
 
   return (
     <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-      {/* Undo / redo */}
-      <ToolBtn title="Urungkan (Ctrl+Z)" onClick={() => withFocus(cmdUndo)}>↺</ToolBtn>
-      <ToolBtn title="Ulangi (Ctrl+Y)" onClick={() => withFocus(cmdRedo)}>↻</ToolBtn>
+      {/* Undo / redo — covers every edit (formatting, images, shapes, spacing, ...), not just typing */}
+      <ToolBtn title="Urungkan (Ctrl+Z)" onClick={onUndo} className={!canUndo ? "opacity-30 pointer-events-none" : undefined}>↺</ToolBtn>
+      <ToolBtn title="Ulangi (Ctrl+Y)" onClick={onRedo} className={!canRedo ? "opacity-30 pointer-events-none" : undefined}>↻</ToolBtn>
 
       <Sep />
 
@@ -380,10 +384,18 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Daftar bullet" onClick={() => withFocus(cmdUnorderedList)} active={activeStates.insertUnorderedList}>
+      <ToolBtn
+        title="Daftar bullet"
+        onClick={() => { if (editorRef.current) withFocus(() => cmdToggleList("bullet", editorRef.current!)); }}
+        active={activeStates.insertUnorderedList}
+      >
         •≡
       </ToolBtn>
-      <ToolBtn title="Daftar bernomor" onClick={() => withFocus(cmdOrderedList)} active={activeStates.insertOrderedList}>
+      <ToolBtn
+        title="Daftar bernomor"
+        onClick={() => { if (editorRef.current) withFocus(() => cmdToggleList("number", editorRef.current!)); }}
+        active={activeStates.insertOrderedList}
+      >
         <ListOrdered className="w-4 h-4" />
       </ToolBtn>
 
