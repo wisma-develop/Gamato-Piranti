@@ -33,8 +33,9 @@ export interface UseHistoryStateReturn<T> {
   set: (updater: T | ((prev: T) => T), opts?: { commit?: boolean }) => void;
   /** Flush a pending (debounced) change into the undo stack right now. */
   commit: () => void;
-  undo: () => void;
-  redo: () => void;
+  /** Returns the restored value synchronously (undefined if there was nothing to undo/redo) — handy when the caller needs to imperatively apply it (e.g. writing back into a contentEditable's innerHTML) without waiting for a re-render. */
+  undo: () => T | undefined;
+  redo: () => T | undefined;
   canUndo: boolean;
   canRedo: boolean;
   /** Replace the state and clear all history (e.g. when loading a template). */
@@ -102,19 +103,21 @@ export function useHistoryState<T>(initial: T | (() => T), options: UseHistorySt
 
   const undo = useCallback(() => {
     commit();
-    if (!past.current.length) return;
+    if (!past.current.length) return undefined;
     const last = past.current.pop() as T;
     future.current.push(stateRef.current);
     stateRef.current = last;
     setState(last);
+    return last;
   }, [commit]);
 
   const redo = useCallback(() => {
-    if (!future.current.length) return;
+    if (!future.current.length) return undefined;
     const next = future.current.pop() as T;
     past.current.push(stateRef.current);
     stateRef.current = next;
     setState(next);
+    return next;
   }, []);
 
   const reset = useCallback(
