@@ -3,6 +3,7 @@ import { Wand2, Image as ImageIcon, Minus, Loader2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { fileToDataUrl, downloadBlob } from "@/lib/file";
 import { Label, Select, Btn } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -106,7 +107,7 @@ export const ImageConvert: React.FC = () => {
                 <Label>Kualitas (JPEG/WEBP)</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{quality}%</span>
               </div>
-              <input type="range" min={10} max={100} value={quality} onChange={(e) => setQuality(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <GamatoSlider min={10} max={100} value={quality} onChange={setQuality} aria-label="Kualitas" />
             </div>
           </div>
         </div>

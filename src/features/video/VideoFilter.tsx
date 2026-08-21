@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Sparkles, Upload, Download, Loader2, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { TimeRangeSlider } from "@/components/ui/TimeRangeSlider";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn, Label } from "@/components/ui/primitives";
@@ -111,16 +113,13 @@ export function VideoFilter() {
           />
         ) : (
           <>
-            <div className="bg-black rounded-2xl overflow-hidden shadow-sm">
-              <video
-                src={meta.url}
-                controls
-                muted={!includeAudio}
-                className="w-full h-auto max-h-[480px] block"
-                style={{ filter: filterString || undefined }}
-                onTimeUpdate={(e) => setPlayhead(e.currentTarget.currentTime)}
-              />
-            </div>
+            <GamatoPlayer
+              src={meta.url}
+              label={meta.file.name}
+              forceMuted={!includeAudio}
+              videoStyle={{ filter: filterString || undefined }}
+              onTimeUpdate={setPlayhead}
+            />
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <div>
@@ -145,15 +144,15 @@ export function VideoFilter() {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <div className="flex items-center justify-between mb-1"><Label>Terang</Label><span className="text-xs font-mono text-slate-400">{brightness}%</span></div>
-                  <input type="range" min={40} max={160} value={brightness} onChange={(e) => setBrightness(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <GamatoSlider min={40} max={160} value={brightness} onChange={setBrightness} aria-label="Kecerahan" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1"><Label>Kontras</Label><span className="text-xs font-mono text-slate-400">{contrast}%</span></div>
-                  <input type="range" min={40} max={160} value={contrast} onChange={(e) => setContrast(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <GamatoSlider min={40} max={160} value={contrast} onChange={setContrast} aria-label="Kontras" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1"><Label>Saturasi</Label><span className="text-xs font-mono text-slate-400">{saturation}%</span></div>
-                  <input type="range" min={0} max={200} value={saturation} onChange={(e) => setSaturation(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <GamatoSlider min={0} max={200} value={saturation} onChange={setSaturation} aria-label="Saturasi" />
                 </div>
               </div>
 
@@ -162,7 +161,7 @@ export function VideoFilter() {
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Kecepatan</p>
                   <span className="text-xs font-mono text-slate-400">{speed.toFixed(2)}x</span>
                 </div>
-                <input type="range" min={0.25} max={2} step={0.25} value={speed} onChange={(e) => setSpeed(parseFloat(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                <GamatoSlider min={0.25} max={2} step={0.25} value={speed} onChange={setSpeed} aria-label="Kecepatan" />
               </div>
 
               <div>
@@ -179,7 +178,7 @@ export function VideoFilter() {
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
-                <video src={resultUrl} controls className="w-full rounded-xl bg-black max-h-[360px]" />
+                <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
                   Unduh Video ({resultFormat?.label})

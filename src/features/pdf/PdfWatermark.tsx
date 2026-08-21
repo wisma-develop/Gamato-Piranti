@@ -5,6 +5,8 @@ import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Input, Select, Label, Btn } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -124,7 +126,7 @@ export const PdfWatermark: React.FC = () => {
             <Input label="Ukuran Font (pt)" type="number" min={10} max={150} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 48)} />
             <div>
               <Label>Warna</Label>
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+              <GamatoColorPicker value={color} onChange={setColor} className="mt-1.5" />
             </div>
           </div>
           <div>
@@ -132,14 +134,14 @@ export const PdfWatermark: React.FC = () => {
               <Label>Opacity</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{opacity}%</span>
             </div>
-            <input type="range" min={5} max={100} value={opacity} onChange={(e) => setOpacity(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={5} max={100} value={opacity} onChange={setOpacity} aria-label="Opasitas" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Rotasi</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{rotation}°</span>
             </div>
-            <input type="range" min={0} max={90} value={rotation} onChange={(e) => setRotation(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={0} max={90} value={rotation} onChange={setRotation} aria-label="Rotasi" />
           </div>
           <Select label="Posisi" value={position} onChange={(e) => setPosition(e.target.value as Position)}>
             <option value="center">Tengah</option>

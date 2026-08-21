@@ -4,6 +4,8 @@ import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { Btn, Label } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -181,17 +183,13 @@ export const ImageRemoveBg: React.FC = () => {
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pengaturan</p>
           <div className="flex items-center gap-3">
             <Label>Warna background</Label>
-            <label className="relative h-8 w-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer shrink-0" style={{ backgroundColor: rgbToHex(bgColor) }}>
-              <input
-                type="color"
-                value={rgbToHex(bgColor)}
-                onChange={(e) => {
-                  const hex = e.target.value.replace("#", "");
-                  setBgColor([parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)]);
-                }}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-            </label>
+            <GamatoColorPicker
+              value={rgbToHex(bgColor)}
+              onChange={(hex) => {
+                const h = hex.replace("#", "");
+                setBgColor([parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]);
+              }}
+            />
             <span className="text-xs text-slate-400 dark:text-slate-500">atau klik langsung pada gambar untuk mengambil warna</span>
           </div>
           <div>
@@ -199,14 +197,14 @@ export const ImageRemoveBg: React.FC = () => {
               <Label>Toleransi warna</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tolerance}%</span>
             </div>
-            <input type="range" min={0} max={100} value={tolerance} onChange={(e) => setTolerance(parseInt(e.target.value))} disabled={!file} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={0} max={100} value={tolerance} onChange={setTolerance} disabled={!file} aria-label="Toleransi warna" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Kehalusan tepi (feather)</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{feather}%</span>
             </div>
-            <input type="range" min={0} max={60} value={feather} onChange={(e) => setFeather(parseInt(e.target.value))} disabled={!file} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={0} max={60} value={feather} onChange={setFeather} disabled={!file} aria-label="Kehalusan tepi" />
           </div>
         </div>
 

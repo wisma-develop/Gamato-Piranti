@@ -41,6 +41,8 @@ import {
   type CvTemplateId,
 } from "@/lib/cvTypes";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
@@ -287,12 +289,7 @@ export const CvMaker: React.FC = () => {
                   title={c}
                 />
               ))}
-              <input
-                type="color"
-                value={data.accentColor}
-                onChange={(e) => patch({ accentColor: e.target.value })}
-                className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5"
-              />
+              <GamatoColorPicker value={data.accentColor} onChange={(hex) => patch({ accentColor: hex })} />
             </div>
           </div>
 
@@ -357,14 +354,14 @@ export const CvMaker: React.FC = () => {
                   <div className="flex-1 space-y-2">
                     <Input value={s.name} onChange={(e) => skillOps.update(s.id, { name: e.target.value })} placeholder="Nama keahlian, mis. Manajemen Proyek" className="py-2" />
                     <div className="flex items-center gap-3">
-                      <input
-                        type="range"
+                      <GamatoSlider
                         min={10}
                         max={100}
                         step={5}
                         value={s.level}
-                        onChange={(e) => skillOps.update(s.id, { level: parseInt(e.target.value, 10) })}
-                        className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700"
+                        onChange={(v) => skillOps.update(s.id, { level: v })}
+                        className="flex-1"
+                        aria-label="Level keahlian"
                       />
                       <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 w-10 text-right">{s.level}%</span>
                     </div>

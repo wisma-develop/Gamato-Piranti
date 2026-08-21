@@ -5,6 +5,9 @@ import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Input, Textarea, Btn, Label } from "@/components/ui/primitives";
+import { GamatoPdfPage } from "@/components/ui/GamatoPdfPage";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -180,7 +183,7 @@ export const PdfEdit: React.FC = () => {
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-0">
-              <iframe title="ref" src={objectUrl ? `${objectUrl}#page=${activePage}` : undefined} className="w-full border-0" style={{ height: 440 }} />
+              <GamatoPdfPage src={objectUrl} page={activePage} height={440} />
               <div className="p-4 bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
                 <div ref={placeholderRef} className="relative bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded shadow max-w-full" style={{ width: "min(100%, 300px)", aspectRatio: pageAspect }}>
                   {visibleElements.map((el) => (
@@ -289,16 +292,13 @@ export const PdfEdit: React.FC = () => {
                 <Input label="Ukuran Font (pt)" type="number" min={6} max={72} value={selected.fontSize} onChange={(e) => updateSelected({ fontSize: parseInt(e.target.value) || 16 }, { continuous: true })} />
               </>
             )}
-            <div>
-              <Label>Warna</Label>
-              <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value }, { continuous: true })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
-            </div>
+            <GamatoColorPicker label="Warna" value={selected.color} onChange={(hex) => updateSelected({ color: hex }, { continuous: true })} />
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <Label>Opacity</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.opacity}%</span>
               </div>
-              <input type="range" min={5} max={100} value={selected.opacity} onChange={(e) => updateSelected({ opacity: parseInt(e.target.value) }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <GamatoSlider min={5} max={100} value={selected.opacity} onChange={(v) => updateSelected({ opacity: v }, { continuous: true })} aria-label="Opacity" />
             </div>
             {selected.type === "box" && (
               <>
@@ -307,14 +307,14 @@ export const PdfEdit: React.FC = () => {
                     <Label>Lebar</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(selected.w * 100)}%</span>
                   </div>
-                  <input type="range" min={5} max={90} value={Math.round(selected.w * 100)} onChange={(e) => updateSelected({ w: parseInt(e.target.value) / 100 }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <GamatoSlider min={5} max={90} value={Math.round(selected.w * 100)} onChange={(v) => updateSelected({ w: v / 100 }, { continuous: true })} aria-label="Lebar" />
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <Label>Tinggi</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(selected.h * 100)}%</span>
                   </div>
-                  <input type="range" min={2} max={90} value={Math.round(selected.h * 100)} onChange={(e) => updateSelected({ h: parseInt(e.target.value) / 100 }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <GamatoSlider min={2} max={90} value={Math.round(selected.h * 100)} onChange={(v) => updateSelected({ h: v / 100 }, { continuous: true })} aria-label="Tinggi" />
                 </div>
               </>
             )}

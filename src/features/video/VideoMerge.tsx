@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Layers, Upload, Download, Loader2, Trash2, ArrowUp, ArrowDown, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { TimeRangeSlider } from "@/components/ui/TimeRangeSlider";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn } from "@/components/ui/primitives";
@@ -187,15 +189,7 @@ export function VideoMerge() {
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Durasi Transisi</p>
                   <span className="text-xs font-mono text-slate-400">{transitionDuration.toFixed(1)}s</span>
                 </div>
-                <input
-                  type="range"
-                  min={0.2}
-                  max={2}
-                  step={0.1}
-                  value={transitionDuration}
-                  onChange={(e) => setTransitionDuration(parseFloat(e.target.value))}
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700"
-                />
+                <GamatoSlider min={0.2} max={2} step={0.1} value={transitionDuration} onChange={setTransitionDuration} aria-label="Durasi transisi" />
               </div>
             )}
 
@@ -214,7 +208,7 @@ export function VideoMerge() {
         {resultUrl && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
-            <video src={resultUrl} controls className="w-full rounded-xl bg-black max-h-[360px]" />
+            <GamatoPlayer src={resultUrl} compact />
             <Btn onClick={downloadResult} className="w-full gap-2">
               <Download className="w-4 h-4" />
               Unduh Video ({resultFormat?.label})

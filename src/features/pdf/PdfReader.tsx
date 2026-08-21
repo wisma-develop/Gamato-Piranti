@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { BookOpen, FileText } from "lucide-react";
+import { BookOpen, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { fileToArrayBuffer } from "@/lib/file";
-import { Input } from "@/components/ui/primitives";
+import { Input, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPdfPage } from "@/components/ui/GamatoPdfPage";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
 interface Meta {
@@ -39,7 +40,16 @@ export const PdfReader: React.FC = () => {
     }
   };
 
-  const viewerUrl = useMemo(() => (objectUrl ? `${objectUrl}#page=${pageInput || 1}` : null), [objectUrl, pageInput]);
+  const currentPage = useMemo(() => {
+    const n = parseInt(pageInput || "1", 10);
+    if (!meta || !Number.isFinite(n)) return 1;
+    return Math.min(Math.max(1, n), Math.max(1, meta.pageCount));
+  }, [pageInput, meta]);
+
+  const goToPage = (n: number) => {
+    if (!meta) return;
+    setPageInput(String(Math.min(Math.max(1, n), Math.max(1, meta.pageCount))));
+  };
 
   return (
     <div className="grid lg:grid-cols-[1fr_300px] gap-6 items-start">
@@ -80,7 +90,18 @@ export const PdfReader: React.FC = () => {
                 </button>
               </div>
             </div>
-            <iframe title="pdf-viewer" src={viewerUrl || undefined} className="w-full" style={{ height: "70vh", border: 0 }} />
+            <GamatoPdfPage src={objectUrl} page={currentPage} height={640} />
+            {meta && meta.pageCount > 1 && (
+              <div className="flex items-center justify-center gap-3 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
+                <Btn variant="secondary" onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1} className="gap-1.5 px-3 py-1.5">
+                  <ChevronLeft className="w-4 h-4" /> Sebelumnya
+                </Btn>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Halaman {currentPage} / {meta.pageCount}</span>
+                <Btn variant="secondary" onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= meta.pageCount} className="gap-1.5 px-3 py-1.5">
+                  Berikutnya <ChevronRight className="w-4 h-4" />
+                </Btn>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -114,7 +135,7 @@ export const PdfReader: React.FC = () => {
           icon={<BookOpen className="w-5 h-5" />}
           label="PDF Reader"
           desc="Baca langsung di browser"
-          points={["Menggunakan viewer PDF bawaan browser — cepat & tanpa upload ke server.", "Lompat ke halaman tertentu lewat kolom nomor halaman."]}
+          points={["Dirender native oleh engine Gamato Piranti (pdf.js) langsung ke kanvas — cepat & tanpa upload ke server, tanpa viewer bawaan browser.", "Lompat ke halaman tertentu lewat kolom nomor halaman atau tombol navigasi."]}
         />
       </div>
     </div>

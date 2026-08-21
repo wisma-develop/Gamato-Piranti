@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Captions, Upload, Download, Loader2, Plus, Trash2, FileText } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn, Input, Textarea, Select, Label } from "@/components/ui/primitives";
 import { useVideoFile } from "@/hooks/useVideoFile";
@@ -163,12 +166,12 @@ export function VideoSubtitle() {
           />
         ) : (
           <>
-            <div className="relative bg-black rounded-2xl overflow-hidden shadow-sm">
-              <video src={meta.url} controls className="w-full h-auto max-h-[480px] block" onTimeUpdate={(e) => setPlayhead(e.currentTarget.currentTime)} />
+            <div className="relative rounded-2xl overflow-hidden shadow-sm">
+              <GamatoPlayer src={meta.url} label={meta.file.name} onTimeUpdate={setPlayhead} />
               {activeCaption && (
                 <div
                   className={cn(
-                    "absolute inset-x-0 flex justify-center px-6 pointer-events-none",
+                    "absolute inset-x-0 z-20 flex justify-center px-6 pointer-events-none",
                     position === "top" ? "top-6" : position === "center" ? "top-1/2 -translate-y-1/2" : "bottom-6"
                   )}
                 >
@@ -209,7 +212,7 @@ export function VideoSubtitle() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Ukuran Font</Label>
-                  <input type="range" min={16} max={56} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700 mt-2" />
+                  <div className="mt-2"><GamatoSlider min={16} max={56} value={fontSize} onChange={setFontSize} aria-label="Ukuran font" /></div>
                 </div>
                 <Select label="Posisi" value={position} onChange={(e) => setPosition(e.target.value as Position)}>
                   <option value="bottom">Bawah</option>
@@ -218,10 +221,7 @@ export function VideoSubtitle() {
                 </Select>
               </div>
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Label>Warna</Label>
-                  <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
-                </div>
+                <GamatoColorPicker label="Warna" value={color} onChange={setColor} />
                 <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
                   <input type="checkbox" checked={background} onChange={(e) => setBackground(e.target.checked)} className="rounded accent-indigo-600" />
                   Latar belakang gelap
@@ -232,7 +232,7 @@ export function VideoSubtitle() {
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil (Teks Dibakar ke Video)</p>
-                <video src={resultUrl} controls className="w-full rounded-xl bg-black max-h-[360px]" />
+                <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
                   Unduh Video ({resultFormat?.label})

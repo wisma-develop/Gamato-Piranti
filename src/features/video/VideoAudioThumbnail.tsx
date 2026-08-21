@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AudioLines, Upload, Download, Loader2, Camera } from "lucide-react";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
+import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
 import { TimeRangeSlider } from "@/components/ui/TimeRangeSlider";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn } from "@/components/ui/primitives";
@@ -103,9 +105,7 @@ export function VideoAudioThumbnail() {
           />
         ) : (
           <>
-            <div className="bg-black rounded-2xl overflow-hidden shadow-sm">
-              <video src={meta.url} controls className="w-full h-auto max-h-[480px]" onTimeUpdate={(e) => setPlayhead(e.currentTarget.currentTime)} />
-            </div>
+            <GamatoPlayer src={meta.url} label={meta.file.name} onTimeUpdate={setPlayhead} />
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Ekstrak Audio</p>
@@ -125,7 +125,7 @@ export function VideoAudioThumbnail() {
               {audioError && <p className="text-sm text-red-600 dark:text-red-400">{audioError}</p>}
               {audioResultUrl && (
                 <div className="space-y-2 pt-1">
-                  <audio src={audioResultUrl} controls className="w-full" />
+                  <GamatoAudioPlayer src={audioResultUrl} label="Hasil ekstraksi audio" />
                   <Btn onClick={downloadAudio} variant="secondary" className="w-full gap-2 text-sm">
                     <Download className="w-4 h-4" />
                     Unduh Audio ({audioFormat?.label})

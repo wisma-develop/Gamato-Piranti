@@ -5,6 +5,7 @@ import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Input, Select, Label, Btn } from "@/components/ui/primitives";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -104,7 +105,7 @@ export const PdfPageNumbers: React.FC = () => {
           </div>
           <div>
             <Label>Warna</Label>
-            <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+            <GamatoColorPicker value={color} onChange={setColor} className="mt-1.5" />
           </div>
           <Select label="Posisi" value={position} onChange={(e) => setPosition(e.target.value as Position)}>
             <option value="bottom-center">Bawah Tengah</option>

@@ -4,6 +4,8 @@ import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { Input, Btn, Label } from "@/components/ui/primitives";
+import { GamatoPdfPage } from "@/components/ui/GamatoPdfPage";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -191,7 +193,7 @@ export const PdfSign: React.FC = () => {
                 </button>
               </div>
               <div className="grid md:grid-cols-2 gap-0">
-                <iframe title="ref" src={objectUrl ? `${objectUrl}#page=${targetPage}` : undefined} className="w-full border-0" style={{ height: 420 }} />
+                <GamatoPdfPage src={objectUrl} page={targetPage} height={420} />
                 <div className="p-4 bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
                   <div
                     ref={placeholderRef}
@@ -221,7 +223,7 @@ export const PdfSign: React.FC = () => {
                     <Label>Ukuran</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(pos.w * 100)}%</span>
                   </div>
-                  <input type="range" min={10} max={70} value={Math.round(pos.w * 100)} onChange={(e) => setPos((p) => ({ ...p, w: parseInt(e.target.value) / 100 }))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                  <GamatoSlider min={10} max={70} value={Math.round(pos.w * 100)} onChange={(v) => setPos((p) => ({ ...p, w: v / 100 }))} aria-label="Ukuran tanda tangan" />
                 </div>
               </div>
 

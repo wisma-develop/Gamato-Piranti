@@ -13,6 +13,8 @@ import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { csvToRecipients, certificateCsvTemplate, type CsvRecipient } from "@/lib/csv";
 import { loadCustomFont, type CustomFontEntry } from "@/lib/customFont";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
@@ -550,13 +552,7 @@ export function CertificateGenerator() {
                 </div>
 
                 <div className="space-y-3">
-                  <div>
-                    <Label>Warna</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <input type="color" value={selectedLayer.color} onChange={e => updateLayer(selectedLayer.id, { color: e.target.value }, { continuous: true })} className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 shrink-0" />
-                      <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{selectedLayer.color}</span>
-                    </div>
-                  </div>
+                  <GamatoColorPicker label="Warna" value={selectedLayer.color} onChange={(hex) => updateLayer(selectedLayer.id, { color: hex }, { continuous: true })} />
                   <div>
                     <Label>Format Teks</Label>
                     {/* shrink-0 + flex-wrap: mencegah tombol/ikon "diperas" hilang saat ruang sidebar sempit */}
@@ -606,11 +602,11 @@ export function CertificateGenerator() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
-                    <input type="range" min={0} max={100} value={selectedLayer.xPct} onChange={e => updateLayer(selectedLayer.id, { xPct: Number(e.target.value) }, { continuous: true })} className="w-full accent-indigo-600" />
+                    <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label="Posisi X" />
                   </div>
                   <div>
                     <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
-                    <input type="range" min={0} max={100} value={selectedLayer.yPct} onChange={e => updateLayer(selectedLayer.id, { yPct: Number(e.target.value) }, { continuous: true })} className="w-full accent-indigo-600" />
+                    <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label="Posisi Y" />
                   </div>
                 </div>
               </div>

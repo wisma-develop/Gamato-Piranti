@@ -6,6 +6,7 @@ import { downloadBlob } from "@/lib/file";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { renderHtmlToCanvas } from "@/lib/htmlRender";
 import { Btn, Input, Label, Textarea } from "@/components/ui/primitives";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
 const DEFAULT_HTML = `<div style="font-family:'Alan Sans',sans-serif;padding:48px;color:#0f172a;">
@@ -95,7 +96,7 @@ export const PdfHtmlToPdf: React.FC = () => {
           <div>
             <Label>Warna Latar</Label>
             <div className="flex items-center gap-3 mt-1.5">
-              <input type="color" value={bg} onChange={(e) => setBg(e.target.value)} className="h-10 w-10 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer" />
+              <GamatoColorPicker value={bg} onChange={setBg} />
               <span className="text-sm font-mono text-slate-500 dark:text-slate-400">{bg}</span>
             </div>
           </div>

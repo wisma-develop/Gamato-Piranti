@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Crop as CropIcon, Upload, Download, Loader2, Move } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { TimeRangeSlider } from "@/components/ui/TimeRangeSlider";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn } from "@/components/ui/primitives";
@@ -150,12 +152,12 @@ export function VideoCrop() {
           />
         ) : (
           <>
-            <div ref={containerRef} className="relative bg-black rounded-2xl overflow-hidden shadow-sm">
-              <video src={meta.url} controls className="w-full h-auto max-h-[480px] block" onTimeUpdate={(e) => setPlayhead(e.currentTarget.currentTime)} />
+            <div ref={containerRef} className="relative rounded-2xl overflow-hidden shadow-sm">
+              <GamatoPlayer src={meta.url} label={meta.file.name} onTimeUpdate={setPlayhead} />
               {cropBox && (
                 <div
                   onPointerDown={beginDragBox}
-                  className="absolute border-2 border-indigo-400 bg-indigo-400/10 cursor-move flex items-center justify-center"
+                  className="absolute z-30 border-2 border-indigo-400 bg-indigo-400/10 cursor-move flex items-center justify-center"
                   style={{
                     left: `${(cropBox.x / meta.width) * 100}%`,
                     top: `${(cropBox.y / meta.height) * 100}%`,
@@ -193,15 +195,7 @@ export function VideoCrop() {
                   <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Ukuran Crop</p>
                   <span className="text-xs font-mono text-slate-400">{Math.round(scale * 100)}%</span>
                 </div>
-                <input
-                  type="range"
-                  min={0.2}
-                  max={1}
-                  step={0.01}
-                  value={scale}
-                  onChange={(e) => applyPreset(presetId, parseFloat(e.target.value))}
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700"
-                />
+                <GamatoSlider min={0.2} max={1} step={0.01} value={scale} onChange={(v) => applyPreset(presetId, v)} aria-label="Ukuran crop" />
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Geser kotak di video untuk mengatur posisi crop.</p>
               </div>
 
@@ -220,7 +214,7 @@ export function VideoCrop() {
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
-                <video src={resultUrl} controls className="w-full rounded-xl bg-black max-h-[360px]" />
+                <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
                   Unduh Video ({resultFormat?.label})

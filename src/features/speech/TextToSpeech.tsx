@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Volume2, Play, Pause, Square, VolumeX } from "lucide-react";
 import { Select, Label, Textarea, Btn } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { useTextToSpeech } from "@/lib/useTextToSpeech";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -44,21 +45,21 @@ export const TextToSpeech: React.FC = () => {
               <Label>Kecepatan</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{rate.toFixed(1)}x</span>
             </div>
-            <input type="range" min={0.5} max={2} step={0.1} value={rate} onChange={(e) => setRate(parseFloat(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={0.5} max={2} step={0.1} value={rate} onChange={setRate} aria-label="Kecepatan bicara" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Nada (Pitch)</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{pitch.toFixed(1)}</span>
             </div>
-            <input type="range" min={0} max={2} step={0.1} value={pitch} onChange={(e) => setPitch(parseFloat(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={0} max={2} step={0.1} value={pitch} onChange={setPitch} aria-label="Nada suara" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Volume</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(volume * 100)}%</span>
             </div>
-            <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={0} max={1} step={0.05} value={volume} onChange={setVolume} aria-label="Volume" />
           </div>
         </div>
 

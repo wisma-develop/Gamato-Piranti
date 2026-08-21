@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Scissors, Upload, Download, Loader2, Plus, Trash2, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
 import { TimeRangeSlider } from "@/components/ui/TimeRangeSlider";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn, Input } from "@/components/ui/primitives";
@@ -130,15 +131,7 @@ export function VideoTrim() {
           />
         ) : (
           <>
-            <div className="bg-black rounded-2xl overflow-hidden shadow-sm">
-              <video
-                ref={videoRef}
-                src={meta.url}
-                controls
-                className="w-full h-auto max-h-[480px]"
-                onTimeUpdate={(e) => setPlayhead(e.currentTarget.currentTime)}
-              />
-            </div>
+            <GamatoPlayer ref={videoRef} src={meta.url} label={meta.file.name} onTimeUpdate={setPlayhead} />
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -203,7 +196,7 @@ export function VideoTrim() {
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
-                <video src={resultUrl} controls className="w-full rounded-xl bg-black max-h-[360px]" />
+                <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
                   Unduh Video ({resultFormat?.label})

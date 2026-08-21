@@ -5,6 +5,8 @@ import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { roundRect } from "@/lib/businessDocCanvas";
 import { Btn, Select, Label, Textarea } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -278,7 +280,7 @@ export const ImageWatermark: React.FC = () => {
               </Select>
               <div className="flex items-center gap-3">
                 <Label>Warna</Label>
-                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-9 w-9 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <GamatoColorPicker value={color} onChange={setColor} />
               </div>
             </>
           ) : (
@@ -293,21 +295,21 @@ export const ImageWatermark: React.FC = () => {
               <Label>Ukuran</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{sizePercent}%</span>
             </div>
-            <input type="range" min={2} max={30} value={sizePercent} onChange={(e) => setSizePercent(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={2} max={30} value={sizePercent} onChange={setSizePercent} aria-label="Ukuran watermark" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Opacity</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{opacity}%</span>
             </div>
-            <input type="range" min={5} max={100} value={opacity} onChange={(e) => setOpacity(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={5} max={100} value={opacity} onChange={setOpacity} aria-label="Opasitas" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Rotasi</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{rotation}°</span>
             </div>
-            <input type="range" min={-45} max={45} value={rotation} onChange={(e) => setRotation(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={-45} max={45} value={rotation} onChange={setRotation} aria-label="Rotasi" />
           </div>
 
           <div>
@@ -336,7 +338,7 @@ export const ImageWatermark: React.FC = () => {
                 <Label>Jarak antar pola</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{spacing}%</span>
               </div>
-              <input type="range" min={2} max={40} value={spacing} onChange={(e) => setSpacing(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <GamatoSlider min={2} max={40} value={spacing} onChange={setSpacing} aria-label="Jarak pola" />
             </div>
           )}
 

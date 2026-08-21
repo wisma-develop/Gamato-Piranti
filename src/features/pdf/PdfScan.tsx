@@ -6,6 +6,7 @@ import { downloadBlob } from "@/lib/file";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { Btn, Select, Label } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -134,14 +135,14 @@ export const PdfScan: React.FC = () => {
               <Label>Kecerahan</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{brightness}%</span>
             </div>
-            <input type="range" min={50} max={180} value={brightness} onChange={(e) => setBrightness(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={50} max={180} value={brightness} onChange={setBrightness} aria-label="Kecerahan" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <Label>Kontras</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{contrast}%</span>
             </div>
-            <input type="range" min={50} max={220} value={contrast} onChange={(e) => setContrast(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+            <GamatoSlider min={50} max={220} value={contrast} onChange={setContrast} aria-label="Kontras" />
           </div>
         </div>
 

@@ -4,6 +4,8 @@ import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob, makeCanvas } from "@/lib/canvas";
 import { Btn, Label, Textarea } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -271,23 +273,23 @@ export const MemeGenerator: React.FC = () => {
                 <Label>Ukuran</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.size}%</span>
               </div>
-              <input type="range" min={2} max={20} value={selected.size} onChange={(e) => updateSelected({ size: parseInt(e.target.value) }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <GamatoSlider min={2} max={20} value={selected.size} onChange={(v) => updateSelected({ size: v }, { continuous: true })} aria-label="Ukuran teks" />
             </div>
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <Label>Ketebalan Outline</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.strokeWidth}%</span>
               </div>
-              <input type="range" min={0} max={30} value={selected.strokeWidth} onChange={(e) => updateSelected({ strokeWidth: parseInt(e.target.value) }, { continuous: true })} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <GamatoSlider min={0} max={30} value={selected.strokeWidth} onChange={(v) => updateSelected({ strokeWidth: v }, { continuous: true })} aria-label="Ketebalan outline" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Warna Teks</Label>
-                <input type="color" value={selected.color} onChange={(e) => updateSelected({ color: e.target.value }, { continuous: true })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <GamatoColorPicker value={selected.color} onChange={(hex) => updateSelected({ color: hex }, { continuous: true })} className="mt-1.5" />
               </div>
               <div>
                 <Label>Warna Outline</Label>
-                <input type="color" value={selected.stroke} onChange={(e) => updateSelected({ stroke: e.target.value }, { continuous: true })} className="mt-1.5 h-9 w-full rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <GamatoColorPicker value={selected.stroke} onChange={(hex) => updateSelected({ stroke: hex }, { continuous: true })} className="mt-1.5" />
               </div>
             </div>
           </div>

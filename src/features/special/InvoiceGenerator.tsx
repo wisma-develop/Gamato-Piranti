@@ -11,6 +11,7 @@ import { todayISODate, formatDateID } from "@/lib/dateFormat";
 import { drawWrappedText, drawSolidLine, drawLogoFit, roundRect, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { Label, Input, Textarea, Select, Btn, SectionBadge } from "@/components/ui/primitives";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
@@ -441,7 +442,7 @@ export function InvoiceGenerator() {
                     title={c}
                   />
                 ))}
-                <input type="color" value={data.accentColor} onChange={(e) => updateField("accentColor", e.target.value, { continuous: true })} className="shrink-0 w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
+                <GamatoColorPicker value={data.accentColor} onChange={(hex) => updateField("accentColor", hex, { continuous: true })} className="shrink-0" />
               </div>
             </div>
           </div>

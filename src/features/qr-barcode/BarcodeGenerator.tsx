@@ -6,7 +6,8 @@ import { cn } from "@/utils/cn";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeText } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
-import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
@@ -237,20 +238,8 @@ export function BarcodeGenerator() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Kustomisasi</p>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Warna Utama</Label>
-                <div className="flex items-center gap-3 mt-1">
-                  <input type="color" value={fgColor} onChange={e => setFgColor(e.target.value)} className="h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 shadow-sm" />
-                  <span className="text-sm font-mono text-slate-500 dark:text-slate-400">{fgColor}</span>
-                </div>
-              </div>
-              <div>
-                <Label>Warna Latar</Label>
-                <div className="flex items-center gap-3 mt-1">
-                  <input type="color" value={bgColor} onChange={e => setBgColor(e.target.value)} className="h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5 shadow-sm" />
-                  <span className="text-sm font-mono text-slate-500 dark:text-slate-400">{bgColor}</span>
-                </div>
-              </div>
+              <GamatoColorPicker label="Warna Utama" value={fgColor} onChange={setFgColor} />
+              <GamatoColorPicker label="Warna Latar" value={bgColor} onChange={setBgColor} />
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { Btn, Label, Select } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -189,14 +190,13 @@ export const PhotoEditor: React.FC = () => {
                   {s.unit}
                 </span>
               </div>
-              <input
-                type="range"
+              <GamatoSlider
                 min={s.min}
                 max={s.max}
                 value={s.value}
                 disabled={!img}
-                onChange={(e) => s.setValue(parseInt(e.target.value))}
-                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700 disabled:opacity-40"
+                onChange={s.setValue}
+                aria-label={s.label}
               />
             </div>
           ))}

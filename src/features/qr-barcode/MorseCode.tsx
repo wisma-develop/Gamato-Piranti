@@ -4,6 +4,8 @@ import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { textToMorse, morseToText, morseToWavBlob } from "@/lib/morse";
 import { Textarea, Btn, Label } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
 export const MorseCode: React.FC = () => {
@@ -105,17 +107,17 @@ export const MorseCode: React.FC = () => {
                   <Label>Kecepatan (WPM)</Label>
                   <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{wpm}</span>
                 </div>
-                <input type="range" min={5} max={40} value={wpm} onChange={(e) => setWpm(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                <GamatoSlider min={5} max={40} value={wpm} onChange={setWpm} aria-label="Kecepatan WPM" />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <Label>Nada (Hz)</Label>
                   <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{freq}</span>
                 </div>
-                <input type="range" min={300} max={1200} step={10} value={freq} onChange={(e) => setFreq(parseInt(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+                <GamatoSlider min={300} max={1200} step={10} value={freq} onChange={setFreq} aria-label="Nada Hz" />
               </div>
             </div>
-            {audioUrl && <audio controls src={audioUrl} className="w-full" />}
+            {audioUrl && <GamatoAudioPlayer src={audioUrl} label="Audio Kode Morse" />}
             <Btn onClick={downloadAudio} disabled={!audioBlob} className="w-full py-3.5 gap-2">
               <Download className="w-4 h-4" /> Unduh Audio (.wav)
             </Btn>

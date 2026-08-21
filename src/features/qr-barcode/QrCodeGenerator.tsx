@@ -8,6 +8,8 @@ import { sanitizeText, sanitizeUrl } from "@/utils/sanitize";
 import { fileToDataUrl } from "@/lib/file";
 import { buildFramedLogoDataUrl } from "@/lib/qrLogo";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
@@ -393,24 +395,9 @@ export function QrCodeGenerator() {
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label>Warna Titik</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <input type="color" value={dotsColor} onChange={e => setDotsColor(e.target.value)} className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
-                </div>
-              </div>
-              <div>
-                <Label>Warna Sudut</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <input type="color" value={cornersColor} onChange={e => setCornersColor(e.target.value)} className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
-                </div>
-              </div>
-              <div>
-                <Label>Warna Latar</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <input type="color" value={bgColor} onChange={e => setBgColor(e.target.value)} className="h-10 w-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer p-0.5" />
-                </div>
-              </div>
+              <GamatoColorPicker label="Warna Titik" value={dotsColor} onChange={setDotsColor} />
+              <GamatoColorPicker label="Warna Sudut" value={cornersColor} onChange={setCornersColor} />
+              <GamatoColorPicker label="Warna Latar" value={bgColor} onChange={setBgColor} />
             </div>
 
             {lowContrast && (
@@ -425,7 +412,7 @@ export function QrCodeGenerator() {
                 <Label>Ukuran</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{size}px</span>
               </div>
-              <input type="range" min={200} max={600} step={10} value={size} onChange={e => setSize(Number(e.target.value))} className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-indigo-600 bg-slate-200 dark:bg-slate-700" />
+              <GamatoSlider min={200} max={600} step={10} value={size} onChange={setSize} aria-label="Ukuran QR" />
             </div>
 
             <div>
