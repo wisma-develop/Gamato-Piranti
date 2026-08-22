@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { KeyRound, Copy } from "lucide-react";
 import { Label, Input, Select, Btn } from "@/components/ui/primitives";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { cryptoRandomInt, bytesToBase64, copyToClipboard } from "@/lib/utilityHelpers";
 
@@ -77,10 +78,7 @@ export const UtilityPasswordToken: React.FC = () => {
                   ["Angka", pwNumber, setPwNumber],
                   ["Simbol", pwSymbol, setPwSymbol],
                 ] as const).map(([l, v, setter], i) => (
-                  <label key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
-                    <input type="checkbox" checked={v} onChange={(e) => setter(e.target.checked)} className="rounded accent-indigo-600" />
-                    {l}
-                  </label>
+                  <GamatoCheckbox key={i} checked={v} onChange={setter} label={l} />
                 ))}
               </div>
             </div>

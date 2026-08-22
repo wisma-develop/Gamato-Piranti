@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { ArrowLeftRight, Ruler } from "lucide-react";
 import { Select, Input } from "@/components/ui/primitives";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 
 type UnitDef = { id: string; label: string; toBase: number }; // toBase: multiply value by this to get base unit
 type UnitCategory = { id: string; label: string; baseLabel: string; units: UnitDef[]; offset?: boolean };
@@ -179,14 +180,15 @@ export const CalcUnit: React.FC = () => {
             </option>
           ))}
         </Select>
-        <button
-          type="button"
-          onClick={swap}
-          title="Tukar satuan"
-          className="mb-0.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-        >
-          <ArrowLeftRight className="w-4 h-4" />
-        </button>
+        <GamatoTooltip label="Tukar satuan">
+          <button
+            type="button"
+            onClick={swap}
+            className="mb-0.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+          </button>
+        </GamatoTooltip>
         <Select label="Ke" value={toUnit} onChange={(e) => setToUnit(e.target.value)}>
           {category.units.map((u) => (
             <option key={u.id} value={u.id}>

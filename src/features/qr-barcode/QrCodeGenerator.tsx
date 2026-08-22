@@ -10,6 +10,8 @@ import { buildFramedLogoDataUrl } from "@/lib/qrLogo";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
@@ -313,10 +315,7 @@ export function QrCodeGenerator() {
                   </Select>
                   <Input label="Password" type="password" disabled={qrWifiEnc === "nopass"} value={qrWifiPass} onChange={e => setQrWifiPass(sanitizeText(e.target.value))} placeholder={qrWifiEnc === "nopass" ? "—" : "Password WiFi"} />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
-                  <input type="checkbox" checked={qrWifiHidden} onChange={e => setQrWifiHidden(e.target.checked)} className="rounded border-slate-300 dark:border-slate-600 accent-indigo-600" />
-                  Jaringan tersembunyi (hidden SSID)
-                </label>
+                <GamatoCheckbox checked={qrWifiHidden} onChange={setQrWifiHidden} label="Jaringan tersembunyi (hidden SSID)" />
               </div>
             )}
             {qrTemplate === "email" && (
@@ -441,15 +440,16 @@ export function QrCodeGenerator() {
         <div className="sticky top-24 space-y-4">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Preview Real-time</p>
           <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
-            <button
-              type="button"
-              onClick={refreshPreview}
-              title="Muat ulang preview bila tidak muncul"
-              className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-white dark:hover:bg-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
-            >
-              <RefreshCw className="w-3 h-3" />
-              Buat Preview
-            </button>
+            <GamatoTooltip label="Muat ulang preview bila tidak muncul" side="bottom">
+              <button
+                type="button"
+                onClick={refreshPreview}
+                className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-white dark:hover:bg-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Buat Preview
+              </button>
+            </GamatoTooltip>
 
             {/* The QR container div is ALWAYS mounted (never conditionally
                 removed) — qr-code-styling's canvas is appended into it once

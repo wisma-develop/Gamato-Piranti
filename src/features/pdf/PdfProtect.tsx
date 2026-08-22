@@ -6,6 +6,7 @@ import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { loadPdfDocument, renderPageToCanvas } from "@/lib/pdfRender";
 import { canvasToBlob } from "@/lib/canvas";
 import { Btn, Select, Input } from "@/components/ui/primitives";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -109,10 +110,7 @@ export const PdfProtect: React.FC = () => {
             <option value={2.2}>Tinggi</option>
             <option value={3}>Sangat Tinggi</option>
           </Select>
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
-            <input type="checkbox" checked={addWatermark} onChange={(e) => setAddWatermark(e.target.checked)} className="rounded accent-indigo-600" />
-            Tambahkan watermark peringatan
-          </label>
+          <GamatoCheckbox checked={addWatermark} onChange={setAddWatermark} label="Tambahkan watermark peringatan" />
           {addWatermark && <Input label="Teks Watermark" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} />}
         </div>
 

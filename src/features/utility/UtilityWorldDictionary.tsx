@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Languages, ArrowLeftRight, Copy, Loader2 } from "lucide-react";
 import { Label, Select, Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { copyToClipboard } from "@/lib/utilityHelpers";
 import { translateText, TranslateError, WORLD_LANGUAGES, MAX_TRANSLATE_CHARS } from "@/lib/translate";
 
@@ -56,14 +57,15 @@ export const UtilityWorldDictionary: React.FC = () => {
                 </option>
               ))}
             </Select>
-            <button
-              type="button"
-              onClick={swap}
-              title="Tukar bahasa"
-              className="mb-0.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-            >
-              <ArrowLeftRight className="w-4 h-4" />
-            </button>
+            <GamatoTooltip label="Tukar bahasa">
+              <button
+                type="button"
+                onClick={swap}
+                className="mb-0.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+              </button>
+            </GamatoTooltip>
             <Select label="Ke Bahasa" value={to} onChange={(e) => setTo(e.target.value)}>
               {WORLD_LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>

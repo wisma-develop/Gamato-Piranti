@@ -5,6 +5,7 @@ import { Dropzone } from "@/components/ui/Dropzone";
 import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { Btn, Input, Textarea, Select, Label } from "@/components/ui/primitives";
 import { useVideoFile } from "@/hooks/useVideoFile";
@@ -222,10 +223,7 @@ export function VideoSubtitle() {
               </div>
               <div className="flex items-center gap-4">
                 <GamatoColorPicker label="Warna" value={color} onChange={setColor} />
-                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
-                  <input type="checkbox" checked={background} onChange={(e) => setBackground(e.target.checked)} className="rounded accent-indigo-600" />
-                  Latar belakang gelap
-                </label>
+                <GamatoCheckbox checked={background} onChange={setBackground} label="Latar belakang gelap" />
               </div>
             </div>
 

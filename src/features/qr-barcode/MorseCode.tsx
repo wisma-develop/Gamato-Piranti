@@ -7,6 +7,7 @@ import { Textarea, Btn, Label } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const MorseCode: React.FC = () => {
   const [mode, setMode] = useState<"encode" | "decode">("encode");
@@ -124,7 +125,7 @@ export const MorseCode: React.FC = () => {
           </div>
         )}
 
-        {info && <div className="text-sm rounded-xl px-4 py-3 border font-medium bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30">{info}</div>}
+        {info && <GamatoInlineAlert message={info} tone="success" />}
       </div>
 
       <ToolInfoPanel

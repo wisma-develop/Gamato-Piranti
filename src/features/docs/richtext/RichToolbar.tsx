@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Bold, Italic, ListOrdered, Link2, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Type, Rows3, Square, Circle, Minus, ArrowRight, Shapes, Palette, Highlighter } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import { fileToDataUrl } from "@/lib/file";
 import { useDialog } from "@/hooks/useDialog";
 import { ColorSwatchPicker } from "./ColorSwatchPicker";
@@ -33,21 +35,22 @@ const ToolBtn: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ onClick, title, active, className, children }) => (
-  <button
-    type="button"
-    title={title}
-    onMouseDown={(e) => e.preventDefault()}
-    onClick={onClick}
-    className={cn(
-      "h-8 min-w-[2rem] px-2 inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-colors",
-      active
-        ? "bg-indigo-600 text-white"
-        : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-      className
-    )}
-  >
-    {children}
-  </button>
+  <GamatoTooltip label={title}>
+    <button
+      type="button"
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className={cn(
+        "h-8 min-w-[2rem] px-2 inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-colors",
+        active
+          ? "bg-indigo-600 text-white"
+          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+        className
+      )}
+    >
+      {children}
+    </button>
+  </GamatoTooltip>
 );
 
 const Sep: React.FC = () => <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1 shrink-0" />;
@@ -69,17 +72,18 @@ export const RichToolbar: React.FC<{
   const [shapeFill, setShapeFill] = useState("transparent");
   const [shapeColorOpen, setShapeColorOpen] = useState<"stroke" | "fill" | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  // Native <input type="color"> and <select> steal window focus the instant
-  // their picker/dropdown opens, which collapses whatever text selection the
-  // user had made in the editor. Regular ToolBtn buttons dodge this with
-  // onMouseDown={preventDefault} (focus never leaves the editor at all), but
-  // that trick can't be used on a color input or select — doing so stops
-  // their native picker from opening. Instead we explicitly snapshot the
-  // Selection Range the moment the user starts interacting with one of these
-  // controls, then restore that exact Range right before running the
-  // formatting command — regardless of whatever focus juggling happened in
-  // between. This is what was silently breaking Highlight, Text Color, Font
-  // Family and Font Size on any selected text.
+  // Any focusable trigger (Gamato's custom select/dropdown, color swatch
+  // picker, or anything that opens an async modal like the link dialog)
+  // steals window focus the moment it's interacted with, which collapses
+  // whatever text selection the user had made in the editor. Regular ToolBtn
+  // buttons dodge this with onMouseDown={preventDefault} (focus never leaves
+  // the editor at all), but that trick can't be used on our dropdown/color
+  // triggers — doing so stops them from opening. Instead we explicitly
+  // snapshot the Selection Range the moment the user starts interacting with
+  // one of these controls, then restore that exact Range right before
+  // running the formatting command — regardless of whatever focus juggling
+  // happened in between. This is what was silently breaking Highlight, Text
+  // Color, Font Family and Font Size on any selected text.
   const savedRangeRef = useRef<Range | null>(null);
 
   const saveSelection = () => {
@@ -111,9 +115,9 @@ export const RichToolbar: React.FC<{
   };
 
   /**
-   * For controls that DO lose the selection (native color inputs, <select>
-   * dropdowns, and anything that opens an async modal like the link
-   * dialog): restores the Range captured by saveSelection() right before
+   * For controls that DO lose the selection (Gamato's custom dropdowns,
+   * color swatch pickers, and anything that opens an async modal like the
+   * link dialog): restores the Range captured by saveSelection() right before
    * running the command, then immediately discards it so it can never leak
    * into a later, unrelated action.
    */
@@ -214,45 +218,47 @@ export const RichToolbar: React.FC<{
       <Sep />
 
       {/* Font family */}
-      <select
-        title="Jenis font"
-        onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
-        onFocus={saveSelection}
-        onChange={(e) => withRestoredSelection(() => cmdFontName(e.target.value))}
-        defaultValue=""
-        className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 max-w-[8.5rem]"
-      >
-        <option value="" disabled>
-          Font
-        </option>
-        {FONT_FAMILIES.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.label}
+      <GamatoTooltip label="Jenis font">
+        <GamatoSelect
+          onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
+          onFocus={saveSelection}
+          onChange={(e) => withRestoredSelection(() => cmdFontName(e.target.value))}
+          defaultValue=""
+          className="h-8 px-2 py-0 rounded-lg text-xs font-medium max-w-[8.5rem]"
+        >
+          <option value="" disabled>
+            Font
           </option>
-        ))}
-      </select>
+          {FONT_FAMILIES.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
+          ))}
+        </GamatoSelect>
+      </GamatoTooltip>
 
       {/* Font size */}
       <div className="flex items-center gap-1">
         <Type className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-        <select
-          title="Ukuran font"
-          value={fontSize}
-          onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
-          onFocus={saveSelection}
-          onChange={(e) => {
-            const px = parseInt(e.target.value);
-            setFontSize(px);
-            if (editorRef.current) withRestoredSelection(() => cmdFontSize(px, editorRef.current!));
-          }}
-          className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 w-16"
-        >
-          {FONT_SIZES.map((s) => (
-            <option key={s} value={s}>
-              {s}px
-            </option>
-          ))}
-        </select>
+        <GamatoTooltip label="Ukuran font">
+          <GamatoSelect
+            value={fontSize}
+            onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
+            onFocus={saveSelection}
+            onChange={(e) => {
+              const px = parseInt(e.target.value);
+              setFontSize(px);
+              if (editorRef.current) withRestoredSelection(() => cmdFontSize(px, editorRef.current!));
+            }}
+            className="h-8 px-2 py-0 rounded-lg text-xs font-medium w-16"
+          >
+            {FONT_SIZES.map((s) => (
+              <option key={s} value={s}>
+                {s}px
+              </option>
+            ))}
+          </GamatoSelect>
+        </GamatoTooltip>
       </div>
 
       <Sep />
@@ -340,47 +346,49 @@ export const RichToolbar: React.FC<{
       {/* Line spacing */}
       <div className="flex items-center gap-1">
         <Rows3 className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-        <select
-          title="Spasi antar baris"
+        <GamatoTooltip label="Spasi antar baris">
+          <GamatoSelect
+            defaultValue=""
+            onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
+            onFocus={saveSelection}
+            onChange={(e) => {
+              const v = parseFloat(e.target.value);
+              if (editorRef.current) withRestoredSelection(() => cmdSetLineHeight(v, editorRef.current!));
+            }}
+            className="h-8 px-2 py-0 rounded-lg text-xs font-medium w-[4.5rem]"
+          >
+            <option value="" disabled>
+              Baris
+            </option>
+            <option value="1">1.0</option>
+            <option value="1.15">1.15</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2.0</option>
+          </GamatoSelect>
+        </GamatoTooltip>
+      </div>
+
+      {/* Space after paragraph */}
+      <GamatoTooltip label="Spasi setelah paragraf">
+        <GamatoSelect
           defaultValue=""
           onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
           onFocus={saveSelection}
           onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            if (editorRef.current) withRestoredSelection(() => cmdSetLineHeight(v, editorRef.current!));
+            const v = parseInt(e.target.value);
+            if (editorRef.current) withRestoredSelection(() => cmdSetSpaceAfter(v, editorRef.current!));
           }}
-          className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 w-[4.5rem]"
+          className="h-8 px-2 py-0 rounded-lg text-xs font-medium w-[6.5rem]"
         >
           <option value="" disabled>
-            Baris
+            Sp. Paragraf
           </option>
-          <option value="1">1.0</option>
-          <option value="1.15">1.15</option>
-          <option value="1.5">1.5</option>
-          <option value="2">2.0</option>
-        </select>
-      </div>
-
-      {/* Space after paragraph */}
-      <select
-        title="Spasi setelah paragraf"
-        defaultValue=""
-        onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
-        onFocus={saveSelection}
-        onChange={(e) => {
-          const v = parseInt(e.target.value);
-          if (editorRef.current) withRestoredSelection(() => cmdSetSpaceAfter(v, editorRef.current!));
-        }}
-        className="h-8 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-200 px-2 w-[6.5rem]"
-      >
-        <option value="" disabled>
-          Sp. Paragraf
-        </option>
-        <option value="0">Tanpa spasi</option>
-        <option value="8">Kecil</option>
-        <option value="16">Sedang</option>
-        <option value="28">Besar</option>
-      </select>
+          <option value="0">Tanpa spasi</option>
+          <option value="8">Kecil</option>
+          <option value="16">Sedang</option>
+          <option value="28">Besar</option>
+        </GamatoSelect>
+      </GamatoTooltip>
 
       <Sep />
 

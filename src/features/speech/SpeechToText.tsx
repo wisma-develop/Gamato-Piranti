@@ -4,6 +4,7 @@ import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { Select, Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 const LANGUAGES = [
   { id: "id-ID", label: "Bahasa Indonesia" },
@@ -137,7 +138,7 @@ export const SpeechToText: React.FC = () => {
           </div>
         </div>
 
-        {info && <div className="text-sm rounded-xl px-4 py-3 border font-medium bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30">{info}</div>}
+        {info && <GamatoInlineAlert message={info} tone="warning" />}
       </div>
 
       <ToolInfoPanel

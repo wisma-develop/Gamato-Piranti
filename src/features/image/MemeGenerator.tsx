@@ -6,6 +6,7 @@ import { loadImageFromUrl, canvasToBlob, makeCanvas } from "@/lib/canvas";
 import { Btn, Label, Textarea } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -264,10 +265,7 @@ export const MemeGenerator: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Teks Terpilih</p>
             <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
-            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer">
-              <input type="checkbox" checked={selected.uppercase} onChange={(e) => updateSelected({ uppercase: e.target.checked })} className="rounded accent-indigo-600" />
-              HURUF BESAR otomatis
-            </label>
+            <GamatoCheckbox checked={selected.uppercase} onChange={(v) => updateSelected({ uppercase: v })} label="HURUF BESAR otomatis" />
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <Label>Ukuran</Label>

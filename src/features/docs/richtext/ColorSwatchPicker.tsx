@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 
 interface ColorSwatchPickerProps {
   presets: string[];
@@ -171,19 +172,20 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, o
               maxLength={7}
               spellCheck={false}
             />
-            <button
-              type="button"
-              title="Terapkan warna kustom ini"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                onPick(customColor);
-                onClose();
-              }}
-              className="h-8 px-2.5 inline-flex items-center gap-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0"
-            >
-              <Check className="w-3.5 h-3.5" />
-              Terapkan
-            </button>
+            <GamatoTooltip label="Terapkan warna kustom ini">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onPick(customColor);
+                  onClose();
+                }}
+                className="h-8 px-2.5 inline-flex items-center gap-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0"
+              >
+                <Check className="w-3.5 h-3.5" />
+                Terapkan
+              </button>
+            </GamatoTooltip>
           </div>
         </div>
       </div>

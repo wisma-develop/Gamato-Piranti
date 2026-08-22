@@ -11,6 +11,7 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 const NUMERIC_FORMATS = ["EAN13", "EAN8", "UPC", "ITF14"];
 
@@ -243,7 +244,7 @@ export function BarcodeGenerator() {
             </div>
           </div>
 
-          {error && <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-sm rounded-xl px-4 py-3">{error}</div>}
+          {error && <GamatoInlineAlert message={error} tone="error" />}
 
           <Btn onClick={generate} disabled={isGenerating || !barcodeContent.trim()} className="w-full py-4 text-base">
             {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" />Memproses…</> : <><Barcode className="w-4 h-4" />Generate Barcode</>}

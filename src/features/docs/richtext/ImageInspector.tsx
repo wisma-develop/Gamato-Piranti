@@ -320,50 +320,57 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
       >
         {cropMode ? (
           <>
-            <button type="button" title="Terapkan crop" onClick={applyCrop} className="h-7 px-2 inline-flex items-center gap-1 rounded-lg text-xs font-semibold hover:bg-white/10">
-              <Check className="w-3.5 h-3.5" /> Terapkan
-            </button>
-            <button type="button" title="Batal" onClick={() => setCropMode(false)} className="h-7 px-2 inline-flex items-center gap-1 rounded-lg text-xs font-semibold hover:bg-white/10">
-              <X className="w-3.5 h-3.5" /> Batal
-            </button>
+            <GamatoTooltip label="Terapkan crop">
+              <button type="button" onClick={applyCrop} className="h-7 px-2 inline-flex items-center gap-1 rounded-lg text-xs font-semibold hover:bg-white/10">
+                <Check className="w-3.5 h-3.5" /> Terapkan
+              </button>
+            </GamatoTooltip>
+            <GamatoTooltip label="Batal">
+              <button type="button" onClick={() => setCropMode(false)} className="h-7 px-2 inline-flex items-center gap-1 rounded-lg text-xs font-semibold hover:bg-white/10">
+                <X className="w-3.5 h-3.5" /> Batal
+              </button>
+            </GamatoTooltip>
           </>
         ) : (
           <>
-            <button
-              type="button"
-              title="Geser (seret ke posisi baru dalam teks)"
-              onPointerDown={startMove}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0 cursor-grab active:cursor-grabbing"
-            >
-              <Move className="w-4 h-4" />
-            </button>
+            <GamatoTooltip label="Geser (seret ke posisi baru dalam teks)">
+              <button
+                type="button"
+                onPointerDown={startMove}
+                className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0 cursor-grab active:cursor-grabbing"
+              >
+                <Move className="w-4 h-4" />
+              </button>
+            </GamatoTooltip>
             <div className="w-px h-5 bg-white/20 mx-0.5 shrink-0" />
             {ALIGN_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                title={opt.label}
-                onClick={() => applyAlign(opt.value)}
-                className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0"
-              >
-                {opt.icon}
-              </button>
+              <GamatoTooltip key={opt.value} label={opt.label}>
+                <button
+                  type="button"
+                  onClick={() => applyAlign(opt.value)}
+                  className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0"
+                >
+                  {opt.icon}
+                </button>
+              </GamatoTooltip>
             ))}
             <div className="w-px h-5 bg-white/20 mx-0.5 shrink-0" />
-            <button
-              type="button"
-              title={currentRotation() ? "Kembalikan rotasi ke 0° dulu untuk memotong" : "Potong (crop)"}
-              onClick={() => currentRotation() === 0 && enterCropMode()}
-              disabled={currentRotation() !== 0}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0 disabled:opacity-30 disabled:pointer-events-none"
-            >
-              <CropIcon className="w-4 h-4" />
-            </button>
-            <button type="button" title="Hapus gambar" onClick={handleDelete} className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-red-500/80 shrink-0">
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </>
-        )}
+            <GamatoTooltip label={currentRotation() ? "Kembalikan rotasi ke 0° dulu untuk memotong" : "Potong (crop)"}>
+              <button
+                type="button"
+                onClick={() => currentRotation() === 0 && enterCropMode()}
+                disabled={currentRotation() !== 0}
+                className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-white/10 shrink-0 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <CropIcon className="w-4 h-4" />
+              </button>
+            </GamatoTooltip>
+            <GamatoTooltip label="Hapus gambar">
+              <button type="button" onClick={handleDelete} className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-red-500/80 shrink-0">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </GamatoTooltip>
+          </>        )}
       </div>
     </>
   );
