@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from "react";
 import { Barcode, Download, Loader2, FileDown, Layers } from "lucide-react";
 import JsBarcode from "jsbarcode";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { cn } from "@/utils/cn";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeText } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
@@ -263,11 +262,7 @@ export function BarcodeGenerator() {
                 <Layers className="w-3.5 h-3.5" />
                 <span>{bulkEntries.length} kode siap diproses · memakai format &amp; warna di atas</span>
               </div>
-              {bulkInfo && (
-                <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", bulkInfo.startsWith("Gagal") || bulkInfo.startsWith("Isi") || bulkInfo.startsWith("Tidak") ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
-                  {bulkInfo}
-                </div>
-              )}
+              {bulkInfo && <GamatoInlineAlert message={bulkInfo} tone={bulkInfo.startsWith("Gagal") || bulkInfo.startsWith("Isi") || bulkInfo.startsWith("Tidak") ? "warning" : "success"} />}
               {bulkProgress && <p className="text-xs text-slate-500 dark:text-slate-400">Memproses {bulkProgress.done}/{bulkProgress.total}…</p>}
               <Btn onClick={generateBulkPdf} disabled={isBulkWorking || !bulkEntries.length} className="w-full gap-2">
                 {isBulkWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}

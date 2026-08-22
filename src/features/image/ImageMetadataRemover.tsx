@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Eraser, Image as ImageIcon } from "lucide-react";
-import { cn } from "@/utils/cn";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { fileToDataUrl, downloadBlob } from "@/lib/file";
 import { Btn } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { Dropzone } from "@/components/ui/Dropzone";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const ImageMetadataRemover: React.FC = () => {
   const [metaFiles, setMetaFiles] = useState<File[]>([]);
@@ -60,11 +60,7 @@ export const ImageMetadataRemover: React.FC = () => {
         <Btn onClick={runMetaClean} disabled={!metaFiles.length} className="w-full gap-2">
           <Eraser className="w-4 h-4" />Bersihkan Metadata
         </Btn>
-        {metaInfo && (
-          <div className={cn("text-sm rounded-xl px-4 py-3 border", metaInfo.startsWith("Gagal") ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
-            {metaInfo}
-          </div>
-        )}
+        {metaInfo && <GamatoInlineAlert message={metaInfo} tone={metaInfo.startsWith("Gagal") ? "error" : "success"} />}
         <p className="text-xs text-slate-400 dark:text-slate-500">File diunduh ulang — tanpa metadata EXIF. Tidak ada yang dikirim ke server.</p>
       </div>
     </PanelCard>

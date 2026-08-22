@@ -18,6 +18,7 @@ import { LogoUpload } from "@/components/ui/LogoUpload";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
@@ -335,11 +336,7 @@ export function KwitansiGenerator() {
           <canvas ref={canvasRef} className="w-full h-auto block" />
         </div>
 
-        {info && (
-          <div className="text-sm rounded-xl px-4 py-3 border font-medium bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30">
-            {info}
-          </div>
-        )}
+        {info && <GamatoInlineAlert message={info} tone="success" />}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Btn onClick={downloadPng} disabled={isGenerating} variant="secondary" className="gap-2">

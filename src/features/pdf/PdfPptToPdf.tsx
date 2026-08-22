@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Layers, Trash2, Loader2, FileDown } from "lucide-react";
-import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { readPptxSlides } from "@/lib/officeReaders";
 import { slidesToPdfBlob } from "@/lib/pdfSlides";
@@ -65,11 +64,7 @@ export const PdfPptToPdf: React.FC = () => {
           </div>
         )}
 
-        {info && (
-          <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") || info.startsWith("Pilih") ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
-            {info}
-          </div>
-        )}
+        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Pilih") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (

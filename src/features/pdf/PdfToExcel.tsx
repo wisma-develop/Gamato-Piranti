@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { BarChart3, FileText, Trash2, Loader2, FileDown } from "lucide-react";
-import { cn } from "@/utils/cn";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { loadPdfDocument, extractPageTextItems, groupIntoLines, lineToCells } from "@/lib/pdfRender";
 import { gridToXlsxBlob } from "@/lib/xlsxWriter";
@@ -80,11 +79,7 @@ export const PdfToExcel: React.FC = () => {
           </div>
         )}
 
-        {info && (
-          <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") || info.startsWith("Tidak") ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
-            {info}
-          </div>
-        )}
+        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Tidak") ? "warning" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (

@@ -49,6 +49,7 @@ import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { useDialog } from "@/hooks/useDialog";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import JSZip from "jszip";
 
 type TabId = "profil" | "ringkasan" | "keahlian" | "bahasa" | "pengalaman" | "pendidikan" | "sertifikasi" | "organisasi";
@@ -569,18 +570,7 @@ export const CvMaker: React.FC = () => {
           </div>
         )}
 
-        {info && (
-          <div
-            className={cn(
-              "text-sm rounded-xl px-4 py-3 border font-medium",
-              info.type === "error"
-                ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30"
-                : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30"
-            )}
-          >
-            {info.text}
-          </div>
-        )}
+        {info && <GamatoInlineAlert message={info.text} tone={info.type === "error" ? "error" : "success"} />}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Btn onClick={downloadPng} disabled={isExporting || !pages.length} variant="secondary" className="gap-2">

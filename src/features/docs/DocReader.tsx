@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { BookOpen, FileText, Trash2, Play, Pause, Square, Loader2, Minus, Plus } from "lucide-react";
-import { cn } from "@/utils/cn";
 import { readDocxBlocks, readRtfText } from "@/lib/officeReaders";
 import { blocksToPlainText } from "@/features/docs/richtext/parseEditor";
 import { useTextToSpeech } from "@/lib/useTextToSpeech";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const DocReader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -124,11 +124,7 @@ export const DocReader: React.FC = () => {
           </div>
         )}
 
-        {info && (
-          <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30")}>
-            {info}
-          </div>
-        )}
+        {info && <GamatoInlineAlert message={info} tone="warning" />}
       </div>
 
       <ToolInfoPanel

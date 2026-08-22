@@ -18,6 +18,7 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -757,11 +758,7 @@ export function CertificateGenerator() {
             ))}
           </div>
 
-          {info && (
-            <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") || info.startsWith("Isi") ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
-              {info}
-            </div>
-          )}
+          {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Isi") ? "warning" : "success"} />}
 
           {progress && (
             <div className="text-xs text-slate-500 dark:text-slate-400">Memproses {progress.done}/{progress.total}…</div>

@@ -9,6 +9,7 @@ import { Label, Input, Textarea, Btn } from "@/components/ui/primitives";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useDialog, type DialogField } from "@/hooks/useDialog";
 import { cn } from "@/utils/cn";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 // ─── Template definitions ─────────────────────────────────────────────────
 // Each template opens a custom Gamato Piranti form dialog (instead of the
@@ -445,7 +446,7 @@ export function WaLink() {
             </Btn>
           )}
         </div>
-        {info && <p className="text-xs text-slate-500 dark:text-slate-400">{info}</p>}
+        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Isi") || info.startsWith("Gagal") ? "warning" : "success"} />}
         {waLink && (
           <div className="space-y-2">
             <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 dark:text-slate-200 break-all">

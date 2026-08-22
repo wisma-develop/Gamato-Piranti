@@ -10,6 +10,7 @@ import { parseEditor } from "./richtext/parseEditor";
 import { exportDocxFromBlocks } from "./richtext/exportDocx";
 import { exportPdfFromBlocks } from "./richtext/exportPdf";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -455,18 +456,7 @@ export const DocTools: React.FC = () => {
           </Btn>
         </div>
 
-        {docInfo && (
-          <div
-            className={cn(
-              "text-sm rounded-xl px-4 py-2.5 border font-medium",
-              docInfo.startsWith("Gagal") || docInfo.startsWith("Teks tidak")
-                ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30"
-                : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30"
-            )}
-          >
-            {docInfo}
-          </div>
-        )}
+        {docInfo && <GamatoInlineAlert message={docInfo} tone={docInfo.startsWith("Gagal") || docInfo.startsWith("Teks tidak") ? "warning" : "success"} />}
 
         <p className="text-xs text-slate-400 dark:text-slate-500 px-1">
           Gambar yang disisipkan (termasuk hasil crop, ukuran, dan posisinya) ikut tersimpan utuh baik di ekspor <b>.pdf</b> maupun <b>.docx</b> — sama seperti yang tampil di editor.

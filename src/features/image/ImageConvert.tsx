@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { Wand2, Image as ImageIcon, Minus, Loader2 } from "lucide-react";
-import { cn } from "@/utils/cn";
 import { fileToDataUrl, downloadBlob } from "@/lib/file";
 import { Label, Select, Btn } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
@@ -112,11 +111,7 @@ export const ImageConvert: React.FC = () => {
           </div>
         </div>
 
-        {info && (
-          <div className={cn("text-sm rounded-xl px-4 py-3 border font-medium", info.startsWith("Gagal") ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30" : "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30")}>
-            {info}
-          </div>
-        )}
+        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
 
         <Btn onClick={processImages} disabled={isWorking || !files.length} className="w-full py-4 text-base">
           {isWorking ? (
