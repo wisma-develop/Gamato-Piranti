@@ -2,6 +2,7 @@ import { Outlet, useLocation, Link } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { ChevronRight, Home } from 'lucide-react';
+import { GamatoToastProvider } from '@/components/ui/GamatoToast';
 
 const CATEGORY_LABELS: Record<string, string> = {
   qr: 'Kode',
@@ -114,8 +115,9 @@ export default function Layout() {
   const modeLabel = category && mode ? MODE_LABELS[category]?.[mode] : undefined;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-      <Header />
+    <GamatoToastProvider>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
+        <Header />
       <main className="flex-1">
         {/* Breadcrumb — only on non-home pages */}
         {!isHome && categoryLabel && (
@@ -143,6 +145,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
-    </div>
+      </div>
+    </GamatoToastProvider>
   );
 }

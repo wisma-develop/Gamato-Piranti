@@ -85,6 +85,54 @@ textarea {
   -webkit-overflow-scrolling: touch;
 }
 
+/* ── Gamato Piranti inline alert/toast fade-in ── */
+@keyframes gamatoFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes gamatoToastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes gamatoToastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+
+/* ── Gamato Piranti custom scrollbar — bermerek, konsisten di semua browser modern ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a5b4fc transparent; /* indigo-300 */
+}
+.dark * {
+  scrollbar-color: #4338ca transparent; /* indigo-700 */
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #a5b4fc; /* indigo-300 */
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #6366f1; /* indigo-500 */
+}
+.dark *::-webkit-scrollbar-thumb {
+  background-color: #4338ca; /* indigo-700 */
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: #6366f1; /* indigo-500 */
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* ── Visible keyboard focus ── */
 a:focus-visible,
 button:focus-visible,

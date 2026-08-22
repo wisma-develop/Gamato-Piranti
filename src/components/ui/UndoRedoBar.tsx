@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Undo2, Redo2 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 
 export interface UndoRedoBarProps {
   canUndo: boolean;
@@ -57,26 +58,28 @@ export const UndoRedoBar: React.FC<UndoRedoBarProps> = ({
           Riwayat
         </span>
       )}
-      <button
-        type="button"
-        onClick={onUndo}
-        disabled={!canUndo}
-        title="Urungkan (Ctrl+Z)"
-        aria-label="Urungkan perubahan"
-        className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-      >
-        <Undo2 className="w-4 h-4 shrink-0" strokeWidth={2.25} />
-      </button>
-      <button
-        type="button"
-        onClick={onRedo}
-        disabled={!canRedo}
-        title="Ulangi (Ctrl+Y / Ctrl+Shift+Z)"
-        aria-label="Ulangi perubahan"
-        className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-      >
-        <Redo2 className="w-4 h-4 shrink-0" strokeWidth={2.25} />
-      </button>
+      <GamatoTooltip label="Urungkan (Ctrl+Z)">
+        <button
+          type="button"
+          onClick={onUndo}
+          disabled={!canUndo}
+          aria-label="Urungkan perubahan"
+          className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+        >
+          <Undo2 className="w-4 h-4 shrink-0" strokeWidth={2.25} />
+        </button>
+      </GamatoTooltip>
+      <GamatoTooltip label="Ulangi (Ctrl+Y / Ctrl+Shift+Z)">
+        <button
+          type="button"
+          onClick={onRedo}
+          disabled={!canRedo}
+          aria-label="Ulangi perubahan"
+          className="shrink-0 inline-flex items-center justify-center h-8 w-8 rounded-lg border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+        >
+          <Redo2 className="w-4 h-4 shrink-0" strokeWidth={2.25} />
+        </button>
+      </GamatoTooltip>
     </div>
   );
 };

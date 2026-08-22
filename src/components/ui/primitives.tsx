@@ -1,6 +1,7 @@
 import React from "react";
 import { ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
 
 export const Label: React.FC<{ children: React.ReactNode; htmlFor?: string }> = ({ children, htmlFor }) => (
   <label htmlFor={htmlFor} className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{children}</label>
@@ -13,13 +14,8 @@ export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { lab
   </div>
 );
 
-export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }> = ({ label, className, id, children, ...props }) => (
-  <div>
-    {label && <Label htmlFor={id}>{label}</Label>}
-    <select id={id} {...props} className={cn("w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10", className)}>
-      {children}
-    </select>
-  </div>
+export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }> = (props) => (
+  <GamatoSelect {...props} />
 );
 
 export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string }> = ({ label, className, id, ...props }) => (
