@@ -3,23 +3,33 @@ import { CheckCircle2, XCircle, Info as InfoIcon, AlertTriangle } from "lucide-r
 import { cn } from "@/utils/cn";
 
 type AlertTone = "success" | "error" | "info" | "warning";
+type AlertVariant = "surface" | "dark";
 
-const TONE_STYLES: Record<AlertTone, { wrap: string; icon: React.ReactNode }> = {
-  success: {
-    wrap: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30",
-    icon: <CheckCircle2 className="w-4 h-4 shrink-0" />,
+const TONE_STYLES: Record<AlertVariant, Record<AlertTone, { wrap: string; icon: React.ReactNode }>> = {
+  surface: {
+    success: {
+      wrap: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30",
+      icon: <CheckCircle2 className="w-4 h-4 shrink-0" />,
+    },
+    error: {
+      wrap: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30",
+      icon: <XCircle className="w-4 h-4 shrink-0" />,
+    },
+    warning: {
+      wrap: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30",
+      icon: <AlertTriangle className="w-4 h-4 shrink-0" />,
+    },
+    info: {
+      wrap: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30",
+      icon: <InfoIcon className="w-4 h-4 shrink-0" />,
+    },
   },
-  error: {
-    wrap: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/30",
-    icon: <XCircle className="w-4 h-4 shrink-0" />,
-  },
-  warning: {
-    wrap: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30",
-    icon: <AlertTriangle className="w-4 h-4 shrink-0" />,
-  },
-  info: {
-    wrap: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30",
-    icon: <InfoIcon className="w-4 h-4 shrink-0" />,
+  // Dipakai di panel yang selalu berlatar gelap (mis. ToolInfoPanel bg-slate-900), terlepas dari mode terang/gelap sistem.
+  dark: {
+    success: { wrap: "bg-green-500/10 text-green-400 border-green-500/20", icon: <CheckCircle2 className="w-4 h-4 shrink-0" /> },
+    error: { wrap: "bg-red-500/10 text-red-400 border-red-500/20", icon: <XCircle className="w-4 h-4 shrink-0" /> },
+    warning: { wrap: "bg-amber-500/10 text-amber-400 border-amber-500/20", icon: <AlertTriangle className="w-4 h-4 shrink-0" /> },
+    info: { wrap: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20", icon: <InfoIcon className="w-4 h-4 shrink-0" /> },
   },
 };
 
@@ -39,14 +49,16 @@ function inferTone(message: string): AlertTone {
 export function GamatoInlineAlert({
   message,
   tone,
+  variant = "surface",
   className,
 }: {
   message: React.ReactNode;
   tone?: AlertTone;
+  variant?: AlertVariant;
   className?: string;
 }) {
   const resolvedTone = tone ?? (typeof message === "string" ? inferTone(message) : "info");
-  const style = TONE_STYLES[resolvedTone];
+  const style = TONE_STYLES[variant][resolvedTone];
 
   return (
     <div

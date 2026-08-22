@@ -1,6 +1,6 @@
 import {
   Code2, ListOrdered, Radio, Mail, BarChart3,
-  KeyRound, Calculator, Languages, AppWindow, Workflow, Gauge,
+  KeyRound, Calculator, Languages, AppWindow, Workflow,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -32,12 +32,6 @@ export default function UtilitasCategory() {
               { name: "Kamus Dunia", desc: "Cari arti kata & terjemahkan kalimat lintas puluhan bahasa dunia.", path: "/utility/kamus-dunia", icon: <Languages className="w-6 h-6" /> },
               { name: "HTML Preview", desc: "Tulis HTML/CSS/JS, lihat hasilnya langsung secara real-time.", path: "/utility/html-preview", icon: <AppWindow className="w-6 h-6" /> },
               { name: "Diagram & Rumus Studio", desc: "Buat & preview flowchart, struktur, chart, hingga rumus matematika (LaTeX).", path: "/utility/diagram-rumus", icon: <Workflow className="w-6 h-6" /> },
-            ],
-          },
-          {
-            section: "Perangkat & Audio",
-            items: [
-              { name: "Pengukur Kekuatan Suara", desc: "Meteran level suara real-time langsung dari mikrofon browser.", path: "/utility/pengukur-suara", icon: <Gauge className="w-6 h-6" /> },
             ],
           },
           {

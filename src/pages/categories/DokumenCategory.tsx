@@ -2,7 +2,7 @@ import {
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
   SlidersHorizontal, FileImage, AlignLeft, BookOpen, BarChart3, EyeOff,
   PenSquare, PenLine, Code2, ListOrdered, KeyRound, ScanLine,
-  FileText, Type, ShieldCheck, Mic, Volume2,
+  FileText, Type, ShieldCheck,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -72,13 +72,6 @@ export default function DokumenCategory() {
             items: [
               { name: "Doc Studio", desc: "Editor dokumen full rich-text dengan ekspor .docx, .pdf, dan .txt.", path: "/docs", icon: <BookOpen className="w-6 h-6" /> },
               { name: "Doc Reader", desc: "Baca file .txt, .docx, atau .rtf dengan tampilan nyaman — bisa juga didengarkan.", path: "/pdf/baca-dokumen", icon: <BookOpen className="w-6 h-6" /> },
-            ],
-          },
-          {
-            section: "Suara & Aksesibilitas",
-            items: [
-              { name: "Speech to Text", desc: "Ubah ucapan jadi teks langsung lewat mikrofon.", path: "/pdf/suara-ke-teks", icon: <Mic className="w-6 h-6" /> },
-              { name: "Text to Speech", desc: "Bacakan teks apa pun dengan suara pilihan.", path: "/pdf/teks-ke-suara", icon: <Volume2 className="w-6 h-6" /> },
             ],
           },
         ]}

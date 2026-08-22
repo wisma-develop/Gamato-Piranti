@@ -1,6 +1,6 @@
 import React from "react";
-import { cn } from "@/utils/cn";
 import { SectionBadge } from "./primitives";
+import { GamatoInlineAlert } from "./GamatoInlineAlert";
 
 /**
  * Sticky side panel used by single-purpose tool pages (one PDF mode, one
@@ -31,18 +31,7 @@ export const ToolInfoPanel: React.FC<{
         <p key={i}>• {p}</p>
       ))}
     </div>
-    {info && (
-      <div
-        className={cn(
-          "rounded-xl px-4 py-3 text-sm font-medium border",
-          infoTone === "success"
-            ? "bg-green-500/10 text-green-400 border-green-500/20"
-            : "bg-red-500/10 text-red-400 border-red-500/20"
-        )}
-      >
-        {info}
-      </div>
-    )}
+    {info && <GamatoInlineAlert message={info} tone={infoTone} variant="dark" />}
     <div className="pt-2">
       <SectionBadge>{badgeText}</SectionBadge>
     </div>

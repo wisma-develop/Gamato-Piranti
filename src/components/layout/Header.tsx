@@ -20,8 +20,9 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
+import { GamatoTooltip } from '@/components/ui/GamatoTooltip';
 
-type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | 'video' | null;
+type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
 
 type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
 
@@ -73,8 +74,6 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Scan PDF',          path: '/pdf/scan',          icon: <ScanLine className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
       { name: 'Doc Studio',        path: '/docs',              icon: <BookOpen className="w-4 h-4 text-violet-500" />, section: 'Doc Studio' },
       { name: 'Doc Reader',        path: '/pdf/baca-dokumen',  icon: <BookOpen className="w-4 h-4 text-violet-500" />, section: 'Doc Studio' },
-      { name: 'Speech to Text',    path: '/pdf/suara-ke-teks', icon: <Mic className="w-4 h-4 text-violet-500" />, section: 'Suara & Aksesibilitas' },
-      { name: 'Text to Speech',    path: '/pdf/teks-ke-suara', icon: <Volume2 className="w-4 h-4 text-violet-500" />, section: 'Suara & Aksesibilitas' },
     ],
   },
   {
@@ -108,7 +107,6 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Kamus Dunia',      path: '/utility/kamus-dunia',      icon: <Languages className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'HTML Preview',     path: '/utility/html-preview',     icon: <AppWindow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'Diagram & Rumus Studio', path: '/utility/diagram-rumus', icon: <Workflow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
-      { name: 'Pengukur Kekuatan Suara', path: '/utility/pengukur-suara', icon: <Gauge className="w-4 h-4 text-pink-500" />, section: 'Perangkat & Audio' },
       { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
       { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
       { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
@@ -143,7 +141,19 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Teks & Subtitle (CC)', path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
       { name: 'Gabung & Transisi', path: '/video/gabung',   icon: <Layers className="w-4 h-4 text-rose-500" /> },
       { name: 'Kecepatan & Filter', path: '/video/filter',  icon: <Sparkles className="w-4 h-4 text-rose-500" /> },
-      { name: 'Ekstrak Audio & Thumbnail', path: '/video/audio-thumbnail', icon: <AudioLines className="w-4 h-4 text-rose-500" /> },
+      { name: 'Tangkap Thumbnail / Screenshot', path: '/video/thumbnail', icon: <Camera className="w-4 h-4 text-rose-500" /> },
+    ],
+  },
+  {
+    id: 'audio',
+    title: 'Audio',
+    icon: <AudioLines className="w-4 h-4" />,
+    rootPath: '/audio',
+    items: [
+      { name: 'Speech to Text',            path: '/audio/suara-ke-teks',       icon: <Mic className="w-4 h-4 text-cyan-500" /> },
+      { name: 'Text to Speech',            path: '/audio/teks-ke-suara',       icon: <Volume2 className="w-4 h-4 text-cyan-500" /> },
+      { name: 'Pengukur Kekuatan Suara',   path: '/audio/pengukur-suara',      icon: <Gauge className="w-4 h-4 text-cyan-500" /> },
+      { name: 'Ekstrak Audio dari Video',  path: '/audio/ekstrak-audio-video', icon: <AudioLines className="w-4 h-4 text-cyan-500" /> },
     ],
   },
 ];
@@ -280,15 +290,17 @@ export default function Header() {
 
             <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
 
-            <Link
-              to="/about"
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                location.pathname === '/about' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
-              }`}
-            >
-              <Info className="w-4 h-4" />
-              <span>Tentang</span>
-            </Link>
+            <GamatoTooltip label="Tentang Kami">
+              <Link
+                to="/about"
+                aria-label="Tentang Kami"
+                className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors ${
+                  location.pathname === '/about' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
+                }`}
+              >
+                <Info className="w-4 h-4" />
+              </Link>
+            </GamatoTooltip>
 
             <button
               type="button"

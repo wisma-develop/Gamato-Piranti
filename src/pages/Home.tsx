@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   QrCode, FileText, Image as ImageIcon, SlidersHorizontal, BookOpen,
-  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard
+  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard, AudioLines
 } from 'lucide-react';
 
 const tools = [
@@ -52,7 +52,15 @@ const tools = [
     desc: 'Potong, crop, teks/subtitle, gabung dengan transisi, sampai kecepatan & filter — ringan tanpa upload.',
     path: '/video',
     gradient: 'from-rose-400 to-red-600',
-    badge: '5 Alat',
+    badge: '6 Alat',
+  },
+  {
+    icon: <AudioLines className="w-7 h-7 text-white" />,
+    title: 'Audio Studio',
+    desc: 'Speech to text, text to speech, pengukur kekuatan suara, sampai ekstrak audio dari video.',
+    path: '/audio',
+    gradient: 'from-cyan-400 to-sky-600',
+    badge: '4 Alat',
   },
   {
     icon: <Award className="w-7 h-7 text-white" />,

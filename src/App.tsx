@@ -16,6 +16,7 @@ import GambarCategory from "@/pages/categories/GambarCategory";
 import UtilitasCategory from "@/pages/categories/UtilitasCategory";
 import SpesialCategory from "@/pages/categories/SpesialCategory";
 import VideoCategory from "@/pages/categories/VideoCategory";
+import AudioCategory from "@/pages/categories/AudioCategory";
 
 import { QrCodeGenerator } from "@/features/qr-barcode/QrCodeGenerator";
 import { BarcodeGenerator } from "@/features/qr-barcode/BarcodeGenerator";
@@ -49,8 +50,6 @@ import { PdfToWord } from "@/features/pdf/PdfToWord";
 import { PdfToExcel } from "@/features/pdf/PdfToExcel";
 import { PdfOcr } from "@/features/pdf/PdfOcr";
 import { PdfProtect } from "@/features/pdf/PdfProtect";
-import { SpeechToText } from "@/features/speech/SpeechToText";
-import { TextToSpeech } from "@/features/speech/TextToSpeech";
 import { DocReader } from "@/features/docs/DocReader";
 
 import { DocTools } from "@/features/docs/DocTools";
@@ -80,8 +79,12 @@ import { UtilityPasswordToken } from "@/features/utility/UtilityPasswordToken";
 import { UtilityWorldDictionary } from "@/features/utility/UtilityWorldDictionary";
 import { UtilityHtmlPreview } from "@/features/utility/UtilityHtmlPreview";
 import { UtilityDiagramFormula } from "@/features/utility/UtilityDiagramFormula";
-import { UtilitySoundMeter } from "@/features/utility/UtilitySoundMeter";
 import { CalculatorHub } from "@/features/utility/calculator/CalculatorHub";
+
+import { AudioSpeechToText } from "@/features/audio/AudioSpeechToText";
+import { AudioTextToSpeech } from "@/features/audio/AudioTextToSpeech";
+import { AudioSoundMeter } from "@/features/audio/AudioSoundMeter";
+import { AudioExtractFromVideo } from "@/features/audio/AudioExtractFromVideo";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -95,7 +98,7 @@ import { VideoCrop } from "@/features/video/VideoCrop";
 import { VideoSubtitle } from "@/features/video/VideoSubtitle";
 import { VideoMerge } from "@/features/video/VideoMerge";
 import { VideoFilter } from "@/features/video/VideoFilter";
-import { VideoAudioThumbnail } from "@/features/video/VideoAudioThumbnail";
+import { VideoThumbnail } from "@/features/video/VideoThumbnail";
 
 export const App: FC = () => (
   <BrowserRouter>
@@ -359,22 +362,8 @@ export const App: FC = () => (
             </PageShell>
           }
         />
-        <Route
-          path="pdf/suara-ke-teks"
-          element={
-            <PageShell badge="Dokumen" title="Speech to Text" subtitle="Ubah ucapan jadi teks secara langsung lewat mikrofon.">
-              <SpeechToText />
-            </PageShell>
-          }
-        />
-        <Route
-          path="pdf/teks-ke-suara"
-          element={
-            <PageShell badge="Dokumen" title="Text to Speech" subtitle="Bacakan teks apa pun dengan suara pilihan langsung dari browser.">
-              <TextToSpeech />
-            </PageShell>
-          }
-        />
+        <Route path="pdf/suara-ke-teks" element={<Navigate to="/audio/suara-ke-teks" replace />} />
+        <Route path="pdf/teks-ke-suara" element={<Navigate to="/audio/teks-ke-suara" replace />} />
         <Route
           path="pdf/baca-dokumen"
           element={
@@ -595,14 +584,7 @@ export const App: FC = () => (
             </PageShell>
           }
         />
-        <Route
-          path="utility/pengukur-suara"
-          element={
-            <PageShell badge="Utilitas" title="Pengukur Kekuatan Suara" subtitle="Meteran level suara real-time langsung dari mikrofon browser.">
-              <UtilitySoundMeter />
-            </PageShell>
-          }
-        />
+        <Route path="utility/pengukur-suara" element={<Navigate to="/audio/pengukur-suara" replace />} />
         <Route
           path="utility/kalkulator"
           element={
@@ -714,10 +696,46 @@ export const App: FC = () => (
           }
         />
         <Route
-          path="video/audio-thumbnail"
+          path="video/thumbnail"
           element={
-            <PageShell badge="Video" title="Ekstrak Audio & Thumbnail" subtitle="Ambil track audio sebagai file terpisah, atau tangkap satu frame video sebagai gambar.">
-              <VideoAudioThumbnail />
+            <PageShell badge="Video" title="Tangkap Thumbnail / Screenshot" subtitle="Putar video ke posisi yang diinginkan, lalu tangkap satu frame sebagai gambar PNG.">
+              <VideoThumbnail />
+            </PageShell>
+          }
+        />
+        <Route path="video/audio-thumbnail" element={<Navigate to="/video/thumbnail" replace />} />
+
+        {/* ── Audio ────────────────────────────────────────────────────── */}
+        <Route path="audio" element={<AudioCategory />} />
+        <Route
+          path="audio/suara-ke-teks"
+          element={
+            <PageShell badge="Audio" title="Speech to Text" subtitle="Ubah ucapan jadi teks secara langsung lewat mikrofon.">
+              <AudioSpeechToText />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/teks-ke-suara"
+          element={
+            <PageShell badge="Audio" title="Text to Speech" subtitle="Bacakan teks apa pun dengan suara pilihan langsung dari browser.">
+              <AudioTextToSpeech />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/pengukur-suara"
+          element={
+            <PageShell badge="Audio" title="Pengukur Kekuatan Suara" subtitle="Meteran level suara real-time langsung dari mikrofon browser.">
+              <AudioSoundMeter />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/ekstrak-audio-video"
+          element={
+            <PageShell badge="Audio" title="Ekstrak Audio dari Video" subtitle="Ambil track audio dari file video sebagai file terpisah — bisa dipangkas dulu sebelum diekstrak.">
+              <AudioExtractFromVideo />
             </PageShell>
           }
         />

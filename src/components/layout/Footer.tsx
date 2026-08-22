@@ -34,6 +34,7 @@ export default function Footer() {
               <li><Link to="/image" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Image Lab</Link></li>
               <li><Link to="/utility" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Rak Utilitas</Link></li>
               <li><Link to="/video" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Video Studio</Link></li>
+              <li><Link to="/audio" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Audio Studio</Link></li>
               <li><Link to="/special" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Spesial</Link></li>
             </ul>
           </div>

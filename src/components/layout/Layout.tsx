@@ -12,6 +12,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   utility: 'Utilitas',
   special: 'Spesial',
   video: 'Video',
+  audio: 'Audio',
   about: 'Tentang Kami',
   privacy: 'Kebijakan Privasi',
   terms: 'Ketentuan Layanan',
@@ -53,8 +54,6 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'ke-excel': 'PDF ke Excel',
     'ocr': 'OCR',
     'protect': 'Protect PDF',
-    'suara-ke-teks': 'Speech to Text',
-    'teks-ke-suara': 'Text to Speech',
     'baca-dokumen': 'Doc Reader',
   },
   image: {
@@ -84,7 +83,6 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kamus-dunia': 'Kamus Dunia',
     'html-preview': 'HTML Preview',
     'diagram-rumus': 'Diagram & Rumus Studio',
-    'pengukur-suara': 'Pengukur Kekuatan Suara',
     'kalkulator': 'Kalkulator',
   },
   special: {
@@ -102,7 +100,13 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'subtitle': 'Teks & Subtitle (CC)',
     'gabung': 'Gabung & Transisi',
     'filter': 'Kecepatan & Filter',
-    'audio-thumbnail': 'Ekstrak Audio & Thumbnail',
+    'thumbnail': 'Tangkap Thumbnail / Screenshot',
+  },
+  audio: {
+    'suara-ke-teks': 'Speech to Text',
+    'teks-ke-suara': 'Text to Speech',
+    'pengukur-suara': 'Pengukur Kekuatan Suara',
+    'ekstrak-audio-video': 'Ekstrak Audio dari Video',
   },
 };
 
