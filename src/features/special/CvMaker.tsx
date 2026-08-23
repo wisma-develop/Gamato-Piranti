@@ -50,6 +50,7 @@ import { useDialog } from "@/hooks/useDialog";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import JSZip from "jszip";
 
 type TabId = "profil" | "ringkasan" | "keahlian" | "bahasa" | "pengalaman" | "pendidikan" | "sertifikasi" | "organisasi";
@@ -234,7 +235,9 @@ export const CvMaker: React.FC = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_420px] gap-6 items-start">
+    <div className="space-y-6">
+      <GamatoDesktopRecommended toolName="Pembuat CV" />
+      <div className="grid lg:grid-cols-[1fr_420px] gap-6 items-start">
       {/* LEFT: form */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
@@ -591,6 +594,7 @@ export const CvMaker: React.FC = () => {
           <SectionBadge>Diproses langsung di perangkatmu</SectionBadge>
         </div>
       </div>
+    </div>
     </div>
   );
 };

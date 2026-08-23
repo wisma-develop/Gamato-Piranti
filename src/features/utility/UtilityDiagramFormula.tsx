@@ -4,6 +4,7 @@ import { Workflow, Sigma, Download, Image as ImageIcon, Copy, Loader2 } from "lu
 import { cn } from "@/utils/cn";
 import { Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, makeCanvas, canvasToBlob } from "@/lib/canvas";
@@ -181,7 +182,9 @@ export const UtilityDiagramFormula: React.FC = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+    <div className="space-y-6">
+      <GamatoDesktopRecommended toolName="Diagram & Rumus Studio" />
+      <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -307,6 +310,7 @@ export const UtilityDiagramFormula: React.FC = () => {
           "Semua dirender di browser, hasil diagram bisa diunduh sebagai SVG/PNG — tidak ada data yang dikirim ke server.",
         ]}
       />
+    </div>
     </div>
   );
 };

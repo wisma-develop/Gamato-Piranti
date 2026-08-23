@@ -10,6 +10,7 @@ import { useVideoFile } from "@/hooks/useVideoFile";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 type Mode = "trim" | "cut";
 type RemoveSegment = { id: string; start: number; end: number };
@@ -118,7 +119,9 @@ export function VideoTrim() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Potong Video" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         {!meta ? (
           <Dropzone
@@ -246,6 +249,7 @@ export function VideoTrim() {
           ]}
         />
       </div>
+    </div>
     </div>
   );
 }

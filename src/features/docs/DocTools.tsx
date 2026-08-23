@@ -11,6 +11,7 @@ import { exportDocxFromBlocks } from "./richtext/exportDocx";
 import { exportPdfFromBlocks } from "./richtext/exportPdf";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -312,7 +313,9 @@ export const DocTools: React.FC = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_280px] gap-6 items-start">
+    <div className="space-y-6">
+      <GamatoDesktopRecommended toolName="Doc Studio" />
+      <div className="grid lg:grid-cols-[1fr_280px] gap-6 items-start">
       {/* Editor */}
       <div className="space-y-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -515,6 +518,7 @@ export const DocTools: React.FC = () => {
           <SectionBadge>Native — data tidak dikirim</SectionBadge>
         </div>
       </div>
+    </div>
     </div>
   );
 };

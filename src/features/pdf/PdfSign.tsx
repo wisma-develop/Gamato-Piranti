@@ -6,6 +6,7 @@ import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { Input, Btn, Label } from "@/components/ui/primitives";
 import { GamatoPdfPage } from "@/components/ui/GamatoPdfPage";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 
@@ -161,7 +162,9 @@ export const PdfSign: React.FC = () => {
   const pageAspect = pageSizes[targetPage - 1] ? `${pageSizes[targetPage - 1].w} / ${pageSizes[targetPage - 1].h}` : "1 / 1.414";
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-6">
+      <GamatoDesktopRecommended toolName="Tanda Tangan PDF" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-5">
         {!file ? (
           <Dropzone
@@ -285,6 +288,7 @@ export const PdfSign: React.FC = () => {
         desc="Gambar atau ketik"
         points={["Gambar tanda tangan dengan mouse/jari, atau ketik nama bergaya tulisan tangan.", "Posisi & ukuran diatur proporsional terhadap halaman yang dipilih."]}
       />
+    </div>
     </div>
   );
 };

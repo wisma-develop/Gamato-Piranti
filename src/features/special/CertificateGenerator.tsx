@@ -19,6 +19,7 @@ import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -440,6 +441,7 @@ export function CertificateGenerator() {
 
   return (
     <div className="space-y-6">
+      <GamatoDesktopRecommended toolName="Sertifikat & Piagam" />
       <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* LEFT: controls */}
         <div className="space-y-5">

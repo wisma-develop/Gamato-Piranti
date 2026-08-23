@@ -11,6 +11,7 @@ import { useVideoFile } from "@/hooks/useVideoFile";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 type CropBox = { x: number; y: number; w: number; h: number };
 
@@ -139,7 +140,9 @@ export function VideoCrop() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Crop & Resize Video" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         {!meta ? (
           <Dropzone
@@ -264,6 +267,7 @@ export function VideoCrop() {
           ]}
         />
       </div>
+    </div>
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useVideoFile } from "@/hooks/useVideoFile";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 const PRESETS = [
   { id: "normal", label: "Normal", filter: "" },
@@ -100,7 +101,9 @@ export function VideoFilter() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Kecepatan & Filter Video" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         {!meta ? (
           <Dropzone
@@ -228,6 +231,7 @@ export function VideoFilter() {
           ]}
         />
       </div>
+    </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { Btn } from "@/components/ui/primitives";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, loadVideoMeta, exportMergedVideo, getBestExportFormat, type VideoMeta, type TransitionType, type ExportFormat } from "@/lib/videoEngine";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 type MergeClip = { id: string; meta: VideoMeta; trimStart: number; trimEnd: number };
 
@@ -114,7 +115,9 @@ export function VideoMerge() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Gabung & Transisi Video" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         <Dropzone
           onFiles={handleFiles}
@@ -251,6 +254,7 @@ export function VideoMerge() {
           ]}
         />
       </div>
+    </div>
     </div>
   );
 }

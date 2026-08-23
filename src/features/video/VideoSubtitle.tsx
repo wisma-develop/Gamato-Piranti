@@ -13,6 +13,7 @@ import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { wrapText } from "@/lib/businessDocCanvas";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 type Caption = { id: string; start: number; end: number; text: string };
 type Position = "top" | "center" | "bottom";
@@ -154,7 +155,9 @@ export function VideoSubtitle() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Teks & Subtitle Video" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         {!meta ? (
           <Dropzone
@@ -295,6 +298,7 @@ export function VideoSubtitle() {
           ]}
         />
       </div>
+    </div>
     </div>
   );
 }

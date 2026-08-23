@@ -8,6 +8,7 @@ import { Input, Textarea, Btn, Label } from "@/components/ui/primitives";
 import { GamatoPdfPage } from "@/components/ui/GamatoPdfPage";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -160,7 +161,9 @@ export const PdfEdit: React.FC = () => {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-6">
+      <GamatoDesktopRecommended toolName="Edit PDF" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-5">
         {!file ? (
           <Dropzone
@@ -324,6 +327,7 @@ export const PdfEdit: React.FC = () => {
           points={["Tambahkan teks bebas atau kotak warna (untuk menandai/menutup area) ke halaman manapun.", "Geser langsung di area pratinjau untuk mengatur posisi."]}
         />
       </div>
+    </div>
     </div>
   );
 };

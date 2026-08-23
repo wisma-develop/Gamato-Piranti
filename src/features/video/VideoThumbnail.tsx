@@ -8,6 +8,7 @@ import { useVideoFile } from "@/hooks/useVideoFile";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, captureVideoFrame } from "@/lib/videoEngine";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
 export function VideoThumbnail() {
   const { meta, error: loadError, isLoading, load, reset } = useVideoFile();
@@ -51,7 +52,9 @@ export function VideoThumbnail() {
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+    <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Tangkap Thumbnail Video" />
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         {!meta ? (
           <Dropzone
@@ -114,6 +117,7 @@ export function VideoThumbnail() {
           ]}
         />
       </div>
+    </div>
     </div>
   );
 }
