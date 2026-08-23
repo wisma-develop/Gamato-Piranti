@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  QrCode, FileText, Image as ImageIcon, SlidersHorizontal, BookOpen,
+  QrCode, FileText, Image as ImageIcon, SlidersHorizontal,
   ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard, AudioLines
 } from 'lucide-react';
 
@@ -16,19 +16,11 @@ const tools = [
   },
   {
     icon: <FileText className="w-7 h-7 text-white" />,
-    title: 'PDF Lab – Suite',
-    desc: 'Toolkit PDF lengkap: kompres, gabung, pecah, atur ulang halaman, dan konversi.',
+    title: 'PDF Lab & Doc Studio',
+    desc: 'Toolkit PDF lengkap (kompres, gabung, pecah, konversi) plus editor dokumen dengan ekspor .docx, .pdf, .txt.',
     path: '/pdf',
     gradient: 'from-blue-400 to-indigo-600',
-    badge: '9 Mode',
-  },
-  {
-    icon: <BookOpen className="w-7 h-7 text-white" />,
-    title: 'Doc Studio',
-    desc: 'Editor dokumen ringan dengan ekspor .docx, .pdf, dan .txt. Lengkap dengan utilitas teks.',
-    path: '/docs',
-    gradient: 'from-violet-400 to-purple-600',
-    badge: '.docx · .pdf · .txt',
+    badge: '20+ Alat',
   },
   {
     icon: <ImageIcon className="w-7 h-7 text-white" />,
@@ -37,14 +29,6 @@ const tools = [
     path: '/image',
     gradient: 'from-orange-400 to-rose-500',
     badge: 'JPG · PNG · WEBP',
-  },
-  {
-    icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
-    title: 'Rak Utilitas',
-    desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, diagram & rumus, JSON, Base64, dan lainnya.',
-    path: '/utility',
-    gradient: 'from-pink-400 to-fuchsia-600',
-    badge: '11 Alat',
   },
   {
     icon: <Clapperboard className="w-7 h-7 text-white" />,
@@ -61,6 +45,14 @@ const tools = [
     path: '/audio',
     gradient: 'from-cyan-400 to-sky-600',
     badge: '4 Alat',
+  },
+  {
+    icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
+    title: 'Rak Utilitas',
+    desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, diagram & rumus, JSON, Base64, dan lainnya.',
+    path: '/utility',
+    gradient: 'from-pink-400 to-fuchsia-600',
+    badge: '11 Alat',
   },
   {
     icon: <Award className="w-7 h-7 text-white" />,

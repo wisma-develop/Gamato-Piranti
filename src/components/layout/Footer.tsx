@@ -29,12 +29,11 @@ export default function Footer() {
             <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">Alat</h3>
             <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
               <li><Link to="/qr" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">QR & Barcode Studio</Link></li>
-              <li><Link to="/pdf" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">PDF Lab – Suite</Link></li>
-              <li><Link to="/docs" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Doc Studio</Link></li>
+              <li><Link to="/pdf" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">PDF Lab & Doc Studio</Link></li>
               <li><Link to="/image" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Image Lab</Link></li>
-              <li><Link to="/utility" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Rak Utilitas</Link></li>
               <li><Link to="/video" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Video Studio</Link></li>
               <li><Link to="/audio" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Audio Studio</Link></li>
+              <li><Link to="/utility" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Rak Utilitas</Link></li>
               <li><Link to="/special" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Spesial</Link></li>
             </ul>
           </div>
