@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AlignLeft, AlignCenter, AlignRight, WrapText, Crop as CropIcon, Trash2, Check, X, RotateCw, Move } from "lucide-react";
+import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { cmdSetImageAlign, cmdDeleteImage, cmdSetImageRotation, type ImageAlignValue } from "./commands";
 
 interface Rect {

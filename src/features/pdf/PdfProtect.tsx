@@ -8,6 +8,7 @@ import { Btn, Select, Input } from "@/components/ui/primitives";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const PdfProtect: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);

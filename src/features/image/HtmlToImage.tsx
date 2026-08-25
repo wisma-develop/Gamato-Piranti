@@ -6,6 +6,7 @@ import { renderHtmlToCanvas } from "@/lib/htmlRender";
 import { Btn, Input, Label, Textarea } from "@/components/ui/primitives";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 const TEMPLATES: Record<string, string> = {
   quote: `<div style="font-family:'Alan Sans',sans-serif;text-align:center;color:#fff;padding:32px;">

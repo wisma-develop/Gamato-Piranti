@@ -6,6 +6,7 @@ import { exportPdfFromBlocks } from "@/features/docs/richtext/exportPdf";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const PdfWordToPdf: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);

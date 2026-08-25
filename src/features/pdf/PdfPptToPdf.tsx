@@ -6,6 +6,7 @@ import { slidesToPdfBlob } from "@/lib/pdfSlides";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const PdfPptToPdf: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);

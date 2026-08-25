@@ -7,6 +7,7 @@ import { canvasToBlob } from "@/lib/canvas";
 import { Btn, Select } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const PdfToImage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);

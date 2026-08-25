@@ -7,6 +7,7 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 type RGB = [number, number, number];
 

@@ -9,6 +9,7 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 

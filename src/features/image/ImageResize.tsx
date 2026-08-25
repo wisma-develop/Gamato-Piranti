@@ -5,6 +5,7 @@ import { Label, Input, Select, Btn } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 export const ImageResize: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -91,7 +92,7 @@ export const ImageResize: React.FC = () => {
                       setFiles((f) => f.filter((_, j) => j !== i));
                       setPreviewUrls((u) => u.filter((_, j) => j !== i));
                     }}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs items-center justify-center hidden group-hover:flex"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs items-center justify-center flex sm:hidden sm:group-hover:flex"
                   >
                     <Minus className="w-3 h-3" />
                   </button>

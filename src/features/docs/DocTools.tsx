@@ -467,7 +467,7 @@ export const DocTools: React.FC = () => {
       </div>
 
       {/* Stats sidebar */}
-      <div className="space-y-4 sticky top-24">
+      <div className="space-y-4 lg:sticky lg:top-24">
         <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Statistik</p>
           <div className="grid grid-cols-3 gap-3">

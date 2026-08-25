@@ -7,6 +7,7 @@ import { renderHtmlToCanvas } from "@/lib/htmlRender";
 import { Btn, Input, Label, Textarea } from "@/components/ui/primitives";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 const DEFAULT_HTML = `<div style="font-family:'Alan Sans',sans-serif;padding:48px;color:#0f172a;">
   <div style="font-size:13px;letter-spacing:3px;color:#4f46e5;font-weight:800;">GAMATO PIRANTI</div>

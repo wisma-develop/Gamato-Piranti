@@ -8,6 +8,7 @@ import { Btn, Select, Label } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 
 type ScanMode = "original" | "grayscale" | "bw";
 

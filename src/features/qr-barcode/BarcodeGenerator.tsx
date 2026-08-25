@@ -273,7 +273,7 @@ export function BarcodeGenerator() {
         </div>
 
         {/* RIGHT: Preview */}
-        <div className="sticky top-24 space-y-4">
+        <div className="lg:sticky lg:top-24 space-y-4">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Preview Real-time</p>
           <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
             <div className="bg-white p-5 rounded-2xl shadow-xl w-full">
