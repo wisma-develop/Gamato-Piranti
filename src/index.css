@@ -153,3 +153,39 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Reveal-on-hover UI that must stay visible on touch/tablet ──
+   Tailwind's `hover:`/`group-hover:` variants only apply on devices that
+   report real hover support (@media (hover: hover)). That's correct on
+   phones (which already show these elements via their own mobile-first
+   classes) but on tablets and touchscreen laptops — which ARE wide enough
+   to hit a `sm:`/`md:` breakpoint yet have no mouse — a "hidden until
+   hover" element would stay invisible forever with no way to reveal it.
+   These two utilities replace that pattern with a guard that only
+   collapses/hides the element when the device both (a) is at/above the
+   given width AND (b) genuinely supports hover with a fine pointer
+   (mouse/trackpad). Verified against real Chromium with iPad/touchscreen
+   device emulation. */
+.gp-volume-track {
+  width: 3rem; /* visible by default: phones, tablets, touchscreens */
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+  .gp-volume-track {
+    width: 0px; /* collapsed at rest for mouse users on sm+ screens */
+  }
+  .gp-vol-group:hover .gp-volume-track {
+    width: 4rem; /* revealed on real hover */
+  }
+}
+
+.gp-hover-reveal {
+  opacity: 1; /* visible by default: phones, tablets, touchscreens */
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+  .gp-hover-reveal {
+    opacity: 0; /* hidden at rest for mouse users on sm+ screens */
+  }
+  .group:hover .gp-hover-reveal {
+    opacity: 1; /* revealed on real hover */
+  }
+}

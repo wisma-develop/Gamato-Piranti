@@ -30,6 +30,15 @@ export function GamatoTooltip({
     if (timerRef.current) clearTimeout(timerRef.current);
     setOpen(false);
   };
+  // Touch devices never fire mouseenter/mouseleave, so hover-only tooltips
+  // are permanently invisible on phones & tablets. Show instantly on tap
+  // and auto-dismiss shortly after — purely additive, doesn't call
+  // preventDefault/stopPropagation so the child's own onClick still fires.
+  const showOnTouch = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setOpen(true);
+    timerRef.current = setTimeout(() => setOpen(false), 1600);
+  };
 
   const posClasses: Record<string, string> = {
     top: "bottom-full left-1/2 -translate-x-1/2 mb-1.5",
@@ -45,12 +54,13 @@ export function GamatoTooltip({
       onMouseLeave={hide}
       onFocus={show}
       onBlur={hide}
+      onTouchStart={showOnTouch}
     >
       {children}
       <span
         role="tooltip"
         className={cn(
-          "pointer-events-none absolute z-50 whitespace-nowrap rounded-lg bg-slate-900 dark:bg-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-lg transition-all duration-150",
+          "pointer-events-none absolute z-50 max-w-[min(220px,calc(100vw-1.5rem))] text-center whitespace-normal rounded-lg bg-slate-900 dark:bg-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-lg transition-all duration-150",
           posClasses[side],
           open ? "opacity-100 scale-100" : "opacity-0 scale-95"
         )}

@@ -214,7 +214,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
-          <div className="flex items-center gap-1.5 group/vol">
+          <div className="flex items-center gap-1.5 gp-vol-group">
             <button type="button" onClick={toggleMute} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label="Volume">
               <VolIcon className="w-4 h-4" />
             </button>
@@ -225,7 +225,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
               value={muted ? 0 : volume}
               onChange={changeVolume}
               aria-label="Volume"
-              className="w-0 group-hover/vol:w-16 transition-all duration-200 h-1 bg-white/25"
+              className="gp-volume-track transition-all duration-200 h-1 bg-white/25"
             />
           </div>
 

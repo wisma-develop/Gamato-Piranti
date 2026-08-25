@@ -138,7 +138,7 @@ export default function Home() {
                   </div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{tool.title}</h3>
                   <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{tool.desc}</p>
-                  <div className="mt-4 flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="mt-4 flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold gp-hover-reveal transition-opacity">
                     <span>Buka alat</span>
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </div>

@@ -244,9 +244,14 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1" ref={dropdownRef}>
-            {menuGroups.map((group) => {
+          <nav className="hidden lg:flex items-center gap-1" ref={dropdownRef}>
+            {menuGroups.map((group, groupIndex) => {
               const wide = group.items.length > 4;
+              // Cegah dropdown terpotong di layar tablet (768–1024px): item paling kiri nempel kiri,
+              // item paling kanan nempel kanan, sisanya tetap center di bawah tombolnya.
+              const isFirst = groupIndex === 0;
+              const isNearEnd = groupIndex >= menuGroups.length - 2;
+              const alignClass = isFirst ? 'left-0' : isNearEnd ? 'right-0' : 'left-1/2 -translate-x-1/2';
               return (
                 <div key={group.id} className="relative">
                   <button
@@ -269,7 +274,7 @@ export default function Header() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.97 }}
                         transition={{ duration: 0.13 }}
-                        className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden ${wide ? 'w-[380px]' : 'w-64'}`}
+                        className={`absolute top-full ${alignClass} mt-2 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden ${wide ? 'w-[380px]' : 'w-64'}`}
                       >
                         <div className={`p-2 max-h-[70vh] overflow-y-auto ${wide ? 'grid grid-cols-2 gap-0.5' : 'space-y-0.5'}`}>
                           <GroupedItems items={group.items} onNavigate={() => setActiveDropdown(null)} dense={wide} />
@@ -314,7 +319,7 @@ export default function Header() {
           </nav>
 
           {/* Mobile theme toggle + hamburger */}
-          <div className="md:hidden flex items-center gap-1">
+          <div className="lg:hidden flex items-center gap-1">
             <button
               type="button"
               onClick={toggleTheme}
@@ -342,7 +347,7 @@ export default function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden overflow-hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
+            className="lg:hidden overflow-hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
           >
             <div className="px-4 py-5 space-y-3 max-h-[80vh] overflow-y-auto">
               {menuGroups.map((group) => {

@@ -48,7 +48,7 @@ export const CategoryGrid: FC<{ groups: CategoryGroup[] }> = ({ groups }) => (
                   {item.name}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{item.desc}</p>
-                <div className="mt-3 flex items-center text-indigo-600 dark:text-indigo-400 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="mt-3 flex items-center text-indigo-600 dark:text-indigo-400 text-xs font-semibold gp-hover-reveal transition-opacity">
                   <span>Buka alat</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-1" />
                 </div>

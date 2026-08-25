@@ -17,7 +17,7 @@ export const ToolInfoPanel: React.FC<{
   infoTone?: "success" | "error";
   badgeText?: string;
 }> = ({ icon, label, desc, points, info, infoTone = "success", badgeText = "Proses native di perangkatmu" }) => (
-  <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 sticky top-24">
+  <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 lg:sticky lg:top-24">
     <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Tentang Alat Ini</p>
     <div className="flex items-center gap-3">
       <span className="text-indigo-400">{icon}</span>

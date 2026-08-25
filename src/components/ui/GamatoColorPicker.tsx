@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pipette, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { useClampedPopover } from "@/hooks/useClampedPopover";
 
 /**
  * GamatoColorPicker — engine pemilih warna kustom bermerek Gamato Piranti.
@@ -63,6 +64,7 @@ export function GamatoColorPicker({
   const [hexInput, setHexInput] = useState(value);
   const wrapRef = useRef<HTMLDivElement>(null);
   const svRef = useRef<HTMLDivElement>(null);
+  const { ref: popRef, style: popStyle } = useClampedPopover<HTMLDivElement>();
   const [hsv, setHsv] = useState(() => hexToHsv(value || "#000000"));
 
   useEffect(() => {
@@ -134,7 +136,11 @@ export function GamatoColorPicker({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 space-y-3">
+        <div
+          ref={popRef}
+          style={popStyle}
+          className="absolute z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 space-y-3"
+        >
           {/* Saturation/Value box */}
           <div
             ref={svRef}
