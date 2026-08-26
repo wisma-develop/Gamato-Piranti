@@ -17,12 +17,14 @@ import {
   IdCard,
   AudioLines,
   EyeOff,
+  Presentation,
+  Table2,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { GamatoTooltip } from '@/components/ui/GamatoTooltip';
 
-type DropGroup = 'kode' | 'dokumen' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
+type DropGroup = 'kode' | 'dokumen' | 'office' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
 
 type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
 
@@ -72,8 +74,18 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'PDF Reader',        path: '/pdf/reader',        icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
       { name: 'Sensor / Redaksi PDF', path: '/pdf/sensor',     icon: <EyeOff className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
       { name: 'Scan PDF',          path: '/pdf/scan',          icon: <ScanLine className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
-      { name: 'Doc Studio',        path: '/docs',              icon: <BookOpen className="w-4 h-4 text-violet-500" />, section: 'Doc Studio' },
-      { name: 'Doc Reader',        path: '/pdf/baca-dokumen',  icon: <BookOpen className="w-4 h-4 text-violet-500" />, section: 'Doc Studio' },
+      { name: 'Doc Reader',        path: '/pdf/baca-dokumen',  icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
+    ],
+  },
+  {
+    id: 'office',
+    title: 'Office Tools',
+    icon: <Presentation className="w-4 h-4" />,
+    rootPath: '/office',
+    items: [
+      { name: 'Doc Studio',   path: '/office/doc-studio',   icon: <BookOpen className="w-4 h-4 text-violet-500" /> },
+      { name: 'Sheet Studio', path: '/office/sheet-studio', icon: <Table2 className="w-4 h-4 text-violet-500" /> },
+      { name: 'Slide Studio', path: '/office/slide-studio', icon: <Presentation className="w-4 h-4 text-violet-500" /> },
     ],
   },
   {

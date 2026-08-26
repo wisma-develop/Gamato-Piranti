@@ -8,6 +8,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   qr: 'Kode',
   pdf: 'Dokumen',
   docs: 'Doc Studio',
+  office: 'Office Tools',
   image: 'Gambar',
   utility: 'Utilitas',
   special: 'Spesial',
@@ -26,6 +27,11 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'scan-hid': 'Scan HID',
     'kode-morse': 'Kode Morse',
     'scan-qr': 'QR Code Scanner',
+  },
+  office: {
+    'doc-studio': 'Doc Studio',
+    'sheet-studio': 'Sheet Studio',
+    'slide-studio': 'Slide Studio',
   },
   pdf: {
     'gabung': 'Gabung PDF',

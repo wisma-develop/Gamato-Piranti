@@ -12,6 +12,7 @@ import Terms from "@/pages/Terms";
 
 import KodeCategory from "@/pages/categories/KodeCategory";
 import DokumenCategory from "@/pages/categories/DokumenCategory";
+import OfficeCategory from "@/pages/categories/OfficeCategory";
 import GambarCategory from "@/pages/categories/GambarCategory";
 import UtilitasCategory from "@/pages/categories/UtilitasCategory";
 import SpesialCategory from "@/pages/categories/SpesialCategory";
@@ -53,6 +54,8 @@ import { PdfProtect } from "@/features/pdf/PdfProtect";
 import { DocReader } from "@/features/docs/DocReader";
 
 import { DocTools } from "@/features/docs/DocTools";
+import { SheetStudio } from "@/features/office/SheetStudio";
+import { SlideStudio } from "@/features/office/SlideStudio";
 
 import { ImageCompress } from "@/features/image/ImageCompress";
 import { ImageResize } from "@/features/image/ImageResize";
@@ -373,16 +376,44 @@ export const App: FC = () => (
           }
         />
 
-        {/* Doc Studio — alat tunggal, tanpa submenu */}
+        {/* Doc Studio dipindah ke bawah kategori Office Tools — path lama dialihkan supaya bookmark/link lama tetap jalan */}
+        <Route path="docs" element={<Navigate to="/office/doc-studio" replace />} />
+
+        {/* ── Office Tools ─────────────────────────────────────────────── */}
+        <Route path="office" element={<OfficeCategory />} />
         <Route
-          path="docs"
+          path="office/doc-studio"
           element={
             <PageShell
-              badge="Dokumen"
+              badge="Office Tools"
               title="Doc Studio"
               subtitle="Editor dokumen ringan dengan ekspor .docx, .pdf, .txt — dilengkapi Find & Replace, template cepat, dan snapshot sesi."
             >
               <DocTools />
+            </PageShell>
+          }
+        />
+        <Route
+          path="office/sheet-studio"
+          element={
+            <PageShell
+              badge="Office Tools"
+              title="Sheet Studio"
+              subtitle="Spreadsheet penuh — rumus, format sel, banyak sheet, dan ekspor .xlsx / .csv / .pdf, semua diproses di perangkatmu."
+            >
+              <SheetStudio />
+            </PageShell>
+          }
+        />
+        <Route
+          path="office/slide-studio"
+          element={
+            <PageShell
+              badge="Office Tools"
+              title="Slide Studio"
+              subtitle="Editor presentasi — teks, bentuk, gambar, banyak slide, mode tampilkan layar penuh, dan ekspor .pdf / gambar."
+            >
+              <SlideStudio />
             </PageShell>
           }
         />

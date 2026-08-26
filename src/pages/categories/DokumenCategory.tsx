@@ -12,7 +12,7 @@ export default function DokumenCategory() {
     <PageShell
       badge="Dokumen"
       title="Dokumen"
-      subtitle="PDF Lab – Suite, konversi Office 2 arah, OCR, keamanan & anotasi PDF, sampai Doc Studio — masing-masing alat punya halaman sendiri."
+      subtitle="PDF Lab – Suite, konversi Office 2 arah, OCR, keamanan & anotasi PDF, sampai Doc Reader — masing-masing alat punya halaman sendiri."
     >
       <CategoryGrid
         groups={[
@@ -65,12 +65,6 @@ export default function DokumenCategory() {
               { name: "PDF Reader", desc: "Baca PDF langsung di browser + info dokumen.", path: "/pdf/reader", icon: <BookOpen className="w-6 h-6" /> },
               { name: "Sensor / Redaksi PDF", desc: "Hitamkan informasi sensitif secara permanen dengan menggambar kotak sensor.", path: "/pdf/sensor", icon: <EyeOff className="w-6 h-6" /> },
               { name: "Scan PDF", desc: "Ubah foto dokumen menjadi PDF hasil scan.", path: "/pdf/scan", icon: <ScanLine className="w-6 h-6" /> },
-            ],
-          },
-          {
-            section: "Doc Studio",
-            items: [
-              { name: "Doc Studio", desc: "Editor dokumen full rich-text dengan ekspor .docx, .pdf, dan .txt.", path: "/docs", icon: <BookOpen className="w-6 h-6" /> },
               { name: "Doc Reader", desc: "Baca file .txt, .docx, atau .rtf dengan tampilan nyaman — bisa juga didengarkan.", path: "/pdf/baca-dokumen", icon: <BookOpen className="w-6 h-6" /> },
             ],
           },

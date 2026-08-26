@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   QrCode, FileText, Image as ImageIcon, SlidersHorizontal,
-  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard, AudioLines
+  ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard, AudioLines, Presentation
 } from 'lucide-react';
 
 const tools = [
@@ -16,11 +16,19 @@ const tools = [
   },
   {
     icon: <FileText className="w-7 h-7 text-white" />,
-    title: 'PDF Lab & Doc Studio',
-    desc: 'Toolkit PDF lengkap (kompres, gabung, pecah, konversi) plus editor dokumen dengan ekspor .docx, .pdf, .txt.',
+    title: 'PDF Lab – Suite',
+    desc: 'Toolkit PDF lengkap: kompres, gabung, pecah, konversi Office 2 arah, OCR, hingga keamanan & anotasi PDF.',
     path: '/pdf',
     gradient: 'from-blue-400 to-indigo-600',
     badge: '20+ Alat',
+  },
+  {
+    icon: <Presentation className="w-7 h-7 text-white" />,
+    title: 'Office Tools',
+    desc: 'Doc Studio, Sheet Studio, dan Slide Studio — editor dokumen, spreadsheet, dan presentasi langsung di browser.',
+    path: '/office',
+    gradient: 'from-violet-400 to-purple-600',
+    badge: 'Baru',
   },
   {
     icon: <ImageIcon className="w-7 h-7 text-white" />,
