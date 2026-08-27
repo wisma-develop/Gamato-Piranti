@@ -79,7 +79,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
   },
   {
     id: 'office',
-    title: 'Office Tools',
+    title: 'Office',
     icon: <Presentation className="w-4 h-4" />,
     rootPath: '/office',
     items: [
@@ -255,12 +255,18 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1" ref={dropdownRef}>
+          {/* Desktop Navigation — only shown from `xl:` (1280px) up. Below that, the hamburger
+              menu takes over. This threshold is deliberate, not arbitrary: with 8 category
+              dropdowns + the About/theme buttons, the full labelled nav needs ~940px of room
+              and the header's content area is capped by `max-w-7xl`, so anything narrower
+              (including the very common 1024–1279px laptop/tablet-landscape range) would
+              wrap or visually crowd together. Verified to fit with 140px+ to spare at 1280px
+              and beyond. */}
+          <nav className="hidden xl:flex items-center gap-0.5" ref={dropdownRef}>
             {menuGroups.map((group, groupIndex) => {
               const wide = group.items.length > 4;
-              // Cegah dropdown terpotong di layar tablet (768–1024px): item paling kiri nempel kiri,
-              // item paling kanan nempel kanan, sisanya tetap center di bawah tombolnya.
+              // Keep each dropdown panel inside the viewport: first item hugs the left edge,
+              // last two hug the right edge, everything else stays centered under its button.
               const isFirst = groupIndex === 0;
               const isNearEnd = groupIndex >= menuGroups.length - 2;
               const alignClass = isFirst ? 'left-0' : isNearEnd ? 'right-0' : 'left-1/2 -translate-x-1/2';
@@ -268,7 +274,7 @@ export default function Header() {
                 <div key={group.id} className="relative">
                   <button
                     onClick={() => setActiveDropdown(activeDropdown === group.id ? null : group.id)}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
                       activeDropdown === group.id || isActive(group.items)
                         ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
@@ -276,7 +282,7 @@ export default function Header() {
                   >
                     {group.icon}
                     <span>{group.title}</span>
-                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeDropdown === group.id ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${activeDropdown === group.id ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
@@ -330,8 +336,8 @@ export default function Header() {
             </button>
           </nav>
 
-          {/* Mobile theme toggle + hamburger */}
-          <div className="lg:hidden flex items-center gap-1">
+          {/* Mobile theme toggle + hamburger — mirrors the nav's xl: cutover above */}
+          <div className="xl:hidden flex items-center gap-1">
             <button
               type="button"
               onClick={toggleTheme}
@@ -359,7 +365,7 @@ export default function Header() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden overflow-hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
+            className="xl:hidden overflow-hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
           >
             <div className="px-4 py-5 space-y-3 max-h-[80vh] overflow-y-auto">
               {menuGroups.map((group) => {
