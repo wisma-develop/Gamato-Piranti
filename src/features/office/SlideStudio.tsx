@@ -236,7 +236,11 @@ export const SlideStudio: React.FC = () => {
           }
           return slide;
         });
-        history.set((prev) => ({ ...prev, slides: slides.length ? slides : prev.slides }));
+        if (!slides.length) {
+          showToast("Tidak ada slide yang bisa dibaca dari file .pptx ini.", "error");
+          return;
+        }
+        history.set((prev) => ({ ...prev, slides }));
         setActiveIdx(0);
         setSelectedId(null);
         showToast(`${slides.length} slide berhasil diimpor dari .pptx.`, "success");

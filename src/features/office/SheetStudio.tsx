@@ -71,6 +71,17 @@ export const SheetStudio: React.FC = () => {
   const gridWrapRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const formulaBarRef = useRef<HTMLInputElement>(null);
+  // Escape must cancel WITHOUT saving, and Enter/Tab must not double-commit —
+  // but React fires a real `blur` whenever the edit <input> loses focus or is
+  // unmounted, including right after a keydown handler already resolved the
+  // edit itself. Without this guard, that trailing blur would race the
+  // keydown handler: re-saving a value Escape just discarded, or re-running
+  // commitEdit a second time after Enter/Tab already committed it. Every
+  // handler that explicitly resolves an edit (commit or cancel) flips this to
+  // true right before it moves focus; the blur handler checks it first and,
+  // if set, skips its own logic and resets it — so a genuine "unhandled" blur
+  // (e.g. clicking the toolbar mid-edit) still falls through to commit.
+  const editResolvedRef = useRef(false);
   const { showToast } = useToast();
 
   const values = useMemo(() => computeSheet(activeSheet), [activeSheet.cells, activeSheet.rowCount, activeSheet.colCount]);
@@ -103,6 +114,10 @@ export const SheetStudio: React.FC = () => {
 
   const commitEdit = useCallback(
     (addr: CellAddr, raw: string) => {
+      // Centralized here (not in each caller) so every commit path — Enter/Tab
+      // in either editing surface, or clicking straight from one cell to
+      // another — consistently suppresses the input's own trailing blur.
+      editResolvedRef.current = true;
       mutateActiveSheet((sheet: SheetData) => {
         const key = cellKey(addr);
         const existing = sheet.cells[key];
@@ -368,16 +383,19 @@ export const SheetStudio: React.FC = () => {
       if (editingCell) {
         if (e.key === "Enter") {
           e.preventDefault();
+          editResolvedRef.current = true;
           commitEdit(editingCell, editValue);
           const next = clampAddr({ row: editingCell.row + 1, col: editingCell.col }, activeSheet);
           setSelection({ anchor: next, focus: next });
         } else if (e.key === "Tab") {
           e.preventDefault();
+          editResolvedRef.current = true;
           commitEdit(editingCell, editValue);
           const next = clampAddr({ row: editingCell.row, col: editingCell.col + (e.shiftKey ? -1 : 1) }, activeSheet);
           setSelection({ anchor: next, focus: next });
         } else if (e.key === "Escape") {
           e.preventDefault();
+          editResolvedRef.current = true;
           setEditingCell(null);
         }
         return;
@@ -504,14 +522,31 @@ export const SheetStudio: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
+              editResolvedRef.current = true;
               commitEdit(activeAddr, editValue);
               const next = clampAddr({ row: activeAddr.row + 1, col: activeAddr.col }, activeSheet);
               setSelection({ anchor: next, focus: next });
               gridWrapRef.current?.focus();
+            } else if (e.key === "Tab") {
+              e.preventDefault();
+              editResolvedRef.current = true;
+              commitEdit(activeAddr, editValue);
+              const next = clampAddr({ row: activeAddr.row, col: activeAddr.col + (e.shiftKey ? -1 : 1) }, activeSheet);
+              setSelection({ anchor: next, focus: next });
+              gridWrapRef.current?.focus();
             } else if (e.key === "Escape") {
+              e.preventDefault();
+              editResolvedRef.current = true;
               setEditingCell(null);
               gridWrapRef.current?.focus();
             }
+          }}
+          onBlur={() => {
+            if (editResolvedRef.current) {
+              editResolvedRef.current = false;
+              return;
+            }
+            if (editingCell) commitEdit(activeAddr, editValue);
           }}
           placeholder="Ketik nilai atau rumus, mis. =SUM(A1:A5)"
           className="flex-1 bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none font-mono"
@@ -595,7 +630,13 @@ export const SheetStudio: React.FC = () => {
                           ref={editInputRef}
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
-                          onBlur={() => commitEdit(addr, editValue)}
+                          onBlur={() => {
+                            if (editResolvedRef.current) {
+                              editResolvedRef.current = false;
+                              return;
+                            }
+                            commitEdit(addr, editValue);
+                          }}
                           className="absolute inset-0 w-full h-full px-1.5 text-sm bg-white dark:bg-slate-900 outline-none ring-2 ring-indigo-500 font-mono"
                         />
                       ) : (
