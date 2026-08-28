@@ -1,6 +1,6 @@
 import {
   Code2, ListOrdered, Radio, Mail, BarChart3,
-  KeyRound, Calculator, Languages, AppWindow, Workflow,
+  KeyRound, Calculator, Languages, AppWindow, Workflow, RefreshCw,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -14,6 +14,18 @@ export default function UtilitasCategory() {
     >
       <CategoryGrid
         groups={[
+          {
+            section: "Konversi",
+            items: [
+              {
+                name: "Universal Converter",
+                desc: "Ubah file/data ke format lain — gambar, dokumen, spreadsheet, data terstruktur (JSON/CSV/XML/YAML), audio, video, dan ZIP. Puluhan pasangan format didukung.",
+                path: "/utility/convert",
+                icon: <RefreshCw className="w-6 h-6" />,
+                badge: "Baru",
+              },
+            ],
+          },
           {
             section: "Kalkulator",
             items: [

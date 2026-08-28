@@ -19,6 +19,7 @@ import {
   EyeOff,
   Presentation,
   Table2,
+  RefreshCw,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -142,6 +143,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     rootPath: '/utility',
     items: [
       { name: 'Kalkulator',       path: '/utility/kalkulator',       icon: <Calculator className="w-4 h-4 text-pink-500" />, section: 'Kalkulator' },
+      { name: 'Universal Converter', path: '/utility/convert',       icon: <RefreshCw className="w-4 h-4 text-pink-500" />, section: 'Konversi' },
       { name: 'Kamus Dunia',      path: '/utility/kamus-dunia',      icon: <Languages className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'HTML Preview',     path: '/utility/html-preview',     icon: <AppWindow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'Diagram & Rumus Studio', path: '/utility/diagram-rumus', icon: <Workflow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },

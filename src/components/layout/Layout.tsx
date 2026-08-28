@@ -89,6 +89,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'kamus-dunia': 'Kamus Dunia',
     'html-preview': 'HTML Preview',
     'diagram-rumus': 'Diagram & Rumus Studio',
+    'convert': 'Universal Converter',
     'kalkulator': 'Kalkulator',
   },
   special: {

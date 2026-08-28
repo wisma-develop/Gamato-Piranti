@@ -82,6 +82,7 @@ import { UtilityPasswordToken } from "@/features/utility/UtilityPasswordToken";
 import { UtilityWorldDictionary } from "@/features/utility/UtilityWorldDictionary";
 import { UtilityHtmlPreview } from "@/features/utility/UtilityHtmlPreview";
 import { UtilityDiagramFormula } from "@/features/utility/UtilityDiagramFormula";
+import { UniversalConverter } from "@/features/utility/convert/UniversalConverter";
 import { CalculatorHub } from "@/features/utility/calculator/CalculatorHub";
 
 import { AudioSpeechToText } from "@/features/audio/AudioSpeechToText";
@@ -612,6 +613,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Utilitas" title="Diagram & Rumus Studio" subtitle="Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).">
               <UtilityDiagramFormula />
+            </PageShell>
+          }
+        />
+        <Route
+          path="utility/convert"
+          element={
+            <PageShell badge="Utilitas" title="Universal Converter" subtitle="Ubah file/data ke format lain — gambar, dokumen, spreadsheet, data terstruktur, audio, video, dan ZIP.">
+              <UniversalConverter />
             </PageShell>
           }
         />
