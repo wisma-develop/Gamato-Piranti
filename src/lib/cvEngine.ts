@@ -24,7 +24,15 @@ export const CV_PAGE_W = 1240;
 export const CV_PAGE_H = 1754;
 const MARGIN = 64;
 const BOTTOM_LIMIT = CV_PAGE_H - MARGIN;
-const FONT = "'Alan Sans', sans-serif";
+let FONT = "'Alan Sans', sans-serif";
+
+/** Called once at the top of `renderCvPages` so every draw* helper below
+ *  (which all reference the shared `FONT` binding) picks up the user's
+ *  chosen font/custom upload for this render pass. Safe because canvas
+ *  drawing here is fully synchronous — no other render can interleave. */
+function setActiveFont(family: string) {
+  FONT = family && family.trim() ? `'${family.trim()}', sans-serif` : "'Alan Sans', sans-serif";
+}
 
 // ── Low-level helpers ─────────────────────────────────────────────────────
 
@@ -793,9 +801,10 @@ export async function renderCvPages(
   data: CvData,
   photo: HTMLImageElement | null
 ): Promise<HTMLCanvasElement[]> {
-  await ensureFontReady("Alan Sans", "700");
-  await ensureFontReady("Alan Sans", "600");
-  await ensureFontReady("Alan Sans", "400");
+  setActiveFont(data.fontFamily);
+  await ensureFontReady(data.fontFamily, "700");
+  await ensureFontReady(data.fontFamily, "600");
+  await ensureFontReady(data.fontFamily, "400");
 
   const id: CvTemplateId = data.templateId;
   if (id === "sidebar") return buildSidebarPages(data, photo, false);

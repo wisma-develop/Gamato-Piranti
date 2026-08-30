@@ -1,3 +1,5 @@
+import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+
 // Shared data model, item factories, and template registry for the CV Maker
 // (Special > Pembuat CV). Kept separate from cvEngine.ts so the UI layer can
 // import lightweight types/factories without pulling in the canvas renderer.
@@ -105,6 +107,7 @@ export interface AchItem {
 export interface CvData {
   templateId: CvTemplateId;
   accentColor: string;
+  fontFamily: string;
   fullName: string;
   jobTitle: string;
   email: string;
@@ -149,6 +152,7 @@ export function defaultCvData(): CvData {
   return {
     templateId: "minimal",
     accentColor: CV_TEMPLATES[0].accentDefault,
+    fontFamily: DEFAULT_FONT_FAMILY,
     fullName: "Nama Lengkap Anda",
     jobTitle: "Posisi / Profesi yang Dituju",
     email: "nama@email.com",

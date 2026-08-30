@@ -663,7 +663,7 @@ export const App: FC = () => (
         <Route
           path="special/kartu-nama"
           element={
-            <PageShell badge="Spesial" title="Kartu Nama" subtitle="Kartu nama profesional dengan logo custom — export PNG & PDF, siap cetak.">
+            <PageShell badge="Spesial" title="Studio Kartu Nama" subtitle="Desain kartu nama full custom: template siap pakai, latar warna/gradasi/gambar, elemen bebas, ukuran & sisi depan-belakang — export PNG & PDF, siap cetak.">
               <BusinessCardGenerator />
             </PageShell>
           }
