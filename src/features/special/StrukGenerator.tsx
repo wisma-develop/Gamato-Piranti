@@ -12,6 +12,9 @@ import { drawDashedLine, drawLogoFit, ensureFontReady, wrapText } from "@/lib/bu
 import { printCanvasImage } from "@/lib/printCanvas";
 import { buildReceiptPrintJob } from "@/lib/escpos";
 import { isWebUsbSupported, printViaWebUsb, WebUsbPrintError } from "@/lib/webUsbPrinter";
+import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { useCustomFonts } from "@/hooks/useCustomFonts";
+import { FontPicker } from "@/components/ui/FontPicker";
 import { Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
@@ -48,6 +51,7 @@ type StrukData = {
   taxPct: string;
   amountPaid: string;
   footerMessage: string;
+  fontFamily: string;
 };
 
 function computeStrukTotals(items: StrukItem[], discountPct: number, taxPct: number, amountPaid: number) {
@@ -82,10 +86,10 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   const logoBoxH = 70;
   if (logoImg) y += logoBoxH + 12;
 
-  ctx.font = "700 20px 'Alan Sans', sans-serif";
+  ctx.font = `700 20px '${data.fontFamily}', sans-serif`;
   y += 24;
 
-  ctx.font = "400 13px 'Alan Sans', sans-serif";
+  ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
   const addrLines = wrapText(ctx, data.companyAddress, contentWidth).slice(0, 2);
   y += addrLines.length * 17;
   if (data.companyPhone) y += 17;
@@ -93,7 +97,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   y += 10;
   y += 16; // dashed rule 1
 
-  ctx.font = "400 13px 'Alan Sans', sans-serif";
+  ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
   y += 17; // no. transaksi
   if (data.cashierName) y += 17;
   y += 17; // tanggal & waktu
@@ -101,7 +105,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   y += 10;
   y += 16; // dashed rule 2
 
-  ctx.font = "400 15px 'Alan Sans', sans-serif";
+  ctx.font = `400 15px '${data.fontFamily}', sans-serif`;
   const itemLayout: { nameLines: string[] }[] = [];
   items.forEach((item) => {
     const nameLines = wrapText(ctx, item.name || "-", contentWidth).slice(0, 2);
@@ -148,11 +152,11 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   }
 
   ctx.textAlign = "center";
-  ctx.font = "700 20px 'Alan Sans', sans-serif";
+  ctx.font = `700 20px '${data.fontFamily}', sans-serif`;
   ctx.fillText(data.companyName || "Nama Usaha", W / 2, dy + 18);
   dy += 24;
 
-  ctx.font = "400 13px 'Alan Sans', sans-serif";
+  ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#475569";
   addrLines.forEach((line, i) => ctx.fillText(line, W / 2, dy + 12 + i * 17));
   dy += addrLines.length * 17;
@@ -166,7 +170,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   dy += 16;
 
   ctx.textAlign = "left";
-  ctx.font = "400 13px 'Alan Sans', sans-serif";
+  ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#334155";
   ctx.fillText(`No. Transaksi: ${data.transactionNo || "-"}`, contentX, dy + 10);
   dy += 17;
@@ -188,18 +192,18 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
     const rowSubtotal = qty * price;
 
     ctx.textAlign = "left";
-    ctx.font = "600 15px 'Alan Sans', sans-serif";
+    ctx.font = `600 15px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#0f172a";
     layout.nameLines.forEach((line, i) => ctx.fillText(line, contentX, dy + 14 + i * 19));
     dy += layout.nameLines.length * 19;
 
-    ctx.font = "400 14px 'Alan Sans', sans-serif";
+    ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#64748b";
     ctx.textAlign = "left";
     ctx.fillText(`${qty} x ${formatIDR(price)}`, contentX + 8, dy + 12);
     ctx.textAlign = "right";
     ctx.fillStyle = "#0f172a";
-    ctx.font = "600 14px 'Alan Sans', sans-serif";
+    ctx.font = `600 14px '${data.fontFamily}', sans-serif`;
     ctx.fillText(formatIDR(rowSubtotal), contentRight, dy + 12);
     dy += 18 + 8;
   });
@@ -210,11 +214,11 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
 
   const totalsLine = (label: string, value: string) => {
     ctx.textAlign = "left";
-    ctx.font = "400 14px 'Alan Sans', sans-serif";
+    ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#64748b";
     ctx.fillText(label, contentX, dy + 10);
     ctx.textAlign = "right";
-    ctx.font = "600 14px 'Alan Sans', sans-serif";
+    ctx.font = `600 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#0f172a";
     ctx.fillText(value, contentRight, dy + 10);
     dy += 20;
@@ -226,22 +230,22 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
 
   dy += 8;
   ctx.textAlign = "left";
-  ctx.font = "700 18px 'Alan Sans', sans-serif";
+  ctx.font = `700 18px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText("TOTAL", contentX, dy + 16);
   ctx.textAlign = "right";
-  ctx.font = "700 20px 'Alan Sans', sans-serif";
+  ctx.font = `700 20px '${data.fontFamily}', sans-serif`;
   ctx.fillText(formatIDR(total), contentRight, dy + 17);
   dy += 34;
 
   if (amountPaid > 0) {
     totalsLine("Bayar", formatIDR(amountPaid));
     ctx.textAlign = "left";
-    ctx.font = "400 14px 'Alan Sans', sans-serif";
+    ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = change >= 0 ? "#64748b" : "#dc2626";
     ctx.fillText(change >= 0 ? "Kembalian" : "Kurang Bayar", contentX, dy + 10);
     ctx.textAlign = "right";
-    ctx.font = "600 14px 'Alan Sans', sans-serif";
+    ctx.font = `600 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = change >= 0 ? "#0f172a" : "#dc2626";
     ctx.fillText(formatIDR(Math.abs(change)), contentRight, dy + 10);
     dy += 20;
@@ -252,7 +256,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   dy += 18;
 
   ctx.textAlign = "center";
-  ctx.font = "italic 400 13px 'Alan Sans', sans-serif";
+  ctx.font = `italic 400 13px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   footerLines.forEach((line, i) => ctx.fillText(line, W / 2, dy + 10 + i * 17));
 }
@@ -270,6 +274,7 @@ type StrukFormData = {
   taxPct: string;
   amountPaid: string;
   footerMessage: string;
+  fontFamily: string;
 };
 
 export function StrukGenerator() {
@@ -294,6 +299,7 @@ export function StrukGenerator() {
     taxPct: "0",
     amountPaid: "",
     footerMessage: "Terima kasih atas kunjungan Anda!",
+    fontFamily: DEFAULT_FONT_FAMILY,
   }));
   const form = history.state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
@@ -307,6 +313,13 @@ export function StrukGenerator() {
   };
   const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), name: "Item baru", qty: "1", price: "0" }] }));
   const removeItem = (id: string) => history.set((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
+
+  const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
+  const handleRemoveCustomFont = (id: string) => {
+    removeCustomFont(id, (fallback) => {
+      if (form.fontFamily === id) updateField("fontFamily", fallback);
+    });
+  };
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
@@ -326,6 +339,7 @@ export function StrukGenerator() {
       taxPct: form.taxPct,
       amountPaid: form.amountPaid,
       footerMessage: form.footerMessage,
+      fontFamily: form.fontFamily,
     }),
     [form]
   );
@@ -344,7 +358,7 @@ export function StrukGenerator() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await ensureFontReady("Alan Sans");
+      await ensureFontReady(form.fontFamily);
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -435,6 +449,15 @@ export function StrukGenerator() {
             <Input label="Nama Usaha" value={form.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
             <Textarea label="Alamat" rows={2} value={form.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
             <Input label="Telepon" value={form.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+            <FontPicker
+              value={form.fontFamily}
+              onChange={(family) => updateField("fontFamily", family)}
+              customFonts={customFonts}
+              isFontLoading={isFontLoading}
+              fontError={fontError}
+              onUpload={addCustomFont}
+              onRemoveCustomFont={handleRemoveCustomFont}
+            />
             <div>
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Lebar Kertas</p>
               <div className="grid grid-cols-2 gap-2">

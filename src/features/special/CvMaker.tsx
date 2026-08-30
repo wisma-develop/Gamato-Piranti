@@ -41,6 +41,8 @@ import {
   type CvTemplateId,
 } from "@/lib/cvTypes";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { FontPicker } from "@/components/ui/FontPicker";
+import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
@@ -122,6 +124,12 @@ export const CvMaker: React.FC = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const photoImg = useImageFromFile(photoFile);
   const [tab, setTab] = useState<TabId>("profil");
+  const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
+  const handleRemoveCustomFont = (id: string) => {
+    removeCustomFont(id, (fallback) => {
+      if (data.fontFamily === id) setData((prev) => ({ ...prev, fontFamily: fallback }));
+    });
+  };
 
   const [pages, setPages] = useState<HTMLCanvasElement[]>([]);
   const [previewIndex, setPreviewIndex] = useState(0);
@@ -337,6 +345,17 @@ export const CvMaker: React.FC = () => {
               <Input label="Telepon" value={data.phone} onChange={(e) => patch({ phone: e.target.value })} />
               <Input label="Alamat / Kota" value={data.address} onChange={(e) => patch({ address: e.target.value })} />
               <Input label="Website / LinkedIn" value={data.website} onChange={(e) => patch({ website: e.target.value })} />
+            </div>
+            <div className="mt-4">
+              <FontPicker
+                value={data.fontFamily}
+                onChange={(family) => patch({ fontFamily: family })}
+                customFonts={customFonts}
+                isFontLoading={isFontLoading}
+                fontError={fontError}
+                onUpload={addCustomFont}
+                onRemoveCustomFont={handleRemoveCustomFont}
+              />
             </div>
           </PanelCard>
         )}

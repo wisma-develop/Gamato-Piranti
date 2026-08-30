@@ -10,6 +10,9 @@ import { formatIDR } from "@/lib/utilityHelpers";
 import { todayISODate, formatDateID } from "@/lib/dateFormat";
 import { drawWrappedText, drawSolidLine, drawLogoFit, roundRect, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
+import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { useCustomFonts } from "@/hooks/useCustomFonts";
+import { FontPicker } from "@/components/ui/FontPicker";
 import { Label, Input, Textarea, Select, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { MoneyInput } from "@/components/ui/MoneyInput";
@@ -72,6 +75,7 @@ type InvoiceData = {
   taxPct: string;
   notes: string;
   accentColor: string;
+  fontFamily: string;
 };
 
 function computeTotals(items: InvoiceItem[], discountPct: number, taxPct: number) {
@@ -136,9 +140,9 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#0f172a";
-  ctx.font = "700 24px 'Alan Sans', sans-serif";
+  ctx.font = `700 24px '${data.fontFamily}', sans-serif`;
   ctx.fillText(data.companyName || "Nama Perusahaan", textX, yHeaderTop + 22);
-  ctx.font = "400 14px 'Alan Sans', sans-serif";
+  ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   const compAddrMaxW = contentRight - 360 - textX;
   const compY = drawWrappedText(ctx, data.companyAddress, textX, yHeaderTop + 46, compAddrMaxW, 19, 2);
@@ -146,11 +150,11 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   if (contactLine) ctx.fillText(contactLine, textX, compY);
 
   ctx.textAlign = "right";
-  ctx.font = "700 38px 'Alan Sans', sans-serif";
+  ctx.font = `700 38px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = data.accentColor;
   ctx.fillText("INVOICE", contentRight, yHeaderTop + 30);
 
-  ctx.font = "400 14px 'Alan Sans', sans-serif";
+  ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText(`No. ${data.invoiceNo || "-"}`, contentRight, yHeaderTop + 58);
   ctx.fillText(`Tanggal: ${formatDateID(data.invoiceDate) || "-"}`, contentRight, yHeaderTop + 78);
@@ -159,7 +163,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   if (data.status) {
     const label = data.status === "lunas" ? "LUNAS" : "BELUM LUNAS";
     const badgeColor = data.status === "lunas" ? "#16a34a" : "#dc2626";
-    ctx.font = "700 14px 'Alan Sans', sans-serif";
+    ctx.font = `700 14px '${data.fontFamily}', sans-serif`;
     const badgeW = ctx.measureText(label).width + 30;
     const badgeX = contentRight - badgeW;
     const badgeY = yHeaderTop + 112;
@@ -177,26 +181,26 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   // ── Bill-to / payment info ──
   const colW = contentWidth / 2 - 20;
   ctx.textAlign = "left";
-  ctx.font = "700 13px 'Alan Sans', sans-serif";
+  ctx.font = `700 13px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = data.accentColor;
   ctx.fillText("DITAGIHKAN KEPADA", contentX, yInfoTop);
-  ctx.font = "700 19px 'Alan Sans', sans-serif";
+  ctx.font = `700 19px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText(data.clientName || "-", contentX, yInfoTop + 26);
-  ctx.font = "400 15px 'Alan Sans', sans-serif";
+  ctx.font = `400 15px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   const clientY = drawWrappedText(ctx, data.clientAddress, contentX, yInfoTop + 48, colW, 20, 2);
   if (data.clientPhone) ctx.fillText(data.clientPhone, contentX, clientY);
 
   const col2X = contentX + colW + 40;
   if (data.bankName || data.bankAccount) {
-    ctx.font = "700 13px 'Alan Sans', sans-serif";
+    ctx.font = `700 13px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = data.accentColor;
     ctx.fillText("INFO PEMBAYARAN", col2X, yInfoTop);
-    ctx.font = "600 17px 'Alan Sans', sans-serif";
+    ctx.font = `600 17px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#0f172a";
     ctx.fillText(data.bankName || "-", col2X, yInfoTop + 26);
-    ctx.font = "400 15px 'Alan Sans', sans-serif";
+    ctx.font = `400 15px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#64748b";
     ctx.fillText(data.bankAccount || "-", col2X, yInfoTop + 48);
     if (data.bankHolder) ctx.fillText(`a.n. ${data.bankHolder}`, col2X, yInfoTop + 68);
@@ -210,7 +214,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
 
   ctx.fillStyle = "#f1f5f9";
   ctx.fillRect(contentX, yTableTop, contentWidth, TABLE_HEADER_H);
-  ctx.font = "700 13px 'Alan Sans', sans-serif";
+  ctx.font = `700 13px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#475569";
   ctx.textAlign = "left";
   ctx.fillText("NO", contentX + 14, yTableTop + 29);
@@ -232,7 +236,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
     const rowSubtotal = qty * price;
     const baseline = rowY + 29;
 
-    ctx.font = "400 15px 'Alan Sans', sans-serif";
+    ctx.font = `400 15px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#0f172a";
     ctx.textAlign = "left";
     ctx.fillText(String(idx + 1), contentX + 14, baseline);
@@ -244,7 +248,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
     ctx.fillText(String(qty), colQtyCenterX, baseline);
     ctx.textAlign = "right";
     ctx.fillText(formatIDR(price), colPriceRightX, baseline);
-    ctx.font = "600 15px 'Alan Sans', sans-serif";
+    ctx.font = `600 15px '${data.fontFamily}', sans-serif`;
     ctx.fillText(formatIDR(rowSubtotal), contentRight, baseline);
   });
 
@@ -257,11 +261,11 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
 
   const totalsLine = (label: string, value: string, bold = false) => {
     ctx.textAlign = "left";
-    ctx.font = `${bold ? "700" : "400"} 15px 'Alan Sans', sans-serif`;
+    ctx.font = `${bold ? "700" : "400"} 15px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = bold ? "#0f172a" : "#64748b";
     ctx.fillText(label, totalsX, ty);
     ctx.textAlign = "right";
-    ctx.font = `${bold ? "700" : "600"} 15px 'Alan Sans', sans-serif`;
+    ctx.font = `${bold ? "700" : "600"} 15px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#0f172a";
     ctx.fillText(value, contentRight, ty);
     ty += TOTALS_ROW_H;
@@ -275,26 +279,26 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   roundRect(ctx, totalsX, yTotalBoxTop, totalsBoxW, TOTAL_BOX_H, 12);
   ctx.fill();
   ctx.textAlign = "left";
-  ctx.font = "700 16px 'Alan Sans', sans-serif";
+  ctx.font = `700 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#ffffff";
   ctx.fillText("TOTAL", totalsX + 22, yTotalBoxTop + 37);
   ctx.textAlign = "right";
-  ctx.font = "700 24px 'Alan Sans', sans-serif";
+  ctx.font = `700 24px '${data.fontFamily}', sans-serif`;
   ctx.fillText(formatIDR(total), contentRight - 22, yTotalBoxTop + 39);
 
   // ── Notes + footer ──
   if (hasNotes) {
     ctx.textAlign = "left";
-    ctx.font = "700 13px 'Alan Sans', sans-serif";
+    ctx.font = `700 13px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#64748b";
     ctx.fillText("CATATAN", contentX, yNotesLabel);
-    ctx.font = "400 14px 'Alan Sans', sans-serif";
+    ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#475569";
     drawWrappedText(ctx, data.notes, contentX, yNotesBodyTop, contentWidth, NOTES_LINE_H, 3);
   }
 
   ctx.textAlign = "center";
-  ctx.font = "italic 400 14px 'Alan Sans', sans-serif";
+  ctx.font = `italic 400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#94a3b8";
   ctx.fillText("Terima kasih atas kepercayaan Anda.", W / 2, yThankYou);
 }
@@ -323,6 +327,7 @@ export function InvoiceGenerator() {
     taxPct: "11",
     notes: "Pembayaran dapat dilakukan melalui transfer bank sesuai info pembayaran di atas.",
     accentColor: ACCENT_PRESETS[0],
+    fontFamily: DEFAULT_FONT_FAMILY,
   }));
   const data = history.state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
@@ -340,6 +345,12 @@ export function InvoiceGenerator() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
+  const handleRemoveCustomFont = (id: string) => {
+    removeCustomFont(id, (fallback) => {
+      if (data.fontFamily === id) updateField("fontFamily", fallback);
+    });
+  };
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
@@ -352,7 +363,7 @@ export function InvoiceGenerator() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await ensureFontReady("Alan Sans");
+      await ensureFontReady(data.fontFamily);
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -430,6 +441,15 @@ export function InvoiceGenerator() {
               <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
               <Input label="Email" value={data.companyEmail} onChange={(e) => updateField("companyEmail", e.target.value, { continuous: true })} />
             </div>
+            <FontPicker
+              value={data.fontFamily}
+              onChange={(family) => updateField("fontFamily", family)}
+              customFonts={customFonts}
+              isFontLoading={isFontLoading}
+              fontError={fontError}
+              onUpload={addCustomFont}
+              onRemoveCustomFont={handleRemoveCustomFont}
+            />
             <div>
               <Label>Warna Aksen</Label>
               <div className="flex flex-wrap items-center gap-2 mt-1.5">

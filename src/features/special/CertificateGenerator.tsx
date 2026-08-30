@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Award, Upload, Plus, Trash2, Download, Loader2, Move, Type,
   Bold, Italic, AlignLeft, AlignCenter, AlignRight, Users, Image as ImageIcon,
-  FileSpreadsheet, FileDown, PenLine, X, Info,
+  FileSpreadsheet, FileDown, PenLine, Info,
 } from "lucide-react";
 import JSZip from "jszip";
 import { PDFDocument } from "pdf-lib";
@@ -11,8 +11,10 @@ import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { csvToRecipients, certificateCsvTemplate, type CsvRecipient } from "@/lib/csv";
-import { loadCustomFont, type CustomFontEntry } from "@/lib/customFont";
-import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
+import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { useCustomFonts } from "@/hooks/useCustomFonts";
+import { FontPicker } from "@/components/ui/FontPicker";
+import { Label, Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
@@ -36,13 +38,6 @@ type TextLayer = {
   italic: boolean;
   align: "left" | "center" | "right";
 };
-
-const FONT_OPTIONS = [
-  { id: "Alan Sans", label: "Alan Sans (Modern)" },
-  { id: "Playfair Display", label: "Playfair Display (Elegan)" },
-  { id: "Great Vibes", label: "Great Vibes (Kaligrafi)" },
-  { id: "Georgia", label: "Georgia (Serif Klasik)" },
-];
 
 const DEFAULT_CANVAS_W = 1600;
 const DEFAULT_CANVAS_H = 1131; // ~A4 landscape ratio, used only when there's no uploaded template
@@ -188,9 +183,7 @@ export function CertificateGenerator() {
   const [csvExtraColumns, setCsvExtraColumns] = useState<string[]>([]);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [fileNameMode, setFileNameMode] = useState<"recipient" | "system">("recipient");
-  const [customFonts, setCustomFonts] = useState<CustomFontEntry[]>([]);
-  const [isFontLoading, setIsFontLoading] = useState(false);
-  const [fontError, setFontError] = useState<string | null>(null);
+  const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -235,30 +228,12 @@ export function CertificateGenerator() {
     return () => { cancelled = true; };
   }, [csvFile]);
 
-  const fontOptions = useMemo(
-    () => [...FONT_OPTIONS, ...customFonts.map(f => ({ id: f.family, label: `${f.fileName} (Custom)` }))],
-    [customFonts]
-  );
-
-  const handleFontUpload = async (file: File | null) => {
-    if (!file) return;
-    setFontError(null);
-    setIsFontLoading(true);
-    try {
-      const entry = await loadCustomFont(file);
-      setCustomFonts(prev => [...prev, entry]);
-    } catch (err: any) {
-      setFontError(err?.message || "Gagal memuat font kustom.");
-    } finally {
-      setIsFontLoading(false);
-    }
-  };
-
-  const removeCustomFont = (id: string) => {
-    setCustomFonts(prev => prev.filter(f => f.id !== id));
-    // Any layer using this font falls back to a safe default instead of
-    // silently rendering blank/invisible text once the font is gone.
-    setLayers(prev => prev.map(l => (l.fontFamily === id ? { ...l, fontFamily: "Alan Sans" } : l)));
+  // Any layer using a since-removed custom font falls back to a safe default
+  // instead of silently rendering blank/invisible text.
+  const handleRemoveCustomFont = (id: string) => {
+    removeCustomFont(id, (fallback) => {
+      setLayers(prev => prev.map(l => (l.fontFamily === id ? { ...l, fontFamily: fallback } : l)));
+    });
   };
 
   const downloadCsvTemplate = () => {
@@ -318,7 +293,7 @@ export function CertificateGenerator() {
 
   const addLayer = () => {
     const id = newLayerId();
-    setLayers(prev => [...prev, { id, name: `Teks ${prev.length + 1}`, text: "Teks baru", xPct: 50, yPct: 50, fontSize: 24, fontFamily: "Alan Sans", color: "#1e293b", bold: false, italic: false, align: "center" }]);
+    setLayers(prev => [...prev, { id, name: `Teks ${prev.length + 1}`, text: "Teks baru", xPct: 50, yPct: 50, fontSize: 24, fontFamily: DEFAULT_FONT_FAMILY, color: "#1e293b", bold: false, italic: false, align: "center" }]);
     setSelectedLayerId(id);
   };
 
@@ -520,39 +495,30 @@ export function CertificateGenerator() {
                   )}
                 </p>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <Select label="Font" value={selectedLayer.fontFamily} onChange={e => updateLayer(selectedLayer.id, { fontFamily: e.target.value })}>
-                    {fontOptions.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
-                  </Select>
+                <div className="grid grid-cols-2 gap-3 items-start">
+                  <FontPicker
+                    hideUpload
+                    value={selectedLayer.fontFamily}
+                    onChange={(family) => updateLayer(selectedLayer.id, { fontFamily: family })}
+                    customFonts={customFonts}
+                    isFontLoading={isFontLoading}
+                    fontError={fontError}
+                    onUpload={addCustomFont}
+                    onRemoveCustomFont={handleRemoveCustomFont}
+                  />
                   <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 }, { continuous: true })} />
                 </div>
 
-                <div>
-                  <label className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300">
-                    {isFontLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                    Upload Font Kustom (.ttf / .otf / .woff)
-                    <input
-                      type="file"
-                      accept=".ttf,.otf,.woff,.woff2"
-                      className="hidden"
-                      disabled={isFontLoading}
-                      onChange={e => { handleFontUpload(e.target.files?.[0] ?? null); e.target.value = ""; }}
-                    />
-                  </label>
-                  {fontError && <p className="text-xs text-red-500 mt-1">{fontError}</p>}
-                  {customFonts.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {customFonts.map(f => (
-                        <span key={f.id} className="inline-flex items-center gap-1 text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">
-                          {f.fileName}
-                          <button type="button" onClick={() => removeCustomFont(f.id)} className="hover:text-red-500 transition-colors" aria-label={`Hapus font ${f.fileName}`}>
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <FontPicker
+                  hideSelect
+                  value={selectedLayer.fontFamily}
+                  onChange={(family) => updateLayer(selectedLayer.id, { fontFamily: family })}
+                  customFonts={customFonts}
+                  isFontLoading={isFontLoading}
+                  fontError={fontError}
+                  onUpload={addCustomFont}
+                  onRemoveCustomFont={handleRemoveCustomFont}
+                />
 
                 <div className="space-y-3">
                   <GamatoColorPicker label="Warna" value={selectedLayer.color} onChange={(hex) => updateLayer(selectedLayer.id, { color: hex }, { continuous: true })} />

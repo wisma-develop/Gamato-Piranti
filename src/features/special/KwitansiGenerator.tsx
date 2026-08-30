@@ -10,6 +10,9 @@ import { terbilangRupiah } from "@/lib/terbilang";
 import { todayISODate, formatDateID } from "@/lib/dateFormat";
 import { drawWrappedText, drawDashedLine, drawSolidLine, drawLogoFit, roundRect, ensureFontReady } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
+import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { useCustomFonts } from "@/hooks/useCustomFonts";
+import { FontPicker } from "@/components/ui/FontPicker";
 import { Label, Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { MoneyInput } from "@/components/ui/MoneyInput";
@@ -37,6 +40,7 @@ type KwitansiData = {
   city: string;
   receiverName: string;
   accentColor: string;
+  fontFamily: string;
 };
 
 function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement | null, data: KwitansiData) {
@@ -70,20 +74,20 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#0f172a";
-  ctx.font = "700 30px 'Alan Sans', sans-serif";
+  ctx.font = `700 30px '${data.fontFamily}', sans-serif`;
   ctx.fillText(data.companyName || "Nama Perusahaan", textX, y);
 
-  ctx.font = "400 16px 'Alan Sans', sans-serif";
+  ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   const textMaxWidth = contentRight - 260 - textX;
   const addrY = drawWrappedText(ctx, data.companyAddress, textX, y + 28, textMaxWidth, 22, 2);
   if (data.companyPhone) ctx.fillText(data.companyPhone, textX, addrY);
 
   ctx.textAlign = "right";
-  ctx.font = "400 15px 'Alan Sans', sans-serif";
+  ctx.font = `400 15px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText("No. Kwitansi", contentRight, y - 4);
-  ctx.font = "700 20px 'Alan Sans', sans-serif";
+  ctx.font = `700 20px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = data.accentColor;
   ctx.fillText(data.nomor || "-", contentRight, y + 22);
 
@@ -92,7 +96,7 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
 
   y += 64;
   ctx.textAlign = "center";
-  ctx.font = "700 44px 'Alan Sans', sans-serif";
+  ctx.font = `700 44px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = data.accentColor;
   ctx.fillText("KWITANSI", W / 2, y);
   drawSolidLine(ctx, W / 2 - 100, y + 18, W / 2 + 100, data.accentColor, 3);
@@ -104,10 +108,10 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
 
   // Field: Telah terima dari
   ctx.textAlign = "left";
-  ctx.font = "400 16px 'Alan Sans', sans-serif";
+  ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText("Telah terima dari", labelColX, y);
-  ctx.font = "600 21px 'Alan Sans', sans-serif";
+  ctx.font = `600 21px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText(data.receivedFrom || "-", valueColX, y);
   drawDashedLine(ctx, valueColX, y + 12, contentRight);
@@ -115,10 +119,10 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
   y += 74;
 
   // Field: Uang sejumlah (terbilang)
-  ctx.font = "400 16px 'Alan Sans', sans-serif";
+  ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText("Uang sejumlah", labelColX, y);
-  ctx.font = "italic 600 19px 'Alan Sans', sans-serif";
+  ctx.font = `italic 600 19px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   const amountWords = `"${amountNum > 0 ? terbilangRupiah(amountNum) : "-"}"`;
   drawWrappedText(ctx, amountWords, valueColX, y, contentRight - valueColX, 27, 2);
@@ -127,10 +131,10 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
   y += 104;
 
   // Field: Untuk pembayaran
-  ctx.font = "400 16px 'Alan Sans', sans-serif";
+  ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText("Untuk pembayaran", labelColX, y);
-  ctx.font = "600 19px 'Alan Sans', sans-serif";
+  ctx.font = `600 19px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   drawWrappedText(ctx, data.description || "-", valueColX, y, contentRight - valueColX, 27, 2);
   drawDashedLine(ctx, valueColX, y + 66, contentRight);
@@ -149,10 +153,10 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
   roundRect(ctx, boxX, y, boxW, boxH, 12);
   ctx.stroke();
   ctx.textAlign = "left";
-  ctx.font = "600 15px 'Alan Sans', sans-serif";
+  ctx.font = `600 15px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText("JUMLAH", boxX + 22, y + 28);
-  ctx.font = "700 32px 'Alan Sans', sans-serif";
+  ctx.font = `700 32px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText(formatIDR(amountNum), boxX + 22, y + 62);
 
@@ -161,19 +165,19 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
   // Footer: dates + signature — both columns flow downward from the same anchor, so
   // nothing can ever climb back up into the amount box above.
   ctx.textAlign = "left";
-  ctx.font = "400 16px 'Alan Sans', sans-serif";
+  ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText(`Tanggal Bayar: ${formatDateID(data.date) || "-"}`, contentX, y);
 
   const sigX = contentRight - 190;
   ctx.textAlign = "center";
-  ctx.font = "400 16px 'Alan Sans', sans-serif";
+  ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#334155";
   const sigDateLine = [data.city, formatDateID(data.date)].filter(Boolean).join(", ");
   ctx.fillText(sigDateLine || "-", sigX, y);
   ctx.fillText("Yang Menerima,", sigX, y + 28);
   drawSolidLine(ctx, sigX - 95, y + 82, sigX + 95, "#334155", 1.5);
-  ctx.font = "600 17px 'Alan Sans', sans-serif";
+  ctx.font = `600 17px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText(data.receiverName || "(..............................)", sigX, y + 106);
 }
@@ -197,6 +201,7 @@ export function KwitansiGenerator() {
     city: "",
     receiverName: "",
     accentColor: ACCENT_PRESETS[0],
+    fontFamily: DEFAULT_FONT_FAMILY,
   }));
   const data = history.state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
@@ -208,6 +213,12 @@ export function KwitansiGenerator() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
+  const handleRemoveCustomFont = (id: string) => {
+    removeCustomFont(id, (fallback) => {
+      if (data.fontFamily === id) updateField("fontFamily", fallback);
+    });
+  };
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
@@ -215,7 +226,7 @@ export function KwitansiGenerator() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      await ensureFontReady("Alan Sans");
+      await ensureFontReady(data.fontFamily);
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -290,6 +301,15 @@ export function KwitansiGenerator() {
             <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
             <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
             <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+            <FontPicker
+              value={data.fontFamily}
+              onChange={(family) => updateField("fontFamily", family)}
+              customFonts={customFonts}
+              isFontLoading={isFontLoading}
+              fontError={fontError}
+              onUpload={addCustomFont}
+              onRemoveCustomFont={handleRemoveCustomFont}
+            />
             <div>
               <Label>Warna Aksen</Label>
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
