@@ -651,25 +651,34 @@ export function BusinessCardGenerator() {
         >
           <canvas ref={frontCanvasRef} className={cn("w-full h-full block", activeSide !== "front" && "hidden")} />
           <canvas ref={backCanvasRef} className={cn("w-full h-full block", activeSide !== "back" && "hidden")} />
-          {currentSide.elements.map((el) => (
-            <div
-              key={el.id}
-              onPointerDown={(e) => onPointerDownElement(e, el.id)}
-              style={{
-                position: "absolute",
-                left: `${el.xPct}%`,
-                top: `${el.yPct}%`,
-                width: `${el.kind === "text" ? el.widthPct : el.widthPct}%`,
-                height: `${el.kind === "text" ? 14 : el.heightPct}%`,
-                transform: "translate(-50%, -50%)",
-              }}
-              className={cn(
-                "cursor-move rounded",
-                selectedElementId === el.id ? "ring-2 ring-indigo-500" : "ring-1 ring-transparent hover:ring-indigo-300"
-              )}
-              title={el.kind === "text" ? (el.bind ? CONTACT_FIELD_LABEL[el.bind] : "Teks") : el.kind === "shape" ? `Bentuk ${el.shape}` : "Gambar"}
-            />
-          ))}
+          {currentSide.elements.map((el) => {
+            // The hit-box's horizontal anchor must mirror how the renderer
+            // actually anchors this element (see businessCardEngine.ts):
+            // shapes/images are always center-anchored, but text now anchors
+            // directly at xPct respecting its own align (left/center/right).
+            // Keeping this centered unconditionally would offset the drag
+            // handle away from left/right-aligned text.
+            const xOrigin = el.kind === "text" ? (el.align === "left" ? "0%" : el.align === "right" ? "-100%" : "-50%") : "-50%";
+            return (
+              <div
+                key={el.id}
+                onPointerDown={(e) => onPointerDownElement(e, el.id)}
+                style={{
+                  position: "absolute",
+                  left: `${el.xPct}%`,
+                  top: `${el.yPct}%`,
+                  width: `${el.widthPct}%`,
+                  height: `${el.kind === "text" ? 14 : el.heightPct}%`,
+                  transform: `translate(${xOrigin}, -50%)`,
+                }}
+                className={cn(
+                  "cursor-move rounded",
+                  selectedElementId === el.id ? "ring-2 ring-indigo-500" : "ring-1 ring-transparent hover:ring-indigo-300"
+                )}
+                title={el.kind === "text" ? (el.bind ? CONTACT_FIELD_LABEL[el.bind] : "Teks") : el.kind === "shape" ? `Bentuk ${el.shape}` : "Gambar"}
+              />
+            );
+          })}
         </div>
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500">{activeSizeMM.wMM} × {activeSizeMM.hMM} mm · {Math.round(activeSizeMM.wMM * PX_PER_MM)}×{Math.round(activeSizeMM.hMM * PX_PER_MM)}px</p>
