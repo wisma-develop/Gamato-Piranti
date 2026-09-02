@@ -69,7 +69,22 @@ export function GamatoColorPicker({
 
   useEffect(() => {
     setHexInput(value);
-    setHsv(hexToHsv(value || "#000000"));
+    // Only re-derive h/s/v from the incoming hex when it's a genuinely
+    // EXTERNAL change (typed manually, a different element selected, a
+    // swatch clicked elsewhere, etc). Without this guard, every drag inside
+    // the saturation/value box re-triggers this effect via its own
+    // `onChange` round-trip; the moment the user drags into an achromatic
+    // area (pure black, white, or any gray), `hexToHsv` cannot recover a
+    // hue from a saturation-less color and silently resets it to 0° (red).
+    // The very next drag then jumps to a red-tinted color instead of the
+    // shade of blue/green/whatever the user was actually adjusting — this
+    // is the "warna jadi hancur/berubah sendiri" bug. Comparing against what
+    // our current h/s/v would itself produce detects "this is just our own
+    // echo" and preserves the in-progress hue.
+    setHsv((prev) => {
+      const echoOfOwnState = hsvToHex(prev.h, prev.s, prev.v).toLowerCase() === (value || "").toLowerCase();
+      return echoOfOwnState ? prev : hexToHsv(value || "#000000");
+    });
   }, [value]);
 
   useEffect(() => {

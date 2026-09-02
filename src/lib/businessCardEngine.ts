@@ -102,22 +102,26 @@ function drawBackground(ctx: CanvasRenderingContext2D, bg: CardBackground, w: nu
   }
 }
 
-// ── Text (manual letter-spacing since ctx.letterSpacing support is patchy) ──
+// ── Text ─────────────────────────────────────────────────────────────────
+// `xPct`/`yPct` is the literal anchor point canvas' own `textAlign` acts on
+// — for "left" the text starts there, for "right" it ends there, for
+// "center" it's centered there. This matches exactly what a user sees when
+// dragging (drag → xPct/yPct directly under the pointer, no hidden offset).
+// `widthPct` does NOT influence position; it only sizes the drag hit-box in
+// the editor. (An earlier version derived the anchor from a "widthPct-wide
+// box centered at xPct", which silently pushed left/right-aligned text off
+// the edge of the card whenever widthPct was generous — every template's
+// front side lost most of its text this way. Keeping the anchor 1:1 with
+// xPct removes that whole failure mode.)
 
-function boxAnchorX(align: "left" | "center" | "right", boxW: number): number {
-  if (align === "left") return -boxW / 2;
-  if (align === "right") return boxW / 2;
-  return 0;
-}
-
-function drawLetterSpaced(ctx: CanvasRenderingContext2D, text: string, anchorX: number, spacing: number, align: "left" | "center" | "right") {
+function drawLetterSpaced(ctx: CanvasRenderingContext2D, text: string, spacing: number, align: "left" | "center" | "right") {
   const chars = Array.from(text);
   const widths = chars.map((c) => ctx.measureText(c).width);
   const totalWidth = widths.reduce((a, b) => a + b, 0) + spacing * Math.max(0, chars.length - 1);
   let startX: number;
-  if (align === "center") startX = anchorX - totalWidth / 2;
-  else if (align === "right") startX = anchorX - totalWidth;
-  else startX = anchorX;
+  if (align === "center") startX = -totalWidth / 2;
+  else if (align === "right") startX = -totalWidth;
+  else startX = 0;
   const prevAlign = ctx.textAlign;
   ctx.textAlign = "left";
   let cx = startX;
@@ -134,7 +138,6 @@ function drawTextElement(ctx: CanvasRenderingContext2D, el: CardTextElement, dat
   const display = el.uppercase ? raw.toUpperCase() : raw;
   const cx = (el.xPct / 100) * w;
   const cy = (el.yPct / 100) * h;
-  const boxW = (el.widthPct / 100) * w;
 
   ctx.save();
   ctx.translate(cx, cy);
@@ -147,11 +150,10 @@ function drawTextElement(ctx: CanvasRenderingContext2D, el: CardTextElement, dat
   ctx.textBaseline = "middle";
   ctx.textAlign = el.align;
 
-  const anchorX = boxAnchorX(el.align, boxW);
   if (el.letterSpacing > 0) {
-    drawLetterSpaced(ctx, display, anchorX, el.letterSpacing, el.align);
+    drawLetterSpaced(ctx, display, el.letterSpacing, el.align);
   } else {
-    ctx.fillText(display, anchorX, 0);
+    ctx.fillText(display, 0, 0);
   }
   ctx.restore();
 }
