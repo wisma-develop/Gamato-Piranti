@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import { ScanLine, Upload, Camera, CameraOff, Copy, ExternalLink, Check, History } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -11,6 +11,39 @@ import { sanitizeUrl } from "@/utils/sanitize";
 
 type Mode = "upload" | "camera";
 
+interface ScanHit {
+  text: string;
+  format: string;
+}
+
+interface HistoryEntry extends ScanHit {}
+
+// ─── Format decoding: native BarcodeDetector (QR + 1D/2D barcodes) with a ──
+// jsQR fallback (QR-only, but works in every browser). BarcodeDetector is
+// currently Chromium-only (Chrome/Edge/Opera, incl. Android) — where it's
+// available we get real barcode support (CODE128, EAN, UPC, CODE39, ITF,
+// Codabar, PDF417, Data Matrix, Aztec) for free with zero extra dependency
+// weight. Where it isn't, jsQR still covers QR codes reliably everywhere.
+const FORMAT_LABELS: Record<string, string> = {
+  qr_code: "QR Code",
+  code_128: "CODE 128",
+  code_39: "CODE 39",
+  code_93: "CODE 93",
+  codabar: "Codabar",
+  ean_13: "EAN-13",
+  ean_8: "EAN-8",
+  upc_a: "UPC-A",
+  upc_e: "UPC-E",
+  itf: "ITF",
+  data_matrix: "Data Matrix",
+  pdf417: "PDF417",
+  aztec: "Aztec",
+};
+
+function formatLabel(format: string): string {
+  return FORMAT_LABELS[format] || format.replace(/_/g, " ").toUpperCase();
+}
+
 function isLikelyUrl(text: string): string | null {
   const safe = sanitizeUrl(text.trim());
   return safe || null;
@@ -19,47 +52,108 @@ function isLikelyUrl(text: string): string | null {
 export function QrScanner() {
   const [mode, setMode] = useState<Mode>("upload");
   const [file, setFile] = useState<File | null>(null);
-  const [result, setResult] = useState<string | null>(null);
-  const [history, setHistory] = useState<string[]>([]);
+  const [result, setResult] = useState<ScanHit | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [detectorSupported, setDetectorSupported] = useState(false);
 
   const img = useImageFromFile(file);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
+  const busyRef = useRef(false);
+  // Off-screen canvas used for camera-frame decoding. Created once and kept
+  // detached from the DOM on purpose — the visible <video> element already
+  // shows the live preview, so this only needs to exist in memory to be
+  // usable by getContext()/drawImage(); it must NOT depend on whatever JSX
+  // branch happens to be rendered (that was the root cause of camera
+  // scanning never detecting anything: the old code reused the upload
+  // preview <canvas>, which simply isn't mounted while in camera mode).
+  const scanCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const detectorRef = useRef<any>(null);
 
-  const pushResult = useCallback((text: string) => {
-    setResult(text);
-    setHistory((prev) => (prev[0] === text ? prev : [text, ...prev].slice(0, 8)));
+  const getScanCanvas = useCallback(() => {
+    if (!scanCanvasRef.current) scanCanvasRef.current = document.createElement("canvas");
+    return scanCanvasRef.current;
+  }, []);
+
+  // Feature-detect + prepare the native BarcodeDetector once on mount.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const BarcodeDetectorCtor = (window as any).BarcodeDetector;
+      if (!BarcodeDetectorCtor) return;
+      try {
+        const supported: string[] = (await BarcodeDetectorCtor.getSupportedFormats?.()) || [];
+        if (cancelled) return;
+        detectorRef.current = new BarcodeDetectorCtor(supported.length ? { formats: supported } : undefined);
+        setDetectorSupported(true);
+      } catch {
+        detectorRef.current = null;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const pushResult = useCallback((hit: ScanHit) => {
+    setResult(hit);
+    setHistory((prev) => (prev[0]?.text === hit.text ? prev : [hit, ...prev].slice(0, 8)));
+  }, []);
+
+  /** Tries native BarcodeDetector first (QR + real barcode formats), falls back to jsQR (QR only). */
+  const decodeFrame = useCallback(async (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): Promise<ScanHit | null> => {
+    if (detectorRef.current) {
+      try {
+        const hits = await detectorRef.current.detect(canvas);
+        if (hits && hits.length > 0 && hits[0].rawValue) {
+          return { text: hits[0].rawValue, format: hits[0].format || "qr_code" };
+        }
+      } catch {
+        // Detector can throw on some frames (e.g. odd dimensions) — fall through to jsQR.
+      }
+    }
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
+    if (code?.data) return { text: code.data, format: "qr_code" };
+    return null;
   }, []);
 
   useEffect(() => {
     if (mode !== "upload" || !img || !canvasRef.current) return;
     setError(null);
+    let cancelled = false;
     const canvas = canvasRef.current;
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(img, 0, 0);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
-    if (code?.data) {
-      pushResult(code.data);
-    } else {
-      setResult(null);
-      setError("Tidak ada QR code yang terdeteksi pada gambar ini.");
-    }
-  }, [mode, img, pushResult]);
+    (async () => {
+      const hit = await decodeFrame(canvas, ctx);
+      if (cancelled) return;
+      if (hit) {
+        pushResult(hit);
+      } else {
+        setResult(null);
+        setError("Tidak ada QR code atau barcode yang terdeteksi pada gambar ini.");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, img, pushResult, decodeFrame]);
 
   const stopCamera = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    busyRef.current = false;
     setIsScanning(false);
   }, []);
 
@@ -74,20 +168,32 @@ export function QrScanner() {
       await video.play();
       setIsScanning(true);
 
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext("2d");
+      const canvas = getScanCanvas();
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) {
+        setError("Browser ini tidak mendukung pemrosesan gambar (canvas 2D) yang dibutuhkan untuk memindai.");
+        stopCamera();
+        return;
+      }
+
       const loop = () => {
-        if (!video || !canvas || !ctx || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
           rafRef.current = requestAnimationFrame(loop);
           return;
         }
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-        if (code?.data) {
-          pushResult(code.data);
+
+        if (!busyRef.current) {
+          busyRef.current = true;
+          decodeFrame(canvas, ctx)
+            .then((hit) => {
+              if (hit) pushResult(hit);
+            })
+            .finally(() => {
+              busyRef.current = false;
+            });
         }
         rafRef.current = requestAnimationFrame(loop);
       };
@@ -100,7 +206,7 @@ export function QrScanner() {
           : "Gagal mengakses kamera. Pastikan perangkatmu punya kamera yang aktif."
       );
     }
-  }, [pushResult]);
+  }, [pushResult, decodeFrame, getScanCanvas, stopCamera]);
 
   useEffect(() => {
     return () => stopCamera();
@@ -126,7 +232,7 @@ export function QrScanner() {
     }
   };
 
-  const url = result ? isLikelyUrl(result) : null;
+  const url = result ? isLikelyUrl(result.text) : null;
 
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
@@ -152,7 +258,7 @@ export function QrScanner() {
 
         {mode === "upload" ? (
           !file ? (
-            <Dropzone onFiles={handleFiles} accept="image/*" multiple={false} label="Drop gambar berisi QR code" sublabel="JPG, PNG, WEBP" icon={<ScanLine className="w-8 h-8" />} />
+            <Dropzone onFiles={handleFiles} accept="image/*" multiple={false} label="Drop gambar berisi QR code atau barcode" sublabel="JPG, PNG, WEBP" icon={<ScanLine className="w-8 h-8" />} />
           ) : (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm space-y-3">
               <canvas ref={canvasRef} className="w-full h-auto rounded-xl max-h-[420px] object-contain mx-auto block" />
@@ -173,9 +279,14 @@ export function QrScanner() {
               </div>
             )}
             {isScanning && (
-              <button type="button" onClick={stopCamera} className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-black/80">
-                <CameraOff className="w-4 h-4" />
-              </button>
+              <>
+                <div className="absolute inset-x-0 top-0 flex justify-center pt-3 pointer-events-none">
+                  <span className="text-[11px] font-semibold text-white/90 bg-black/50 rounded-full px-3 py-1">Arahkan ke QR code / barcode…</span>
+                </div>
+                <button type="button" onClick={stopCamera} className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-black/80">
+                  <CameraOff className="w-4 h-4" />
+                </button>
+              </>
             )}
           </div>
         )}
@@ -184,10 +295,15 @@ export function QrScanner() {
 
         {result && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil Pindaian</p>
-            <p className="text-sm text-slate-800 dark:text-slate-100 break-all bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 font-mono">{result}</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil Pindaian</p>
+              <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-100 dark:border-indigo-500/20 shrink-0">
+                {formatLabel(result.format)}
+              </span>
+            </div>
+            <p className="text-sm text-slate-800 dark:text-slate-100 break-all bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 font-mono">{result.text}</p>
             <div className="flex flex-wrap gap-2">
-              <Btn onClick={() => copy(result)} variant="secondary" className="gap-2 text-xs">
+              <Btn onClick={() => copy(result.text)} variant="secondary" className="gap-2 text-xs">
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? "Disalin!" : "Salin Teks"}
               </Btn>
@@ -209,8 +325,9 @@ export function QrScanner() {
             </p>
             <ul className="space-y-1.5">
               {history.slice(1).map((h, i) => (
-                <li key={i} className="text-xs text-slate-500 dark:text-slate-400 truncate font-mono">
-                  {h}
+                <li key={i} className="text-xs text-slate-500 dark:text-slate-400 truncate font-mono flex items-center gap-2">
+                  <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide shrink-0">{formatLabel(h.format)}</span>
+                  <span className="truncate">{h.text}</span>
                 </li>
               ))}
             </ul>
@@ -221,13 +338,21 @@ export function QrScanner() {
       <div className="space-y-4 lg:sticky lg:top-24">
         <ToolInfoPanel
           icon={<ScanLine className="w-5 h-5" />}
-          label="QR Code Scanner"
-          desc="Baca QR code dari gambar atau kamera"
-          points={[
-            "Mendukung format QR code — untuk barcode 1D (CODE128, EAN, dll), gunakan alat Scan HID dengan scanner fisik.",
-            "Mode kamera memindai terus-menerus hingga QR code terdeteksi.",
-            "Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server.",
-          ]}
+          label="QR & Barcode Scanner"
+          desc="Baca QR code dan barcode dari gambar atau kamera"
+          points={
+            detectorSupported
+              ? [
+                  "Mendukung QR code sekaligus barcode 1D/2D (CODE128, EAN, UPC, CODE39, ITF, Data Matrix, PDF417, dll) — didukung penuh oleh browser ini.",
+                  "Mode kamera memindai terus-menerus hingga kode terdeteksi.",
+                  "Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server.",
+                ]
+              : [
+                  "Mendukung QR code penuh di semua browser. Untuk barcode 1D (CODE128, EAN, dll), gunakan Chrome/Edge terbaru agar deteksi barcode aktif, atau pakai alat Scan HID dengan scanner fisik.",
+                  "Mode kamera memindai terus-menerus hingga QR code terdeteksi.",
+                  "Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server.",
+                ]
+          }
         />
       </div>
     </div>
