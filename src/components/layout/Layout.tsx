@@ -26,7 +26,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'barcode': 'Barcode',
     'scan-hid': 'Scan HID',
     'kode-morse': 'Kode Morse',
-    'scan-qr': 'QR Code Scanner',
+    'scan-qr': 'QR & Barcode Scanner',
   },
   office: {
     'doc-studio': 'Doc Studio',

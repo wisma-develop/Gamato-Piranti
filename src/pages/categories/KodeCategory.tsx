@@ -38,8 +38,8 @@ export default function KodeCategory() {
                 icon: <Radio className="w-6 h-6" />,
               },
               {
-                name: "QR Code Scanner",
-                desc: "Baca QR code dari gambar yang diunggah atau langsung dari kamera.",
+                name: "QR & Barcode Scanner",
+                desc: "Baca QR code dan barcode dari gambar yang diunggah atau langsung dari kamera.",
                 path: "/qr/scan-qr",
                 icon: <ScanLine className="w-6 h-6" />,
               },

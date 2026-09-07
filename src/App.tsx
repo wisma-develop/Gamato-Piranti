@@ -151,7 +151,7 @@ export const App: FC = () => (
         <Route
           path="qr/scan-qr"
           element={
-            <PageShell badge="Kode" title="QR Code Scanner" subtitle="Baca QR code dari gambar yang diunggah atau langsung dari kamera.">
+            <PageShell badge="Kode" title="QR & Barcode Scanner" subtitle="Baca QR code dan barcode dari gambar yang diunggah atau langsung dari kamera.">
               <QrScanner />
             </PageShell>
           }

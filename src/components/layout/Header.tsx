@@ -40,7 +40,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Barcode', path: '/qr/barcode', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
       { name: 'Scan HID', path: '/qr/scan-hid', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
       { name: 'Kode Morse', path: '/qr/kode-morse', icon: <Radio className="w-4 h-4 text-teal-500" /> },
-      { name: 'QR Code Scanner', path: '/qr/scan-qr', icon: <ScanLine className="w-4 h-4 text-teal-500" /> },
+      { name: 'QR & Barcode Scanner', path: '/qr/scan-qr', icon: <ScanLine className="w-4 h-4 text-teal-500" /> },
     ],
   },
   {

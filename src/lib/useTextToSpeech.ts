@@ -5,13 +5,19 @@ export interface SpeakOptions {
   rate?: number;
   pitch?: number;
   volume?: number;
+  /** Fired when the utterance finishes speaking normally. */
+  onEnd?: () => void;
+  /** Fired if the utterance is interrupted or fails. */
+  onError?: (event: SpeechSynthesisErrorEvent) => void;
 }
 
 /**
  * Thin React wrapper around the browser's native SpeechSynthesis API.
- * Note: this can only *play* speech through the device speakers — the Web
- * Speech API does not expose the synthesized audio as a capturable stream,
- * so there's no reliable way to export it as a downloadable audio file.
+ * Playback happens through the device speakers — the Web Speech API itself
+ * never exposes the synthesized audio as a capturable stream. To offer a
+ * downloadable file, AudioTextToSpeech additionally supports recording the
+ * *tab's own audio output* while an utterance plays (via getDisplayMedia +
+ * MediaRecorder) and re-encoding it to .wav — see recordSpeechToWav there.
  */
 export function useTextToSpeech() {
   const supported = typeof window !== "undefined" && "speechSynthesis" in window;
@@ -47,10 +53,12 @@ export function useTextToSpeech() {
     utter.onend = () => {
       setIsSpeaking(false);
       setIsPaused(false);
+      opts.onEnd?.();
     };
-    utter.onerror = () => {
+    utter.onerror = (event) => {
       setIsSpeaking(false);
       setIsPaused(false);
+      opts.onError?.(event);
     };
     utterRef.current = utter;
     window.speechSynthesis.speak(utter);
