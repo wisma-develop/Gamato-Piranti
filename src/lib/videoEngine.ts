@@ -19,7 +19,15 @@ export function loadVideoMeta(file: File): Promise<VideoMeta> {
     v.preload = "metadata";
     v.muted = true;
     v.onloadedmetadata = () => {
-      resolve({ url, duration: v.duration || 0, width: v.videoWidth, height: v.videoHeight, file });
+      // Some MediaRecorder-produced webm blobs report duration as Infinity
+      // until the browser has actually seeked through them once (a known,
+      // widely-documented MediaRecorder/Matroska quirk — the container's
+      // duration field isn't finalized on live-recorded blobs). `v.duration
+      // || 0` does NOT catch this since Infinity is truthy; every caller
+      // downstream (trim ranges, frame sampling, segment export) would
+      // otherwise receive an Infinite duration and loop forever.
+      const duration = Number.isFinite(v.duration) ? v.duration : 0;
+      resolve({ url, duration, width: v.videoWidth, height: v.videoHeight, file });
     };
     v.onerror = () => {
       URL.revokeObjectURL(url);
@@ -342,6 +350,66 @@ export async function captureVideoFrame(sourceUrl: string, atTime: number): Prom
 
 export type MergeClip = { sourceUrl: string; start: number; end: number };
 export type TransitionType = "cut" | "fade";
+
+export interface FrameSampleResult {
+  imageData: ImageData;
+  delayMs: number;
+}
+
+/**
+ * Samples a range of a video at a fixed frame rate, returning raw ImageData
+ * per frame (not encoded Blobs) — built for GIF export, where encoding each
+ * sampled frame to a PNG Blob and back (like captureVideoFrame does for a
+ * single-frame thumbnail) would be wasted work repeated dozens of times.
+ * Reuses one <video> + one <canvas> across every sample instead of
+ * recreating them per frame.
+ */
+export async function sampleVideoFrames(opts: {
+  sourceUrl: string;
+  start: number;
+  end: number;
+  fps: number;
+  /** Downscales output frames when the source is wider than this, keeping exported GIFs a sane file size. */
+  maxWidth?: number;
+  onProgress?: (fraction: number) => void;
+}): Promise<FrameSampleResult[]> {
+  const { sourceUrl, start, end, fps, maxWidth, onProgress } = opts;
+  const video = createOffscreenVideo(sourceUrl);
+  video.muted = true;
+  await new Promise<void>((resolve, reject) => {
+    video.onloadedmetadata = () => resolve();
+    video.onerror = () => reject(new Error("Gagal memuat video untuk diambil frame-nya."));
+  });
+
+  const srcW = video.videoWidth || 1;
+  const srcH = video.videoHeight || 1;
+  const scale = maxWidth && srcW > maxWidth ? maxWidth / srcW : 1;
+  const outW = Math.max(1, Math.round(srcW * scale));
+  const outH = Math.max(1, Math.round(srcH * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+
+  const clampedEnd = Math.min(end, video.duration || end);
+  const duration = Math.max(0, clampedEnd - start);
+  const frameInterval = 1 / Math.max(1, fps);
+  const frameCount = Math.max(1, Math.round(duration / frameInterval));
+  const delayMs = Math.round(frameInterval * 1000);
+
+  const frames: FrameSampleResult[] = [];
+  for (let i = 0; i < frameCount; i++) {
+    const t = Math.min(clampedEnd, start + i * frameInterval);
+    await waitSeeked(video, t);
+    ctx.clearRect(0, 0, outW, outH);
+    ctx.drawImage(video, 0, 0, outW, outH);
+    frames.push({ imageData: ctx.getImageData(0, 0, outW, outH), delayMs });
+    onProgress?.((i + 1) / frameCount);
+  }
+  return frames;
+}
 
 /** Exports multiple different source clips back to back, with an optional crossfade at each boundary. */
 export async function exportMergedVideo(opts: {

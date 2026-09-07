@@ -1,4 +1,4 @@
-import { Mic, Volume2, Gauge, AudioLines } from "lucide-react";
+import { Mic, Volume2, Gauge, AudioLines, RefreshCw } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -13,6 +13,7 @@ export default function AudioCategory() {
         groups={[
           {
             items: [
+              { name: "Konversi Audio", desc: "Ubah audio ke WAV (kualitas penuh) atau format terkompresi (Opus).", path: "/audio/konversi", icon: <RefreshCw className="w-6 h-6" /> },
               { name: "Speech to Text", desc: "Ubah ucapan jadi teks secara langsung lewat mikrofon.", path: "/audio/suara-ke-teks", icon: <Mic className="w-6 h-6" /> },
               { name: "Text to Speech", desc: "Bacakan teks apa pun dengan suara pilihan langsung dari browser.", path: "/audio/teks-ke-suara", icon: <Volume2 className="w-6 h-6" /> },
               { name: "Pengukur Kekuatan Suara", desc: "Meteran level suara real-time langsung dari mikrofon browser.", path: "/audio/pengukur-suara", icon: <Gauge className="w-6 h-6" /> },

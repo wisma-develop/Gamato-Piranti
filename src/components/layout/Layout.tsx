@@ -102,6 +102,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'pembuat-cv': 'Pembuat CV',
   },
   video: {
+    'konversi': 'Konversi Video',
     'potong': 'Potong Video',
     'crop': 'Crop & Resize',
     'subtitle': 'Teks & Subtitle (CC)',
@@ -110,6 +111,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'thumbnail': 'Tangkap Thumbnail / Screenshot',
   },
   audio: {
+    'konversi': 'Konversi Audio',
     'suara-ke-teks': 'Speech to Text',
     'teks-ke-suara': 'Text to Speech',
     'pengukur-suara': 'Pengukur Kekuatan Suara',

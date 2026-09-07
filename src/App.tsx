@@ -89,6 +89,7 @@ import { AudioSpeechToText } from "@/features/audio/AudioSpeechToText";
 import { AudioTextToSpeech } from "@/features/audio/AudioTextToSpeech";
 import { AudioSoundMeter } from "@/features/audio/AudioSoundMeter";
 import { AudioExtractFromVideo } from "@/features/audio/AudioExtractFromVideo";
+import { AudioConvertHub } from "@/features/audio/AudioConvertHub";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -103,6 +104,7 @@ import { VideoSubtitle } from "@/features/video/VideoSubtitle";
 import { VideoMerge } from "@/features/video/VideoMerge";
 import { VideoFilter } from "@/features/video/VideoFilter";
 import { VideoThumbnail } from "@/features/video/VideoThumbnail";
+import { VideoConvertHub } from "@/features/video/VideoConvertHub";
 
 export const App: FC = () => (
   <BrowserRouter>
@@ -696,6 +698,14 @@ export const App: FC = () => (
         {/* ── Video ────────────────────────────────────────────────────── */}
         <Route path="video" element={<VideoCategory />} />
         <Route
+          path="video/konversi"
+          element={
+            <PageShell badge="Video" title="Konversi Video" subtitle="Satu alat, banyak tujuan: ganti format video, jadikan GIF, atau ambil audionya saja — pilih tab sesuai kebutuhan.">
+              <VideoConvertHub />
+            </PageShell>
+          }
+        />
+        <Route
           path="video/potong"
           element={
             <PageShell badge="Video" title="Potong Video" subtitle="Trim satu bagian atau buang beberapa bagian sekaligus, langsung di browser.">
@@ -747,6 +757,14 @@ export const App: FC = () => (
 
         {/* ── Audio ────────────────────────────────────────────────────── */}
         <Route path="audio" element={<AudioCategory />} />
+        <Route
+          path="audio/konversi"
+          element={
+            <PageShell badge="Audio" title="Konversi Audio" subtitle="Ubah audio ke WAV (kualitas penuh) atau format terkompresi (Opus) — semua diproses langsung di browser.">
+              <AudioConvertHub />
+            </PageShell>
+          }
+        />
         <Route
           path="audio/suara-ke-teks"
           element={

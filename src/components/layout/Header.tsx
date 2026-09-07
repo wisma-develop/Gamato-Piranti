@@ -116,6 +116,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     icon: <Clapperboard className="w-4 h-4" />,
     rootPath: '/video',
     items: [
+      { name: 'Konversi Video',    path: '/video/konversi', icon: <RefreshCw className="w-4 h-4 text-rose-500" /> },
       { name: 'Potong Video',      path: '/video/potong',   icon: <Scissors className="w-4 h-4 text-rose-500" /> },
       { name: 'Crop & Resize',     path: '/video/crop',     icon: <Crop className="w-4 h-4 text-rose-500" /> },
       { name: 'Teks & Subtitle (CC)', path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
@@ -130,6 +131,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     icon: <AudioLines className="w-4 h-4" />,
     rootPath: '/audio',
     items: [
+      { name: 'Konversi Audio',            path: '/audio/konversi',            icon: <RefreshCw className="w-4 h-4 text-cyan-500" /> },
       { name: 'Speech to Text',            path: '/audio/suara-ke-teks',       icon: <Mic className="w-4 h-4 text-cyan-500" /> },
       { name: 'Text to Speech',            path: '/audio/teks-ke-suara',       icon: <Volume2 className="w-4 h-4 text-cyan-500" /> },
       { name: 'Pengukur Kekuatan Suara',   path: '/audio/pengukur-suara',      icon: <Gauge className="w-4 h-4 text-cyan-500" /> },

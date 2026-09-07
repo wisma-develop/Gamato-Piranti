@@ -41,18 +41,18 @@ const tools = [
   {
     icon: <Clapperboard className="w-7 h-7 text-white" />,
     title: 'Video Studio',
-    desc: 'Potong, crop, teks/subtitle, gabung dengan transisi, sampai kecepatan & filter — ringan tanpa upload.',
+    desc: 'Konversi format/GIF/audio, potong, crop, teks/subtitle, gabung dengan transisi, sampai kecepatan & filter — ringan tanpa upload.',
     path: '/video',
     gradient: 'from-rose-400 to-red-600',
-    badge: '6 Alat',
+    badge: '7 Alat',
   },
   {
     icon: <AudioLines className="w-7 h-7 text-white" />,
     title: 'Audio Studio',
-    desc: 'Speech to text, text to speech, pengukur kekuatan suara, sampai ekstrak audio dari video.',
+    desc: 'Konversi format, speech to text, text to speech, pengukur kekuatan suara, sampai ekstrak audio dari video.',
     path: '/audio',
     gradient: 'from-cyan-400 to-sky-600',
-    badge: '4 Alat',
+    badge: '5 Alat',
   },
   {
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
