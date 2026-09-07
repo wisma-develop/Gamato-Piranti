@@ -1,20 +1,38 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Wand2, Image as ImageIcon, Minus, Loader2 } from "lucide-react";
-import { fileToDataUrl, downloadBlob } from "@/lib/file";
+import { downloadBlob } from "@/lib/file";
+import { sanitizeFileName } from "@/utils/sanitize";
 import { Label, Select, Btn } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { convertImage, isBmpEncodingSupported, type ImageOutputFormat } from "@/features/utility/convert/converters/imageConvert";
+
+const FORMAT_OPTIONS: { id: ImageOutputFormat; label: string }[] = [
+  { id: "jpg", label: "JPEG" },
+  { id: "png", label: "PNG" },
+  { id: "webp", label: "WEBP" },
+  { id: "bmp", label: "BMP" },
+  { id: "ico", label: "ICO (Ikon)" },
+  { id: "pdf", label: "PDF" },
+];
+
+const QUALITY_AWARE_FORMATS: ImageOutputFormat[] = ["jpg", "webp"];
 
 export const ImageConvert: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [quality, setQuality] = useState(90);
-  const [targetFormat, setTargetFormat] = useState<"jpeg" | "png" | "webp">("webp");
+  const [targetFormat, setTargetFormat] = useState<ImageOutputFormat>("webp");
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [bmpSupported, setBmpSupported] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    isBmpEncodingSupported().then(setBmpSupported).catch(() => setBmpSupported(false));
+  }, []);
 
   const totalSizeMb = useMemo(
     () => (files.length ? Math.round((files.reduce((a, f) => a + f.size, 0) / 1024 / 1024) * 10) / 10 : 0),
@@ -22,7 +40,7 @@ export const ImageConvert: React.FC = () => {
   );
 
   const addFiles = (incoming: File[]) => {
-    const imgs = incoming.filter((f) => f.type.startsWith("image/"));
+    const imgs = incoming.filter((f) => f.type.startsWith("image/") || /\.svg$/i.test(f.name));
     setFiles(imgs);
     setPreviewUrls(imgs.map((f) => URL.createObjectURL(f)));
     setInfo(null);
@@ -33,29 +51,26 @@ export const ImageConvert: React.FC = () => {
     setIsWorking(true);
     setInfo(null);
     try {
+      let successCount = 0;
       for (const file of files) {
-        const dataUrl = await fileToDataUrl(file);
-        const img = new Image();
-        img.src = dataUrl;
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = reject;
-        });
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        canvas.getContext("2d")!.drawImage(img, 0, 0);
-        const mime = targetFormat === "jpeg" ? "image/jpeg" : targetFormat === "png" ? "image/png" : "image/webp";
-        const q = Math.min(Math.max(quality, 10), 100) / 100;
-        const blob = await new Promise<Blob | null>((resolve) =>
-          canvas.toBlob((b) => resolve(b), mime, mime === "image/jpeg" || mime === "image/webp" ? q : undefined)
-        );
-        if (!blob) continue;
-        const base = file.name.replace(/\.[^.]+$/, "");
-        const ext = mime === "image/jpeg" ? "jpg" : mime === "image/png" ? "png" : "webp";
-        downloadBlob(blob, `${base}-gp-converted.${ext}`);
+        try {
+          const q = Math.min(Math.max(quality, 10), 100) / 100;
+          const blob = await convertImage(file, targetFormat, q);
+          const base = sanitizeFileName(file.name.replace(/\.[^.]+$/, "")) || "gambar";
+          downloadBlob(blob, `${base}-gp-converted.${targetFormat}`);
+          successCount++;
+        } catch {
+          // Keep going for the rest of the batch — one corrupt/unsupported
+          // file shouldn't abort every other file the user selected.
+        }
       }
-      setInfo(`${files.length} gambar berhasil diproses.`);
+      if (successCount === files.length) {
+        setInfo(`${successCount} gambar berhasil diproses.`);
+      } else if (successCount > 0) {
+        setInfo(`${successCount} dari ${files.length} gambar berhasil diproses. Sisanya gagal (format sumber mungkin tidak didukung).`);
+      } else {
+        setInfo("Gagal. Tidak ada gambar yang berhasil dikonversi.");
+      }
     } catch (err: any) {
       setInfo("" + (err?.message || "Gagal."));
     } finally {
@@ -63,11 +78,13 @@ export const ImageConvert: React.FC = () => {
     }
   };
 
+  const showQualitySlider = QUALITY_AWARE_FORMATS.includes(targetFormat);
+
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="space-y-5">
         {files.length === 0 ? (
-          <Dropzone onFiles={addFiles} accept="image/*" multiple label="Drop gambar di sini" sublabel="JPG, PNG, WEBP — bisa beberapa file" icon={<ImageIcon className="w-8 h-8" />} isDragging={isDragging} setIsDragging={setIsDragging} />
+          <Dropzone onFiles={addFiles} accept="image/*,.svg" multiple label="Drop gambar di sini" sublabel="JPG, PNG, WEBP, BMP, SVG — bisa beberapa file" icon={<ImageIcon className="w-8 h-8" />} isDragging={isDragging} setIsDragging={setIsDragging} />
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
@@ -97,19 +114,32 @@ export const ImageConvert: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Opsi</p>
           <div className="grid grid-cols-2 gap-4">
-            <Select label="Format Output" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value as any)}>
-              <option value="jpeg">JPEG</option>
-              <option value="png">PNG</option>
-              <option value="webp">WEBP</option>
+            <Select label="Format Output" value={targetFormat} onChange={(e) => setTargetFormat(e.target.value as ImageOutputFormat)}>
+              {FORMAT_OPTIONS.map((f) => (
+                <option key={f.id} value={f.id}>{f.label}</option>
+              ))}
             </Select>
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <Label>Kualitas (JPEG/WEBP)</Label>
-                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{quality}%</span>
+            {showQualitySlider ? (
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <Label>Kualitas</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{quality}%</span>
+                </div>
+                <GamatoSlider min={10} max={100} value={quality} onChange={setQuality} aria-label="Kualitas" />
               </div>
-              <GamatoSlider min={10} max={100} value={quality} onChange={setQuality} aria-label="Kualitas" />
-            </div>
+            ) : (
+              <div className="flex items-end">
+                <p className="text-xs text-slate-400 dark:text-slate-500 pb-2.5">
+                  {targetFormat === "ico" ? "Otomatis dipotong persegi & diskalakan ke maks. 256px." : targetFormat === "pdf" ? "Satu gambar per halaman, ukuran mengikuti gambar asli." : "Format ini tidak memakai pengaturan kualitas (tanpa kompresi rugi)."}
+                </p>
+              </div>
+            )}
           </div>
+          {targetFormat === "bmp" && bmpSupported === false && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
+              Browser ini sepertinya tidak mendukung penulisan BMP asli — hasil bisa saja tetap berupa PNG dengan nama file .bmp. Coba Chrome atau Edge untuk dukungan BMP penuh.
+            </p>
+          )}
         </div>
 
         {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
@@ -132,8 +162,13 @@ export const ImageConvert: React.FC = () => {
       <ToolInfoPanel
         icon={<Wand2 className="w-5 h-5" />}
         label="Konversi Format"
-        desc="Antar format gambar"
-        points={["Konversi antar format JPEG, PNG, WEBP.", "WEBP biasanya paling kecil ukurannya."]}
+        desc="Antar format gambar — enam pilihan output"
+        points={[
+          "Konversi antar JPEG, PNG, WEBP, BMP, ICO (ikon), dan PDF.",
+          "WEBP biasanya paling kecil ukurannya untuk kualitas yang sama.",
+          "ICO otomatis dipotong persegi — cocok untuk favicon.",
+          "Mendukung SVG sebagai sumber (dirasterisasi otomatis).",
+        ]}
       />
     </div>
   );
