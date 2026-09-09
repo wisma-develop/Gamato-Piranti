@@ -1,12 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  Link2, Type, Wifi, Mail, Phone, Upload, Download, Sparkles, AlertTriangle, RefreshCw,
+  Upload, Download, Sparkles, AlertTriangle, RefreshCw, Palette,
+  Frame as FrameIcon, Square, Circle as CircleIcon, ClipboardCopy, Check,
 } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import { cn } from "@/utils/cn";
-import { sanitizeText, sanitizeUrl } from "@/utils/sanitize";
-import { fileToDataUrl } from "@/lib/file";
-import { buildFramedLogoDataUrl } from "@/lib/qrLogo";
+import { downloadBlob, fileToDataUrl } from "@/lib/file";
+import { buildFramedLogoDataUrl, type QrLogoShape } from "@/lib/qrLogo";
+import { composeFramedQrCanvas, canvasToBlob } from "@/lib/qrFrame";
+import { QR_TEMPLATES, getQrTemplate, type QrFieldDef, type QrFieldValues } from "@/lib/qrContentTemplates";
+import { QR_STYLE_PRESETS, type DotType, type CornerSquareType, type CornerDotType, type QrShape, type QrStylePreset } from "@/features/qr-barcode/qrStylePresets";
+import { ColorModeControl, defaultColorState, toQrColorOptions, type ColorState } from "@/components/ui/ColorModeControl";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
@@ -14,19 +18,6 @@ import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
-
-type QrTemplate = "url" | "text" | "wifi" | "email" | "phone";
-type DotType = "square" | "dots" | "rounded" | "classy" | "classy-rounded" | "extra-rounded";
-type CornerSquareType = "square" | "dot" | "extra-rounded";
-type CornerDotType = "square" | "dot";
-
-const QR_TEMPLATES: { id: QrTemplate; label: string; icon: React.ReactNode }[] = [
-  { id: "url",   label: "URL",     icon: <Link2  className="w-4 h-4" /> },
-  { id: "text",  label: "Teks",    icon: <Type   className="w-4 h-4" /> },
-  { id: "wifi",  label: "WiFi",    icon: <Wifi   className="w-4 h-4" /> },
-  { id: "email", label: "Email",   icon: <Mail   className="w-4 h-4" /> },
-  { id: "phone", label: "Telepon", icon: <Phone  className="w-4 h-4" /> },
-];
 
 const DOT_STYLES: { id: DotType; label: string }[] = [
   { id: "square", label: "Kotak" },
@@ -48,23 +39,19 @@ const CORNER_DOT_STYLES: { id: CornerDotType; label: string }[] = [
   { id: "dot", label: "Bulat" },
 ];
 
-type Preset = {
-  name: string;
-  dotsType: DotType;
-  cornersSquareType: CornerSquareType;
-  cornersDotType: CornerDotType;
-  dotsColor: string;
-  cornersColor: string;
-  bgColor: string;
-};
+const ERROR_CORRECTION_OPTIONS: { id: "auto" | "L" | "M" | "Q" | "H"; label: string }[] = [
+  { id: "auto", label: "Otomatis" },
+  { id: "L", label: "L · 7%" },
+  { id: "M", label: "M · 15%" },
+  { id: "Q", label: "Q · 25%" },
+  { id: "H", label: "H · 30%" },
+];
 
-const PRESETS: Preset[] = [
-  { name: "Klasik",      dotsType: "square",         cornersSquareType: "square",        cornersDotType: "square", dotsColor: "#0f172a", cornersColor: "#0f172a", bgColor: "#ffffff" },
-  { name: "Elegan",      dotsType: "rounded",        cornersSquareType: "extra-rounded",  cornersDotType: "dot",    dotsColor: "#4f46e5", cornersColor: "#4f46e5", bgColor: "#ffffff" },
-  { name: "Playful",     dotsType: "dots",           cornersSquareType: "dot",            cornersDotType: "dot",    dotsColor: "#0d9488", cornersColor: "#0d9488", bgColor: "#ffffff" },
-  { name: "Classy Gold", dotsType: "classy-rounded", cornersSquareType: "extra-rounded",  cornersDotType: "square", dotsColor: "#b45309", cornersColor: "#78350f", bgColor: "#fffbeb" },
-  { name: "Neon Rose",   dotsType: "extra-rounded",  cornersSquareType: "dot",            cornersDotType: "dot",    dotsColor: "#e11d48", cornersColor: "#9f1239", bgColor: "#ffffff" },
-  { name: "Midnight",    dotsType: "classy",         cornersSquareType: "square",         cornersDotType: "dot",    dotsColor: "#e2e8f0", cornersColor: "#e2e8f0", bgColor: "#1e293b" },
+const LOGO_SHAPE_OPTIONS: { id: QrLogoShape; label: string }[] = [
+  { id: "rounded", label: "Rounded" },
+  { id: "circle", label: "Bulat" },
+  { id: "square", label: "Kotak" },
+  { id: "none", label: "Asli" },
 ];
 
 function relativeLuminance(hex: string): number {
@@ -82,54 +69,126 @@ function contrastRatio(hex1: string, hex2: string): number {
   return l1 > l2 ? l1 / l2 : l2 / l1;
 }
 
+type ErrorCorrection = "auto" | "L" | "M" | "Q" | "H";
+
 type QrConfig = {
-  qrTemplate: QrTemplate;
-  qrUrl: string;
-  qrText: string;
-  qrWifiSsid: string;
-  qrWifiPass: string;
-  qrWifiEnc: "WPA" | "WEP" | "nopass";
-  qrWifiHidden: boolean;
-  qrEmailTo: string;
-  qrEmailSubject: string;
-  qrEmailBody: string;
-  qrPhone: string;
+  qrTemplate: string;
+  templateData: Record<string, QrFieldValues>;
   size: number;
+  margin: number;
+  shape: QrShape;
+  errorCorrection: ErrorCorrection;
   dotsType: DotType;
   cornersSquareType: CornerSquareType;
   cornersDotType: CornerDotType;
-  dotsColor: string;
-  cornersColor: string;
-  bgColor: string;
+  dots: ColorState;
+  cornersSquare: ColorState;
+  cornersDot: ColorState;
+  background: ColorState;
+  bgTransparent: boolean;
+  bgRound: number;
+  logoSizeRatio: number;
+  logoMargin: number;
+  logoHideBackgroundDots: boolean;
+  logoShape: QrLogoShape;
+  frameEnabled: boolean;
+  frameText: string;
+  frameTextColor: string;
+  frameBgColor: string;
+  framePosition: "top" | "bottom";
 };
 
 const DEFAULT_QR_CONFIG: QrConfig = {
   qrTemplate: "url",
-  qrUrl: "https://gamato-piranti.local",
-  qrText: "",
-  qrWifiSsid: "",
-  qrWifiPass: "",
-  qrWifiEnc: "WPA",
-  qrWifiHidden: false,
-  qrEmailTo: "",
-  qrEmailSubject: "",
-  qrEmailBody: "",
-  qrPhone: "",
+  templateData: {},
   size: 320,
+  margin: 8,
+  shape: "square",
+  errorCorrection: "auto",
   dotsType: "rounded",
   cornersSquareType: "extra-rounded",
   cornersDotType: "dot",
-  dotsColor: "#4f46e5",
-  cornersColor: "#4f46e5",
-  bgColor: "#ffffff",
+  dots: defaultColorState("#4f46e5"),
+  cornersSquare: defaultColorState("#4f46e5"),
+  cornersDot: defaultColorState("#4f46e5"),
+  background: defaultColorState("#ffffff"),
+  bgTransparent: false,
+  bgRound: 0,
+  logoSizeRatio: 0.35,
+  logoMargin: 6,
+  logoHideBackgroundDots: true,
+  logoShape: "rounded",
+  frameEnabled: false,
+  frameText: "SCAN ME",
+  frameTextColor: "#ffffff",
+  frameBgColor: "#4f46e5",
+  framePosition: "bottom",
 };
 
+// ─── Data-driven template field rendering ───────────────────────────────────
+// Renders whatever fields the active QR_TEMPLATES entry declares, instead of
+// one hand-written JSX block per content type. "half" fields pair up two at
+// a time into a 2-column row (skipped if the partner is currently hidden by
+// showWhen, so it never leaves an orphaned half-width field).
+
+function isFieldVisible(field: QrFieldDef, data: QrFieldValues): boolean {
+  if (!field.showWhen) return true;
+  const dep = data[field.showWhen.key];
+  if (field.showWhen.equals !== undefined) return dep === field.showWhen.equals;
+  if (field.showWhen.notEquals !== undefined) return dep !== field.showWhen.notEquals;
+  return true;
+}
+
+function QrFieldInput({ field, data, onChange }: { field: QrFieldDef; data: QrFieldValues; onChange: (key: string, v: string | boolean) => void }) {
+  const value = data[field.key];
+  const id = `qr-field-${field.key}`;
+  switch (field.type) {
+    case "textarea":
+      return <Textarea id={id} label={field.label} rows={field.rows ?? 3} value={String(value ?? "")} onChange={(e) => onChange(field.key, e.target.value)} placeholder={field.placeholder} />;
+    case "select":
+      return (
+        <Select id={id} label={field.label} value={String(value ?? "")} onChange={(e) => onChange(field.key, e.target.value)}>
+          {field.options?.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </Select>
+      );
+    case "checkbox":
+      return <GamatoCheckbox checked={!!value} onChange={(v) => onChange(field.key, v)} label={field.label} />;
+    case "date":
+    case "time":
+      return <Input id={id} label={field.label} type={field.type} value={String(value ?? "")} onChange={(e) => onChange(field.key, e.target.value)} />;
+    default:
+      return <Input id={id} label={field.label} type={field.type} value={String(value ?? "")} onChange={(e) => onChange(field.key, e.target.value)} placeholder={field.placeholder} />;
+  }
+}
+
+function renderTemplateFields(fields: QrFieldDef[], data: QrFieldValues, onChange: (key: string, v: string | boolean) => void) {
+  const visible = fields.filter((f) => isFieldVisible(f, data));
+  const nodes: ReactNode[] = [];
+  for (let i = 0; i < visible.length; i++) {
+    const f = visible[i];
+    const next = visible[i + 1];
+    if (f.half && next?.half) {
+      nodes.push(
+        <div key={f.key} className="grid grid-cols-2 gap-3">
+          <QrFieldInput field={f} data={data} onChange={onChange} />
+          <QrFieldInput field={next} data={data} onChange={onChange} />
+        </div>
+      );
+      i++;
+    } else {
+      nodes.push(<QrFieldInput key={f.key} field={f} data={data} onChange={onChange} />);
+    }
+  }
+  return nodes;
+}
+
 export function QrCodeGenerator() {
-  // Seluruh pengaturan QR (isi, gaya titik/sudut, warna, ukuran) punya
-  // riwayat Undo/Redo, digabung jadi satu langkah setelah jeda singkat.
-  // Nama variabel & setter di bawah sengaja dipertahankan sama persis
-  // (qrUrl/setQrUrl, dotsColor/setDotsColor, dst.) supaya seluruh JSX di
-  // bawahnya tetap jalan tanpa perlu diubah satu per satu.
+  // Seluruh pengaturan QR (isi per-template, gaya titik/sudut, warna, bentuk,
+  // logo, bingkai) punya riwayat Undo/Redo, digabung jadi satu langkah
+  // setelah jeda singkat — pola yang sama seperti sebelumnya, hanya field-nya
+  // sekarang jauh lebih banyak.
   const qrHistory = useHistoryState<QrConfig>(() => DEFAULT_QR_CONFIG);
   const qrConfig = qrHistory.state;
   const { schedule: scheduleQrCommit } = useDebouncedCommit(qrHistory.commit, 600);
@@ -137,99 +196,98 @@ export function QrCodeGenerator() {
     qrHistory.set((prev) => ({ ...prev, [key]: value }), { commit: false });
     scheduleQrCommit();
   }
-  const { qrTemplate, qrUrl, qrText, qrWifiSsid, qrWifiPass, qrWifiEnc, qrWifiHidden, qrEmailTo, qrEmailSubject, qrEmailBody, qrPhone, size, dotsType, cornersSquareType, cornersDotType, dotsColor, cornersColor, bgColor } = qrConfig;
-  const setQrTemplate = (v: QrTemplate) => setQrField("qrTemplate", v);
-  const setQrUrl = (v: string) => setQrField("qrUrl", v);
-  const setQrText = (v: string) => setQrField("qrText", v);
-  const setQrWifiSsid = (v: string) => setQrField("qrWifiSsid", v);
-  const setQrWifiPass = (v: string) => setQrField("qrWifiPass", v);
-  const setQrWifiEnc = (v: "WPA" | "WEP" | "nopass") => setQrField("qrWifiEnc", v);
-  const setQrWifiHidden = (v: boolean) => setQrField("qrWifiHidden", v);
-  const setQrEmailTo = (v: string) => setQrField("qrEmailTo", v);
-  const setQrEmailSubject = (v: string) => setQrField("qrEmailSubject", v);
-  const setQrEmailBody = (v: string) => setQrField("qrEmailBody", v);
-  const setQrPhone = (v: string) => setQrField("qrPhone", v);
+  const {
+    qrTemplate, templateData, size, margin, shape, errorCorrection,
+    dotsType, cornersSquareType, cornersDotType, dots, cornersSquare, cornersDot, background, bgTransparent, bgRound,
+    logoSizeRatio, logoMargin, logoHideBackgroundDots, logoShape,
+    frameEnabled, frameText, frameTextColor, frameBgColor, framePosition,
+  } = qrConfig;
+
+  const setQrTemplate = (v: string) => setQrField("qrTemplate", v);
   const setSize = (v: number) => setQrField("size", v);
+  const setMargin = (v: number) => setQrField("margin", v);
+  const setShape = (v: QrShape) => setQrField("shape", v);
+  const setErrorCorrection = (v: ErrorCorrection) => setQrField("errorCorrection", v);
   const setDotsType = (v: DotType) => setQrField("dotsType", v);
   const setCornersSquareType = (v: CornerSquareType) => setQrField("cornersSquareType", v);
   const setCornersDotType = (v: CornerDotType) => setQrField("cornersDotType", v);
-  const setDotsColor = (v: string) => setQrField("dotsColor", v);
-  const setCornersColor = (v: string) => setQrField("cornersColor", v);
-  const setBgColor = (v: string) => setQrField("bgColor", v);
+  const setDots = (v: ColorState) => setQrField("dots", v);
+  const setCornersSquare = (v: ColorState) => setQrField("cornersSquare", v);
+  const setCornersDot = (v: ColorState) => setQrField("cornersDot", v);
+  const setBackground = (v: ColorState) => setQrField("background", v);
+  const setBgTransparent = (v: boolean) => setQrField("bgTransparent", v);
+  const setBgRound = (v: number) => setQrField("bgRound", v);
+  const setLogoSizeRatio = (v: number) => setQrField("logoSizeRatio", v);
+  const setLogoMargin = (v: number) => setQrField("logoMargin", v);
+  const setLogoHideBackgroundDots = (v: boolean) => setQrField("logoHideBackgroundDots", v);
+  const setLogoShape = (v: QrLogoShape) => setQrField("logoShape", v);
+  const setFrameEnabled = (v: boolean) => setQrField("frameEnabled", v);
+  const setFrameText = (v: string) => setQrField("frameText", v);
+  const setFrameTextColor = (v: string) => setQrField("frameTextColor", v);
+  const setFrameBgColor = (v: string) => setQrField("frameBgColor", v);
+  const setFramePosition = (v: "top" | "bottom") => setQrField("framePosition", v);
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const qrInstanceRef = useRef<QRCodeStyling | null>(null);
 
-  const buildQrPayload = (): string => {
-    switch (qrTemplate) {
-      case "url": return sanitizeUrl(qrUrl);
-      case "text": return sanitizeText(qrText);
-      case "wifi": {
-        const ssid = sanitizeText(qrWifiSsid);
-        if (!ssid) return "";
-        const pass = sanitizeText(qrWifiPass);
-        const passPart = qrWifiEnc === "nopass" ? "" : `P:${pass};`;
-        return `WIFI:T:${qrWifiEnc};S:${ssid};${passPart}H:${qrWifiHidden ? "true" : "false"};;`;
-      }
-      case "email": {
-        const to = sanitizeText(qrEmailTo).replace(/\s+/g, "");
-        if (!to) return "";
-        const params: string[] = [];
-        const subj = sanitizeText(qrEmailSubject);
-        const body = sanitizeText(qrEmailBody);
-        if (subj) params.push(`subject=${encodeURIComponent(subj)}`);
-        if (body) params.push(`body=${encodeURIComponent(body)}`);
-        return `mailto:${to}${params.length ? `?${params.join("&")}` : ""}`;
-      }
-      case "phone": {
-        const phone = qrPhone.replace(/[^\d+]/g, "").replace(/(?!^)[+]/g, "");
-        return phone ? `tel:${phone}` : "";
-      }
-      default: return "";
-    }
+  const activeTemplate = getQrTemplate(qrTemplate);
+  const activeData: QrFieldValues = templateData[qrTemplate] ?? activeTemplate.defaultData;
+  const updateTemplateField = (key: string, value: string | boolean) => {
+    setQrField("templateData", { ...templateData, [qrTemplate]: { ...activeData, [key]: value } });
   };
 
   const payload = useMemo(
-    buildQrPayload,
+    () => activeTemplate.buildPayload(activeData),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [qrTemplate, qrUrl, qrText, qrWifiSsid, qrWifiPass, qrWifiEnc, qrWifiHidden, qrEmailTo, qrEmailSubject, qrEmailBody, qrPhone]
+    [qrTemplate, templateData]
   );
 
   // Load the uploaded logo, then run it through buildFramedLogoDataUrl so it
-  // always comes out as a clean rounded-square "app icon" style badge —
-  // regardless of whether the source PNG is transparent, has its own
-  // background, or an odd aspect ratio.
+  // always comes out as a clean, consistently-shaped badge — regardless of
+  // whether the source PNG is transparent, has its own background, or an odd
+  // aspect ratio.
   useEffect(() => {
     if (!logoFile) { setLogoDataUrl(null); return; }
     let cancelled = false;
     (async () => {
       try {
         const rawUrl = await fileToDataUrl(logoFile);
-        const framed = await buildFramedLogoDataUrl(rawUrl);
+        const framed = await buildFramedLogoDataUrl(rawUrl, { shape: logoShape });
         if (!cancelled) setLogoDataUrl(framed);
       } catch {
         if (!cancelled) setLogoDataUrl(null);
       }
     })();
     return () => { cancelled = true; };
-  }, [logoFile]);
+  }, [logoFile, logoShape]);
 
-  const currentOptions = () => ({
-    width: size,
-    height: size,
-    type: "canvas" as const,
-    data: payload.trim() || " ",
-    margin: 8,
-    qrOptions: { errorCorrectionLevel: (logoDataUrl ? "H" : "Q") as "H" | "Q" },
-    dotsOptions: { type: dotsType, color: dotsColor },
-    backgroundOptions: { color: bgColor },
-    cornersSquareOptions: { type: cornersSquareType, color: cornersColor },
-    cornersDotOptions: { type: cornersDotType, color: cornersColor },
-    image: logoDataUrl || undefined,
-    imageOptions: { hideBackgroundDots: true, imageSize: 0.35, margin: 6, crossOrigin: "anonymous" as const },
-  });
+  const currentOptions = () => {
+    const dotsOpt = toQrColorOptions(dots);
+    const cornersSquareOpt = toQrColorOptions(cornersSquare);
+    const cornersDotOpt = toQrColorOptions(cornersDot);
+    const bgOpt = bgTransparent ? { color: "transparent", gradient: undefined } : toQrColorOptions(background);
+    const effectiveErrorCorrection = errorCorrection === "auto" ? (logoDataUrl ? "H" : "Q") : errorCorrection;
+    return {
+      width: size,
+      height: size,
+      type: "canvas" as const,
+      shape,
+      data: payload.trim() || " ",
+      margin,
+      qrOptions: { errorCorrectionLevel: effectiveErrorCorrection as "L" | "M" | "Q" | "H" },
+      dotsOptions: { type: dotsType, color: dotsOpt.color, gradient: dotsOpt.gradient },
+      backgroundOptions: { color: bgOpt.color, gradient: bgOpt.gradient, round: bgTransparent ? 0 : bgRound },
+      cornersSquareOptions: { type: cornersSquareType, color: cornersSquareOpt.color, gradient: cornersSquareOpt.gradient },
+      cornersDotOptions: { type: cornersDotType, color: cornersDotOpt.color, gradient: cornersDotOpt.gradient },
+      image: logoDataUrl || undefined,
+      imageOptions: { hideBackgroundDots: logoHideBackgroundDots, imageSize: logoSizeRatio, margin: logoMargin, crossOrigin: "anonymous" as const },
+    };
+  };
 
   // Create the QR instance once and mount it into the DOM.
   useEffect(() => {
@@ -246,25 +304,71 @@ export function QrCodeGenerator() {
   useEffect(() => {
     qrInstanceRef.current?.update(currentOptions());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payload, size, dotsType, cornersSquareType, cornersDotType, dotsColor, cornersColor, bgColor, logoDataUrl]);
+  }, [
+    payload, size, margin, shape, errorCorrection,
+    dotsType, cornersSquareType, cornersDotType, dots, cornersSquare, cornersDot, background, bgTransparent, bgRound,
+    logoDataUrl, logoSizeRatio, logoMargin, logoHideBackgroundDots,
+  ]);
 
-  const applyPreset = (p: Preset) => {
+  const applyPreset = (p: QrStylePreset) => {
     setDotsType(p.dotsType);
     setCornersSquareType(p.cornersSquareType);
     setCornersDotType(p.cornersDotType);
-    setDotsColor(p.dotsColor);
-    setCornersColor(p.cornersColor);
-    setBgColor(p.bgColor);
+    setDots(p.dots);
+    setCornersSquare(p.cornersSquare);
+    setCornersDot(p.cornersDot);
+    setBackground(p.background);
+    setBgTransparent(p.bgTransparent);
+    setBgRound(p.bgRound);
+    setShape(p.shape);
   };
 
-  const download = (extension: "png" | "jpeg" | "webp" | "svg") => {
-    qrInstanceRef.current?.download({ name: "gamato-qr", extension });
+  const getPreviewCanvas = (): HTMLCanvasElement | null => containerRef.current?.querySelector("canvas") ?? null;
+
+  const buildExportBlob = async (extension: "png" | "jpeg" | "webp" | "svg"): Promise<{ blob: Blob; usedFrame: boolean } | null> => {
+    if (frameEnabled && extension !== "svg") {
+      const qrCanvas = getPreviewCanvas();
+      if (qrCanvas) {
+        try {
+          const framed = await composeFramedQrCanvas(qrCanvas, { text: frameText, textColor: frameTextColor, bgColor: frameBgColor, position: framePosition });
+          const mime = extension === "png" ? "image/png" : extension === "jpeg" ? "image/jpeg" : "image/webp";
+          const blob = await canvasToBlob(framed, mime, extension === "jpeg" ? 0.95 : undefined);
+          if (blob) return { blob, usedFrame: true };
+        } catch {
+          // fall through to the library's own raw export as a safe fallback
+        }
+      }
+    }
+    const raw = await qrInstanceRef.current?.getRawData(extension);
+    if (!raw) return null;
+    const blob = raw instanceof Blob ? raw : new Blob([raw as BlobPart]);
+    return { blob, usedFrame: false };
+  };
+
+  const download = async (extension: "png" | "jpeg" | "webp" | "svg") => {
+    const result = await buildExportBlob(extension);
+    if (!result) { qrInstanceRef.current?.download({ name: "gamato-qr", extension }); return; }
+    downloadBlob(result.blob, `gamato-qr.${extension}`);
+  };
+
+  const copyToClipboard = async () => {
+    setCopyError(null);
+    try {
+      if (!navigator.clipboard || typeof ClipboardItem === "undefined") throw new Error("unsupported");
+      const result = await buildExportBlob("png");
+      if (!result) throw new Error("empty");
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": result.blob })]);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 1500);
+    } catch {
+      setCopyState("error");
+      setCopyError("Salin gambar tidak didukung di browser ini. Gunakan tombol unduh sebagai gantinya.");
+      setTimeout(() => setCopyState("idle"), 2500);
+    }
   };
 
   // Manual, always-works fallback: fully clears and re-mounts the QR
-  // instance into the preview container. Exposed as a small "Buat Preview"
-  // button so the user has a one-click fix if the live preview ever looks
-  // stale or blank for any reason.
+  // instance into the preview container.
   const refreshPreview = () => {
     if (!containerRef.current) return;
     containerRef.current.innerHTML = "";
@@ -273,8 +377,8 @@ export function QrCodeGenerator() {
     instance.append(containerRef.current);
   };
 
-  const contrast = useMemo(() => contrastRatio(dotsColor, bgColor), [dotsColor, bgColor]);
-  const lowContrast = contrast < 2.2;
+  const contrast = useMemo(() => contrastRatio(dots.color, bgTransparent ? "#ffffff" : background.color), [dots.color, bgTransparent, background.color]);
+  const lowContrast = !bgTransparent && contrast < 2.2;
 
   return (
     <div className="space-y-6">
@@ -288,62 +392,44 @@ export function QrCodeGenerator() {
 
           {/* Template selector */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Isi QR</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Isi QR — {QR_TEMPLATES.length} Tipe</p>
             <div className="flex flex-wrap gap-2">
-              {QR_TEMPLATES.map(t => (
-                <button key={t.id} type="button" onClick={() => setQrTemplate(t.id)}
-                  className={cn("flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
-                    qrTemplate === t.id ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10")}>
-                  {t.icon}<span>{t.label}</span>
-                </button>
-              ))}
+              {QR_TEMPLATES.map((t) => {
+                const Icon = t.icon;
+                return (
+                  <button key={t.id} type="button" onClick={() => setQrTemplate(t.id)}
+                    className={cn("flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
+                      qrTemplate === t.id ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10")}>
+                    <Icon className="w-4 h-4" /><span>{t.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Template form */}
+          {/* Template form — data-driven off the active template's field schema */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            {qrTemplate === "url" && <Input label="URL / Link" value={qrUrl} onChange={e => setQrUrl(sanitizeText(e.target.value))} placeholder="https://example.com" type="text" />}
-            {qrTemplate === "text" && <Textarea label="Teks Bebas" rows={5} value={qrText} onChange={e => setQrText(sanitizeText(e.target.value))} placeholder="Ketik pesan, catatan, atau instruksi…" />}
-            {qrTemplate === "wifi" && (
-              <div className="space-y-3">
-                <Input label="Nama Jaringan (SSID)" value={qrWifiSsid} onChange={e => setQrWifiSsid(sanitizeText(e.target.value))} placeholder="Nama WiFi" />
-                <div className="grid grid-cols-2 gap-3">
-                  <Select label="Enkripsi" value={qrWifiEnc} onChange={e => setQrWifiEnc(e.target.value as any)}>
-                    <option value="WPA">WPA / WPA2</option>
-                    <option value="WEP">WEP</option>
-                    <option value="nopass">Tanpa password</option>
-                  </Select>
-                  <Input label="Password" type="password" disabled={qrWifiEnc === "nopass"} value={qrWifiPass} onChange={e => setQrWifiPass(sanitizeText(e.target.value))} placeholder={qrWifiEnc === "nopass" ? "—" : "Password WiFi"} />
-                </div>
-                <GamatoCheckbox checked={qrWifiHidden} onChange={setQrWifiHidden} label="Jaringan tersembunyi (hidden SSID)" />
-              </div>
-            )}
-            {qrTemplate === "email" && (
-              <div className="space-y-3">
-                <Input label="Kepada (email)" type="email" value={qrEmailTo} onChange={e => setQrEmailTo(sanitizeText(e.target.value))} placeholder="nama@domain.com" />
-                <Input label="Subjek" value={qrEmailSubject} onChange={e => setQrEmailSubject(sanitizeText(e.target.value))} placeholder="Subjek email" />
-                <Textarea label="Isi Pesan" rows={3} value={qrEmailBody} onChange={e => setQrEmailBody(sanitizeText(e.target.value))} placeholder="Isi email otomatis…" />
-              </div>
-            )}
-            {qrTemplate === "phone" && (
-              <Input label="Nomor Telepon" value={qrPhone} onChange={e => setQrPhone(sanitizeText(e.target.value))} placeholder="+62812xxxxxxx" />
-            )}
+            {renderTemplateFields(activeTemplate.fields, activeData, updateTemplateField)}
+            {activeTemplate.note && <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">{activeTemplate.note}</p>}
           </div>
 
           {/* Style presets */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
             <div className="flex items-center gap-1.5 mb-3">
               <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Gaya Instan</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Gaya Instan — {QR_STYLE_PRESETS.length} Preset</p>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {PRESETS.map(p => (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {QR_STYLE_PRESETS.map((p) => (
                 <button key={p.name} type="button" onClick={() => applyPreset(p)}
                   className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50/60 dark:hover:bg-indigo-500/10 transition-all">
-                  <span className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-600" style={{ backgroundColor: p.bgColor }}>
-                    <span className="block w-full h-full rounded-lg" style={{ background: `linear-gradient(135deg, ${p.dotsColor} 35%, transparent 35%)` }} />
+                  <span
+                    className={cn("w-8 h-8 border border-slate-200 dark:border-slate-600 shrink-0 overflow-hidden", p.shape === "circle" ? "rounded-full" : "rounded-lg")}
+                    style={{ backgroundColor: p.swatchBg === "transparent" ? undefined : p.swatchBg, backgroundImage: p.swatchBg === "transparent" ? "repeating-conic-gradient(#e5e7eb 0% 25%, #ffffff 0% 50%)" : undefined, backgroundSize: p.swatchBg === "transparent" ? "8px 8px" : undefined }}
+                  >
+                    <span className="block w-full h-full" style={{ background: `linear-gradient(135deg, ${p.swatchFrom}, ${p.swatchTo})` }} />
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{p.name}</span>
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 text-center leading-tight">{p.name}</span>
                 </button>
               ))}
             </div>
@@ -351,12 +437,15 @@ export function QrCodeGenerator() {
 
           {/* Manual style controls */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Kustomisasi Manual</p>
+            <div className="flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-indigo-500" />
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Kustomisasi Penuh</p>
+            </div>
 
             <div>
               <Label>Bentuk Titik (Dots)</Label>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {DOT_STYLES.map(s => (
+                {DOT_STYLES.map((s) => (
                   <button key={s.id} type="button" onClick={() => setDotsType(s.id)}
                     className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
                       dotsType === s.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
@@ -370,7 +459,7 @@ export function QrCodeGenerator() {
               <div>
                 <Label>Bentuk Sudut Luar</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {CORNER_SQUARE_STYLES.map(s => (
+                  {CORNER_SQUARE_STYLES.map((s) => (
                     <button key={s.id} type="button" onClick={() => setCornersSquareType(s.id)}
                       className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
                         cornersSquareType === s.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
@@ -382,7 +471,7 @@ export function QrCodeGenerator() {
               <div>
                 <Label>Bentuk Sudut Dalam</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {CORNER_DOT_STYLES.map(s => (
+                  {CORNER_DOT_STYLES.map((s) => (
                     <button key={s.id} type="button" onClick={() => setCornersDotType(s.id)}
                       className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
                         cornersDotType === s.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
@@ -393,11 +482,50 @@ export function QrCodeGenerator() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <GamatoColorPicker label="Warna Titik" value={dotsColor} onChange={setDotsColor} />
-              <GamatoColorPicker label="Warna Sudut" value={cornersColor} onChange={setCornersColor} />
-              <GamatoColorPicker label="Warna Latar" value={bgColor} onChange={setBgColor} />
+            <div>
+              <Label>Bentuk Keseluruhan</Label>
+              <div className="flex gap-1.5 mt-1.5">
+                <button type="button" onClick={() => setShape("square")}
+                  className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                    shape === "square" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                  <Square className="w-3.5 h-3.5" />Persegi
+                </button>
+                <button type="button" onClick={() => setShape("circle")}
+                  className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                    shape === "circle" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                  <CircleIcon className="w-3.5 h-3.5" />Lingkaran
+                </button>
+              </div>
             </div>
+
+            <div className="grid sm:grid-cols-2 gap-x-5 gap-y-5 pt-1 border-t border-slate-100 dark:border-slate-800">
+              <ColorModeControl label="Warna Titik" value={dots} onChange={setDots} className="pt-4" testId="dots" />
+              <ColorModeControl label="Warna Sudut Luar" value={cornersSquare} onChange={setCornersSquare} className="pt-4" testId="cornersSquare" />
+              <ColorModeControl label="Warna Sudut Dalam" value={cornersDot} onChange={setCornersDot} className="pt-4" testId="cornersDot" />
+              <div className="pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Warna Latar</Label>
+                  <GamatoCheckbox checked={bgTransparent} onChange={setBgTransparent} label={<span className="text-[11px]">Transparan</span>} testId="bgTransparent-checkbox" />
+                </div>
+                {bgTransparent ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 px-3 py-2.5 text-[11px] text-slate-400 dark:text-slate-500" style={{ backgroundImage: "repeating-conic-gradient(#e5e7eb 0% 25%, transparent 0% 50%)", backgroundSize: "10px 10px" }}>
+                    Latar dibiarkan transparan (cocok untuk ditempel di atas desain lain).
+                  </div>
+                ) : (
+                  <ColorModeControl label="" value={background} onChange={setBackground} testId="background" />
+                )}
+              </div>
+            </div>
+
+            {!bgTransparent && (
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <Label>Kelengkungan Latar</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(bgRound * 100)}%</span>
+                </div>
+                <GamatoSlider min={0} max={1} step={0.05} value={bgRound} onChange={setBgRound} aria-label="Kelengkungan latar belakang" />
+              </div>
+            )}
 
             {lowContrast && (
               <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2.5">
@@ -406,33 +534,140 @@ export function QrCodeGenerator() {
               </div>
             )}
 
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Label>Ukuran</Label>
-                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{size}px</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <Label>Ukuran</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{size}px</span>
+                </div>
+                <GamatoSlider min={200} max={600} step={10} value={size} onChange={setSize} aria-label="Ukuran QR" />
               </div>
-              <GamatoSlider min={200} max={600} step={10} value={size} onChange={setSize} aria-label="Ukuran QR" />
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <Label>Margin</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{margin}px</span>
+                </div>
+                <GamatoSlider min={0} max={40} step={2} value={margin} onChange={setMargin} aria-label="Margin QR" />
+              </div>
             </div>
 
             <div>
-              <Label>Logo Tengah (Opsional)</Label>
-              <label className="mt-1 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-5 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all group">
-                {logoDataUrl ? (
-                  <div className="flex items-center gap-4 w-full">
-                    <img src={logoDataUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
-                    <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium">Logo terpasang</span>
-                    <button type="button" onClick={e => { e.preventDefault(); setLogoFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700">Hapus</button>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="flex justify-center mb-2 text-slate-400 dark:text-slate-500"><Upload className="w-7 h-7" /></div>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload Logo <span className="text-indigo-600 dark:text-indigo-400">PNG/JPG</span></p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Akan tampil di tengah QR code</p>
-                  </div>
-                )}
-                <input type="file" className="hidden" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] ?? null)} />
-              </label>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Label>Tingkat Koreksi Error</Label>
+                <GamatoTooltip label="Level lebih tinggi = QR lebih tahan kotor/rusak, tapi kepadatan modul bertambah. Otomatis memakai H saat logo aktif.">
+                  <span className="text-slate-300 dark:text-slate-600 text-xs cursor-help">ⓘ</span>
+                </GamatoTooltip>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {ERROR_CORRECTION_OPTIONS.map((o) => (
+                  <button key={o.id} type="button" onClick={() => setErrorCorrection(o.id)}
+                    className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                      errorCorrection === o.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+              <Label>Logo Tengah (Opsional)</Label>
+              <div className="relative mt-1">
+                <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-5 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all group">
+                  {logoDataUrl ? (
+                    <div className="flex items-center gap-4 w-full pr-14">
+                      <img src={logoDataUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
+                      <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium">Logo terpasang — klik untuk ganti</span>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="flex justify-center mb-2 text-slate-400 dark:text-slate-500"><Upload className="w-7 h-7" /></div>
+                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload Logo <span className="text-indigo-600 dark:text-indigo-400">PNG/JPG</span></p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Akan tampil di tengah QR code</p>
+                    </div>
+                  )}
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)} />
+                </label>
+                {logoDataUrl && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLogoFile(null); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-red-500 font-semibold hover:text-red-700"
+                  >
+                    Hapus
+                  </button>
+                )}
+              </div>
+
+              {logoFile && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <Label>Bentuk Bingkai Logo</Label>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {LOGO_SHAPE_OPTIONS.map((o) => (
+                        <button key={o.id} type="button" data-testid={`logo-shape-${o.id}`} onClick={() => setLogoShape(o.id)}
+                          className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                            logoShape === o.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                    {logoShape === "none" && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Mode "Asli" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar &amp; logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.</p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Ukuran Logo</span>
+                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{Math.round(logoSizeRatio * 100)}%</span>
+                      </div>
+                      <GamatoSlider min={0.15} max={0.45} step={0.01} value={logoSizeRatio} onChange={setLogoSizeRatio} aria-label="Ukuran logo" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Margin Logo</span>
+                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{logoMargin}px</span>
+                      </div>
+                      <GamatoSlider min={0} max={20} step={1} value={logoMargin} onChange={setLogoMargin} aria-label="Margin logo" />
+                    </div>
+                  </div>
+                  <GamatoCheckbox checked={logoHideBackgroundDots} onChange={setLogoHideBackgroundDots} label="Sembunyikan titik QR di belakang logo" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Frame / label */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <FrameIcon className="w-3.5 h-3.5 text-indigo-500" />
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Bingkai &amp; Label Teks</p>
+              </div>
+              <GamatoCheckbox checked={frameEnabled} onChange={setFrameEnabled} testId="frame-enabled-checkbox" />
+            </div>
+            {frameEnabled && (
+              <div className="space-y-4">
+                <Input id="qr-frame-text" label="Teks Label" value={frameText} onChange={(e) => setFrameText(e.target.value)} placeholder="SCAN ME" maxLength={40} />
+                <div>
+                  <Label>Posisi</Label>
+                  <div className="flex gap-1.5 mt-1.5">
+                    {(["top", "bottom"] as const).map((pos) => (
+                      <button key={pos} type="button" onClick={() => setFramePosition(pos)}
+                        className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                          framePosition === pos ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                        {pos === "top" ? "Atas" : "Bawah"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <GamatoColorPicker label="Warna Latar Label" value={frameBgColor} onChange={setFrameBgColor} />
+                  <GamatoColorPicker label="Warna Teks Label" value={frameTextColor} onChange={setFrameTextColor} />
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Bingkai disertakan pada unduhan PNG/JPEG/WEBP. Format SVG tetap diunduh tanpa bingkai.</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -451,21 +686,30 @@ export function QrCodeGenerator() {
               </button>
             </GamatoTooltip>
 
-            {/* The QR container div is ALWAYS mounted (never conditionally
-                removed) — qr-code-styling's canvas is appended into it once
-                and only ever `.update()`d afterwards. If this div were
-                conditionally unmounted whenever the payload is briefly
-                empty (e.g. switching to an empty template field) and later
-                remounted, the library would have no way to re-attach its
-                canvas to the new DOM node, leaving the preview blank even
-                though content exists. Visibility is toggled with CSS
-                instead of JSX so the DOM node — and the library's handle
-                to it — never disappears. */}
-            <div className={cn("bg-white p-5 rounded-2xl shadow-2xl shadow-slate-200/80 dark:shadow-black/40", !payload.trim() && "absolute opacity-0 pointer-events-none")}>
-              <div
-                ref={containerRef}
-                className="[&>canvas]:max-w-full [&>canvas]:h-auto [&>svg]:max-w-full [&>svg]:h-auto"
-              />
+            {/* This outer wrapper (banner + QR box) is hidden via CSS, never
+                unmounted, when payload is empty — see the note below on
+                containerRef for why unmounting would break the library. */}
+            <div className={cn("flex flex-col items-stretch w-fit", !payload.trim() && "absolute opacity-0 pointer-events-none")}>
+              {frameEnabled && framePosition === "top" && (
+                <div className="rounded-t-2xl px-5 py-2.5 text-center font-bold text-sm truncate" style={{ backgroundColor: frameBgColor, color: frameTextColor }}>
+                  {frameText.trim() || "SCAN ME"}
+                </div>
+              )}
+              {/* The QR container div is ALWAYS mounted (never conditionally
+                  removed) — qr-code-styling's canvas is appended into it once
+                  and only ever `.update()`d afterwards. If this div were
+                  conditionally unmounted whenever the payload is briefly
+                  empty and later remounted, the library would have no way to
+                  re-attach its canvas to the new DOM node, leaving the
+                  preview blank even though content exists. */}
+              <div className={cn("bg-white p-5 shadow-2xl shadow-slate-200/80 dark:shadow-black/40", frameEnabled ? (framePosition === "top" ? "rounded-b-2xl" : "rounded-t-2xl") : "rounded-2xl")}>
+                <div ref={containerRef} className="[&>canvas]:max-w-full [&>canvas]:h-auto [&>svg]:max-w-full [&>svg]:h-auto" />
+              </div>
+              {frameEnabled && framePosition === "bottom" && (
+                <div className="rounded-b-2xl px-5 py-2.5 text-center font-bold text-sm truncate" style={{ backgroundColor: frameBgColor, color: frameTextColor }}>
+                  {frameText.trim() || "SCAN ME"}
+                </div>
+              )}
             </div>
             {!payload.trim() && (
               <div className="w-56 h-56 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center">
@@ -488,6 +732,11 @@ export function QrCodeGenerator() {
               WEBP
             </Btn>
           </div>
+
+          <Btn onClick={copyToClipboard} disabled={!payload.trim()} variant="secondary" className="w-full py-3">
+            {copyState === "copied" ? <><Check className="w-4 h-4 text-emerald-500" />Tersalin!</> : <><ClipboardCopy className="w-4 h-4" />Salin ke Clipboard</>}
+          </Btn>
+          {copyError && copyState === "error" && <p className="text-xs text-center text-amber-600 dark:text-amber-400">{copyError}</p>}
 
           <div className="text-center"><SectionBadge>Diproses langsung di perangkatmu</SectionBadge></div>
         </div>
