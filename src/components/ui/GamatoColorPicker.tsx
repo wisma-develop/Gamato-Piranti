@@ -54,11 +54,13 @@ export function GamatoColorPicker({
   onChange,
   label,
   className,
+  testId,
 }: {
   value: string;
   onChange: (hex: string) => void;
   label?: string;
   className?: string;
+  testId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [hexInput, setHexInput] = useState(value);
@@ -140,6 +142,7 @@ export function GamatoColorPicker({
       {label && <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">{label}</p>}
       <button
         type="button"
+        data-testid={testId ? `${testId}-trigger` : undefined}
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 shadow-sm hover:border-indigo-300 transition-colors"
       >
@@ -199,6 +202,7 @@ export function GamatoColorPicker({
             <Pipette className="w-4 h-4 text-slate-400 shrink-0" />
             <input
               type="text"
+              data-testid={testId ? `${testId}-hex` : undefined}
               value={hexInput}
               onChange={(e) => handleHexChange(e.target.value)}
               className="flex-1 min-w-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-mono uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500/30"

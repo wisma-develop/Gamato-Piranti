@@ -12,16 +12,19 @@ export function GamatoCheckbox({
   label,
   disabled,
   className,
+  testId,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: React.ReactNode;
   disabled?: boolean;
   className?: string;
+  testId?: string;
 }) {
   const box = (
     <span
       role="checkbox"
+      data-testid={testId}
       aria-checked={checked}
       tabIndex={disabled ? -1 : 0}
       onClick={() => !disabled && onChange(!checked)}

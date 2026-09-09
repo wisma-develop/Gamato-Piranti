@@ -1,19 +1,28 @@
 import { roundRect } from "@/lib/businessDocCanvas";
 
+export type QrLogoShape = "rounded" | "circle" | "square" | "none";
+
 /**
  * Takes any uploaded logo (raw data URL) — transparent PNG, logo with its own
  * background, odd aspect ratio, whatever — and re-renders it centered inside
- * a clean rounded-square "app icon" style frame with a solid backdrop and a
- * subtle border. This guarantees a consistently stylish result in the QR
- * center regardless of what the user actually uploaded, instead of dropping
- * the raw image (with potentially transparent edges bleeding into the QR's
- * white background, or a clashing square corner) straight into the code.
+ * a clean frame with a solid backdrop, in the chosen shape. This guarantees a
+ * consistently stylish result in the QR center regardless of what the user
+ * actually uploaded, instead of dropping the raw image (with potentially
+ * transparent edges bleeding into the QR's white background, or a clashing
+ * square corner) straight into the code.
+ *
+ * shape "none" skips all of this and returns the raw image untouched, for
+ * users who already prepared a properly-cropped logo themselves.
  */
 export async function buildFramedLogoDataUrl(
   rawDataUrl: string,
-  opts: { size?: number; paddingRatio?: number; radiusRatio?: number; bgColor?: string } = {}
+  opts: { size?: number; paddingRatio?: number; radiusRatio?: number; bgColor?: string; shape?: QrLogoShape } = {}
 ): Promise<string> {
-  const { size = 400, paddingRatio = 0.14, radiusRatio = 0.22, bgColor = "#ffffff" } = opts;
+  const { size = 400, paddingRatio = 0.14, bgColor = "#ffffff", shape = "rounded" } = opts;
+
+  if (shape === "none") return rawDataUrl;
+
+  const radiusRatio = shape === "circle" ? 0.5 : shape === "square" ? 0 : opts.radiusRatio ?? 0.22;
 
   const img = new Image();
   img.src = rawDataUrl;
@@ -30,9 +39,9 @@ export async function buildFramedLogoDataUrl(
 
   const radius = size * radiusRatio;
 
-  // Rounded-square backdrop. Clipping first means a transparent PNG's edges
-  // are always backed by a clean solid color instead of showing the QR's
-  // white through irregular alpha edges.
+  // Rounded-square (or circular, or square) backdrop. Clipping first means a
+  // transparent PNG's edges are always backed by a clean solid color instead
+  // of showing the QR's white through irregular alpha edges.
   ctx.save();
   roundRect(ctx, 0, 0, size, size, radius);
   ctx.clip();
