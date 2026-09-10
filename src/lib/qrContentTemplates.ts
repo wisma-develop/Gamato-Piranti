@@ -38,6 +38,7 @@ export type QrFieldValues = Record<string, string | boolean>;
 export interface QrTemplateDef {
   id: string;
   label: string;
+  category: string;
   icon: LucideIcon;
   fields: QrFieldDef[];
   defaultData: QrFieldValues;
@@ -93,6 +94,7 @@ const SOCIAL_PLATFORMS: Record<string, { label: string; build: (u: string) => st
 export const QR_TEMPLATES: QrTemplateDef[] = [
   {
     id: "url",
+    category: "Umum",
     label: "URL",
     icon: Link2,
     fields: [{ key: "url", label: "URL / Link", type: "url", placeholder: "https://example.com" }],
@@ -101,6 +103,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "text",
+    category: "Umum",
     label: "Teks",
     icon: Type,
     fields: [{ key: "text", label: "Teks Bebas", type: "textarea", rows: 5, placeholder: "Ketik pesan, catatan, atau instruksi…" }],
@@ -109,6 +112,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "wifi",
+    category: "Jaringan & Lokasi",
     label: "WiFi",
     icon: Wifi,
     fields: [
@@ -129,6 +133,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "email",
+    category: "Kontak & Komunikasi",
     label: "Email",
     icon: Mail,
     fields: [
@@ -150,6 +155,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "phone",
+    category: "Kontak & Komunikasi",
     label: "Telepon",
     icon: Phone,
     fields: [{ key: "phone", label: "Nomor Telepon", type: "tel", placeholder: "+62812xxxxxxx" }],
@@ -161,6 +167,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "sms",
+    category: "Kontak & Komunikasi",
     label: "SMS",
     icon: MessageSquareText,
     fields: [
@@ -178,6 +185,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "whatsapp",
+    category: "Kontak & Komunikasi",
     label: "WhatsApp",
     icon: MessageCircle,
     fields: [
@@ -194,6 +202,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "vcard",
+    category: "Kontak & Komunikasi",
     label: "Kontak",
     icon: UserCircle2,
     fields: [
@@ -235,6 +244,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "location",
+    category: "Jaringan & Lokasi",
     label: "Lokasi",
     icon: MapPin,
     fields: [
@@ -254,6 +264,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "calendar",
+    category: "Jaringan & Lokasi",
     label: "Event Kalender",
     icon: CalendarClock,
     fields: [
@@ -284,6 +295,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "social",
+    category: "Sosial & Meeting",
     label: "Media Sosial",
     icon: Share2,
     fields: [
@@ -303,6 +315,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "zoom",
+    category: "Sosial & Meeting",
     label: "Zoom Meeting",
     icon: Video,
     fields: [
@@ -319,6 +332,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "facetime",
+    category: "Sosial & Meeting",
     label: "FaceTime",
     icon: Apple,
     fields: [{ key: "target", label: "Nomor Telepon atau Email", type: "text", placeholder: "+62812xxxxxxx atau nama@icloud.com" }],
@@ -333,6 +347,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "crypto",
+    category: "Pembayaran",
     label: "Pembayaran Kripto",
     icon: Coins,
     fields: [
@@ -356,6 +371,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
   },
   {
     id: "paypal",
+    category: "Pembayaran",
     label: "PayPal.me",
     icon: Wallet,
     fields: [
@@ -374,6 +390,8 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     },
   },
 ];
+
+export const QR_TEMPLATE_CATEGORIES = ["Umum", "Kontak & Komunikasi", "Jaringan & Lokasi", "Sosial & Meeting", "Pembayaran"] as const;
 
 export function getQrTemplate(id: string): QrTemplateDef {
   return QR_TEMPLATES.find((t) => t.id === id) || QR_TEMPLATES[0];
