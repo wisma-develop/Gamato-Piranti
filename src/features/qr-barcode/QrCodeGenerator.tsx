@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Upload, Download, Sparkles, AlertTriangle, RefreshCw, Palette,
   Frame as FrameIcon, Square, Circle as CircleIcon, ClipboardCopy, Check,
+  Ruler, ImagePlus, Wand2,
 } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import { cn } from "@/utils/cn";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { buildFramedLogoDataUrl, type QrLogoShape } from "@/lib/qrLogo";
 import { composeFramedQrCanvas, canvasToBlob } from "@/lib/qrFrame";
-import { QR_TEMPLATES, getQrTemplate, type QrFieldDef, type QrFieldValues } from "@/lib/qrContentTemplates";
+import { AUTO_ICONS, resolveAutoIconId, buildAutoIconDataUrl, getAutoIcon } from "@/lib/qrAutoIcons";
+import { QR_TEMPLATES, QR_TEMPLATE_CATEGORIES, getQrTemplate, type QrFieldDef, type QrFieldValues } from "@/lib/qrContentTemplates";
 import { QR_STYLE_PRESETS, type DotType, type CornerSquareType, type CornerDotType, type QrShape, type QrStylePreset } from "@/features/qr-barcode/qrStylePresets";
 import { ColorModeControl, defaultColorState, toQrColorOptions, type ColorState } from "@/components/ui/ColorModeControl";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
@@ -16,6 +18,7 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
@@ -54,6 +57,15 @@ const LOGO_SHAPE_OPTIONS: { id: QrLogoShape; label: string }[] = [
   { id: "none", label: "Asli" },
 ];
 
+type LogoMode = "auto" | "gallery" | "upload" | "none";
+
+const LOGO_MODE_OPTIONS: { id: LogoMode; label: string; icon: typeof Wand2 }[] = [
+  { id: "auto", label: "Otomatis", icon: Wand2 },
+  { id: "gallery", label: "Galeri Ikon", icon: Sparkles },
+  { id: "upload", label: "Upload Sendiri", icon: ImagePlus },
+  { id: "none", label: "Tanpa Logo", icon: Square },
+];
+
 function relativeLuminance(hex: string): number {
   const c = hex.replace("#", "");
   if (c.length !== 6) return 1;
@@ -87,6 +99,8 @@ type QrConfig = {
   background: ColorState;
   bgTransparent: boolean;
   bgRound: number;
+  logoMode: LogoMode;
+  logoGalleryId: string | null;
   logoSizeRatio: number;
   logoMargin: number;
   logoHideBackgroundDots: boolean;
@@ -114,6 +128,8 @@ const DEFAULT_QR_CONFIG: QrConfig = {
   background: defaultColorState("#ffffff"),
   bgTransparent: false,
   bgRound: 0,
+  logoMode: "auto",
+  logoGalleryId: null,
   logoSizeRatio: 0.35,
   logoMargin: 6,
   logoHideBackgroundDots: true,
@@ -126,11 +142,6 @@ const DEFAULT_QR_CONFIG: QrConfig = {
 };
 
 // ─── Data-driven template field rendering ───────────────────────────────────
-// Renders whatever fields the active QR_TEMPLATES entry declares, instead of
-// one hand-written JSX block per content type. "half" fields pair up two at
-// a time into a 2-column row (skipped if the partner is currently hidden by
-// showWhen, so it never leaves an orphaned half-width field).
-
 function isFieldVisible(field: QrFieldDef, data: QrFieldValues): boolean {
   if (!field.showWhen) return true;
   const dep = data[field.showWhen.key];
@@ -184,11 +195,13 @@ function renderTemplateFields(fields: QrFieldDef[], data: QrFieldValues, onChang
   return nodes;
 }
 
+const pillClass = (active: boolean) =>
+  cn(
+    "px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+    active ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300"
+  );
+
 export function QrCodeGenerator() {
-  // Seluruh pengaturan QR (isi per-template, gaya titik/sudut, warna, bentuk,
-  // logo, bingkai) punya riwayat Undo/Redo, digabung jadi satu langkah
-  // setelah jeda singkat — pola yang sama seperti sebelumnya, hanya field-nya
-  // sekarang jauh lebih banyak.
   const qrHistory = useHistoryState<QrConfig>(() => DEFAULT_QR_CONFIG);
   const qrConfig = qrHistory.state;
   const { schedule: scheduleQrCommit } = useDebouncedCommit(qrHistory.commit, 600);
@@ -199,7 +212,7 @@ export function QrCodeGenerator() {
   const {
     qrTemplate, templateData, size, margin, shape, errorCorrection,
     dotsType, cornersSquareType, cornersDotType, dots, cornersSquare, cornersDot, background, bgTransparent, bgRound,
-    logoSizeRatio, logoMargin, logoHideBackgroundDots, logoShape,
+    logoMode, logoGalleryId, logoSizeRatio, logoMargin, logoHideBackgroundDots, logoShape,
     frameEnabled, frameText, frameTextColor, frameBgColor, framePosition,
   } = qrConfig;
 
@@ -217,6 +230,8 @@ export function QrCodeGenerator() {
   const setBackground = (v: ColorState) => setQrField("background", v);
   const setBgTransparent = (v: boolean) => setQrField("bgTransparent", v);
   const setBgRound = (v: number) => setQrField("bgRound", v);
+  const setLogoMode = (v: LogoMode) => setQrField("logoMode", v);
+  const setLogoGalleryId = (v: string) => setQrField("logoGalleryId", v);
   const setLogoSizeRatio = (v: number) => setQrField("logoSizeRatio", v);
   const setLogoMargin = (v: number) => setQrField("logoMargin", v);
   const setLogoHideBackgroundDots = (v: boolean) => setQrField("logoHideBackgroundDots", v);
@@ -235,6 +250,15 @@ export function QrCodeGenerator() {
   const containerRef = useRef<HTMLDivElement>(null);
   const qrInstanceRef = useRef<QRCodeStyling | null>(null);
 
+  // Always render at least 2x the visual "Ukuran" setting (matching the
+  // device's own pixel ratio when that's higher, up to 4x) so both the live
+  // preview and every exported file are crisp — not a blurry 1:1 bitmap
+  // stretched up by the browser. Since qr-code-styling draws everything as
+  // vector SVG internally before rasterizing to canvas, rendering at a
+  // higher target resolution genuinely produces sharper pixels, it isn't
+  // just upscaling a soft source image.
+  const [renderScale] = useState(() => Math.min(Math.max(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2), 4));
+
   const activeTemplate = getQrTemplate(qrTemplate);
   const activeData: QrFieldValues = templateData[qrTemplate] ?? activeTemplate.defaultData;
   const updateTemplateField = (key: string, value: string | boolean) => {
@@ -247,16 +271,31 @@ export function QrCodeGenerator() {
     [qrTemplate, templateData]
   );
 
-  // Load the uploaded logo, then run it through buildFramedLogoDataUrl so it
-  // always comes out as a clean, consistently-shaped badge — regardless of
-  // whether the source PNG is transparent, has its own background, or an odd
-  // aspect ratio.
+  // Which built-in icon naturally matches the current template + subtype
+  // (e.g. the "social" template's icon follows whichever platform field is
+  // currently selected) — this is what "Otomatis" logo mode resolves to.
+  const autoIconId = useMemo(() => resolveAutoIconId(qrTemplate, activeData), [qrTemplate, activeData]);
+
+  // Resolve whichever logo source is currently active (auto icon / gallery
+  // pick / uploaded file / none), then run it through buildFramedLogoDataUrl
+  // so it always comes out as a clean, consistently-shaped badge — same
+  // pipeline regardless of where the source image came from.
   useEffect(() => {
-    if (!logoFile) { setLogoDataUrl(null); return; }
     let cancelled = false;
     (async () => {
+      let rawUrl: string | null = null;
+      if (logoMode === "upload" && logoFile) {
+        rawUrl = await fileToDataUrl(logoFile);
+      } else if (logoMode === "gallery" && logoGalleryId) {
+        rawUrl = buildAutoIconDataUrl(logoGalleryId);
+      } else if (logoMode === "auto" && autoIconId) {
+        rawUrl = buildAutoIconDataUrl(autoIconId);
+      }
+      if (!rawUrl) {
+        if (!cancelled) setLogoDataUrl(null);
+        return;
+      }
       try {
-        const rawUrl = await fileToDataUrl(logoFile);
         const framed = await buildFramedLogoDataUrl(rawUrl, { shape: logoShape });
         if (!cancelled) setLogoDataUrl(framed);
       } catch {
@@ -264,7 +303,7 @@ export function QrCodeGenerator() {
       }
     })();
     return () => { cancelled = true; };
-  }, [logoFile, logoShape]);
+  }, [logoMode, logoFile, logoGalleryId, autoIconId, logoShape]);
 
   const currentOptions = () => {
     const dotsOpt = toQrColorOptions(dots);
@@ -272,20 +311,21 @@ export function QrCodeGenerator() {
     const cornersDotOpt = toQrColorOptions(cornersDot);
     const bgOpt = bgTransparent ? { color: "transparent", gradient: undefined } : toQrColorOptions(background);
     const effectiveErrorCorrection = errorCorrection === "auto" ? (logoDataUrl ? "H" : "Q") : errorCorrection;
+    const renderSize = Math.round(size * renderScale);
     return {
-      width: size,
-      height: size,
+      width: renderSize,
+      height: renderSize,
       type: "canvas" as const,
       shape,
       data: payload.trim() || " ",
-      margin,
+      margin: Math.round(margin * renderScale),
       qrOptions: { errorCorrectionLevel: effectiveErrorCorrection as "L" | "M" | "Q" | "H" },
       dotsOptions: { type: dotsType, color: dotsOpt.color, gradient: dotsOpt.gradient },
       backgroundOptions: { color: bgOpt.color, gradient: bgOpt.gradient, round: bgTransparent ? 0 : bgRound },
       cornersSquareOptions: { type: cornersSquareType, color: cornersSquareOpt.color, gradient: cornersSquareOpt.gradient },
       cornersDotOptions: { type: cornersDotType, color: cornersDotOpt.color, gradient: cornersDotOpt.gradient },
       image: logoDataUrl || undefined,
-      imageOptions: { hideBackgroundDots: logoHideBackgroundDots, imageSize: logoSizeRatio, margin: logoMargin, crossOrigin: "anonymous" as const },
+      imageOptions: { hideBackgroundDots: logoHideBackgroundDots, imageSize: logoSizeRatio, margin: Math.round(logoMargin * renderScale), crossOrigin: "anonymous" as const },
     };
   };
 
@@ -325,7 +365,7 @@ export function QrCodeGenerator() {
 
   const getPreviewCanvas = (): HTMLCanvasElement | null => containerRef.current?.querySelector("canvas") ?? null;
 
-  const buildExportBlob = async (extension: "png" | "jpeg" | "webp" | "svg"): Promise<{ blob: Blob; usedFrame: boolean } | null> => {
+  const buildExportBlob = async (extension: "png" | "jpeg" | "webp" | "svg"): Promise<{ blob: Blob } | null> => {
     if (frameEnabled && extension !== "svg") {
       const qrCanvas = getPreviewCanvas();
       if (qrCanvas) {
@@ -333,7 +373,7 @@ export function QrCodeGenerator() {
           const framed = await composeFramedQrCanvas(qrCanvas, { text: frameText, textColor: frameTextColor, bgColor: frameBgColor, position: framePosition });
           const mime = extension === "png" ? "image/png" : extension === "jpeg" ? "image/jpeg" : "image/webp";
           const blob = await canvasToBlob(framed, mime, extension === "jpeg" ? 0.95 : undefined);
-          if (blob) return { blob, usedFrame: true };
+          if (blob) return { blob };
         } catch {
           // fall through to the library's own raw export as a safe fallback
         }
@@ -342,7 +382,7 @@ export function QrCodeGenerator() {
     const raw = await qrInstanceRef.current?.getRawData(extension);
     if (!raw) return null;
     const blob = raw instanceof Blob ? raw : new Blob([raw as BlobPart]);
-    return { blob, usedFrame: false };
+    return { blob };
   };
 
   const download = async (extension: "png" | "jpeg" | "webp" | "svg") => {
@@ -380,45 +420,50 @@ export function QrCodeGenerator() {
   const contrast = useMemo(() => contrastRatio(dots.color, bgTransparent ? "#ffffff" : background.color), [dots.color, bgTransparent, background.color]);
   const lowContrast = !bgTransparent && contrast < 2.2;
 
+  const activeAutoIcon = autoIconId ? getAutoIcon(autoIconId) : undefined;
+  const activeGalleryIcon = logoGalleryId ? getAutoIcon(logoGalleryId) : undefined;
+  const boxSizePx = size + 40; // matches the p-5 (20px) padding around the QR canvas in the preview card — this is the VISUAL/display size; the canvas itself renders internally at size*renderScale for sharpness, then CSS scales it back down to this box.
+
   return (
     <div className="space-y-6">
       <div className="grid lg:grid-cols-[1fr_400px] gap-8 items-start">
         {/* LEFT: Controls */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor QR Code</p>
             <UndoRedoBar canUndo={qrHistory.canUndo} canRedo={qrHistory.canRedo} onUndo={qrHistory.undo} onRedo={qrHistory.redo} />
           </div>
 
-          {/* Template selector */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">Isi QR — {QR_TEMPLATES.length} Tipe</p>
-            <div className="flex flex-wrap gap-2">
-              {QR_TEMPLATES.map((t) => {
-                const Icon = t.icon;
-                return (
-                  <button key={t.id} type="button" onClick={() => setQrTemplate(t.id)}
-                    className={cn("flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all",
-                      qrTemplate === t.id ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10")}>
-                    <Icon className="w-4 h-4" /><span>{t.label}</span>
-                  </button>
-                );
-              })}
+          {/* Isi QR — template selector, grouped by category, + the active template's form */}
+          <CollapsibleSection title="Isi QR" subtitle="Pilih jenis konten lalu isi datanya" badge={`${QR_TEMPLATES.length} Tipe`} defaultOpen>
+            <div className="space-y-4">
+              {QR_TEMPLATE_CATEGORIES.map((cat) => (
+                <div key={cat}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">{cat}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {QR_TEMPLATES.filter((t) => t.category === cat).map((t) => {
+                      const Icon = t.icon;
+                      return (
+                        <button key={t.id} type="button" onClick={() => setQrTemplate(t.id)}
+                          className={cn("flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold border transition-all",
+                            qrTemplate === t.id ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10")}>
+                          <Icon className="w-4 h-4" /><span>{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
 
-          {/* Template form — data-driven off the active template's field schema */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            {renderTemplateFields(activeTemplate.fields, activeData, updateTemplateField)}
-            {activeTemplate.note && <p className="text-xs text-slate-400 dark:text-slate-500 pt-1">{activeTemplate.note}</p>}
-          </div>
+            <div className="pt-4 mt-1 border-t border-slate-100 dark:border-slate-800 space-y-4">
+              {renderTemplateFields(activeTemplate.fields, activeData, updateTemplateField)}
+              {activeTemplate.note && <p className="text-xs text-slate-400 dark:text-slate-500">{activeTemplate.note}</p>}
+            </div>
+          </CollapsibleSection>
 
           {/* Style presets */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
-            <div className="flex items-center gap-1.5 mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Gaya Instan — {QR_STYLE_PRESETS.length} Preset</p>
-            </div>
+          <CollapsibleSection title="Gaya Instan" subtitle="Sentuh sekali, langsung jadi" icon={<Sparkles className="w-4 h-4" />} badge={`${QR_STYLE_PRESETS.length} Preset`} defaultOpen>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {QR_STYLE_PRESETS.map((p) => (
                 <button key={p.name} type="button" onClick={() => applyPreset(p)}
@@ -433,24 +478,15 @@ export function QrCodeGenerator() {
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
 
-          {/* Manual style controls */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">
-            <div className="flex items-center gap-1.5">
-              <Palette className="w-3.5 h-3.5 text-indigo-500" />
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Kustomisasi Penuh</p>
-            </div>
-
+          {/* Warna & Bentuk */}
+          <CollapsibleSection title="Warna & Bentuk" subtitle="Titik, sudut, latar, dan bentuk QR" icon={<Palette className="w-4 h-4" />}>
             <div>
               <Label>Bentuk Titik (Dots)</Label>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {DOT_STYLES.map((s) => (
-                  <button key={s.id} type="button" onClick={() => setDotsType(s.id)}
-                    className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                      dotsType === s.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
-                    {s.label}
-                  </button>
+                  <button key={s.id} type="button" onClick={() => setDotsType(s.id)} className={pillClass(dotsType === s.id)}>{s.label}</button>
                 ))}
               </div>
             </div>
@@ -460,11 +496,7 @@ export function QrCodeGenerator() {
                 <Label>Bentuk Sudut Luar</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {CORNER_SQUARE_STYLES.map((s) => (
-                    <button key={s.id} type="button" onClick={() => setCornersSquareType(s.id)}
-                      className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                        cornersSquareType === s.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
-                      {s.label}
-                    </button>
+                    <button key={s.id} type="button" onClick={() => setCornersSquareType(s.id)} className={pillClass(cornersSquareType === s.id)}>{s.label}</button>
                   ))}
                 </div>
               </div>
@@ -472,11 +504,7 @@ export function QrCodeGenerator() {
                 <Label>Bentuk Sudut Dalam</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {CORNER_DOT_STYLES.map((s) => (
-                    <button key={s.id} type="button" onClick={() => setCornersDotType(s.id)}
-                      className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                        cornersDotType === s.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
-                      {s.label}
-                    </button>
+                    <button key={s.id} type="button" onClick={() => setCornersDotType(s.id)} className={pillClass(cornersDotType === s.id)}>{s.label}</button>
                   ))}
                 </div>
               </div>
@@ -485,14 +513,10 @@ export function QrCodeGenerator() {
             <div>
               <Label>Bentuk Keseluruhan</Label>
               <div className="flex gap-1.5 mt-1.5">
-                <button type="button" onClick={() => setShape("square")}
-                  className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                    shape === "square" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                <button type="button" onClick={() => setShape("square")} className={cn(pillClass(shape === "square"), "flex items-center gap-1.5")}>
                   <Square className="w-3.5 h-3.5" />Persegi
                 </button>
-                <button type="button" onClick={() => setShape("circle")}
-                  className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                    shape === "circle" ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                <button type="button" onClick={() => setShape("circle")} className={cn(pillClass(shape === "circle"), "flex items-center gap-1.5")}>
                   <CircleIcon className="w-3.5 h-3.5" />Lingkaran
                 </button>
               </div>
@@ -533,7 +557,10 @@ export function QrCodeGenerator() {
                 <span>Kontras warna titik &amp; latar cukup rendah — bisa mempersulit pemindaian. Coba warna yang lebih kontras untuk hasil paling aman.</span>
               </div>
             )}
+          </CollapsibleSection>
 
+          {/* Ukuran & Kualitas */}
+          <CollapsibleSection title="Ukuran & Kualitas" subtitle="Dimensi, margin, dan ketahanan pindai" icon={<Ruler className="w-4 h-4" />}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
@@ -550,6 +577,7 @@ export function QrCodeGenerator() {
                 <GamatoSlider min={0} max={40} step={2} value={margin} onChange={setMargin} aria-label="Margin QR" />
               </div>
             </div>
+            <p className="text-xs text-slate-400 dark:text-slate-500">File diekspor pada resolusi {renderScale}× lebih tinggi dari angka di atas supaya hasilnya tetap tajam saat dicetak atau di-zoom.</p>
 
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -560,20 +588,60 @@ export function QrCodeGenerator() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {ERROR_CORRECTION_OPTIONS.map((o) => (
-                  <button key={o.id} type="button" onClick={() => setErrorCorrection(o.id)}
-                    className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                      errorCorrection === o.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
-                    {o.label}
-                  </button>
+                  <button key={o.id} type="button" onClick={() => setErrorCorrection(o.id)} className={pillClass(errorCorrection === o.id)}>{o.label}</button>
                 ))}
               </div>
             </div>
+          </CollapsibleSection>
 
-            <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
-              <Label>Logo Tengah (Opsional)</Label>
-              <div className="relative mt-1">
+          {/* Logo Tengah — auto / gallery / upload / none */}
+          <CollapsibleSection title="Logo Tengah" subtitle="Otomatis menyesuaikan tipe QR, atau pilih sendiri" icon={<ImagePlus className="w-4 h-4" />} defaultOpen>
+            <div className="flex flex-wrap gap-1.5">
+              {LOGO_MODE_OPTIONS.map((o) => {
+                const Icon = o.icon;
+                return (
+                  <button key={o.id} type="button" onClick={() => setLogoMode(o.id)} data-testid={`logo-mode-${o.id}`}
+                    className={cn("flex items-center gap-1.5", pillClass(logoMode === o.id))}>
+                    <Icon className="w-3.5 h-3.5" />{o.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {logoMode === "auto" && (
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3">
+                {activeAutoIcon ? (
+                  <>
+                    <img src={buildAutoIconDataUrl(activeAutoIcon.id) ?? undefined} alt={activeAutoIcon.label} className="w-11 h-11 rounded-lg shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Ikon otomatis: {activeAutoIcon.label}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">Menyesuaikan otomatis saat kamu ganti tipe QR di atas.</p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Tipe QR ini belum punya ikon otomatis — pilih dari Galeri atau Upload sendiri.</p>
+                )}
+              </div>
+            )}
+
+            {logoMode === "gallery" && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 max-h-72 overflow-y-auto pr-1">
+                  {AUTO_ICONS.map((icon) => (
+                    <button key={icon.id} type="button" onClick={() => setLogoGalleryId(icon.id)} title={icon.label} data-testid={`gallery-icon-${icon.id}`}
+                      className={cn("relative rounded-xl p-1 border-2 transition-all", logoGalleryId === icon.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-transparent hover:border-indigo-200")}>
+                      <img src={buildAutoIconDataUrl(icon.id) ?? undefined} alt={icon.label} className="w-full aspect-square rounded-lg" />
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{activeGalleryIcon ? `Dipilih: ${activeGalleryIcon.label}` : "Pilih salah satu ikon di atas."}</p>
+              </div>
+            )}
+
+            {logoMode === "upload" && (
+              <div className="relative">
                 <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-5 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all group">
-                  {logoDataUrl ? (
+                  {logoFile && logoDataUrl ? (
                     <div className="flex items-center gap-4 w-full pr-14">
                       <img src={logoDataUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
                       <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium">Logo terpasang — klik untuk ganti</span>
@@ -587,63 +655,55 @@ export function QrCodeGenerator() {
                   )}
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)} />
                 </label>
-                {logoDataUrl && (
-                  <button
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLogoFile(null); }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-red-500 font-semibold hover:text-red-700"
-                  >
+                {logoFile && (
+                  <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLogoFile(null); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-red-500 font-semibold hover:text-red-700">
                     Hapus
                   </button>
                 )}
               </div>
+            )}
 
-              {logoFile && (
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <Label>Bentuk Bingkai Logo</Label>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {LOGO_SHAPE_OPTIONS.map((o) => (
-                        <button key={o.id} type="button" data-testid={`logo-shape-${o.id}`} onClick={() => setLogoShape(o.id)}
-                          className={cn("px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                            logoShape === o.id ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
-                          {o.label}
-                        </button>
-                      ))}
-                    </div>
-                    {logoShape === "none" && (
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Mode "Asli" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar &amp; logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.</p>
-                    )}
+            {logoMode !== "none" && logoDataUrl && (
+              <div className="space-y-4 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <div>
+                  <Label>Bentuk Bingkai Logo</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {LOGO_SHAPE_OPTIONS.map((o) => (
+                      <button key={o.id} type="button" data-testid={`logo-shape-${o.id}`} onClick={() => setLogoShape(o.id)} className={pillClass(logoShape === o.id)}>
+                        {o.label}
+                      </button>
+                    ))}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Ukuran Logo</span>
-                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{Math.round(logoSizeRatio * 100)}%</span>
-                      </div>
-                      <GamatoSlider min={0.15} max={0.45} step={0.01} value={logoSizeRatio} onChange={setLogoSizeRatio} aria-label="Ukuran logo" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Margin Logo</span>
-                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{logoMargin}px</span>
-                      </div>
-                      <GamatoSlider min={0} max={20} step={1} value={logoMargin} onChange={setLogoMargin} aria-label="Margin logo" />
-                    </div>
-                  </div>
-                  <GamatoCheckbox checked={logoHideBackgroundDots} onChange={setLogoHideBackgroundDots} label="Sembunyikan titik QR di belakang logo" />
+                  {logoShape === "none" && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Mode "Asli" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar &amp; logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.</p>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Ukuran Logo</span>
+                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{Math.round(logoSizeRatio * 100)}%</span>
+                    </div>
+                    <GamatoSlider min={0.15} max={0.45} step={0.01} value={logoSizeRatio} onChange={setLogoSizeRatio} aria-label="Ukuran logo" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Margin Logo</span>
+                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{logoMargin}px</span>
+                    </div>
+                    <GamatoSlider min={0} max={20} step={1} value={logoMargin} onChange={setLogoMargin} aria-label="Margin logo" />
+                  </div>
+                </div>
+                <GamatoCheckbox checked={logoHideBackgroundDots} onChange={setLogoHideBackgroundDots} label="Sembunyikan titik QR di belakang logo" />
+              </div>
+            )}
+          </CollapsibleSection>
 
           {/* Frame / label */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <FrameIcon className="w-3.5 h-3.5 text-indigo-500" />
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Bingkai &amp; Label Teks</p>
-              </div>
+          <CollapsibleSection title="Bingkai & Label Teks" subtitle='Tambahkan banner "SCAN ME" di atas/bawah' icon={<FrameIcon className="w-4 h-4" />}>
+            <div className="flex items-center justify-between -mt-1">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aktifkan bingkai</span>
               <GamatoCheckbox checked={frameEnabled} onChange={setFrameEnabled} testId="frame-enabled-checkbox" />
             </div>
             {frameEnabled && (
@@ -653,9 +713,7 @@ export function QrCodeGenerator() {
                   <Label>Posisi</Label>
                   <div className="flex gap-1.5 mt-1.5">
                     {(["top", "bottom"] as const).map((pos) => (
-                      <button key={pos} type="button" onClick={() => setFramePosition(pos)}
-                        className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                          framePosition === pos ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300")}>
+                      <button key={pos} type="button" onClick={() => setFramePosition(pos)} className={pillClass(framePosition === pos)}>
                         {pos === "top" ? "Atas" : "Bawah"}
                       </button>
                     ))}
@@ -668,28 +726,29 @@ export function QrCodeGenerator() {
                 <p className="text-xs text-slate-400 dark:text-slate-500">Bingkai disertakan pada unduhan PNG/JPEG/WEBP. Format SVG tetap diunduh tanpa bingkai.</p>
               </div>
             )}
-          </div>
+          </CollapsibleSection>
         </div>
 
         {/* RIGHT: Preview */}
         <div className="lg:sticky lg:top-24 space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Preview Real-time</p>
-          <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
-            <GamatoTooltip label="Muat ulang preview bila tidak muncul" side="bottom">
-              <button
-                type="button"
-                onClick={refreshPreview}
-                className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm hover:bg-white dark:hover:bg-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
-              >
-                <RefreshCw className="w-3 h-3" />
-                Buat Preview
+          <div className="flex items-center justify-center gap-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Preview Real-time</p>
+            <GamatoTooltip label="Muat ulang preview bila tidak muncul" side="top">
+              <button type="button" onClick={refreshPreview} className="text-slate-300 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
+                <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </GamatoTooltip>
-
-            {/* This outer wrapper (banner + QR box) is hidden via CSS, never
+          </div>
+          <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm overflow-hidden">
+            {/* This wrapper (banner + QR box) is hidden via CSS, never
                 unmounted, when payload is empty — see the note below on
-                containerRef for why unmounting would break the library. */}
-            <div className={cn("flex flex-col items-stretch w-fit", !payload.trim() && "absolute opacity-0 pointer-events-none")}>
+                containerRef for why unmounting would break the library. Its
+                width is capped at 100% of the card so it shrinks gracefully
+                on narrow screens instead of overflowing the card. */}
+            <div
+              className={cn("flex flex-col items-stretch max-w-full mx-auto", !payload.trim() && "absolute opacity-0 pointer-events-none")}
+              style={{ width: boxSizePx }}
+            >
               {frameEnabled && framePosition === "top" && (
                 <div className="rounded-t-2xl px-5 py-2.5 text-center font-bold text-sm truncate" style={{ backgroundColor: frameBgColor, color: frameTextColor }}>
                   {frameText.trim() || "SCAN ME"}
@@ -701,8 +760,12 @@ export function QrCodeGenerator() {
                   conditionally unmounted whenever the payload is briefly
                   empty and later remounted, the library would have no way to
                   re-attach its canvas to the new DOM node, leaving the
-                  preview blank even though content exists. */}
-              <div className={cn("bg-white p-5 shadow-2xl shadow-slate-200/80 dark:shadow-black/40", frameEnabled ? (framePosition === "top" ? "rounded-b-2xl" : "rounded-t-2xl") : "rounded-2xl")}>
+                  preview blank even though content exists. The canvas itself
+                  renders at size*renderScale physical pixels but is
+                  CSS-capped to max-width:100% here, so it displays at the
+                  intended visual size while staying crisp on high-DPI
+                  screens (see renderScale above). */}
+              <div className={cn("bg-white p-5 shadow-2xl shadow-slate-200/80 dark:shadow-black/40 max-w-full", frameEnabled ? (framePosition === "top" ? "rounded-b-2xl" : "rounded-t-2xl") : "rounded-2xl")}>
                 <div ref={containerRef} className="[&>canvas]:max-w-full [&>canvas]:h-auto [&>svg]:max-w-full [&>svg]:h-auto" />
               </div>
               {frameEnabled && framePosition === "bottom" && (
