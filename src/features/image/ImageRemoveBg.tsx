@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Eraser, Image as ImageIcon, Loader2, Download } from "lucide-react";
+import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { Btn, Label } from "@/components/ui/primitives";
@@ -137,7 +138,7 @@ export const ImageRemoveBg: React.FC = () => {
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="space-y-5">
-        {!file ? (
+        {!file && (
           <Dropzone
             onFiles={addFiles}
             accept="image/*"
@@ -148,10 +149,20 @@ export const ImageRemoveBg: React.FC = () => {
             isDragging={isDragging}
             setIsDragging={setIsDragging}
           />
-        ) : (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        )}
+        {/* This card (and the canvas inside it) stays mounted at all times —
+            only its visibility is toggled via the `hidden` class. addFiles()
+            needs to draw onto canvasRef.current the moment a file is picked,
+            which happens BEFORE `file` state itself gets set; if this card
+            were conditionally removed from the DOM whenever `file` is null,
+            canvasRef.current would still be null at exactly the moment
+            addFiles() needs it, and the upload would silently do nothing. */}
+        <div className={cn("bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden", !file && "hidden")}>
             <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{file.name}</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">
+                {file?.name}
+                {dims && <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">{dims.w}×{dims.h}px</span>}
+              </p>
               <button
                 type="button"
                 onClick={() => {
@@ -177,7 +188,6 @@ export const ImageRemoveBg: React.FC = () => {
               <canvas ref={canvasRef} onClick={handleCanvasClick} className="max-w-full max-h-[420px] rounded-lg cursor-crosshair shadow" />
             </div>
           </div>
-        )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pengaturan</p>
