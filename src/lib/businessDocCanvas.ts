@@ -103,6 +103,32 @@ export function drawLogoFit(
   }
 }
 
+/**
+ * Draws an image centered inside a bounding box, preserving aspect ratio,
+ * WITHOUT rounding the corners or clipping — unlike drawLogoFit(), which is
+ * tuned for square-ish company logos. Used for signature stamps (Invoice,
+ * Kwitansi, Struk, Sertifikat): a hand-drawn or uploaded signature is an
+ * irregular doodle on a transparent background, so boxing/rounding it would
+ * look wrong.
+ */
+export function drawImageContain(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  boxW: number,
+  boxH: number
+) {
+  const iw = img.naturalWidth || img.width || 1;
+  const ih = img.naturalHeight || img.height || 1;
+  const scale = Math.min(boxW / iw, boxH / ih, 1);
+  const w = iw * scale;
+  const h = ih * scale;
+  const dx = x + (boxW - w) / 2;
+  const dy = y + (boxH - h) / 2;
+  ctx.drawImage(img, dx, dy, w, h);
+}
+
 export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
