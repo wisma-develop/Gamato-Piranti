@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, Download, Printer, Loader2, Plus, Trash2 } from "lucide-react";
+import { FileSpreadsheet, Download, Printer, Loader2, Plus, Trash2, Building2, ClipboardList, Users, Landmark, ListOrdered, Percent, PenLine } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
@@ -8,7 +8,7 @@ import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
 import { formatIDR } from "@/lib/utilityHelpers";
 import { todayISODate, formatDateID } from "@/lib/dateFormat";
-import { drawWrappedText, drawSolidLine, drawLogoFit, roundRect, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
+import { drawWrappedText, drawSolidLine, drawLogoFit, drawImageContain, roundRect, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
 import { useCustomFonts } from "@/hooks/useCustomFonts";
@@ -18,10 +18,13 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
+import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
@@ -55,6 +58,16 @@ const NOTES_AFTER_GAP = 20;
 const THANKYOU_GAP = 20;
 const BOTTOM_MARGIN = 44;
 
+// ── Signature block offsets (all measured from the top of the block) ──
+const SIG_LABEL_Y = 24;
+const SIG_IMG_TOP_Y = 38;
+const SIG_IMG_H = 56;
+const SIG_LINE_Y = 108;
+const SIG_NAME_Y = 134;
+const SIG_TITLE_Y = 154;
+const SIG_BASE_H = 150;
+const SIG_TITLE_EXTRA_H = 20;
+
 type InvoiceData = {
   companyName: string;
   companyAddress: string;
@@ -76,7 +89,22 @@ type InvoiceData = {
   notes: string;
   accentColor: string;
   fontFamily: string;
+  signatureImage: string | null;
+  signerName: string;
+  signerTitle: string;
 };
+
+type TabId = "perusahaan" | "detail" | "klien" | "bank" | "item" | "diskon" | "ttd";
+
+const TABS: SettingsTabDef<TabId>[] = [
+  { id: "perusahaan", label: "Identitas Perusahaan", icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "detail", label: "Detail Invoice", icon: <ClipboardList className="w-3.5 h-3.5" /> },
+  { id: "klien", label: "Ditagihkan Kepada", icon: <Users className="w-3.5 h-3.5" /> },
+  { id: "bank", label: "Info Pembayaran", icon: <Landmark className="w-3.5 h-3.5" /> },
+  { id: "item", label: "Item / Layanan", icon: <ListOrdered className="w-3.5 h-3.5" /> },
+  { id: "diskon", label: "Diskon & Catatan", icon: <Percent className="w-3.5 h-3.5" /> },
+  { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
+];
 
 function computeTotals(items: InvoiceItem[], discountPct: number, taxPct: number) {
   const subtotal = items.reduce((sum, it) => sum + (parseFloat(it.qty) || 0) * (parseFloat(sanitizeNumberString(it.price)) || 0), 0);
@@ -92,7 +120,7 @@ function estimateLineCount(text: string, charsPerLine = 100): number {
   return Math.max(1, Math.ceil(text.length / charsPerLine));
 }
 
-function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement | null, data: InvoiceData) {
+function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement | null, signatureImg: HTMLImageElement | null, data: InvoiceData) {
   const contentX = MARGIN;
   const contentRight = W - MARGIN;
   const contentWidth = contentRight - contentX;
@@ -105,6 +133,8 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   const items: InvoiceItem[] = data.items.length ? data.items : [{ id: "placeholder", desc: "Belum ada item", qty: "0", price: "0" }];
   const hasNotes = !!data.notes.trim();
   const notesLines = Math.min(estimateLineCount(data.notes), 3);
+  const hasSignature = !!(data.signatureImage || data.signerName.trim() || data.signerTitle.trim());
+  const signatureBlockH = hasSignature ? SIG_BASE_H + (data.signerTitle.trim() ? SIG_TITLE_EXTRA_H : 0) : 0;
 
   // ── Layout pass: compute every Y coordinate once, up front ──────────────
   const yHeaderTop = 60;
@@ -120,7 +150,8 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   const yNotesLabel = yAfterTotalBox;
   const yNotesBodyTop = yNotesLabel + (hasNotes ? NOTES_LABEL_GAP : 0);
   const yAfterNotes = hasNotes ? yNotesBodyTop + notesLines * NOTES_LINE_H + NOTES_AFTER_GAP : yNotesLabel;
-  const yThankYou = yAfterNotes + THANKYOU_GAP;
+  const ySignatureTop = yAfterNotes;
+  const yThankYou = ySignatureTop + signatureBlockH + THANKYOU_GAP;
   const H = yThankYou + BOTTOM_MARGIN;
 
   canvas.width = W;
@@ -286,7 +317,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   ctx.font = `700 24px '${data.fontFamily}', sans-serif`;
   ctx.fillText(formatIDR(total), contentRight - 22, yTotalBoxTop + 39);
 
-  // ── Notes + footer ──
+  // ── Notes ──
   if (hasNotes) {
     ctx.textAlign = "left";
     ctx.font = `700 13px '${data.fontFamily}', sans-serif`;
@@ -297,6 +328,32 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
     drawWrappedText(ctx, data.notes, contentX, yNotesBodyTop, contentWidth, NOTES_LINE_H, 3);
   }
 
+  // ── Signature block (right-aligned, "Hormat kami," style) ──
+  if (hasSignature) {
+    const sigColW = 260;
+    const sigCenterX = contentRight - sigColW / 2;
+    ctx.textAlign = "center";
+    ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("Hormat kami,", sigCenterX, ySignatureTop + SIG_LABEL_Y);
+
+    if (signatureImg) {
+      drawImageContain(ctx, signatureImg, sigCenterX - sigColW / 2, ySignatureTop + SIG_IMG_TOP_Y, sigColW, SIG_IMG_H);
+    }
+
+    drawSolidLine(ctx, sigCenterX - 90, ySignatureTop + SIG_LINE_Y, sigCenterX + 90, "#94a3b8", 1.25);
+
+    ctx.font = `700 16px '${data.fontFamily}', sans-serif`;
+    ctx.fillStyle = "#0f172a";
+    ctx.fillText(data.signerName || "( __________________ )", sigCenterX, ySignatureTop + SIG_NAME_Y);
+
+    if (data.signerTitle.trim()) {
+      ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
+      ctx.fillStyle = "#64748b";
+      ctx.fillText(data.signerTitle, sigCenterX, ySignatureTop + SIG_TITLE_Y);
+    }
+  }
+
   ctx.textAlign = "center";
   ctx.font = `italic 400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#94a3b8";
@@ -304,9 +361,9 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
 }
 
 export function InvoiceGenerator() {
-  // Semua field invoice (kop, klien, item, pembayaran) punya riwayat
-  // Undo/Redo. Tambah/hapus item, ganti status, dan pilih warna langsung
-  // commit; mengetik teks digabung jadi satu langkah setelah jeda.
+  // Semua field invoice (kop, klien, item, pembayaran, tanda tangan) punya
+  // riwayat Undo/Redo. Tambah/hapus item, ganti status, dan pilih warna
+  // langsung commit; mengetik teks digabung jadi satu langkah setelah jeda.
   const history = useHistoryState<InvoiceData>(() => ({
     companyName: "Nama Usaha / Perusahaan",
     companyAddress: "Jl. Contoh Alamat No. 123, Kota",
@@ -328,6 +385,9 @@ export function InvoiceGenerator() {
     notes: "Pembayaran dapat dilakukan melalui transfer bank sesuai info pembayaran di atas.",
     accentColor: ACCENT_PRESETS[0],
     fontFamily: DEFAULT_FONT_FAMILY,
+    signatureImage: null,
+    signerName: "",
+    signerTitle: "",
   }));
   const data = history.state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
@@ -345,6 +405,7 @@ export function InvoiceGenerator() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>("perusahaan");
   const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
   const handleRemoveCustomFont = (id: string) => {
     removeCustomFont(id, (fallback) => {
@@ -354,6 +415,7 @@ export function InvoiceGenerator() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
+  const signatureImg = useImageFromDataUrl(data.signatureImage);
 
   const totals = useMemo(
     () => computeTotals(data.items, parseFloat(sanitizeNumberString(data.discountPct || "0")) || 0, parseFloat(sanitizeNumberString(data.taxPct || "0")) || 0),
@@ -367,12 +429,12 @@ export function InvoiceGenerator() {
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      renderInvoiceToCanvas(canvas, logoImg, data);
+      renderInvoiceToCanvas(canvas, logoImg, signatureImg, data);
     })();
     return () => {
       cancelled = true;
     };
-  }, [data, logoImg]);
+  }, [data, logoImg, signatureImg]);
 
   const downloadPng = async () => {
     setInfo(null);
@@ -432,109 +494,145 @@ export function InvoiceGenerator() {
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
-        <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop invoice">
-          <div className="space-y-3">
-            <LogoUpload file={logoFile} onChange={setLogoFile} />
-            <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
-            <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
-              <Input label="Email" value={data.companyEmail} onChange={(e) => updateField("companyEmail", e.target.value, { continuous: true })} />
-            </div>
-            <FontPicker
-              value={data.fontFamily}
-              onChange={(family) => updateField("fontFamily", family)}
-              customFonts={customFonts}
-              isFontLoading={isFontLoading}
-              fontError={fontError}
-              onUpload={addCustomFont}
-              onRemoveCustomFont={handleRemoveCustomFont}
-            />
-            <div>
-              <Label>Warna Aksen</Label>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                {ACCENT_PRESETS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => updateField("accentColor", c)}
-                    style={{ backgroundColor: c }}
-                    className={cn("shrink-0 w-8 h-8 rounded-lg border-2 transition-transform", data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent")}
-                    title={c}
-                  />
-                ))}
-                <GamatoColorPicker value={data.accentColor} onChange={(hex) => updateField("accentColor", hex, { continuous: true })} className="shrink-0" />
+        <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
+
+        {tab === "perusahaan" && (
+          <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop invoice">
+            <div className="space-y-3">
+              <LogoUpload file={logoFile} onChange={setLogoFile} />
+              <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+              <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+                <Input label="Email" value={data.companyEmail} onChange={(e) => updateField("companyEmail", e.target.value, { continuous: true })} />
               </div>
-            </div>
-          </div>
-        </PanelCard>
-
-        <PanelCard title="Detail Invoice" subtitle="Nomor, tanggal, dan status pembayaran">
-          <div className="space-y-3">
-            <Input label="No. Invoice" value={data.invoiceNo} onChange={(e) => updateField("invoiceNo", e.target.value, { continuous: true })} />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Tanggal" type="date" value={data.invoiceDate} onChange={(e) => updateField("invoiceDate", e.target.value)} />
-              <Input label="Jatuh Tempo" type="date" value={data.dueDate} onChange={(e) => updateField("dueDate", e.target.value)} />
-            </div>
-            <Select label="Status Pembayaran" value={data.status} onChange={(e) => updateField("status", e.target.value as InvoiceData["status"])}>
-              <option value="">Tanpa status</option>
-              <option value="belum">Belum Lunas</option>
-              <option value="lunas">Lunas</option>
-            </Select>
-          </div>
-        </PanelCard>
-
-        <PanelCard title="Ditagihkan Kepada" subtitle="Data klien / pelanggan">
-          <div className="space-y-3">
-            <Input label="Nama Klien" value={data.clientName} onChange={(e) => updateField("clientName", e.target.value, { continuous: true })} placeholder="PT Contoh Sejahtera" />
-            <Textarea label="Alamat" rows={2} value={data.clientAddress} onChange={(e) => updateField("clientAddress", e.target.value, { continuous: true })} />
-            <Input label="Telepon" value={data.clientPhone} onChange={(e) => updateField("clientPhone", e.target.value, { continuous: true })} />
-          </div>
-        </PanelCard>
-
-        <PanelCard title="Info Pembayaran" subtitle="Opsional — kosongkan bila tidak perlu ditampilkan">
-          <div className="space-y-3">
-            <Input label="Nama Bank" value={data.bankName} onChange={(e) => updateField("bankName", e.target.value, { continuous: true })} placeholder="Bank Central Asia" />
-            <Input label="No. Rekening" value={data.bankAccount} onChange={(e) => updateField("bankAccount", e.target.value, { continuous: true })} placeholder="1234567890" />
-            <Input label="Atas Nama" value={data.bankHolder} onChange={(e) => updateField("bankHolder", e.target.value, { continuous: true })} />
-          </div>
-        </PanelCard>
-
-        <PanelCard title="Item / Layanan" subtitle="Tambah baris sebanyak yang dibutuhkan">
-          <div className="space-y-3">
-            {data.items.map((item) => (
-              <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Input value={item.desc} onChange={(e) => updateItem(item.id, { desc: e.target.value }, { continuous: true })} placeholder="Deskripsi item" className="flex-1" />
-                  <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
-                  <MoneyInput label="Harga Satuan (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
+              <FontPicker
+                value={data.fontFamily}
+                onChange={(family) => updateField("fontFamily", family)}
+                customFonts={customFonts}
+                isFontLoading={isFontLoading}
+                fontError={fontError}
+                onUpload={addCustomFont}
+                onRemoveCustomFont={handleRemoveCustomFont}
+              />
+              <div>
+                <Label>Warna Aksen</Label>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  {ACCENT_PRESETS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => updateField("accentColor", c)}
+                      style={{ backgroundColor: c }}
+                      className={cn("shrink-0 w-8 h-8 rounded-lg border-2 transition-transform", data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent")}
+                      title={c}
+                    />
+                  ))}
+                  <GamatoColorPicker value={data.accentColor} onChange={(hex) => updateField("accentColor", hex, { continuous: true })} className="shrink-0" />
                 </div>
               </div>
-            ))}
-            <Btn onClick={addItem} variant="secondary" className="w-full gap-2 text-sm">
-              <Plus className="w-4 h-4" />
-              Tambah Item
-            </Btn>
-          </div>
-        </PanelCard>
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
 
-        <PanelCard title="Diskon, Pajak & Catatan" subtitle="Opsional">
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Diskon (%)" value={data.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
-              <Input label="Pajak / PPN (%)" value={data.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+        {tab === "detail" && (
+          <PanelCard title="Detail Invoice" subtitle="Nomor, tanggal, dan status pembayaran">
+            <div className="space-y-3">
+              <Input label="No. Invoice" value={data.invoiceNo} onChange={(e) => updateField("invoiceNo", e.target.value, { continuous: true })} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Tanggal" type="date" value={data.invoiceDate} onChange={(e) => updateField("invoiceDate", e.target.value)} />
+                <Input label="Jatuh Tempo" type="date" value={data.dueDate} onChange={(e) => updateField("dueDate", e.target.value)} />
+              </div>
+              <Select label="Status Pembayaran" value={data.status} onChange={(e) => updateField("status", e.target.value as InvoiceData["status"])}>
+                <option value="">Tanpa status</option>
+                <option value="belum">Belum Lunas</option>
+                <option value="lunas">Lunas</option>
+              </Select>
             </div>
-            <Textarea label="Catatan" rows={2} value={data.notes} onChange={(e) => updateField("notes", e.target.value, { continuous: true })} />
-            <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
-              Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "klien" && (
+          <PanelCard title="Ditagihkan Kepada" subtitle="Data klien / pelanggan">
+            <div className="space-y-3">
+              <Input label="Nama Klien" value={data.clientName} onChange={(e) => updateField("clientName", e.target.value, { continuous: true })} placeholder="PT Contoh Sejahtera" />
+              <Textarea label="Alamat" rows={2} value={data.clientAddress} onChange={(e) => updateField("clientAddress", e.target.value, { continuous: true })} />
+              <Input label="Telepon" value={data.clientPhone} onChange={(e) => updateField("clientPhone", e.target.value, { continuous: true })} />
             </div>
-          </div>
-        </PanelCard>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "bank" && (
+          <PanelCard title="Info Pembayaran" subtitle="Opsional — kosongkan bila tidak perlu ditampilkan">
+            <div className="space-y-3">
+              <Input label="Nama Bank" value={data.bankName} onChange={(e) => updateField("bankName", e.target.value, { continuous: true })} placeholder="Bank Central Asia" />
+              <Input label="No. Rekening" value={data.bankAccount} onChange={(e) => updateField("bankAccount", e.target.value, { continuous: true })} placeholder="1234567890" />
+              <Input label="Atas Nama" value={data.bankHolder} onChange={(e) => updateField("bankHolder", e.target.value, { continuous: true })} />
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "item" && (
+          <PanelCard title="Item / Layanan" subtitle="Tambah baris sebanyak yang dibutuhkan">
+            <div className="space-y-3">
+              {data.items.map((item) => (
+                <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input value={item.desc} onChange={(e) => updateItem(item.id, { desc: e.target.value }, { continuous: true })} placeholder="Deskripsi item" className="flex-1" />
+                    <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
+                    <MoneyInput label="Harga Satuan (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
+                  </div>
+                </div>
+              ))}
+              <Btn onClick={addItem} variant="secondary" className="w-full gap-2 text-sm">
+                <Plus className="w-4 h-4" />
+                Tambah Item
+              </Btn>
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "diskon" && (
+          <PanelCard title="Diskon, Pajak & Catatan" subtitle="Opsional">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Diskon (%)" value={data.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+                <Input label="Pajak / PPN (%)" value={data.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+              </div>
+              <Textarea label="Catatan" rows={2} value={data.notes} onChange={(e) => updateField("notes", e.target.value, { continuous: true })} />
+              <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
+                Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
+              </div>
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "ttd" && (
+          <PanelCard title="Tanda Tangan Pengesah" subtitle="Opsional — tampil sebagai blok 'Hormat kami,' di kanan bawah invoice">
+            <div className="space-y-3">
+              <Input label="Nama Penandatangan" value={data.signerName} onChange={(e) => updateField("signerName", e.target.value, { continuous: true })} placeholder="Nama lengkap" />
+              <Input label="Jabatan (opsional)" value={data.signerTitle} onChange={(e) => updateField("signerTitle", e.target.value, { continuous: true })} placeholder="Manajer Keuangan" />
+              <SignaturePad
+                value={data.signatureImage}
+                onChange={(dataUrl) => updateField("signatureImage", dataUrl)}
+                label="Tanda Tangan"
+                hint="Gambar manual atau upload foto/scan tanda tangan. Kosongkan bila ingin dicetak dulu lalu ditandatangani manual."
+              />
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
       </div>
 
       <div className="space-y-4 lg:sticky lg:top-24">

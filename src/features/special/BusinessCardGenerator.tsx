@@ -46,8 +46,19 @@ import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 
 type Side = "front" | "back";
+
+type EditorTabId = "template" | "kontak" | "ukuran" | "latar" | "elemen";
+
+const EDITOR_TABS: SettingsTabDef<EditorTabId>[] = [
+  { id: "template", label: "Template", icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { id: "kontak", label: "Data Kontak", icon: <IdCard className="w-3.5 h-3.5" /> },
+  { id: "ukuran", label: "Ukuran Kartu", icon: <Ruler className="w-3.5 h-3.5" /> },
+  { id: "latar", label: "Latar Belakang", icon: <Palette className="w-3.5 h-3.5" /> },
+  { id: "elemen", label: "Elemen", icon: <Layers className="w-3.5 h-3.5" /> },
+];
 
 interface StudioState {
   design: CardDesign;
@@ -106,6 +117,7 @@ export function BusinessCardGenerator() {
 
   const [activeSide, setActiveSide] = useState<Side>("front");
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [tab, setTab] = useState<EditorTabId>("template");
   const [dragElementId, setDragElementId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [info, setInfo] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -268,6 +280,7 @@ export function BusinessCardGenerator() {
   const onPointerDownElement = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
     setSelectedElementId(id);
+    setTab("elemen"); // klik/seret elemen di pratinjau langsung buka tab "Elemen" agar panel propertinya terlihat
     setDragElementId(id);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -412,7 +425,10 @@ export function BusinessCardGenerator() {
           />
         </div>
 
+        <SettingsTabBar tabs={EDITOR_TABS} active={tab} onChange={setTab} />
+
         {/* Templates */}
+        {tab === "template" && (
         <PanelCard title="Template Siap Pakai" subtitle="Pilih titik awal, lalu ubah bebas sesuka Anda">
           <div className="grid grid-cols-2 gap-2.5">
             {CARD_TEMPLATES.map((t) => (
@@ -430,9 +446,12 @@ export function BusinessCardGenerator() {
               </button>
             ))}
           </div>
+          <NextTabHint tabs={EDITOR_TABS} active={tab} onChange={setTab} />
         </PanelCard>
+        )}
 
         {/* Contact data */}
+        {tab === "kontak" && (
         <PanelCard title="Data Kontak" subtitle="Sumber teks untuk elemen yang ditautkan (dipakai lintas template)">
           <div className="grid sm:grid-cols-2 gap-3">
             <Input label="Nama" value={contact.name} onChange={(e) => updateContact({ name: e.target.value }, { continuous: true })} />
@@ -444,9 +463,12 @@ export function BusinessCardGenerator() {
             <Input label="Alamat" value={contact.address} onChange={(e) => updateContact({ address: e.target.value }, { continuous: true })} />
             <Input label="Tagline" value={contact.tagline} onChange={(e) => updateContact({ tagline: e.target.value }, { continuous: true })} />
           </div>
+          <NextTabHint tabs={EDITOR_TABS} active={tab} onChange={setTab} />
         </PanelCard>
+        )}
 
         {/* Size */}
+        {tab === "ukuran" && (
         <PanelCard title="Ukuran Kartu" subtitle="Elemen menyesuaikan otomatis (posisi berbasis persentase)">
           <div className="grid grid-cols-2 gap-2">
             {CARD_SIZES.map((s) => (
@@ -486,9 +508,12 @@ export function BusinessCardGenerator() {
               />
             </div>
           )}
+          <NextTabHint tabs={EDITOR_TABS} active={tab} onChange={setTab} />
         </PanelCard>
+        )}
 
         {/* Background */}
+        {tab === "latar" && (
         <PanelCard title={`Latar Belakang — ${activeSide === "front" ? "Sisi Depan" : "Sisi Belakang"}`} subtitle="Warna solid, gradasi, atau gambar kustom">
           <ToggleRow
             value={currentSide.background.type}
@@ -546,9 +571,13 @@ export function BusinessCardGenerator() {
               )}
             </div>
           )}
+          <NextTabHint tabs={EDITOR_TABS} active={tab} onChange={setTab} />
         </PanelCard>
+        )}
 
         {/* Elements list */}
+        {tab === "elemen" && (
+        <>
         <PanelCard title={`Elemen — ${activeSide === "front" ? "Sisi Depan" : "Sisi Belakang"}`} subtitle="Tambah, seret, dan atur lapisan bebas">
           <div className="grid grid-cols-3 gap-2">
             <Btn variant="secondary" onClick={addTextElement} className="text-xs gap-1.5"><Type className="w-3.5 h-3.5" />Teks</Btn>
@@ -621,6 +650,9 @@ export function BusinessCardGenerator() {
               <ImageElementPanel el={selectedElement} onChange={(patch, opts) => updateElement(selectedElement.id, patch, opts)} onReplaceFile={(f) => replaceImageSrc(selectedElement.id, f)} />
             )}
           </PanelCard>
+        )}
+        <NextTabHint tabs={EDITOR_TABS} active={tab} onChange={setTab} />
+        </>
         )}
       </div>
 

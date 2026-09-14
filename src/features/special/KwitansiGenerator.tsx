@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Receipt, Download, Printer, Loader2 } from "lucide-react";
+import { Receipt, Download, Printer, Loader2, Building2, ReceiptText, PenLine } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
@@ -8,7 +8,7 @@ import { canvasToBlob } from "@/lib/canvas";
 import { formatIDR } from "@/lib/utilityHelpers";
 import { terbilangRupiah } from "@/lib/terbilang";
 import { todayISODate, formatDateID } from "@/lib/dateFormat";
-import { drawWrappedText, drawDashedLine, drawSolidLine, drawLogoFit, roundRect, ensureFontReady } from "@/lib/businessDocCanvas";
+import { drawWrappedText, drawDashedLine, drawSolidLine, drawLogoFit, drawImageContain, roundRect, ensureFontReady } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
 import { useCustomFonts } from "@/hooks/useCustomFonts";
@@ -18,10 +18,13 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
+import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
@@ -39,11 +42,25 @@ type KwitansiData = {
   date: string;
   city: string;
   receiverName: string;
+  signatureImage: string | null;
   accentColor: string;
   fontFamily: string;
 };
 
-function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement | null, data: KwitansiData) {
+type TabId = "usaha" | "transaksi" | "ttd";
+
+const TABS: SettingsTabDef<TabId>[] = [
+  { id: "usaha", label: "Identitas Usaha", icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "transaksi", label: "Detail Pembayaran", icon: <ReceiptText className="w-3.5 h-3.5" /> },
+  { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
+];
+
+function renderKwitansiToCanvas(
+  canvas: HTMLCanvasElement,
+  logoImg: HTMLImageElement | null,
+  signatureImg: HTMLImageElement | null,
+  data: KwitansiData
+) {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
@@ -176,6 +193,11 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
   const sigDateLine = [data.city, formatDateID(data.date)].filter(Boolean).join(", ");
   ctx.fillText(sigDateLine || "-", sigX, y);
   ctx.fillText("Yang Menerima,", sigX, y + 28);
+  if (signatureImg) {
+    // Signature image sits in the gap between the "Yang Menerima," label and
+    // the signature line, scaled to fit without ever overlapping either.
+    drawImageContain(ctx, signatureImg, sigX - 85, y + 32, 170, 46);
+  }
   drawSolidLine(ctx, sigX - 95, y + 82, sigX + 95, "#334155", 1.5);
   ctx.font = `600 17px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
@@ -183,9 +205,9 @@ function renderKwitansiToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageEle
 }
 
 export function KwitansiGenerator() {
-  // Semua field kwitansi (kop perusahaan + detail pembayaran) punya riwayat
-  // Undo/Redo. Mengetik digabung jadi satu langkah setelah jeda; pilih warna
-  // preset/tanggal/logo langsung commit sebagai satu langkah.
+  // Semua field kwitansi (kop perusahaan + detail pembayaran + tanda tangan)
+  // punya riwayat Undo/Redo. Mengetik digabung jadi satu langkah setelah jeda;
+  // pilih warna preset/tanggal/logo/tanda tangan langsung commit sebagai satu langkah.
   const history = useHistoryState<KwitansiData>(() => ({
     companyName: "Nama Usaha / Perusahaan",
     companyAddress: "Jl. Contoh Alamat No. 123, Kota",
@@ -200,6 +222,7 @@ export function KwitansiGenerator() {
     date: todayISODate(),
     city: "",
     receiverName: "",
+    signatureImage: null,
     accentColor: ACCENT_PRESETS[0],
     fontFamily: DEFAULT_FONT_FAMILY,
   }));
@@ -213,6 +236,7 @@ export function KwitansiGenerator() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>("usaha");
   const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
   const handleRemoveCustomFont = (id: string) => {
     removeCustomFont(id, (fallback) => {
@@ -222,6 +246,7 @@ export function KwitansiGenerator() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
+  const signatureImg = useImageFromDataUrl(data.signatureImage);
 
   useEffect(() => {
     let cancelled = false;
@@ -230,12 +255,12 @@ export function KwitansiGenerator() {
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      renderKwitansiToCanvas(canvas, logoImg, data);
+      renderKwitansiToCanvas(canvas, logoImg, signatureImg, data);
     })();
     return () => {
       cancelled = true;
     };
-  }, [data, logoImg]);
+  }, [data, logoImg, signatureImg]);
 
   const downloadPng = async () => {
     setInfo(null);
@@ -295,59 +320,79 @@ export function KwitansiGenerator() {
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
-        <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop kwitansi">
-          <div className="space-y-3">
-            <LogoUpload file={logoFile} onChange={setLogoFile} />
-            <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
-            <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
-            <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
-            <FontPicker
-              value={data.fontFamily}
-              onChange={(family) => updateField("fontFamily", family)}
-              customFonts={customFonts}
-              isFontLoading={isFontLoading}
-              fontError={fontError}
-              onUpload={addCustomFont}
-              onRemoveCustomFont={handleRemoveCustomFont}
-            />
-            <div>
-              <Label>Warna Aksen</Label>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                {ACCENT_PRESETS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => updateField("accentColor", c)}
-                    style={{ backgroundColor: c }}
-                    className={`shrink-0 w-8 h-8 rounded-lg border-2 transition-transform ${data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
-                    title={c}
-                  />
-                ))}
-                <GamatoColorPicker value={data.accentColor} onChange={(hex) => updateField("accentColor", hex, { continuous: true })} className="shrink-0" />
+        <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
+
+        {tab === "usaha" && (
+          <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop kwitansi">
+            <div className="space-y-3">
+              <LogoUpload file={logoFile} onChange={setLogoFile} />
+              <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+              <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+              <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+              <FontPicker
+                value={data.fontFamily}
+                onChange={(family) => updateField("fontFamily", family)}
+                customFonts={customFonts}
+                isFontLoading={isFontLoading}
+                fontError={fontError}
+                onUpload={addCustomFont}
+                onRemoveCustomFont={handleRemoveCustomFont}
+              />
+              <div>
+                <Label>Warna Aksen</Label>
+                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                  {ACCENT_PRESETS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => updateField("accentColor", c)}
+                      style={{ backgroundColor: c }}
+                      className={`shrink-0 w-8 h-8 rounded-lg border-2 transition-transform ${data.accentColor === c ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
+                      title={c}
+                    />
+                  ))}
+                  <GamatoColorPicker value={data.accentColor} onChange={(hex) => updateField("accentColor", hex, { continuous: true })} className="shrink-0" />
+                </div>
               </div>
             </div>
-          </div>
-        </PanelCard>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
 
-        <PanelCard title="Detail Pembayaran" subtitle="Isi data transaksi yang akan tercetak">
-          <div className="space-y-3">
-            <Input label="No. Kwitansi" value={data.nomor} onChange={(e) => updateField("nomor", e.target.value, { continuous: true })} />
-            <Input label="Telah Terima Dari" value={data.receivedFrom} onChange={(e) => updateField("receivedFrom", e.target.value, { continuous: true })} placeholder="Nama pembayar" />
-            <MoneyInput
-              label="Jumlah (Rp)"
-              value={data.amount}
-              onChange={(v) => updateField("amount", v, { continuous: true })}
-              placeholder="1500000"
-              prefix="Rp"
-            />
-            <Textarea label="Untuk Pembayaran" rows={2} value={data.description} onChange={(e) => updateField("description", e.target.value, { continuous: true })} placeholder="Contoh: Pembayaran sewa ruko bulan Agustus 2026" />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Tanggal" type="date" value={data.date} onChange={(e) => updateField("date", e.target.value)} />
-              <Input label="Kota" value={data.city} onChange={(e) => updateField("city", e.target.value, { continuous: true })} placeholder="Denpasar" />
+        {tab === "transaksi" && (
+          <PanelCard title="Detail Pembayaran" subtitle="Isi data transaksi yang akan tercetak">
+            <div className="space-y-3">
+              <Input label="No. Kwitansi" value={data.nomor} onChange={(e) => updateField("nomor", e.target.value, { continuous: true })} />
+              <Input label="Telah Terima Dari" value={data.receivedFrom} onChange={(e) => updateField("receivedFrom", e.target.value, { continuous: true })} placeholder="Nama pembayar" />
+              <MoneyInput
+                label="Jumlah (Rp)"
+                value={data.amount}
+                onChange={(v) => updateField("amount", v, { continuous: true })}
+                placeholder="1500000"
+                prefix="Rp"
+              />
+              <Textarea label="Untuk Pembayaran" rows={2} value={data.description} onChange={(e) => updateField("description", e.target.value, { continuous: true })} placeholder="Contoh: Pembayaran sewa ruko bulan Agustus 2026" />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Tanggal" type="date" value={data.date} onChange={(e) => updateField("date", e.target.value)} />
+                <Input label="Kota" value={data.city} onChange={(e) => updateField("city", e.target.value, { continuous: true })} placeholder="Denpasar" />
+              </div>
+              <Input label="Nama Penerima (opsional)" value={data.receiverName} onChange={(e) => updateField("receiverName", e.target.value, { continuous: true })} placeholder="Dikosongkan = garis tanda tangan kosong" />
             </div>
-            <Input label="Nama Penerima (opsional)" value={data.receiverName} onChange={(e) => updateField("receiverName", e.target.value, { continuous: true })} placeholder="Dikosongkan = garis tanda tangan kosong" />
-          </div>
-        </PanelCard>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "ttd" && (
+          <PanelCard title="Tanda Tangan Penerima" subtitle="Opsional — gambar manual atau upload foto/scan tanda tangan">
+            <SignaturePad
+              value={data.signatureImage}
+              onChange={(dataUrl) => updateField("signatureImage", dataUrl)}
+              label="Tanda Tangan"
+              hint="Ditempatkan di atas garis 'Yang Menerima'. Kosongkan bila ingin dicetak dulu lalu ditandatangani manual."
+            />
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
       </div>
 
       <div className="space-y-4 lg:sticky lg:top-24">

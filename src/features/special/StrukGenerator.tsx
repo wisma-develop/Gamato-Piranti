@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ShoppingBag, Download, Printer, Usb, Loader2, Plus, Trash2 } from "lucide-react";
+import { ShoppingBag, Download, Printer, Usb, Loader2, Plus, Trash2, Building2, ClipboardList, ListOrdered, Percent, PenLine } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
@@ -8,7 +8,7 @@ import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
 import { formatIDR } from "@/lib/utilityHelpers";
 import { todayISODate, formatDateID, nowTimeHHMM } from "@/lib/dateFormat";
-import { drawDashedLine, drawLogoFit, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
+import { drawDashedLine, drawSolidLine, drawLogoFit, drawImageContain, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { buildReceiptPrintJob } from "@/lib/escpos";
 import { isWebUsbSupported, printViaWebUsb, WebUsbPrintError } from "@/lib/webUsbPrinter";
@@ -19,10 +19,13 @@ import { Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { LogoUpload } from "@/components/ui/LogoUpload";
+import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
+import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 
 type StrukItem = { id: string; name: string; qty: string; price: string };
 
@@ -52,6 +55,8 @@ type StrukData = {
   amountPaid: string;
   footerMessage: string;
   fontFamily: string;
+  signatureImage: string | null;
+  signerName: string;
 };
 
 function computeStrukTotals(items: StrukItem[], discountPct: number, taxPct: number, amountPaid: number) {
@@ -64,7 +69,7 @@ function computeStrukTotals(items: StrukItem[], discountPct: number, taxPct: num
   return { subtotal, discountAmount, taxAmount, total, change };
 }
 
-function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement | null, data: StrukData) {
+function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElement | null, signatureImg: HTMLImageElement | null, data: StrukData) {
   const W = data.paperWidth;
   const contentX = PADDING;
   const contentRight = W - PADDING;
@@ -79,6 +84,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   const amountPaid = parseFloat(sanitizeNumberString(data.amountPaid || "0")) || 0;
   const { subtotal, discountAmount, taxAmount, total, change } = computeStrukTotals(data.items, discountPct, taxPct, amountPaid);
   const items: StrukItem[] = data.items.length ? data.items : [{ id: "placeholder", name: "Belum ada item", qty: "0", price: "0" }];
+  const hasSignature = !!(data.signatureImage || data.signerName.trim());
 
   // ── Measurement pass (uses real ctx.measureText so narrow-paper wrapping is exact) ──
   let y = PADDING;
@@ -127,6 +133,16 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   if (amountPaid > 0) {
     y += 20;
     y += 20;
+  }
+
+  // Signature block (optional) — measured with the exact same increments
+  // the draw pass below uses, so nothing ever overlaps the footer message.
+  if (hasSignature) {
+    y += 6; // gap before block
+    y += 14; // "Tanda Tangan" label
+    y += 50; // image / blank space above the line
+    y += 14; // line + gap to name
+    y += 18; // signer name
   }
 
   y += 12;
@@ -251,6 +267,23 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
     dy += 20;
   }
 
+  if (hasSignature) {
+    dy += 6;
+    ctx.textAlign = "center";
+    ctx.font = `400 12px '${data.fontFamily}', sans-serif`;
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("Tanda Tangan", W / 2, dy + 10);
+    dy += 14;
+    if (signatureImg) drawImageContain(ctx, signatureImg, W / 2 - 70, dy, 140, 40);
+    dy += 50;
+    drawSolidLine(ctx, W / 2 - 60, dy, W / 2 + 60, "#94a3b8", 1);
+    dy += 14;
+    ctx.font = `600 13px '${data.fontFamily}', sans-serif`;
+    ctx.fillStyle = "#334155";
+    ctx.fillText(data.signerName || "(......................)", W / 2, dy + 8);
+    dy += 18;
+  }
+
   dy += 12;
   drawDashedLine(ctx, contentX, dy, contentRight);
   dy += 18;
@@ -275,17 +308,31 @@ type StrukFormData = {
   amountPaid: string;
   footerMessage: string;
   fontFamily: string;
+  signatureImage: string | null;
+  signerName: string;
 };
+
+type TabId = "usaha" | "transaksi" | "item" | "diskon" | "ttd";
+
+const TABS: SettingsTabDef<TabId>[] = [
+  { id: "usaha", label: "Identitas Usaha", icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "transaksi", label: "Info Transaksi", icon: <ClipboardList className="w-3.5 h-3.5" /> },
+  { id: "item", label: "Item Belanja", icon: <ListOrdered className="w-3.5 h-3.5" /> },
+  { id: "diskon", label: "Diskon & Bayar", icon: <Percent className="w-3.5 h-3.5" /> },
+  { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
+];
 
 export function StrukGenerator() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>("usaha");
 
-  // Semua field struk (kop usaha, info transaksi, daftar item, diskon/pajak)
-  // punya riwayat Undo/Redo. Tambah/hapus item & pilih lebar kertas langsung
-  // commit; mengetik nama/harga/qty digabung jadi satu langkah setelah jeda.
+  // Semua field struk (kop usaha, info transaksi, daftar item, diskon/pajak,
+  // tanda tangan) punya riwayat Undo/Redo. Tambah/hapus item & pilih lebar
+  // kertas langsung commit; mengetik nama/harga/qty digabung jadi satu
+  // langkah setelah jeda.
   const history = useHistoryState<StrukFormData>(() => ({
     companyName: "Nama Usaha",
     companyAddress: "Jl. Contoh Alamat No. 123, Kota",
@@ -300,6 +347,8 @@ export function StrukGenerator() {
     amountPaid: "",
     footerMessage: "Terima kasih atas kunjungan Anda!",
     fontFamily: DEFAULT_FONT_FAMILY,
+    signatureImage: null,
+    signerName: "",
   }));
   const form = history.state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
@@ -323,6 +372,7 @@ export function StrukGenerator() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const logoImg = useImageFromFile(logoFile);
+  const signatureImg = useImageFromDataUrl(form.signatureImage);
   const webUsbOk = useMemo(() => isWebUsbSupported(), []);
 
   const data: StrukData = useMemo(
@@ -340,6 +390,8 @@ export function StrukGenerator() {
       amountPaid: form.amountPaid,
       footerMessage: form.footerMessage,
       fontFamily: form.fontFamily,
+      signatureImage: form.signatureImage,
+      signerName: form.signerName,
     }),
     [form]
   );
@@ -362,12 +414,12 @@ export function StrukGenerator() {
       if (cancelled) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      renderStrukToCanvas(canvas, logoImg, data);
+      renderStrukToCanvas(canvas, logoImg, signatureImg, data);
     })();
     return () => {
       cancelled = true;
     };
-  }, [data, logoImg]);
+  }, [data, logoImg, signatureImg]);
 
   const downloadPng = async () => {
     setInfo(null);
@@ -443,88 +495,117 @@ export function StrukGenerator() {
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
-        <PanelCard title="Identitas Usaha" subtitle="Tampil di kop struk">
-          <div className="space-y-3">
-            <LogoUpload file={logoFile} onChange={setLogoFile} label="Logo Usaha" />
-            <Input label="Nama Usaha" value={form.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
-            <Textarea label="Alamat" rows={2} value={form.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
-            <Input label="Telepon" value={form.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
-            <FontPicker
-              value={form.fontFamily}
-              onChange={(family) => updateField("fontFamily", family)}
-              customFonts={customFonts}
-              isFontLoading={isFontLoading}
-              fontError={fontError}
-              onUpload={addCustomFont}
-              onRemoveCustomFont={handleRemoveCustomFont}
-            />
-            <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Lebar Kertas</p>
-              <div className="grid grid-cols-2 gap-2">
-                {(["58", "80"] as const).map((w) => (
-                  <button
-                    key={w}
-                    type="button"
-                    onClick={() => updateField("paperWidth", w)}
-                    className={cn(
-                      "py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
-                      form.paperWidth === w
-                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
-                        : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"
-                    )}
-                  >
-                    {w}mm
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </PanelCard>
+        <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
-        <PanelCard title="Info Transaksi" subtitle="Nomor, kasir, dan tanggal">
-          <div className="space-y-3">
-            <Input label="No. Transaksi" value={form.transactionNo} onChange={(e) => updateField("transactionNo", e.target.value, { continuous: true })} />
-            <Input label="Nama Kasir (opsional)" value={form.cashierName} onChange={(e) => updateField("cashierName", e.target.value, { continuous: true })} />
-            <Input label="Tanggal" type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} />
-          </div>
-        </PanelCard>
-
-        <PanelCard title="Item Belanja" subtitle="Tambah baris sebanyak yang dibutuhkan">
-          <div className="space-y-3">
-            {form.items.map((item) => (
-              <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Input value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value }, { continuous: true })} placeholder="Nama barang" className="flex-1" />
-                  <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+        {tab === "usaha" && (
+          <PanelCard title="Identitas Usaha" subtitle="Tampil di kop struk">
+            <div className="space-y-3">
+              <LogoUpload file={logoFile} onChange={setLogoFile} label="Logo Usaha" />
+              <Input label="Nama Usaha" value={form.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+              <Textarea label="Alamat" rows={2} value={form.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+              <Input label="Telepon" value={form.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+              <FontPicker
+                value={form.fontFamily}
+                onChange={(family) => updateField("fontFamily", family)}
+                customFonts={customFonts}
+                isFontLoading={isFontLoading}
+                fontError={fontError}
+                onUpload={addCustomFont}
+                onRemoveCustomFont={handleRemoveCustomFont}
+              />
+              <div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Lebar Kertas</p>
                 <div className="grid grid-cols-2 gap-2">
-                  <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
-                  <MoneyInput label="Harga (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
+                  {(["58", "80"] as const).map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => updateField("paperWidth", w)}
+                      className={cn(
+                        "py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
+                        form.paperWidth === w
+                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"
+                      )}
+                    >
+                      {w}mm
+                    </button>
+                  ))}
                 </div>
               </div>
-            ))}
-            <Btn onClick={addItem} variant="secondary" className="w-full gap-2 text-sm">
-              <Plus className="w-4 h-4" />
-              Tambah Item
-            </Btn>
-          </div>
-        </PanelCard>
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
 
-        <PanelCard title="Diskon, Pajak & Pembayaran" subtitle="Opsional">
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Diskon (%)" value={form.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
-              <Input label="Pajak (%)" value={form.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+        {tab === "transaksi" && (
+          <PanelCard title="Info Transaksi" subtitle="Nomor, kasir, dan tanggal">
+            <div className="space-y-3">
+              <Input label="No. Transaksi" value={form.transactionNo} onChange={(e) => updateField("transactionNo", e.target.value, { continuous: true })} />
+              <Input label="Nama Kasir (opsional)" value={form.cashierName} onChange={(e) => updateField("cashierName", e.target.value, { continuous: true })} />
+              <Input label="Tanggal" type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} />
             </div>
-            <MoneyInput label="Jumlah Dibayar (Rp)" value={form.amountPaid} onChange={(v) => updateField("amountPaid", v, { continuous: true })} placeholder="Kosongkan bila tidak perlu ditampilkan" prefix="Rp" />
-            <Textarea label="Pesan Footer" rows={2} value={form.footerMessage} onChange={(e) => updateField("footerMessage", e.target.value, { continuous: true })} />
-            <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
-              Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "item" && (
+          <PanelCard title="Item Belanja" subtitle="Tambah baris sebanyak yang dibutuhkan">
+            <div className="space-y-3">
+              {form.items.map((item) => (
+                <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value }, { continuous: true })} placeholder="Nama barang" className="flex-1" />
+                    <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
+                    <MoneyInput label="Harga (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
+                  </div>
+                </div>
+              ))}
+              <Btn onClick={addItem} variant="secondary" className="w-full gap-2 text-sm">
+                <Plus className="w-4 h-4" />
+                Tambah Item
+              </Btn>
             </div>
-          </div>
-        </PanelCard>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "diskon" && (
+          <PanelCard title="Diskon, Pajak & Pembayaran" subtitle="Opsional">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Diskon (%)" value={form.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+                <Input label="Pajak (%)" value={form.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+              </div>
+              <MoneyInput label="Jumlah Dibayar (Rp)" value={form.amountPaid} onChange={(v) => updateField("amountPaid", v, { continuous: true })} placeholder="Kosongkan bila tidak perlu ditampilkan" prefix="Rp" />
+              <Textarea label="Pesan Footer" rows={2} value={form.footerMessage} onChange={(e) => updateField("footerMessage", e.target.value, { continuous: true })} />
+              <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
+                Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
+              </div>
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
+
+        {tab === "ttd" && (
+          <PanelCard title="Tanda Tangan (Opsional)" subtitle="Untuk struk yang perlu paraf kasir/penanggung jawab">
+            <div className="space-y-3">
+              <Input label="Nama Penanda Tangan" value={form.signerName} onChange={(e) => updateField("signerName", e.target.value, { continuous: true })} placeholder="Kosongkan bila tidak perlu" />
+              <SignaturePad
+                value={form.signatureImage}
+                onChange={(dataUrl) => updateField("signatureImage", dataUrl)}
+                label="Tanda Tangan"
+                hint="Gambar manual atau upload foto/scan. Isi salah satu (nama atau tanda tangan) untuk menampilkan bagian ini di struk."
+              />
+            </div>
+            <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+          </PanelCard>
+        )}
       </div>
 
       <div className="space-y-4 lg:sticky lg:top-24">

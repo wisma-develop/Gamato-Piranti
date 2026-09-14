@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Award, Upload, Plus, Trash2, Download, Loader2, Move, Type,
   Bold, Italic, AlignLeft, AlignCenter, AlignRight, Users, Image as ImageIcon,
-  FileSpreadsheet, FileDown, PenLine, Info,
+  FileSpreadsheet, FileDown, PenLine, Info, Layers, Images,
 } from "lucide-react";
 import JSZip from "jszip";
 import { PDFDocument } from "pdf-lib";
@@ -12,21 +12,26 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { csvToRecipients, certificateCsvTemplate, type CsvRecipient } from "@/lib/csv";
 import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { drawImageContain } from "@/lib/businessDocCanvas";
+import { loadImageCached } from "@/lib/businessCardEngine";
 import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { FontPicker } from "@/components/ui/FontPicker";
 import { Label, Input, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
+import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type TextLayer = {
   id: string;
+  kind: "text";
   name: string;
   text: string; // may contain {nama}, {nomor}, {tanggal}
   xPct: number;
@@ -38,6 +43,19 @@ type TextLayer = {
   italic: boolean;
   align: "left" | "center" | "right";
 };
+
+/** A signature/stamp image placed and resized freely on the certificate, positioned the same drag-on-preview way as text layers. */
+type ImageLayer = {
+  id: string;
+  kind: "image";
+  name: string;
+  src: string; // data URL — "" until the user draws/uploads a signature
+  xPct: number;
+  yPct: number;
+  widthPct: number; // relative to canvas width; height follows the image's own aspect ratio
+};
+
+type Layer = TextLayer | ImageLayer;
 
 const DEFAULT_CANVAS_W = 1600;
 const DEFAULT_CANVAS_H = 1131; // ~A4 landscape ratio, used only when there's no uploaded template
@@ -57,13 +75,13 @@ function resolveCanvasSize(templateImg: HTMLImageElement | null): { w: number; h
 let layerCounter = 0;
 const newLayerId = () => `layer-${Date.now()}-${layerCounter++}`;
 
-function defaultLayers(): TextLayer[] {
+function defaultLayers(): Layer[] {
   return [
-    { id: newLayerId(), name: "Judul", text: "SERTIFIKAT PENGHARGAAN", xPct: 50, yPct: 21, fontSize: 46, fontFamily: "Playfair Display", color: "#1e293b", bold: true, italic: false, align: "center" },
-    { id: newLayerId(), name: "Pengantar", text: "Dengan bangga diberikan kepada", xPct: 50, yPct: 36, fontSize: 20, fontFamily: "Alan Sans", color: "#64748b", bold: false, italic: false, align: "center" },
-    { id: newLayerId(), name: "Nama Penerima", text: "{nama}", xPct: 50, yPct: 52, fontSize: 68, fontFamily: "Great Vibes", color: "#4f46e5", bold: false, italic: false, align: "center" },
-    { id: newLayerId(), name: "Keterangan", text: "Atas partisipasi dan dedikasinya dalam kegiatan ini", xPct: 50, yPct: 67, fontSize: 18, fontFamily: "Alan Sans", color: "#475569", bold: false, italic: false, align: "center" },
-    { id: newLayerId(), name: "Footer", text: "Diberikan pada {tanggal} · No. {nomor}", xPct: 50, yPct: 87, fontSize: 14, fontFamily: "Alan Sans", color: "#94a3b8", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: "Judul", text: "SERTIFIKAT PENGHARGAAN", xPct: 50, yPct: 21, fontSize: 46, fontFamily: "Playfair Display", color: "#1e293b", bold: true, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: "Pengantar", text: "Dengan bangga diberikan kepada", xPct: 50, yPct: 36, fontSize: 20, fontFamily: "Alan Sans", color: "#64748b", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: "Nama Penerima", text: "{nama}", xPct: 50, yPct: 52, fontSize: 68, fontFamily: "Great Vibes", color: "#4f46e5", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: "Keterangan", text: "Atas partisipasi dan dedikasinya dalam kegiatan ini", xPct: 50, yPct: 67, fontSize: 18, fontFamily: "Alan Sans", color: "#475569", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: "Footer", text: "Diberikan pada {tanggal} · No. {nomor}", xPct: 50, yPct: 87, fontSize: 14, fontFamily: "Alan Sans", color: "#94a3b8", bold: false, italic: false, align: "center" },
   ];
 }
 
@@ -117,9 +135,9 @@ function drawDefaultTemplate(ctx: CanvasRenderingContext2D, w: number, h: number
   }
 }
 
-async function ensureFontsReady(layers: TextLayer[]) {
+async function ensureFontsReady(layers: Layer[]) {
   try {
-    const families = Array.from(new Set(layers.map(l => l.fontFamily)));
+    const families = Array.from(new Set(layers.filter((l): l is TextLayer => l.kind === "text").map(l => l.fontFamily)));
     await Promise.all(families.map(f => document.fonts.load(`700 64px "${f}"`)));
     await document.fonts.ready;
   } catch {
@@ -127,11 +145,12 @@ async function ensureFontsReady(layers: TextLayer[]) {
   }
 }
 
-function renderToCanvas(
+async function renderToCanvas(
   canvas: HTMLCanvasElement,
   templateImg: HTMLImageElement | null,
-  layers: TextLayer[],
-  fields: Record<string, string>
+  layers: Layer[],
+  fields: Record<string, string>,
+  imageCache: Map<string, HTMLImageElement>
 ) {
   const { w, h } = resolveCanvasSize(templateImg);
   canvas.width = w;
@@ -144,6 +163,16 @@ function renderToCanvas(
   else drawDefaultTemplate(ctx, w, h);
 
   for (const layer of layers) {
+    if (layer.kind === "image") {
+      if (!layer.src) continue;
+      const img = await loadImageCached(layer.src, imageCache);
+      if (!img) continue;
+      const boxW = (layer.widthPct / 100) * w;
+      const ratio = (img.naturalHeight || 1) / (img.naturalWidth || 1);
+      const boxH = boxW * ratio;
+      drawImageContain(ctx, img, (layer.xPct / 100) * w - boxW / 2, (layer.yPct / 100) * h - boxH / 2, boxW, boxH);
+      continue;
+    }
     const text = applyPlaceholders(layer.text, fields);
     if (!text.trim()) continue;
     const weight = layer.bold ? "700" : "400";
@@ -162,6 +191,15 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
+type TabId = "template" | "lapisan" | "penerima" | "file";
+
+const TABS: SettingsTabDef<TabId>[] = [
+  { id: "template", label: "Template Latar", icon: <ImageIcon className="w-3.5 h-3.5" /> },
+  { id: "lapisan", label: "Lapisan & Tanda Tangan", icon: <Layers className="w-3.5 h-3.5" /> },
+  { id: "penerima", label: "Daftar Penerima", icon: <Users className="w-3.5 h-3.5" /> },
+  { id: "file", label: "Nama File", icon: <FileDown className="w-3.5 h-3.5" /> },
+];
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export function CertificateGenerator() {
@@ -171,7 +209,7 @@ export function CertificateGenerator() {
   // lapisan, ganti font, toggle bold/italic/align) langsung tercatat sebagai
   // satu langkah; mengetik teks / menyeret slider posisi & warna digabung
   // jadi satu langkah setelah jeda singkat (lihat updateLayer di bawah).
-  const layersHistory = useHistoryState<TextLayer[]>(defaultLayers);
+  const layersHistory = useHistoryState<Layer[]>(defaultLayers);
   const layers = layersHistory.state;
   const setLayers = layersHistory.set;
   const { schedule: scheduleLayersCommit, flushNow: flushLayersCommit } = useDebouncedCommit(layersHistory.commit, 600);
@@ -188,9 +226,12 @@ export function CertificateGenerator() {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [dragLayerId, setDragLayerId] = useState<string | null>(null);
+  const [tab, setTab] = useState<TabId>("template");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewWrapRef = useRef<HTMLDivElement>(null);
+  const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
+  const renderSeqRef = useRef(0);
 
   // Manual (one name per line) and CSV modes both resolve into the same
   // shape: a list of { nama, fields } records. In manual mode each line
@@ -232,7 +273,7 @@ export function CertificateGenerator() {
   // instead of silently rendering blank/invisible text.
   const handleRemoveCustomFont = (id: string) => {
     removeCustomFont(id, (fallback) => {
-      setLayers(prev => prev.map(l => (l.fontFamily === id ? { ...l, fontFamily: fallback } : l)));
+      setLayers(prev => prev.map(l => (l.kind === "text" && l.fontFamily === id ? { ...l, fontFamily: fallback } : l)));
     });
   };
 
@@ -268,13 +309,14 @@ export function CertificateGenerator() {
 
   // Live preview re-render whenever anything relevant changes.
   useEffect(() => {
+    const seq = ++renderSeqRef.current;
     let cancelled = false;
     (async () => {
       await ensureFontsReady(layers);
-      if (cancelled) return;
+      if (cancelled || renderSeqRef.current !== seq) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      renderToCanvas(canvas, templateImg, layers, previewFields);
+      await renderToCanvas(canvas, templateImg, layers, previewFields, imageCacheRef.current);
     })();
     return () => { cancelled = true; };
   }, [layers, templateImg, previewFields]);
@@ -286,15 +328,24 @@ export function CertificateGenerator() {
    * slider/color picker — those get batched into a single Undo step once
    * they pause, instead of one step per keystroke/pixel.
    */
-  const updateLayer = (id: string, patch: Partial<TextLayer>, opts?: { continuous?: boolean }) => {
-    setLayers(prev => prev.map(l => (l.id === id ? { ...l, ...patch } : l)), { commit: !opts?.continuous });
+  const updateLayer = <T extends Layer>(id: string, patch: Partial<T>, opts?: { continuous?: boolean }) => {
+    setLayers(prev => prev.map(l => (l.id === id ? ({ ...l, ...patch } as Layer) : l)), { commit: !opts?.continuous });
     if (opts?.continuous) scheduleLayersCommit();
   };
 
   const addLayer = () => {
     const id = newLayerId();
-    setLayers(prev => [...prev, { id, name: `Teks ${prev.length + 1}`, text: "Teks baru", xPct: 50, yPct: 50, fontSize: 24, fontFamily: DEFAULT_FONT_FAMILY, color: "#1e293b", bold: false, italic: false, align: "center" }]);
+    setLayers(prev => [...prev, { id, kind: "text", name: `Teks ${prev.length + 1}`, text: "Teks baru", xPct: 50, yPct: 50, fontSize: 24, fontFamily: DEFAULT_FONT_FAMILY, color: "#1e293b", bold: false, italic: false, align: "center" }]);
     setSelectedLayerId(id);
+    setTab("lapisan");
+  };
+
+  const addSignatureLayer = () => {
+    const id = newLayerId();
+    const count = layers.filter(l => l.kind === "image").length;
+    setLayers(prev => [...prev, { id, kind: "image", name: count > 0 ? `Tanda Tangan ${count + 1}` : "Tanda Tangan", src: "", xPct: 78, yPct: 84, widthPct: 20 }]);
+    setSelectedLayerId(id);
+    setTab("lapisan");
   };
 
   const removeLayer = (id: string) => {
@@ -332,7 +383,7 @@ export function CertificateGenerator() {
       const fields: Record<string, string> = { ...rec.fields, nama: rec.nama };
       if (!fields.nomor || !fields.nomor.trim()) fields.nomor = String(i + 1);
       if (!fields.tanggal || !fields.tanggal.trim()) fields.tanggal = todayLong();
-      renderToCanvas(offscreen, templateImg, layers, fields);
+      await renderToCanvas(offscreen, templateImg, layers, fields, imageCacheRef.current);
       const blob = await canvasToBlob(offscreen);
       const systemName = `sertifikat-${String(i + 1).padStart(3, "0")}`;
       const baseName = fileNameMode === "recipient" ? (sanitizeFileName(rec.nama) || systemName) : systemName;
@@ -420,84 +471,109 @@ export function CertificateGenerator() {
       <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* LEFT: controls */}
         <div className="space-y-5">
-          <PanelCard title="Template Latar" subtitle="Unggah desain sendiri, atau pakai template bawaan">
-            <div className="space-y-3">
-              {templateFile ? (
-                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
-                  <ImageIcon className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
-                  <span className="text-sm text-slate-600 dark:text-slate-300 truncate flex-1">{templateFile.name}</span>
-                  <button type="button" onClick={() => setTemplateFile(null)} className="text-xs font-semibold text-red-500 hover:text-red-700 shrink-0">Hapus</button>
-                </div>
-              ) : (
-                <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  <Upload className="w-4 h-4" />
-                  Unggah Template (PNG/JPG)
-                  <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => setTemplateFile(e.target.files?.[0] ?? null)} />
-                </label>
-              )}
-              <p className="text-xs text-slate-400 dark:text-slate-500">Tanpa template, sertifikat memakai desain bawaan bergaya klasik dengan bingkai emas.</p>
-            </div>
-          </PanelCard>
+          <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
-          <PanelCard title="Lapisan Teks" subtitle="Klik salah satu untuk diedit, atau seret langsung di pratinjau">
-            <div className="flex items-center justify-between -mt-1">
-              <span className="text-[11px] text-slate-400 dark:text-slate-500">Ctrl+Z untuk urungkan, Ctrl+Y untuk ulangi</span>
-              <UndoRedoBar
-                canUndo={layersHistory.canUndo}
-                canRedo={layersHistory.canRedo}
-                onUndo={layersHistory.undo}
-                onRedo={layersHistory.redo}
-                hideLabel
-              />
-            </div>
-            <div className="space-y-2">
-              {layers.map(layer => (
-                <button
-                  key={layer.id}
-                  type="button"
-                  onClick={() => setSelectedLayerId(layer.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-sm font-medium border-2 transition-all",
-                    selectedLayerId === layer.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
-                  )}
-                >
-                  <Type className="w-3.5 h-3.5 shrink-0" />
-                  <span className="flex-1 truncate">{layer.name}</span>
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => { e.stopPropagation(); removeLayer(layer.id); }}
-                    className="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </span>
-                </button>
-              ))}
-              <Btn onClick={addLayer} variant="secondary" className="w-full gap-2 text-sm"><Plus className="w-4 h-4" />Tambah Lapisan Teks</Btn>
-            </div>
+          {tab === "template" && (
+            <PanelCard title="Template Latar" subtitle="Unggah desain sendiri, atau pakai template bawaan">
+              <div className="space-y-3">
+                {templateFile ? (
+                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
+                    <ImageIcon className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
+                    <span className="text-sm text-slate-600 dark:text-slate-300 truncate flex-1">{templateFile.name}</span>
+                    <button type="button" onClick={() => setTemplateFile(null)} className="text-xs font-semibold text-red-500 hover:text-red-700 shrink-0">Hapus</button>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-500 dark:text-slate-400">
+                    <Upload className="w-4 h-4" />
+                    Unggah Template (PNG/JPG)
+                    <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => setTemplateFile(e.target.files?.[0] ?? null)} />
+                  </label>
+                )}
+                <p className="text-xs text-slate-400 dark:text-slate-500">Tanpa template, sertifikat memakai desain bawaan bergaya klasik dengan bingkai emas.</p>
+              </div>
+              <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+            </PanelCard>
+          )}
 
-            {selectedLayer && (
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
-                <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
-                <Textarea
-                  label="Isi Teks"
-                  rows={2}
-                  value={selectedLayer.text}
-                  onChange={e => updateLayer(selectedLayer.id, { text: e.target.value }, { continuous: true })}
-                  placeholder="Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis"
+          {tab === "lapisan" && (
+            <PanelCard title="Lapisan Teks & Tanda Tangan" subtitle="Klik salah satu untuk diedit, atau seret langsung di pratinjau">
+              <div className="flex items-center justify-between -mt-1">
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">Ctrl+Z untuk urungkan, Ctrl+Y untuk ulangi</span>
+                <UndoRedoBar
+                  canUndo={layersHistory.canUndo}
+                  canRedo={layersHistory.canRedo}
+                  onUndo={layersHistory.undo}
+                  onRedo={layersHistory.redo}
+                  hideLabel
                 />
-                <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">
-                  Placeholder: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{tanggal}'}</code>
-                  {recipientMode === "csv" && csvExtraColumns.length > 0 && (
-                    <>
-                      {" "}{csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1">{`{${col}}`}</code>)}
-                    </>
-                  )}
-                </p>
+              </div>
+              <div className="space-y-2">
+                {layers.map(layer => (
+                  <button
+                    key={layer.id}
+                    type="button"
+                    onClick={() => setSelectedLayerId(layer.id)}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-sm font-medium border-2 transition-all",
+                      selectedLayerId === layer.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                    )}
+                  >
+                    {layer.kind === "image" ? <Images className="w-3.5 h-3.5 shrink-0" /> : <Type className="w-3.5 h-3.5 shrink-0" />}
+                    <span className="flex-1 truncate">{layer.name}</span>
+                    {layer.kind === "image" && !layer.src && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-amber-500 shrink-0">Kosong</span>
+                    )}
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); removeLayer(layer.id); }}
+                      className="p-1 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </span>
+                  </button>
+                ))}
+                <div className="grid grid-cols-2 gap-2">
+                  <Btn onClick={addLayer} variant="secondary" className="w-full gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" />Lapisan Teks</Btn>
+                  <Btn onClick={addSignatureLayer} variant="secondary" className="w-full gap-1.5 text-xs"><PenLine className="w-3.5 h-3.5" />Tanda Tangan</Btn>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3 items-start">
+              {selectedLayer && selectedLayer.kind === "text" && (
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
+                  <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
+                  <Textarea
+                    label="Isi Teks"
+                    rows={2}
+                    value={selectedLayer.text}
+                    onChange={e => updateLayer(selectedLayer.id, { text: e.target.value }, { continuous: true })}
+                    placeholder="Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis"
+                  />
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">
+                    Placeholder: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{tanggal}'}</code>
+                    {recipientMode === "csv" && csvExtraColumns.length > 0 && (
+                      <>
+                        {" "}{csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1">{`{${col}}`}</code>)}
+                      </>
+                    )}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 items-start">
+                    <FontPicker
+                      hideUpload
+                      value={selectedLayer.fontFamily}
+                      onChange={(family) => updateLayer(selectedLayer.id, { fontFamily: family })}
+                      customFonts={customFonts}
+                      isFontLoading={isFontLoading}
+                      fontError={fontError}
+                      onUpload={addCustomFont}
+                      onRemoveCustomFont={handleRemoveCustomFont}
+                    />
+                    <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 }, { continuous: true })} />
+                  </div>
+
                   <FontPicker
-                    hideUpload
+                    hideSelect
                     value={selectedLayer.fontFamily}
                     onChange={(family) => updateLayer(selectedLayer.id, { fontFamily: family })}
                     customFonts={customFonts}
@@ -506,196 +582,217 @@ export function CertificateGenerator() {
                     onUpload={addCustomFont}
                     onRemoveCustomFont={handleRemoveCustomFont}
                   />
-                  <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 }, { continuous: true })} />
-                </div>
 
-                <FontPicker
-                  hideSelect
-                  value={selectedLayer.fontFamily}
-                  onChange={(family) => updateLayer(selectedLayer.id, { fontFamily: family })}
-                  customFonts={customFonts}
-                  isFontLoading={isFontLoading}
-                  fontError={fontError}
-                  onUpload={addCustomFont}
-                  onRemoveCustomFont={handleRemoveCustomFont}
-                />
-
-                <div className="space-y-3">
-                  <GamatoColorPicker label="Warna" value={selectedLayer.color} onChange={(hex) => updateLayer(selectedLayer.id, { color: hex }, { continuous: true })} />
-                  <div>
-                    <Label>Format Teks</Label>
-                    {/* shrink-0 + flex-wrap: mencegah tombol/ikon "diperas" hilang saat ruang sidebar sempit */}
-                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <button
-                        type="button"
-                        onClick={() => updateLayer(selectedLayer.id, { bold: !selectedLayer.bold })}
-                        aria-pressed={selectedLayer.bold}
-                        aria-label="Tebal (bold)"
-                        title="Tebal (bold)"
-                        className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.bold ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
-                      >
-                        <Bold className="w-4 h-4 shrink-0" strokeWidth={2.5} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateLayer(selectedLayer.id, { italic: !selectedLayer.italic })}
-                        aria-pressed={selectedLayer.italic}
-                        aria-label="Miring (italic)"
-                        title="Miring (italic)"
-                        className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.italic ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
-                      >
-                        <Italic className="w-4 h-4 shrink-0" strokeWidth={2.5} />
-                      </button>
-                      <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
-                      {([
-                        ["left", AlignLeft, "Rata kiri"],
-                        ["center", AlignCenter, "Rata tengah"],
-                        ["right", AlignRight, "Rata kanan"],
-                      ] as const).map(([val, Icon, titleText]) => (
+                  <div className="space-y-3">
+                    <GamatoColorPicker label="Warna" value={selectedLayer.color} onChange={(hex) => updateLayer(selectedLayer.id, { color: hex }, { continuous: true })} />
+                    <div>
+                      <Label>Format Teks</Label>
+                      {/* shrink-0 + flex-wrap: mencegah tombol/ikon "diperas" hilang saat ruang sidebar sempit */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         <button
-                          key={val}
                           type="button"
-                          onClick={() => updateLayer(selectedLayer.id, { align: val })}
-                          aria-pressed={selectedLayer.align === val}
-                          aria-label={titleText}
-                          title={titleText}
-                          className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.align === val ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
+                          onClick={() => updateLayer(selectedLayer.id, { bold: !selectedLayer.bold })}
+                          aria-pressed={selectedLayer.bold}
+                          aria-label="Tebal (bold)"
+                          title="Tebal (bold)"
+                          className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.bold ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
                         >
-                          <Icon className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                          <Bold className="w-4 h-4 shrink-0" strokeWidth={2.5} />
                         </button>
-                      ))}
+                        <button
+                          type="button"
+                          onClick={() => updateLayer(selectedLayer.id, { italic: !selectedLayer.italic })}
+                          aria-pressed={selectedLayer.italic}
+                          aria-label="Miring (italic)"
+                          title="Miring (italic)"
+                          className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.italic ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
+                        >
+                          <Italic className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                        </button>
+                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
+                        {([
+                          ["left", AlignLeft, "Rata kiri"],
+                          ["center", AlignCenter, "Rata tengah"],
+                          ["right", AlignRight, "Rata kanan"],
+                        ] as const).map(([val, Icon, titleText]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => updateLayer(selectedLayer.id, { align: val })}
+                            aria-pressed={selectedLayer.align === val}
+                            aria-label={titleText}
+                            title={titleText}
+                            className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.align === val ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
+                          >
+                            <Icon className="w-4 h-4 shrink-0" strokeWidth={2.5} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label="Posisi X" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label="Posisi Y" />
                     </div>
                   </div>
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 gap-3">
+              {selectedLayer && selectedLayer.kind === "image" && (
+                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
+                  <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
+                  <SignaturePad
+                    value={selectedLayer.src || null}
+                    onChange={(dataUrl) => updateLayer(selectedLayer.id, { src: dataUrl || "" })}
+                    label="Tanda Tangan / Stempel"
+                    hint="Gambar manual atau upload foto/scan. Seret langsung di pratinjau kanan untuk mengatur posisi."
+                  />
                   <div>
-                    <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
-                    <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label="Posisi X" />
+                    <div className="flex justify-between mb-1"><Label>Ukuran</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.widthPct.toFixed(0)}%</span></div>
+                    <GamatoSlider min={5} max={60} value={selectedLayer.widthPct} onChange={(v) => updateLayer(selectedLayer.id, { widthPct: v }, { continuous: true })} aria-label="Ukuran tanda tangan" />
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
-                    <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label="Posisi Y" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label="Posisi X" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label="Posisi Y" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </PanelCard>
+              )}
+              <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+            </PanelCard>
+          )}
 
-          <PanelCard title="Daftar Penerima" subtitle="Satu sertifikat akan dibuat untuk setiap nama pada daftar">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setRecipientMode("manual")}
-                className={cn(
-                  "flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
-                  recipientMode === "manual" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
-                )}
-              >
-                <PenLine className="w-3.5 h-3.5" /> Tulis Manual
-              </button>
-              <button
-                type="button"
-                onClick={() => setRecipientMode("csv")}
-                className={cn(
-                  "flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
-                  recipientMode === "csv" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
-                )}
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Upload CSV
-              </button>
-            </div>
-
-            {recipientMode === "manual" ? (
-              <Textarea
-                rows={6}
-                value={recipientsText}
-                onChange={e => setRecipientsText(e.target.value)}
-                placeholder={"Budi Santoso\nSiti Aminah\nAhmad Fauzi\n..."}
-              />
-            ) : (
-              <div className="space-y-3">
+          {tab === "penerima" && (
+            <PanelCard title="Daftar Penerima" subtitle="Satu sertifikat akan dibuat untuk setiap nama pada daftar">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={downloadCsvTemplate}
-                  className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-xl py-2.5 transition-colors"
-                >
-                  <FileDown className="w-3.5 h-3.5" /> Unduh Template CSV
-                </button>
-
-                <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all">
-                  {csvFile ? (
-                    <div className="flex items-center gap-3 w-full">
-                      <FileSpreadsheet className="w-6 h-6 text-indigo-500 shrink-0" />
-                      <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium truncate">{csvFile.name}</span>
-                      <button type="button" onClick={e => { e.preventDefault(); setCsvFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0">Hapus</button>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <div className="flex justify-center mb-1.5 text-slate-400 dark:text-slate-500"><Upload className="w-6 h-6" /></div>
-                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload File <span className="text-indigo-600 dark:text-indigo-400">.CSV</span></p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Kolom wajib: nama. Kolom lain jadi placeholder tambahan.</p>
-                    </div>
+                  onClick={() => setRecipientMode("manual")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
+                    recipientMode === "manual" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
                   )}
-                  <input type="file" accept=".csv,text/csv" className="hidden" onChange={e => setCsvFile(e.target.files?.[0] ?? null)} />
-                </label>
-
-                {csvError && (
-                  <p className="flex items-start gap-1.5 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl px-3 py-2">
-                    <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {csvError}
-                  </p>
-                )}
-                {csvExtraColumns.length > 0 && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Placeholder tambahan dari CSV: {csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1 mr-1">{`{${col}}`}</code>)}
-                    — bisa dipakai di lapisan teks manapun.
-                  </p>
-                )}
+                >
+                  <PenLine className="w-3.5 h-3.5" /> Tulis Manual
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRecipientMode("csv")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
+                    recipientMode === "csv" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                  )}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> Upload CSV
+                </button>
               </div>
-            )}
 
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-2">
-              <Users className="w-3.5 h-3.5" />
-              <span>{recipients.length} nama siap dicetak</span>
-            </div>
-          </PanelCard>
+              {recipientMode === "manual" ? (
+                <Textarea
+                  rows={6}
+                  value={recipientsText}
+                  onChange={e => setRecipientsText(e.target.value)}
+                  placeholder={"Budi Santoso\nSiti Aminah\nAhmad Fauzi\n..."}
+                />
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={downloadCsvTemplate}
+                    className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-xl py-2.5 transition-colors"
+                  >
+                    <FileDown className="w-3.5 h-3.5" /> Unduh Template CSV
+                  </button>
 
-          <PanelCard title="Nama File Hasil Unduhan" subtitle="Berlaku untuk unduhan ZIP/PDF bulk semua penerima">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setFileNameMode("recipient")}
-                className={cn(
-                  "py-2.5 rounded-xl text-xs font-semibold border-2 transition-all",
-                  fileNameMode === "recipient" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
-                )}
-              >
-                Sesuai Nama Penerima
-              </button>
-              <button
-                type="button"
-                onClick={() => setFileNameMode("system")}
-                className={cn(
-                  "py-2.5 rounded-xl text-xs font-semibold border-2 transition-all",
-                  fileNameMode === "system" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
-                )}
-              >
-                Default Sistem
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-              Contoh nama file: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">
-                {fileNameMode === "recipient" ? (sanitizeFileName(recipients[0]?.nama || "budi-santoso") || "budi-santoso") : "sertifikat-001"}.png
-              </code>
-            </p>
-          </PanelCard>
+                  <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all">
+                    {csvFile ? (
+                      <div className="flex items-center gap-3 w-full">
+                        <FileSpreadsheet className="w-6 h-6 text-indigo-500 shrink-0" />
+                        <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium truncate">{csvFile.name}</span>
+                        <button type="button" onClick={e => { e.preventDefault(); setCsvFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0">Hapus</button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <div className="flex justify-center mb-1.5 text-slate-400 dark:text-slate-500"><Upload className="w-6 h-6" /></div>
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload File <span className="text-indigo-600 dark:text-indigo-400">.CSV</span></p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Kolom wajib: nama. Kolom lain jadi placeholder tambahan.</p>
+                      </div>
+                    )}
+                    <input type="file" accept=".csv,text/csv" className="hidden" onChange={e => setCsvFile(e.target.files?.[0] ?? null)} />
+                  </label>
+
+                  {csvError && (
+                    <p className="flex items-start gap-1.5 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl px-3 py-2">
+                      <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {csvError}
+                    </p>
+                  )}
+                  {csvExtraColumns.length > 0 && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Placeholder tambahan dari CSV: {csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1 mr-1">{`{${col}}`}</code>)}
+                      — bisa dipakai di lapisan teks manapun.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-2">
+                <Users className="w-3.5 h-3.5" />
+                <span>{recipients.length} nama siap dicetak</span>
+              </div>
+              <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+            </PanelCard>
+          )}
+
+          {tab === "file" && (
+            <PanelCard title="Nama File Hasil Unduhan" subtitle="Berlaku untuk unduhan ZIP/PDF bulk semua penerima">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFileNameMode("recipient")}
+                  className={cn(
+                    "py-2.5 rounded-xl text-xs font-semibold border-2 transition-all",
+                    fileNameMode === "recipient" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                  )}
+                >
+                  Sesuai Nama Penerima
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFileNameMode("system")}
+                  className={cn(
+                    "py-2.5 rounded-xl text-xs font-semibold border-2 transition-all",
+                    fileNameMode === "system" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
+                  )}
+                >
+                  Default Sistem
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                Contoh nama file: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">
+                  {fileNameMode === "recipient" ? (sanitizeFileName(recipients[0]?.nama || "budi-santoso") || "budi-santoso") : "sertifikat-001"}.png
+                </code>
+              </p>
+              <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
+            </PanelCard>
+          )}
         </div>
 
         {/* RIGHT: live preview + export */}
         <div className="space-y-4 lg:sticky lg:top-24">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
-            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret teks untuk atur posisi</span>
+            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret untuk atur posisi</span>
           </div>
 
           <div
@@ -709,19 +806,27 @@ export function CertificateGenerator() {
               <div
                 key={layer.id}
                 onPointerDown={(e) => onPointerDownLayer(e, layer.id)}
-                style={{
-                  position: "absolute",
-                  left: `${layer.xPct}%`,
-                  top: `${layer.yPct}%`,
-                  transform: `translate(${layer.align === "left" ? "0" : layer.align === "right" ? "-100%" : "-50%"}, -50%)`,
-                }}
+                style={
+                  layer.kind === "image"
+                    ? { position: "absolute", left: `${layer.xPct}%`, top: `${layer.yPct}%`, width: `${layer.widthPct}%`, transform: "translate(-50%, -50%)" }
+                    : { position: "absolute", left: `${layer.xPct}%`, top: `${layer.yPct}%`, transform: `translate(${layer.align === "left" ? "0" : layer.align === "right" ? "-100%" : "-50%"}, -50%)` }
+                }
                 className={cn(
-                  "cursor-move px-1.5 py-0.5 rounded",
+                  "cursor-move rounded",
+                  layer.kind === "image" ? "px-0 py-0" : "px-1.5 py-0.5",
                   selectedLayerId === layer.id ? "ring-2 ring-indigo-500" : "ring-1 ring-transparent hover:ring-indigo-300"
                 )}
                 title={layer.name}
               >
-                <span className="opacity-0">{layer.name}</span>
+                {layer.kind === "image" ? (
+                  layer.src ? (
+                    <img src={layer.src} alt="" className="w-full h-auto block opacity-90 pointer-events-none" draggable={false} />
+                  ) : (
+                    <div className="w-full aspect-[3/1] border-2 border-dashed border-indigo-300 bg-indigo-50/40 pointer-events-none rounded" />
+                  )
+                ) : (
+                  <span className="opacity-0">{layer.name}</span>
+                )}
               </div>
             ))}
           </div>
