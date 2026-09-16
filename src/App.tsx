@@ -70,6 +70,7 @@ import { HtmlToImage } from "@/features/image/HtmlToImage";
 import { MemeGenerator } from "@/features/image/MemeGenerator";
 import { ColorPicker } from "@/features/image/ColorPicker";
 import { PhotoEditor } from "@/features/image/PhotoEditor";
+import { PhotoPrintLayout } from "@/features/image/PhotoPrintLayout";
 
 import { UtilityJsonBase64 } from "@/features/utility/UtilityJsonBase64";
 import { UtilityBulkText } from "@/features/utility/UtilityBulkText";
@@ -516,6 +517,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Gambar" title="Photo Editor" subtitle="Sesuaikan kecerahan, kontras, saturasi, filter warna, putar, dan balik gambar.">
               <PhotoEditor />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/cetak-foto"
+          element={
+            <PageShell badge="Gambar" title="Cetak Foto" subtitle="Susun pas foto atau foto cetak (2x3, 3x4, 4x6, 4R, dll) dalam satu atau beberapa lembar siap cetak — unduh PDF atau cetak langsung.">
+              <PhotoPrintLayout />
             </PageShell>
           }
         />

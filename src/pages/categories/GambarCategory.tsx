@@ -1,4 +1,4 @@
-import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal, Pipette } from "lucide-react";
+import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal, Pipette, Printer } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -11,6 +11,12 @@ export default function GambarCategory() {
     >
       <CategoryGrid
         groups={[
+          {
+            section: "Cetak Foto",
+            items: [
+              { name: "Cetak Foto (Pas Foto & Custom)", desc: "Susun 2x3, 3x4, 4x6, 4R & ukuran lain di satu/beberapa lembar — unduh PDF siap cetak atau cetak langsung.", path: "/image/cetak-foto", icon: <Printer className="w-6 h-6" />, badge: "Baru" },
+            ],
+          },
           {
             section: "Edit & Perbaiki",
             items: [
