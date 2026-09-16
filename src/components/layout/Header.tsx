@@ -18,6 +18,7 @@ import {
   AudioLines,
   EyeOff,
   Presentation,
+  Printer,
   Table2,
   RefreshCw,
 } from 'lucide-react';
@@ -95,6 +96,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     icon: <ImageIcon className="w-4 h-4" />,
     rootPath: '/image',
     items: [
+      { name: 'Cetak Foto',     path: '/image/cetak-foto',       icon: <Printer className="w-4 h-4 text-orange-500" />, section: 'Cetak Foto' },
       { name: 'Photo Editor',   path: '/image/photo-editor',     icon: <SlidersHorizontal className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
       { name: 'Crop Gambar',    path: '/image/crop',              icon: <Crop className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
       { name: 'Putar Gambar',   path: '/image/putar',             icon: <RotateCw className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },

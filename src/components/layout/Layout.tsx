@@ -76,6 +76,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'color-picker': 'Color Picker & Palette',
     'meme-generator': 'Meme Generator',
     'photo-editor': 'Photo Editor',
+    'cetak-foto': 'Cetak Foto',
   },
   utility: {
     'json-base64': 'JSON & Base64',
