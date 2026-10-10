@@ -67,3 +67,81 @@ export function encodeAudioBufferToWav(buffer: AudioBuffer): Blob {
 
   return new Blob([arrayBuffer], { type: "audio/wav" });
 }
+
+// ─── Compressed audio (real-time playback re-capture) ──────────────────────
+const AUDIO_COMPRESS_CANDIDATES = ["audio/ogg;codecs=opus", "audio/webm;codecs=opus", "audio/webm"];
+
+function bestCompressedAudioMime(): string | null {
+  if (typeof MediaRecorder === "undefined") return null;
+  return AUDIO_COMPRESS_CANDIDATES.find((m) => {
+    try {
+      return MediaRecorder.isTypeSupported(m);
+    } catch {
+      return false;
+    }
+  }) ?? null;
+}
+
+export function isAudioCompressionSupported(): boolean {
+  return bestCompressedAudioMime() !== null;
+}
+
+export async function audioFileToCompressed(file: File, onProgress?: (pct: number) => void): Promise<Blob> {
+  const mimeType = bestCompressedAudioMime();
+  if (!mimeType) {
+    throw new Error("Browser ini tidak mendukung encoder audio terkompresi (Opus). Coba Chrome, Edge, atau Firefox versi terbaru.");
+  }
+
+  const url = URL.createObjectURL(file);
+  const audio = new Audio();
+  audio.src = url;
+  audio.muted = false;
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      audio.onloadedmetadata = () => resolve();
+      audio.onerror = () => reject(new Error("Gagal memuat audio — file mungkin rusak atau formatnya tidak didukung browser."));
+    });
+
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const audioCtx: AudioContext = new AudioCtx();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+    const source = audioCtx.createMediaElementSource(audio);
+    const dest = audioCtx.createMediaStreamDestination();
+    source.connect(dest);
+    source.connect(audioCtx.destination);
+
+    const recorder = new MediaRecorder(dest.stream, { mimeType });
+    const chunks: BlobPart[] = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+    const resultPromise = new Promise<Blob>((resolve, reject) => {
+      recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType.split(";")[0] }));
+      recorder.onerror = (e: any) => reject(new Error(e?.error?.message || "Kompresi audio gagal."));
+    });
+
+    recorder.start(250);
+    const duration = Math.max(0.001, audio.duration || 0);
+    let rafId = 0;
+    const tick = () => {
+      onProgress?.(Math.min(1, audio.currentTime / duration));
+      if (!audio.ended) rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    await audio.play();
+    await new Promise<void>((resolve) => {
+      audio.onended = () => resolve();
+    });
+
+    cancelAnimationFrame(rafId);
+    recorder.stop();
+    const blob = await resultPromise;
+    audioCtx.close().catch(() => {});
+    onProgress?.(1);
+    return blob;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}

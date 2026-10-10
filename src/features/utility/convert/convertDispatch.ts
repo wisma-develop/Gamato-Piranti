@@ -1,105 +1,180 @@
-// ─── Conversion dispatch table ──────────────────────────────────────────────
-// Maps every (source, target) format pair the registry declares to the
-// actual converter function that performs it. Kept separate from the UI
-// component so the dispatch logic itself is easy to scan and verify against
-// `formatRegistry.ts`.
+// ─── Universal Converter — conversion dispatcher ────────────────────────────
+import { FORMATS } from "./formatRegistry";
 import { convertDataFormat, type DataFormat } from "./converters/dataFormats";
-import {
-  txtToDocx, txtToPdf, markdownToDocx, markdownToPdf, markdownToHtmlBlob,
-  htmlToPlainText, htmlToPng, htmlToPdf, docxToTxt, docxToPdf, rtfToTxt,
-  rtfToDocx, pdfToTxt, pdfToImagesZip, markdownToPlainLines,
-} from "./converters/documentConvert";
 import { convertImage, type ImageOutputFormat } from "./converters/imageConvert";
-import { csvToXlsx, xlsxToCsv, xlsxToPdf } from "./converters/sheetConvert";
-import { audioFileToWav } from "./converters/audioConvert";
-import { convertVideoFile, extractAudioFromVideoFile, getVideoOutputExt } from "./converters/videoConvert";
+import {
+  markdownToDocx, markdownToPdf, markdownToHtmlBlob, markdownToHtmlString,
+  htmlToPlainText, htmlToPng, htmlToPdf, htmlToDocx, htmlToMarkdown,
+  txtToDocx, txtToPdf,
+  docxToTxt, docxToPdf, docxToHtmlBlob, docxToMarkdown,
+  rtfToTxt, rtfToDocx, rtfToPdf,
+  pdfToTxt, pdfToDocx, pdfToMarkdown, pdfToImagesZip,
+} from "./converters/documentConvert";
+import { xlsxToCsv, xlsxToPdf, xlsxToJson, xlsxToTsv, dataTextToXlsx, dataTextToPdfTable, pdfToXlsx } from "./converters/sheetConvert";
+import { audioFileToWav, audioFileToCompressed } from "./converters/audioConvert";
+import { convertVideoFile, extractAudioFromVideoFile, videoToGifFile, getVideoOutputExt } from "./converters/videoConvert";
 import { filesToZip } from "./converters/archiveConvert";
+
+const DATA_FORMATS = new Set(["json", "csv", "tsv", "xml", "yaml"]);
+const IMAGE_FORMATS = new Set(["png", "jpg", "webp", "bmp", "gif", "svg", "ico"]);
 
 export interface ConvertOutput {
   blob: Blob;
   filename: string;
 }
 
-export interface ConvertContext {
-  title: string;
-  onProgress?: (pct: number) => void;
-}
-
-const DATA_FORMATS = new Set<DataFormat>(["json", "csv", "tsv", "xml", "yaml"]);
-const IMAGE_FORMATS = new Set(["png", "jpg", "webp", "bmp", "gif", "svg", "ico"]);
-const IMAGE_TARGETS = new Set<ImageOutputFormat>(["png", "jpg", "webp", "bmp", "ico", "pdf"]);
-
 function withExt(base: string, ext: string): string {
-  return `${base}.${ext}`;
+  const clean = (base || "hasil-konversi").replace(/\.[^.]+$/, "");
+  return `${clean}.${ext}`;
 }
 
-/** Text-based conversion: input and output are both plain text/blob-of-text. Used for the "paste text" mode. */
-export async function convertText(text: string, source: string, target: string, ctx: ConvertContext): Promise<ConvertOutput> {
-  const { title } = ctx;
+function textBlob(text: string, mime = "text/plain"): Blob {
+  return new Blob([text], { type: `${mime};charset=utf-8` });
+}
 
-  if (DATA_FORMATS.has(source as DataFormat) && DATA_FORMATS.has(target as DataFormat)) {
-    const out = convertDataFormat(text, source as DataFormat, target as DataFormat);
-    const mime = target === "json" ? "application/json" : target === "xml" ? "application/xml" : target === "yaml" ? "application/x-yaml" : "text/plain";
-    return { blob: new Blob([out], { type: `${mime};charset=utf-8` }), filename: withExt(title, target) };
+async function fileToText(file: File): Promise<string> {
+  return file.text();
+}
+
+async function convertFromDataFormatText(text: string, source: DataFormat, target: string, title: string): Promise<ConvertOutput> {
+  if (DATA_FORMATS.has(target)) {
+    const out = convertDataFormat(text, source, target as DataFormat);
+    return { blob: textBlob(out, FORMATS[target]?.mime), filename: withExt(title, target) };
+  }
+  if (target === "xlsx") return { blob: await dataTextToXlsx(text, source), filename: withExt(title, "xlsx") };
+  if (target === "pdf") return { blob: await dataTextToPdfTable(text, source, title), filename: withExt(title, "pdf") };
+  throw new Error(`Kombinasi ${source} → ${target} belum didukung.`);
+}
+
+export async function convertText(text: string, source: string, target: string, opts: { title?: string } = {}): Promise<ConvertOutput> {
+  const title = opts.title || "hasil-konversi";
+
+  if (DATA_FORMATS.has(source)) {
+    return convertFromDataFormatText(text, source as DataFormat, target, title);
   }
 
-  if (source === "txt" && target === "md") return { blob: new Blob([text], { type: "text/markdown;charset=utf-8" }), filename: withExt(title, "md") };
-  if (source === "txt" && target === "html") {
-    const html = `<!doctype html><html><head><meta charset="utf-8"></head><body><pre style="font-family:inherit;white-space:pre-wrap;">${text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</pre></body></html>`;
-    return { blob: new Blob([html], { type: "text/html;charset=utf-8" }), filename: withExt(title, "html") };
+  if (source === "md") {
+    if (target === "html") return { blob: await markdownToHtmlBlob(text), filename: withExt(title, "html") };
+    if (target === "docx") return { blob: await markdownToDocx(text, title), filename: withExt(title, "docx") };
+    if (target === "pdf") return { blob: await markdownToPdf(text, title), filename: withExt(title, "pdf") };
+    if (target === "txt") return { blob: textBlob(await htmlToPlainText(markdownToHtmlString(text))), filename: withExt(title, "txt") };
   }
-  if (source === "txt" && target === "docx") return { blob: await txtToDocx(text, title), filename: withExt(title, "docx") };
-  if (source === "txt" && target === "pdf") return { blob: await txtToPdf(text, title), filename: withExt(title, "pdf") };
 
-  if (source === "md" && target === "txt") return { blob: new Blob([markdownToPlainLines(text).join("\n")], { type: "text/plain;charset=utf-8" }), filename: withExt(title, "txt") };
-  if (source === "md" && target === "html") return { blob: await markdownToHtmlBlob(text), filename: withExt(title, "html") };
-  if (source === "md" && target === "docx") return { blob: await markdownToDocx(text, title), filename: withExt(title, "docx") };
-  if (source === "md" && target === "pdf") return { blob: await markdownToPdf(text, title), filename: withExt(title, "pdf") };
+  if (source === "html") {
+    if (target === "txt") return { blob: textBlob(await htmlToPlainText(text)), filename: withExt(title, "txt") };
+    if (target === "pdf") return { blob: await htmlToPdf(text, title), filename: withExt(title, "pdf") };
+    if (target === "png") return { blob: await htmlToPng(text), filename: withExt(title, "png") };
+    if (target === "docx") return { blob: await htmlToDocx(text, title), filename: withExt(title, "docx") };
+    if (target === "md") return { blob: textBlob(await htmlToMarkdown(text), "text/markdown"), filename: withExt(title, "md") };
+  }
 
-  if (source === "html" && target === "txt") return { blob: new Blob([await htmlToPlainText(text)], { type: "text/plain;charset=utf-8" }), filename: withExt(title, "txt") };
-  if (source === "html" && target === "pdf") return { blob: await htmlToPdf(text, title), filename: withExt(title, "pdf") };
-  if (source === "html" && target === "png") return { blob: await htmlToPng(text), filename: withExt(title, "png") };
-
-  if (source === "csv" && target === "xlsx") return { blob: await csvToXlsx(text), filename: withExt(title, "xlsx") };
+  if (source === "txt") {
+    if (target === "md") return { blob: textBlob(text, "text/markdown"), filename: withExt(title, "md") };
+    if (target === "docx") return { blob: await txtToDocx(text, title), filename: withExt(title, "docx") };
+    if (target === "pdf") return { blob: await txtToPdf(text, title), filename: withExt(title, "pdf") };
+    if (target === "html") return { blob: await markdownToHtmlBlob(text), filename: withExt(title, "html") };
+  }
 
   throw new Error(`Kombinasi ${source} → ${target} belum didukung dalam mode teks.`);
 }
 
-/** File-based conversion: input is an uploaded File. */
-export async function convertFile(file: File, source: string, target: string, ctx: ConvertContext): Promise<ConvertOutput> {
-  const { title, onProgress } = ctx;
+export async function convertFile(
+  file: File,
+  source: string,
+  target: string,
+  opts: { title?: string; onProgress?: (pct: number) => void } = {}
+): Promise<ConvertOutput> {
+  const title = opts.title || "hasil-konversi";
 
-  if (IMAGE_FORMATS.has(source) && IMAGE_TARGETS.has(target as ImageOutputFormat)) {
+  if (DATA_FORMATS.has(source)) {
+    const text = await fileToText(file);
+    return convertFromDataFormatText(text, source as DataFormat, target, title);
+  }
+
+  if (IMAGE_FORMATS.has(source)) {
     const blob = await convertImage(file, target as ImageOutputFormat);
-    return { blob, filename: withExt(title, target === "jpg" ? "jpg" : target) };
+    return { blob, filename: withExt(title, target) };
   }
 
-  if (source === "docx" && target === "txt") return { blob: new Blob([await docxToTxt(file)], { type: "text/plain;charset=utf-8" }), filename: withExt(title, "txt") };
-  if (source === "docx" && target === "pdf") return { blob: await docxToPdf(file, title), filename: withExt(title, "pdf") };
-
-  if (source === "rtf" && target === "txt") return { blob: new Blob([await rtfToTxt(file)], { type: "text/plain;charset=utf-8" }), filename: withExt(title, "txt") };
-  if (source === "rtf" && target === "docx") return { blob: await rtfToDocx(file, title), filename: withExt(title, "docx") };
-
-  if (source === "pdf" && target === "txt") return { blob: new Blob([await pdfToTxt(file)], { type: "text/plain;charset=utf-8" }), filename: withExt(title, "txt") };
-  if (source === "pdf" && target === "png") return { blob: await pdfToImagesZip(file, title), filename: withExt(title, "zip") };
-
-  if (source === "xlsx" && target === "csv") return { blob: new Blob([await xlsxToCsv(file)], { type: "text/csv;charset=utf-8" }), filename: withExt(title, "csv") };
-  if (source === "xlsx" && target === "pdf") return { blob: await xlsxToPdf(file, title), filename: withExt(title, "pdf") };
-
-  if (source === "audio" && target === "wav") return { blob: await audioFileToWav(file), filename: withExt(title, "wav") };
-
-  if (source === "video" && target === "videoOut") {
-    const blob = await convertVideoFile(file, onProgress);
-    return { blob, filename: withExt(title, getVideoOutputExt()) };
+  if (source === "xlsx") {
+    if (target === "csv") return { blob: textBlob(await xlsxToCsv(file), "text/csv"), filename: withExt(title, "csv") };
+    if (target === "tsv") return { blob: textBlob(await xlsxToTsv(file), "text/tab-separated-values"), filename: withExt(title, "tsv") };
+    if (target === "json") return { blob: textBlob(await xlsxToJson(file), "application/json"), filename: withExt(title, "json") };
+    if (target === "pdf") return { blob: await xlsxToPdf(file, title), filename: withExt(title, "pdf") };
   }
-  if (source === "video" && target === "audio") {
-    const blob = await extractAudioFromVideoFile(file, onProgress);
-    return { blob, filename: withExt(title, blob.type.includes("ogg") ? "ogg" : "webm") };
+
+  if (source === "txt") {
+    const text = await fileToText(file);
+    if (target === "md") return { blob: textBlob(text, "text/markdown"), filename: withExt(title, "md") };
+    if (target === "docx") return { blob: await txtToDocx(text, title), filename: withExt(title, "docx") };
+    if (target === "pdf") return { blob: await txtToPdf(text, title), filename: withExt(title, "pdf") };
+    if (target === "html") return { blob: await markdownToHtmlBlob(text), filename: withExt(title, "html") };
+  }
+  if (source === "md") {
+    const text = await fileToText(file);
+    if (target === "html") return { blob: await markdownToHtmlBlob(text), filename: withExt(title, "html") };
+    if (target === "docx") return { blob: await markdownToDocx(text, title), filename: withExt(title, "docx") };
+    if (target === "pdf") return { blob: await markdownToPdf(text, title), filename: withExt(title, "pdf") };
+    if (target === "txt") return { blob: textBlob(await htmlToPlainText(markdownToHtmlString(text))), filename: withExt(title, "txt") };
+  }
+  if (source === "html") {
+    const text = await fileToText(file);
+    if (target === "txt") return { blob: textBlob(await htmlToPlainText(text)), filename: withExt(title, "txt") };
+    if (target === "pdf") return { blob: await htmlToPdf(text, title), filename: withExt(title, "pdf") };
+    if (target === "png") return { blob: await htmlToPng(text), filename: withExt(title, "png") };
+    if (target === "docx") return { blob: await htmlToDocx(text, title), filename: withExt(title, "docx") };
+    if (target === "md") return { blob: textBlob(await htmlToMarkdown(text), "text/markdown"), filename: withExt(title, "md") };
+  }
+  if (source === "docx") {
+    if (target === "txt") return { blob: textBlob(await docxToTxt(file)), filename: withExt(title, "txt") };
+    if (target === "pdf") return { blob: await docxToPdf(file, title), filename: withExt(title, "pdf") };
+    if (target === "html") return { blob: await docxToHtmlBlob(file), filename: withExt(title, "html") };
+    if (target === "md") return { blob: textBlob(await docxToMarkdown(file), "text/markdown"), filename: withExt(title, "md") };
+  }
+  if (source === "rtf") {
+    if (target === "txt") return { blob: textBlob(await rtfToTxt(file)), filename: withExt(title, "txt") };
+    if (target === "docx") return { blob: await rtfToDocx(file, title), filename: withExt(title, "docx") };
+    if (target === "pdf") return { blob: await rtfToPdf(file, title), filename: withExt(title, "pdf") };
+  }
+  if (source === "pdf") {
+    if (target === "txt") return { blob: textBlob(await pdfToTxt(file)), filename: withExt(title, "txt") };
+    if (target === "md") return { blob: textBlob(await pdfToMarkdown(file), "text/markdown"), filename: withExt(title, "md") };
+    if (target === "docx") return { blob: await pdfToDocx(file, title), filename: withExt(title, "docx") };
+    if (target === "xlsx") return { blob: await pdfToXlsx(file), filename: withExt(title, "xlsx") };
+    if (target === "png") return { blob: await pdfToImagesZip(file, title, "png"), filename: withExt(title, "zip") };
+    if (target === "jpg") return { blob: await pdfToImagesZip(file, title, "jpeg"), filename: withExt(title, "zip") };
+  }
+
+  if (source === "audio" || source === "wav") {
+    if (target === "wav") return { blob: await audioFileToWav(file), filename: withExt(title, "wav") };
+    if (target === "audioOut") {
+      const blob = await audioFileToCompressed(file, opts.onProgress);
+      const ext = blob.type.includes("ogg") ? "ogg" : "webm";
+      return { blob, filename: withExt(title, ext) };
+    }
+  }
+
+  if (source === "video") {
+    if (target === "videoOut") {
+      const blob = await convertVideoFile(file, opts.onProgress);
+      return { blob, filename: withExt(title, getVideoOutputExt()) };
+    }
+    if (target === "audio") {
+      const blob = await extractAudioFromVideoFile(file, opts.onProgress);
+      const ext = blob.type.includes("ogg") ? "ogg" : blob.type.includes("mp4") || blob.type.includes("m4a") ? "m4a" : "webm";
+      return { blob, filename: withExt(title, ext) };
+    }
+    if (target === "videoGif") {
+      const blob = await videoToGifFile(file, opts.onProgress);
+      return { blob, filename: withExt(title, "gif") };
+    }
   }
 
   throw new Error(`Kombinasi ${source} → ${target} belum didukung.`);
 }
 
 export async function convertFilesToZip(files: File[], title: string): Promise<ConvertOutput> {
-  return { blob: await filesToZip(files), filename: withExt(title, "zip") };
+  if (!files.length) throw new Error("Pilih setidaknya satu file untuk digabung ke ZIP.");
+  const blob = await filesToZip(files);
+  return { blob, filename: withExt(title || "berkas-gamato-piranti", "zip") };
 }

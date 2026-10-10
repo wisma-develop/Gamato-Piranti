@@ -13,7 +13,8 @@ import { Dropzone } from "@/components/ui/Dropzone";
 import { FORMATS, detectFormatFromFilename, getTargetFormats, type FormatDef } from "./formatRegistry";
 import { convertText, convertFile, convertFilesToZip, type ConvertOutput } from "./convertDispatch";
 import { listZipEntries, extractZipFile, extractAllAsZip, type ZipEntryInfo } from "./converters/archiveConvert";
-import { isVideoConvertSupported } from "./converters/videoConvert";
+import { isVideoConvertSupported, VIDEO_GIF_MAX_SECONDS } from "./converters/videoConvert";
+import { isAudioCompressionSupported } from "./converters/audioConvert";
 
 type TopMode = "upload" | "paste" | "bundle";
 
@@ -109,22 +110,22 @@ export const UniversalConverter: React.FC = () => {
   }, [topMode, pasteSourceId, sourceFormat]);
 
   const runConvert = useCallback(async () => {
-    if (!targetId) return;
+    if (topMode !== "bundle" && !targetId) return;
     resetResult();
     setIsConverting(true);
     try {
       let output: ConvertOutput;
       if (topMode === "paste") {
         if (!pasteText.trim()) throw new Error("Tempel atau ketik teks/data terlebih dahulu.");
-        output = await convertText(pasteText, pasteSourceId, targetId, { title });
+        output = await convertText(pasteText, pasteSourceId, targetId!, { title });
       } else if (topMode === "bundle") {
         output = await convertFilesToZip(bundleFiles, title);
       } else {
         if (!file || !sourceFormat) throw new Error("Pilih file terlebih dahulu.");
-        const isVideo = sourceFormat.id === "video";
-        output = await convertFile(file, sourceFormat.id, targetId, {
+        const usesRealtimeProgress = sourceFormat.id === "video" || ((sourceFormat.id === "audio" || sourceFormat.id === "wav") && targetId === "audioOut");
+        output = await convertFile(file, sourceFormat.id, targetId!, {
           title,
-          onProgress: isVideo ? (p) => setProgress(p) : undefined,
+          onProgress: usesRealtimeProgress ? (p) => setProgress(p) : undefined,
         });
       }
       setResult(output);
@@ -372,6 +373,20 @@ export const UniversalConverter: React.FC = () => {
               )}
               {sourceFormat?.id === "video" && !isVideoConvertSupported() && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Browser ini tidak mendukung konversi video (perlu MediaRecorder). Coba Chrome atau Edge terbaru.</p>
+              )}
+              {sourceFormat?.id === "gif" && (
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Hanya frame pertama dari GIF animasi yang dipakai sebagai gambar sumber.</p>
+              )}
+              {targetId === "videoGif" && (
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">GIF dibuat dari {VIDEO_GIF_MAX_SECONDS} detik pertama video (10fps, lebar maks. 480px) supaya ukuran file tetap wajar.</p>
+              )}
+              {targetId === "audioOut" && (
+                <>
+                  {!isAudioCompressionSupported() && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Browser ini tidak mendukung kompresi audio (perlu MediaRecorder + Opus). Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                  )}
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Proses berjalan secara real-time (durasi kompresi ≈ durasi audio) — biarkan tab ini terbuka & tidak dibisukan sampai selesai.</p>
+                </>
               )}
             </div>
           )}

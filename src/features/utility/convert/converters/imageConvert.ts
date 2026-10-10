@@ -9,8 +9,9 @@
 import { PDFDocument } from "pdf-lib";
 import { canvasToBlob } from "@/lib/canvas";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
+import { encodeGif } from "@/lib/gifEncoder";
 
-export type ImageOutputFormat = "png" | "jpg" | "webp" | "bmp" | "ico" | "pdf";
+export type ImageOutputFormat = "png" | "jpg" | "webp" | "bmp" | "ico" | "gif" | "pdf";
 
 async function loadImage(file: File): Promise<HTMLImageElement> {
   const url = URL.createObjectURL(file);
@@ -49,24 +50,49 @@ function flattenOnWhite(canvas: HTMLCanvasElement): HTMLCanvasElement {
   return flat;
 }
 
-/** Wrap a PNG image in a minimal single-frame ICO container (ICONDIR + ICONDIRENTRY + raw PNG bytes). */
-function pngToIco(pngBytes: Uint8Array, width: number, height: number): Blob {
-  const header = new Uint8Array(6 + 16);
+/** Wraps one or more same-format PNG images into a single ICO container (ICONDIR + N×ICONDIRENTRY + concatenated raw PNG bytes) — the exact structure real favicon generators produce (a proper multi-resolution favicon.ico), supported since Windows Vista and by every current browser/OS. */
+function pngFramesToIco(frames: { bytes: Uint8Array; size: number }[]): Blob {
+  const headerSize = 6 + 16 * frames.length;
+  const header = new Uint8Array(headerSize);
   const view = new DataView(header.buffer);
   view.setUint16(0, 0, true); // reserved
   view.setUint16(2, 1, true); // type: 1 = icon
-  view.setUint16(4, 1, true); // image count
-  // ICONDIRENTRY
-  header[6] = width >= 256 ? 0 : width; // 0 means 256
-  header[7] = height >= 256 ? 0 : height;
-  header[8] = 0; // color palette
-  header[9] = 0; // reserved
-  view.setUint16(10, 1, true); // color planes
-  view.setUint16(12, 32, true); // bits per pixel
-  view.setUint32(14, pngBytes.byteLength, true); // size of PNG data
-  view.setUint32(18, header.byteLength, true); // offset to PNG data
-  return new Blob([header, pngBytes], { type: "image/x-icon" });
+  view.setUint16(4, frames.length, true); // image count
+
+  let dataOffset = headerSize;
+  const parts: BlobPart[] = [header];
+  frames.forEach((frame, i) => {
+    const e = 6 + i * 16;
+    header[e] = frame.size >= 256 ? 0 : frame.size; // 0 means 256
+    header[e + 1] = frame.size >= 256 ? 0 : frame.size;
+    header[e + 2] = 0; // color palette
+    header[e + 3] = 0; // reserved
+    view.setUint16(e + 4, 1, true); // color planes
+    view.setUint16(e + 6, 32, true); // bits per pixel
+    view.setUint32(e + 8, frame.bytes.byteLength, true); // size of this frame's PNG data
+    view.setUint32(e + 12, dataOffset, true); // offset to this frame's PNG data
+    dataOffset += frame.bytes.byteLength;
+    parts.push(frame.bytes);
+  });
+  return new Blob(parts, { type: "image/x-icon" });
 }
+
+/** Renders `source` centered/letterboxed into a size×size square PNG — used to build each resolution inside a multi-size ICO. */
+async function squarePngBytesAt(source: HTMLCanvasElement, size: number): Promise<Uint8Array> {
+  const square = document.createElement("canvas");
+  square.width = size;
+  square.height = size;
+  const ctx = square.getContext("2d")!;
+  const scale = size / Math.max(source.width, source.height);
+  const w = source.width * scale;
+  const h = source.height * scale;
+  ctx.drawImage(source, (size - w) / 2, (size - h) / 2, w, h);
+  const blob = await canvasToBlob(square, "image/png");
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+/** Standard favicon resolution set — the same sizes real favicon generators bundle into one .ico so browsers/OSes can pick whichever fits (tab icon, bookmark, taskbar, etc). */
+const ICO_SIZES = [16, 32, 48, 64, 128, 256];
 
 export async function convertImage(file: File, target: ImageOutputFormat, quality = 0.92): Promise<Blob> {
   const isSvg = file.type === "image/svg+xml" || /\.svg$/i.test(file.name);
@@ -97,19 +123,14 @@ export async function convertImage(file: File, target: ImageOutputFormat, qualit
   }
 
   if (target === "ico") {
-    // ICO favicon sizes are conventionally square and capped at 256px.
-    const size = Math.min(256, Math.max(canvas.width, canvas.height));
-    const square = document.createElement("canvas");
-    square.width = size;
-    square.height = size;
-    const ctx = square.getContext("2d")!;
-    const scale = size / Math.max(canvas.width, canvas.height);
-    const w = canvas.width * scale;
-    const h = canvas.height * scale;
-    ctx.drawImage(canvas, (size - w) / 2, (size - h) / 2, w, h);
-    const pngBlob = await canvasToBlob(square, "image/png");
-    const bytes = new Uint8Array(await pngBlob.arrayBuffer());
-    return pngToIco(bytes, size, size);
+    const frames = await Promise.all(ICO_SIZES.map(async (size) => ({ bytes: await squarePngBytesAt(canvas, size), size })));
+    return pngFramesToIco(frames);
+  }
+
+  if (target === "gif") {
+    const ctx = canvas.getContext("2d")!;
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return encodeGif([{ imageData, delayMs: 0 }]);
   }
 
   if (target === "bmp") {

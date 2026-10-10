@@ -13,8 +13,13 @@ import {
   extractAudioFromVideo,
   getBestExportFormat,
   loadVideoMeta,
+  sampleVideoFrames,
   type ExportProgressCallback,
 } from "@/lib/videoEngine";
+import { encodeGif } from "@/lib/gifEncoder";
+
+/** Keeps exported GIFs a sane size/time — same spirit as the dedicated Video-to-GIF tool's own sensible defaults. Longer clips are simply cut to this length rather than silently failing or producing a huge file. */
+export const VIDEO_GIF_MAX_SECONDS = 15;
 
 export function isVideoConvertSupported(): boolean {
   return getBestExportFormat() !== null;
@@ -53,6 +58,27 @@ export async function extractAudioFromVideoFile(file: File, onProgress?: ExportP
   const meta = await loadVideoMeta(file);
   try {
     return await extractAudioFromVideo({ sourceUrl: meta.url, start: 0, end: meta.duration, onProgress });
+  } finally {
+    URL.revokeObjectURL(meta.url);
+  }
+}
+
+/** Converts (the first `VIDEO_GIF_MAX_SECONDS` of) a video into an animated GIF, reusing the exact frame-sampling + GIF-encoding pipeline already proven in the dedicated Video Convert Hub. */
+export async function videoToGifFile(file: File, onProgress?: ExportProgressCallback): Promise<Blob> {
+  const meta = await loadVideoMeta(file);
+  try {
+    const end = Math.min(meta.duration, VIDEO_GIF_MAX_SECONDS);
+    const frames = await sampleVideoFrames({
+      sourceUrl: meta.url,
+      start: 0,
+      end,
+      fps: 10,
+      maxWidth: 480,
+      onProgress: (f) => onProgress?.(f * 0.9),
+    });
+    const blob = await encodeGif(frames, { onProgress: (f) => onProgress?.(0.9 + f * 0.1) });
+    onProgress?.(1);
+    return blob;
   } finally {
     URL.revokeObjectURL(meta.url);
   }

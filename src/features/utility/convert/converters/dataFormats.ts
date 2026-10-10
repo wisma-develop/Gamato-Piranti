@@ -18,7 +18,7 @@ function parseJsonSafe(text: string): unknown {
 }
 
 /** JSON value -> flat grid (array of row objects, or a 2D array, becomes a table; anything else becomes a single-cell table). */
-function jsonToGrid(value: unknown): string[][] {
+export function jsonToGrid(value: unknown): string[][] {
   const asString = (v: unknown): string => {
     if (v === null || v === undefined) return "";
     if (typeof v === "object") return JSON.stringify(v);
@@ -50,7 +50,7 @@ function jsonToGrid(value: unknown): string[][] {
 }
 
 /** Grid (header row + data rows) -> array of JSON objects keyed by header. */
-function gridToJson(grid: string[][]): unknown {
+export function gridToJson(grid: string[][]): unknown {
   if (!grid.length) return [];
   const [header, ...rows] = grid;
   return rows.map((row) => {
@@ -62,7 +62,7 @@ function gridToJson(grid: string[][]): unknown {
   });
 }
 
-function gridToTsv(grid: string[][]): string {
+export function gridToTsv(grid: string[][]): string {
   return grid.map((row) => row.map((cell) => cell.replace(/\t/g, " ").replace(/\r?\n/g, " ")).join("\t")).join("\r\n");
 }
 
@@ -75,7 +75,7 @@ function parseTsv(text: string): string[][] {
 }
 
 /** Parses `text` as `from`, producing a normalized intermediate JS value. */
-function parseAs(text: string, from: DataFormat): unknown {
+export function parseAs(text: string, from: DataFormat): unknown {
   switch (from) {
     case "json":
       return parseJsonSafe(text);
@@ -110,6 +110,11 @@ export function convertDataFormat(text: string, from: DataFormat, to: DataFormat
   if (from === to) return text;
   const value = parseAs(text, from);
   return serializeAs(value, to);
+}
+
+/** Parses `text` as `from` and flattens it into a table grid — the shared entry point used to turn ANY data format (JSON/CSV/TSV/XML/YAML) into a spreadsheet (XLSX) or table PDF. */
+export function dataFormatToGrid(text: string, from: DataFormat): string[][] {
+  return jsonToGrid(parseAs(text, from));
 }
 
 export const DATA_FORMAT_LABELS: Record<DataFormat, string> = {
