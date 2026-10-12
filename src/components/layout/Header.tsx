@@ -12,7 +12,7 @@ import {
   Camera, Crop, Smile, PenSquare, PenLine, ScanLine, Type, ShieldCheck, Mic, Volume2,
   Languages, AppWindow, Workflow, Gauge,
   Receipt, FileSpreadsheet, ShoppingBag,
-  Clapperboard, Scissors, Captions,
+  Clapperboard, Scissors, Captions, AudioWaveform, ScrollText,
   Pipette,
   IdCard,
   AudioLines,
@@ -21,6 +21,7 @@ import {
   Printer,
   Table2,
   RefreshCw,
+  LayoutGrid,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -96,7 +97,8 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     icon: <ImageIcon className="w-4 h-4" />,
     rootPath: '/image',
     items: [
-      { name: 'Cetak Foto',     path: '/image/cetak-foto',       icon: <Printer className="w-4 h-4 text-orange-500" />, section: 'Cetak Foto' },
+      { name: 'Kolase Gambar',  path: '/image/kolase',           icon: <LayoutGrid className="w-4 h-4 text-orange-500" />, section: 'Kolase & Cetak' },
+      { name: 'Cetak Foto',     path: '/image/cetak-foto',       icon: <Printer className="w-4 h-4 text-orange-500" />, section: 'Kolase & Cetak' },
       { name: 'Photo Editor',   path: '/image/photo-editor',     icon: <SlidersHorizontal className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
       { name: 'Crop Gambar',    path: '/image/crop',              icon: <Crop className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
       { name: 'Putar Gambar',   path: '/image/putar',             icon: <RotateCw className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
@@ -134,6 +136,8 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     rootPath: '/audio',
     items: [
       { name: 'Konversi Audio',            path: '/audio/konversi',            icon: <RefreshCw className="w-4 h-4 text-cyan-500" /> },
+      { name: 'Edit Audio',                path: '/audio/edit-audio',          icon: <AudioWaveform className="w-4 h-4 text-cyan-500" /> },
+      { name: 'Transkrip Audio',           path: '/audio/transkrip-audio',     icon: <ScrollText className="w-4 h-4 text-cyan-500" /> },
       { name: 'Speech to Text',            path: '/audio/suara-ke-teks',       icon: <Mic className="w-4 h-4 text-cyan-500" /> },
       { name: 'Text to Speech',            path: '/audio/teks-ke-suara',       icon: <Volume2 className="w-4 h-4 text-cyan-500" /> },
       { name: 'Pengukur Kekuatan Suara',   path: '/audio/pengukur-suara',      icon: <Gauge className="w-4 h-4 text-cyan-500" /> },

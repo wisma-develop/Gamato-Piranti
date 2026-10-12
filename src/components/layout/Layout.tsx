@@ -77,6 +77,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'meme-generator': 'Meme Generator',
     'photo-editor': 'Photo Editor',
     'cetak-foto': 'Cetak Foto',
+    'kolase': 'Kolase Gambar',
   },
   utility: {
     'json-base64': 'JSON & Base64',
@@ -113,6 +114,8 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   },
   audio: {
     'konversi': 'Konversi Audio',
+    'edit-audio': 'Edit Audio',
+    'transkrip-audio': 'Transkrip Audio',
     'suara-ke-teks': 'Speech to Text',
     'teks-ke-suara': 'Text to Speech',
     'pengukur-suara': 'Pengukur Kekuatan Suara',
