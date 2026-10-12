@@ -71,6 +71,7 @@ import { MemeGenerator } from "@/features/image/MemeGenerator";
 import { ColorPicker } from "@/features/image/ColorPicker";
 import { PhotoEditor } from "@/features/image/PhotoEditor";
 import { PhotoPrintLayout } from "@/features/image/PhotoPrintLayout";
+import { CollageMaker } from "@/features/image/CollageMaker";
 
 import { UtilityJsonBase64 } from "@/features/utility/UtilityJsonBase64";
 import { UtilityBulkText } from "@/features/utility/UtilityBulkText";
@@ -91,6 +92,8 @@ import { AudioTextToSpeech } from "@/features/audio/AudioTextToSpeech";
 import { AudioSoundMeter } from "@/features/audio/AudioSoundMeter";
 import { AudioExtractFromVideo } from "@/features/audio/AudioExtractFromVideo";
 import { AudioConvertHub } from "@/features/audio/AudioConvertHub";
+import { AudioEditor } from "@/features/audio/AudioEditor";
+import { AudioTranscript } from "@/features/audio/AudioTranscript";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -520,7 +523,15 @@ export const App: FC = () => (
             </PageShell>
           }
         />
-        <Route
+                <Route
+          path="image/kolase"
+          element={
+            <PageShell badge="Gambar" title="Kolase Gambar" subtitle="Susun banyak foto jadi satu kolase — 46 template atau mode bebas ala scrapbook, bentuk sel, bingkai, bayangan, latar, teks & stiker. Semua diproses di perangkatmu.">
+              <CollageMaker />
+            </PageShell>
+          }
+        />
+<Route
           path="image/cetak-foto"
           element={
             <PageShell badge="Gambar" title="Cetak Foto" subtitle="Susun pas foto atau foto cetak (2x3, 3x4, 4x6, 4R, dll) dalam satu atau beberapa lembar siap cetak — unduh PDF atau cetak langsung.">
@@ -771,6 +782,22 @@ export const App: FC = () => (
           element={
             <PageShell badge="Audio" title="Konversi Audio" subtitle="Ubah audio ke WAV (kualitas penuh) atau format terkompresi (Opus) — semua diproses langsung di browser.">
               <AudioConvertHub />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/edit-audio"
+          element={
+            <PageShell badge="Audio" title="Edit Audio" subtitle="Editor waveform lengkap: pangkas, potong, tempel, fade, volume, tempo & pitch, equalizer, kompresor, reverb, noise gate, marker, hingga ekspor WAV/Opus — semua di browser.">
+              <AudioEditor />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/transkrip-audio"
+          element={
+            <PageShell badge="Audio" title="Transkrip Audio" subtitle="Ubah rekaman rapat, wawancara, kuliah, atau podcast menjadi transkrip berformat — stempel waktu, pembicara, paragraf, kata kunci & ringkasan — lalu ekspor ke DOCX, PDF, SRT, dan lainnya.">
+              <AudioTranscript />
             </PageShell>
           }
         />
