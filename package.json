@@ -1,7 +1,7 @@
 {
   "name": "gamato-piranti",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@huggingface/transformers": "3.8.1",
     "clsx": "2.1.1",
     "docx": "^9.6.0",
     "framer-motion": "^12.34.3",
