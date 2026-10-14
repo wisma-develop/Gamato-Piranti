@@ -1,6 +1,6 @@
 import {
   Code2, ListOrdered, Radio, Mail, BarChart3,
-  KeyRound, Calculator, Languages, AppWindow, Workflow, RefreshCw,
+  KeyRound, Calculator, Languages, AppWindow, Workflow, RefreshCw, Printer,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -14,6 +14,18 @@ export default function UtilitasCategory() {
     >
       <CategoryGrid
         groups={[
+          {
+            section: "Cetak",
+            items: [
+              {
+                name: "Cetak File & Dokumen",
+                desc: "Cetak PDF, gambar, DOCX/XLSX/PPTX, CSV, dan teks dengan pratinjau langsung & pengaturan setara dialog cetak browser — kertas, margin, skala, N-up, buklet, salinan, warna, header/footer, watermark.",
+                path: "/utility/cetak",
+                icon: <Printer className="w-6 h-6" />,
+                badge: "Baru",
+              },
+            ],
+          },
           {
             section: "Konversi",
             items: [

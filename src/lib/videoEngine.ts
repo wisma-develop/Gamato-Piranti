@@ -83,11 +83,11 @@ export function createOffscreenVideo(src: string): HTMLVideoElement {
 }
 
 /** Routes a <video>'s audio track through Web Audio so it can be merged into a MediaRecorder stream. */
-export function createAudioStreamFromVideo(videoEl: HTMLVideoElement, audioCtx: AudioContext): MediaStream {
+export function createAudioStreamFromVideo(videoEl: HTMLVideoElement, audioCtx: AudioContext, monitor = true): MediaStream {
   const source = audioCtx.createMediaElementSource(videoEl);
   const dest = audioCtx.createMediaStreamDestination();
   source.connect(dest);
-  source.connect(audioCtx.destination); // keep it audible so progress is easy to sanity-check while exporting
+  if (monitor) source.connect(audioCtx.destination); // keep it audible so progress is easy to sanity-check while exporting
   return dest.stream;
 }
 
@@ -98,13 +98,16 @@ function newAudioContext(): AudioContext {
 
 type RecordingHandle = { stop: () => void; result: Promise<Blob> };
 
-function startRecording(canvas: HTMLCanvasElement, audioStream: MediaStream | null, format: ExportFormat, fps: number): RecordingHandle {
+function startRecording(canvas: HTMLCanvasElement, audioStream: MediaStream | null, format: ExportFormat, fps: number, bitrates?: { video?: number; audio?: number }): RecordingHandle {
   const canvasStream = (canvas as any).captureStream(fps) as MediaStream;
   const tracks: MediaStreamTrack[] = [...canvasStream.getVideoTracks()];
   if (audioStream) tracks.push(...audioStream.getAudioTracks());
   const combined = new MediaStream(tracks);
 
-  const recorder = new MediaRecorder(combined, { mimeType: format.mimeType });
+  const recorderOpts: MediaRecorderOptions = { mimeType: format.mimeType };
+  if (bitrates?.video) recorderOpts.videoBitsPerSecond = Math.round(bitrates.video);
+  if (bitrates?.audio) recorderOpts.audioBitsPerSecond = Math.round(bitrates.audio);
+  const recorder = new MediaRecorder(combined, recorderOpts);
   const chunks: BlobPart[] = [];
   recorder.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) chunks.push(e.data);
@@ -178,13 +181,21 @@ export async function exportSegmentedVideo(opts: {
   drawFrame: (ctx: CanvasRenderingContext2D, video: HTMLVideoElement, canvas: HTMLCanvasElement) => void;
   includeAudio?: boolean;
   onProgress?: ExportProgressCallback;
+  /** Optional encoder tuning (used by the video compressor). */
+  videoBitsPerSecond?: number;
+  audioBitsPerSecond?: number;
+  format?: ExportFormat;
+  /** Set `.cancelled = true` to abort; the promise then rejects with "Dibatalkan." */
+  signal?: { cancelled: boolean };
+  /** Keep source audio audible on the speakers while exporting (default true). */
+  monitorAudio?: boolean;
 }): Promise<Blob> {
-  const { sourceUrl, segments, outputWidth, outputHeight, fps = 30, drawFrame, includeAudio = true, onProgress } = opts;
+  const { sourceUrl, segments, outputWidth, outputHeight, fps = 30, drawFrame, includeAudio = true, onProgress, signal } = opts;
   if (!segments.length) throw new Error("Tidak ada bagian video yang dipilih.");
   if (!isVideoExportSupported()) {
     throw new Error("Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Coba Chrome, Edge, atau Firefox versi terbaru.");
   }
-  const format = getBestExportFormat();
+  const format = opts.format ?? getBestExportFormat();
   if (!format) throw new Error("Browser ini tidak mendukung format ekspor video apa pun.");
 
   const video = createOffscreenVideo(sourceUrl);
@@ -206,14 +217,14 @@ export async function exportSegmentedVideo(opts: {
     try {
       audioCtx = newAudioContext();
       if (audioCtx.state === "suspended") await audioCtx.resume();
-      audioStream = createAudioStreamFromVideo(video, audioCtx);
+      audioStream = createAudioStreamFromVideo(video, audioCtx, opts.monitorAudio !== false);
     } catch {
       audioStream = null;
     }
   }
 
   const totalDuration = segments.reduce((s, seg) => s + Math.max(0, seg.end - seg.start), 0);
-  const handle = startRecording(canvas, audioStream, format, fps);
+  const handle = startRecording(canvas, audioStream, format, fps, { video: opts.videoBitsPerSecond, audio: opts.audioBitsPerSecond });
   let elapsedBefore = 0;
 
   try {
@@ -225,7 +236,7 @@ export async function exportSegmentedVideo(opts: {
       const before = elapsedBefore;
       await new Promise<void>((resolve) => {
         runRenderLoop({
-          shouldContinue: () => !video.ended && video.currentTime < segEnd,
+          shouldContinue: () => !signal?.cancelled && !video.ended && video.currentTime < segEnd,
           onFrame: () => {
             drawFrame(ctx, video, canvas);
             onProgress?.(Math.min(1, (before + (video.currentTime - segStart)) / Math.max(0.001, totalDuration)));
@@ -245,6 +256,7 @@ export async function exportSegmentedVideo(opts: {
 
   const blob = await handle.result;
   audioCtx?.close().catch(() => {});
+  if (signal?.cancelled) throw new Error("Dibatalkan.");
   return blob;
 }
 

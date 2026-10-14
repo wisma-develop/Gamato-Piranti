@@ -2,7 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { stampGamatoBranding } from "./pdfBranding";
 
 /** Renders a simple string grid (from readXlsxGrid) as a paginated table PDF. */
-export async function gridToPdfBlob(grid: string[][], title: string): Promise<Blob> {
+export async function gridToPdfBlob(grid: string[][], title: string, opts: { branding?: boolean } = {}): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(title);
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -60,6 +60,6 @@ export async function gridToPdfBlob(grid: string[][], title: string): Promise<Bl
     y -= rowHeight;
   });
 
-  await stampGamatoBranding(pdfDoc);
+  if (opts.branding !== false) await stampGamatoBranding(pdfDoc);
   return new Blob([await pdfDoc.save()], { type: "application/pdf" });
 }

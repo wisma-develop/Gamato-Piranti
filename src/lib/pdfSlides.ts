@@ -20,7 +20,7 @@ function wrapText(text: string, font: any, size: number, maxWidth: number): stri
 }
 
 /** Renders parsed .pptx slides (from readPptxSlides) as one PDF page per slide. */
-export async function slidesToPdfBlob(slides: SlideContent[], title: string): Promise<Blob> {
+export async function slidesToPdfBlob(slides: SlideContent[], title: string, opts: { branding?: boolean } = {}): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(title);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -55,6 +55,6 @@ export async function slidesToPdfBlob(slides: SlideContent[], title: string): Pr
     }
   }
 
-  await stampGamatoBranding(pdfDoc);
+  if (opts.branding !== false) await stampGamatoBranding(pdfDoc);
   return new Blob([await pdfDoc.save()], { type: "application/pdf" });
 }

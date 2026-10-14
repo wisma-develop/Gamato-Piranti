@@ -74,6 +74,7 @@ import { PhotoPrintLayout } from "@/features/image/PhotoPrintLayout";
 import { CollageMaker } from "@/features/image/CollageMaker";
 
 import { UtilityJsonBase64 } from "@/features/utility/UtilityJsonBase64";
+import { PrintCenter } from "@/features/utility/PrintCenter";
 import { UtilityBulkText } from "@/features/utility/UtilityBulkText";
 import { UtilityMediaLink } from "@/features/utility/UtilityMediaLink";
 import { UtilityAliasEmail } from "@/features/utility/UtilityAliasEmail";
@@ -94,6 +95,7 @@ import { AudioExtractFromVideo } from "@/features/audio/AudioExtractFromVideo";
 import { AudioConvertHub } from "@/features/audio/AudioConvertHub";
 import { AudioEditor } from "@/features/audio/AudioEditor";
 import { AudioTranscript } from "@/features/audio/AudioTranscript";
+import { AudioCompress } from "@/features/audio/AudioCompress";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -108,6 +110,7 @@ import { VideoSubtitle } from "@/features/video/VideoSubtitle";
 import { VideoMerge } from "@/features/video/VideoMerge";
 import { VideoFilter } from "@/features/video/VideoFilter";
 import { VideoThumbnail } from "@/features/video/VideoThumbnail";
+import { VideoCompress } from "@/features/video/VideoCompress";
 import { VideoConvertHub } from "@/features/video/VideoConvertHub";
 
 export const App: FC = () => (
@@ -567,6 +570,14 @@ export const App: FC = () => (
           }
         />
         <Route
+          path="utility/cetak"
+          element={
+            <PageShell badge="Utilitas" title="Cetak File & Dokumen" subtitle="Cetak PDF, gambar, dokumen Office, dan teks dengan pratinjau langsung dan pengaturan lengkap seperti dialog cetak browser: kertas, orientasi, margin, skala, halaman per lembar, salinan, warna, buklet, header/footer, watermark.">
+              <PrintCenter />
+            </PageShell>
+          }
+        />
+        <Route
           path="utility/link-media"
           element={
             <PageShell badge="Utilitas" title="Link Media" subtitle="Analisis link video/file untuk unduhan langsung.">
@@ -766,6 +777,14 @@ export const App: FC = () => (
           }
         />
         <Route
+          path="video/kompres"
+          element={
+            <PageShell badge="Video" title="Kompres Video" subtitle="Perkecil ukuran video — pilih preset, atur resolusi, fps & bitrate, atau tentukan target ukuran file. Uji 5 detik dulu sebelum memproses seluruh video.">
+              <VideoCompress />
+            </PageShell>
+          }
+        />
+        <Route
           path="video/thumbnail"
           element={
             <PageShell badge="Video" title="Tangkap Thumbnail / Screenshot" subtitle="Putar video ke posisi yang diinginkan, lalu tangkap satu frame sebagai gambar PNG.">
@@ -798,6 +817,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Audio" title="Transkrip Audio" subtitle="Ubah rekaman rapat, wawancara, kuliah, atau podcast menjadi transkrip berformat — stempel waktu, pembicara, paragraf, kata kunci & ringkasan — lalu ekspor ke DOCX, PDF, SRT, dan lainnya.">
               <AudioTranscript />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/kompres"
+          element={
+            <PageShell badge="Audio" title="Kompres Audio" subtitle="Perkecil ukuran audio dengan Opus (jauh lebih kecil dari MP3) — pilih preset, atur bitrate sendiri, atau tentukan target ukuran file. Bisa banyak file sekaligus, semua di browser.">
+              <AudioCompress />
             </PageShell>
           }
         />
