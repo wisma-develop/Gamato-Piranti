@@ -82,6 +82,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   utility: {
     'json-base64': 'JSON & Base64',
     'bulk-teks': 'Bulk Teks',
+    'cetak': 'Cetak File & Dokumen',
     'link-media': 'Link Media',
     'alias-email': 'Alias Email',
     'kalkulator-pajak': 'Kalkulator Pajak',
@@ -105,6 +106,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   },
   video: {
     'konversi': 'Konversi Video',
+    'kompres': 'Kompres Video',
     'potong': 'Potong Video',
     'crop': 'Crop & Resize',
     'subtitle': 'Teks & Subtitle (CC)',
@@ -114,6 +116,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   },
   audio: {
     'konversi': 'Konversi Audio',
+    'kompres': 'Kompres Audio',
     'edit-audio': 'Edit Audio',
     'transkrip-audio': 'Transkrip Audio',
     'suara-ke-teks': 'Speech to Text',

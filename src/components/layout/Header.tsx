@@ -12,7 +12,7 @@ import {
   Camera, Crop, Smile, PenSquare, PenLine, ScanLine, Type, ShieldCheck, Mic, Volume2,
   Languages, AppWindow, Workflow, Gauge,
   Receipt, FileSpreadsheet, ShoppingBag,
-  Clapperboard, Scissors, Captions, AudioWaveform, ScrollText,
+  Clapperboard, Scissors, Captions, AudioWaveform, ScrollText, Shrink,
   Pipette,
   IdCard,
   AudioLines,
@@ -121,6 +121,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     rootPath: '/video',
     items: [
       { name: 'Konversi Video',    path: '/video/konversi', icon: <RefreshCw className="w-4 h-4 text-rose-500" /> },
+      { name: 'Kompres Video',    path: '/video/kompres',  icon: <Shrink className="w-4 h-4 text-rose-500" /> },
       { name: 'Potong Video',      path: '/video/potong',   icon: <Scissors className="w-4 h-4 text-rose-500" /> },
       { name: 'Crop & Resize',     path: '/video/crop',     icon: <Crop className="w-4 h-4 text-rose-500" /> },
       { name: 'Teks & Subtitle (CC)', path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
@@ -136,6 +137,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
     rootPath: '/audio',
     items: [
       { name: 'Konversi Audio',            path: '/audio/konversi',            icon: <RefreshCw className="w-4 h-4 text-cyan-500" /> },
+      { name: 'Kompres Audio',             path: '/audio/kompres',             icon: <Shrink className="w-4 h-4 text-cyan-500" /> },
       { name: 'Edit Audio',                path: '/audio/edit-audio',          icon: <AudioWaveform className="w-4 h-4 text-cyan-500" /> },
       { name: 'Transkrip Audio',           path: '/audio/transkrip-audio',     icon: <ScrollText className="w-4 h-4 text-cyan-500" /> },
       { name: 'Speech to Text',            path: '/audio/suara-ke-teks',       icon: <Mic className="w-4 h-4 text-cyan-500" /> },
@@ -158,6 +160,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
       { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
       { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
+      { name: 'Cetak File & Dokumen', path: '/utility/cetak',        icon: <Printer className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
       { name: 'Link Media',       path: '/utility/link-media',       icon: <Radio className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
       { name: 'Alias Email',      path: '/utility/alias-email',      icon: <Mail className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
       { name: 'Password & Token', path: '/utility/password-token',   icon: <KeyRound className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
