@@ -38,7 +38,7 @@ function splitToWords(runs: RunModel[]): Word[] {
 }
 
 /** Builds a .pdf Blob from the parsed block model of the Doc Studio editor. */
-export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): Promise<Blob> {
+export async function exportPdfFromBlocks(blocks: BlockModel[], title: string, opts: { branding?: boolean } = {}): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle(title);
 
@@ -173,6 +173,6 @@ export async function exportPdfFromBlocks(blocks: BlockModel[], title: string): 
     y -= 6 + (block.spaceAfterPx ? block.spaceAfterPx * 0.75 : 0);
   }
 
-  await stampGamatoBranding(pdfDoc);
+  if (opts.branding !== false) await stampGamatoBranding(pdfDoc);
   return new Blob([await pdfDoc.save()], { type: "application/pdf" });
 }
