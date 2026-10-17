@@ -12,15 +12,18 @@ Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semu
 |------|-----------|
 | **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) dengan bentuk & warna full custom (bukan QR generik) plus logo tengah; barcode berbagai format dengan cetak massal langsung ke PDF rapi; QR Code Scanner (unggah gambar atau kamera langsung) |
 | **Cetak File & Dokumen** | Pratinjau + pengaturan setara dialog cetak: kertas, margin, skala, N-up, buklet, salinan, warna, header/footer, watermark; PDF/gambar/DOCX/XLSX/PPTX/teks |
+| **Kompres Dokumen** | Satu alat untuk memperkecil PDF (gambar JPEG / mode agresif), DOCX/XLSX/PPTX/ODT/EPUB/ZIP (gambar di dalam dokumen + ZIP ulang), gambar, dan berkas teks; batch + ZIP; hasil tak pernah lebih besar dari asli |
 | **Kompres Video** | Preset / kustom / target ukuran file, uji 5 detik |
 | **Kompres Audio** | Opus (WebCodecs + muxer Ogg), preset, bitrate kustom, target ukuran, batch + ZIP |
 | **Kolase Gambar** | 46 template + grid otomatis + mode bebas/scrapbook, bentuk sel, bingkai, bayangan, latar, teks & stiker; ekspor PNG/JPG/WEBP/PDF |
 | **Edit Audio** | Editor waveform lengkap: pangkas/potong/tempel, fade, tempo & pitch, EQ, kompresor, limiter, echo, reverb, noise gate, marker; ekspor WAV/Opus/ZIP per marker |
 | **Transkrip Audio** | Whisper di browser → transkrip berformat (waktu, pembicara, paragraf, ringkasan); ekspor DOCX/PDF/TXT/MD/SRT/VTT/JSON/CSV |
+| **Audio Visualizer** | 13 gaya visual, kustom penuh (warna, glow, pantulan, logo, teks, latar), pratinjau real-time + mikrofon; ekspor `.mov` transparan otomatis (alpha) atau berlatar — PNG / Animation(RLE) / JPEG + audio PCM; ZIP urutan PNG |
 | **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF, plus Sensor/Redaksi PDF (hitamkan info sensitif secara permanen) |
 | **Doc Studio** | Editor dokumen dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
 | **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing, plus Color Picker & Palette Extractor |
 | **Rak Utilitas** | Kalkulator serba-guna (standar, pajak, bunga, investasi, cicilan/hutang, rumus, HPP/COGS, konversi satuan), Kamus Dunia (terjemahan puluhan bahasa), HTML Preview, Diagram & Rumus Studio (flowchart/struktur/chart + LaTeX), Pengukur Kekuatan Suara, JSON formatter, Base64, bulk teks/data, statistik, password & token generator, dan lainnya |
+| **Capture Website** | Screenshot panjang: bagikan layar/tab (jahit otomatis saat scroll) atau HTML/kode (halaman penuh instan), anotasi live (pena, stabilo, garis, panah, bentuk, teks, nomor, sensor, gambar), tumpukan hasil → gambar / ZIP otomatis / PDF rapi |
 | **Video Studio** | Potong/cut video, crop & resize (rasio 1:1/9:16/16:9/dst), teks & subtitle (CC — ekspor .SRT/.VTT atau bakar ke video), gabung klip dengan transisi cut/crossfade, kecepatan & filter warna, ekstrak audio & thumbnail — semua ringan, native browser (video+canvas+MediaRecorder), tanpa upload ke server |
 | **Spesial** | Kwitansi, Invoice, Struk/Nota, dan Kartu Nama profesional (logo custom, ekspor PNG & PDF, cetak langsung ke printer USB/Bluetooth), generator sertifikat & piagam massal full custom, WA link |
 
