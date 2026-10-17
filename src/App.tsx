@@ -28,6 +28,7 @@ import { QrScanner } from "@/features/qr-barcode/QrScanner";
 import { PdfMerge } from "@/features/pdf/PdfMerge";
 import { PdfSplit } from "@/features/pdf/PdfSplit";
 import { PdfCompress } from "@/features/pdf/PdfCompress";
+import { DocCompress } from "@/features/pdf/DocCompress";
 import { PdfExtract } from "@/features/pdf/PdfExtract";
 import { PdfDeletePages } from "@/features/pdf/PdfDeletePages";
 import { PdfRotate } from "@/features/pdf/PdfRotate";
@@ -96,6 +97,8 @@ import { AudioConvertHub } from "@/features/audio/AudioConvertHub";
 import { AudioEditor } from "@/features/audio/AudioEditor";
 import { AudioTranscript } from "@/features/audio/AudioTranscript";
 import { AudioCompress } from "@/features/audio/AudioCompress";
+import { AudioVisualizer } from "@/features/audio/AudioVisualizer";
+import { CaptureWebsite } from "@/features/utility/CaptureWebsite";
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -188,6 +191,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Dokumen" title="Kompres PDF" subtitle="Kurangi ukuran file PDF tanpa mengubah isi — pilih tingkat kompresi ringan, sedang, atau tinggi.">
               <PdfCompress />
+            </PageShell>
+          }
+        />
+        <Route
+          path="pdf/kompres-dokumen"
+          element={
+            <PageShell badge="Dokumen" title="Kompres Dokumen" subtitle="Satu tempat untuk memperkecil PDF, Word, Excel, PowerPoint, ODT, EPUB, ZIP, gambar, dan berkas teks — banyak berkas sekaligus, langsung di browser.">
+              <DocCompress />
             </PageShell>
           }
         />
@@ -554,6 +565,14 @@ export const App: FC = () => (
         {/* ── Utilitas ─────────────────────────────────────────────────── */}
         <Route path="utility" element={<UtilitasCategory />} />
         <Route
+          path="utility/capture-website"
+          element={
+            <PageShell badge="Utilitas" title="Capture Website" subtitle="Screenshot panjang website secara real-time: bagikan tab, beri anotasi langsung di pratinjau (pena, panah, bentuk, teks, sensor, gambar), tumpuk hasilnya, lalu unduh sebagai gambar/ZIP atau PDF yang rapi.">
+              <CaptureWebsite />
+            </PageShell>
+          }
+        />
+        <Route
           path="utility/json-base64"
           element={
             <PageShell badge="Utilitas" title="JSON & Base64" subtitle="Format JSON rapi, serta encode/decode Base64.">
@@ -825,6 +844,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Audio" title="Kompres Audio" subtitle="Perkecil ukuran audio dengan Opus (jauh lebih kecil dari MP3) — pilih preset, atur bitrate sendiri, atau tentukan target ukuran file. Bisa banyak file sekaligus, semua di browser.">
               <AudioCompress />
+            </PageShell>
+          }
+        />
+        <Route
+          path="audio/visualizer"
+          element={
+            <PageShell badge="Audio" title="Audio Visualizer" subtitle="Ubah lagu jadi visual bergerak: 13 gaya, kustomisasi penuh (warna, glow, pantulan, logo, teks, latar), pratinjau real-time, lalu ekspor .mov dengan latar transparan otomatis — atau beri latar sendiri.">
+              <AudioVisualizer />
             </PageShell>
           }
         />

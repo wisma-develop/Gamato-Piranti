@@ -52,7 +52,7 @@ const tools = [
     desc: 'Konversi format, speech to text, text to speech, pengukur kekuatan suara, sampai ekstrak audio dari video.',
     path: '/audio',
     gradient: 'from-cyan-400 to-sky-600',
-    badge: '5 Alat',
+    badge: '6 Alat',
   },
   {
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
@@ -60,7 +60,7 @@ const tools = [
     desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, diagram & rumus, JSON, Base64, dan lainnya.',
     path: '/utility',
     gradient: 'from-pink-400 to-fuchsia-600',
-    badge: '11 Alat',
+    badge: '12 Alat',
   },
   {
     icon: <Award className="w-7 h-7 text-white" />,

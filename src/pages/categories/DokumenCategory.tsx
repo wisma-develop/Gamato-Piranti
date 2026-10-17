@@ -2,7 +2,7 @@ import {
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
   SlidersHorizontal, FileImage, AlignLeft, BookOpen, BarChart3, EyeOff,
   PenSquare, PenLine, Code2, ListOrdered, KeyRound, ScanLine,
-  FileText, Type, ShieldCheck,
+  FileText, Type, ShieldCheck, Shrink,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -41,6 +41,7 @@ export default function DokumenCategory() {
             items: [
               { name: "Gabung PDF", desc: "Gabungkan beberapa file PDF menjadi satu.", path: "/pdf/gabung", icon: <Layers className="w-6 h-6" /> },
               { name: "Pecah PDF", desc: "Setiap halaman PDF diunduh sebagai file terpisah.", path: "/pdf/pecah", icon: <FileOutput className="w-6 h-6" /> },
+              { name: "Kompres Dokumen", desc: "Satu alat untuk memperkecil PDF, Word, Excel, PowerPoint, ODT, EPUB, ZIP, gambar & teks — banyak berkas sekaligus.", path: "/pdf/kompres-dokumen", icon: <Shrink className="w-6 h-6" />, badge: "Baru" },
               { name: "Kompres PDF", desc: "Kurangi ukuran file PDF — gambar dikompres ulang secara nyata.", path: "/pdf/kompres", icon: <FileDown className="w-6 h-6" /> },
               { name: "Ekstrak Halaman", desc: "Ambil hanya halaman tertentu dari PDF.", path: "/pdf/ekstrak", icon: <FilePlus className="w-6 h-6" /> },
               { name: "Hapus Halaman", desc: "Buang halaman yang tidak dibutuhkan.", path: "/pdf/hapus-halaman", icon: <FileX className="w-6 h-6" /> },

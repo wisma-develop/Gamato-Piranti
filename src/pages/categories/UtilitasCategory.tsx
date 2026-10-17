@@ -1,6 +1,6 @@
 import {
   Code2, ListOrdered, Radio, Mail, BarChart3,
-  KeyRound, Calculator, Languages, AppWindow, Workflow, RefreshCw, Printer,
+  KeyRound, Calculator, Languages, AppWindow, Workflow, RefreshCw, Printer, Camera,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -22,6 +22,18 @@ export default function UtilitasCategory() {
                 desc: "Cetak PDF, gambar, DOCX/XLSX/PPTX, CSV, dan teks dengan pratinjau langsung & pengaturan setara dialog cetak browser — kertas, margin, skala, N-up, buklet, salinan, warna, header/footer, watermark.",
                 path: "/utility/cetak",
                 icon: <Printer className="w-6 h-6" />,
+                badge: "Baru",
+              },
+            ],
+          },
+          {
+            section: "Tangkap",
+            items: [
+              {
+                name: "Capture Website",
+                desc: "Screenshot panjang website secara real-time dengan pratinjau & editor penuh: anotasi (gambar, bentuk, panah, corat-coret, teks, sensor), tumpukan hasil, ekspor gambar/ZIP atau PDF otomatis rapi.",
+                path: "/utility/capture-website",
+                icon: <Camera className="w-6 h-6" />,
                 badge: "Baru",
               },
             ],

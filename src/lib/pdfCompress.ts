@@ -25,9 +25,14 @@ export interface CompressResult {
  * compaction (`useObjectStreams`) for everything else (fonts, text,
  * non-JPEG images are left untouched to avoid corrupting them).
  */
-export async function compressPdf(bytes: ArrayBuffer, level: CompressLevel): Promise<CompressResult> {
+export async function compressPdf(
+  bytes: ArrayBuffer,
+  level: CompressLevel,
+  /** Opsional: timpa kualitas/dimensi preset (dipakai Kompres Dokumen). Tanpa ini perilaku lama tidak berubah. */
+  custom?: { quality: number; maxDim: number }
+): Promise<CompressResult> {
   const originalSize = bytes.byteLength;
-  const { quality, maxDim } = LEVEL_SETTINGS[level];
+  const { quality, maxDim } = custom ?? LEVEL_SETTINGS[level];
   const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false });
 
   let imagesProcessed = 0;
