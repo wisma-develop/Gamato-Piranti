@@ -37,6 +37,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'gabung': 'Gabung PDF',
     'pecah': 'Pecah PDF',
     'kompres': 'Kompres PDF',
+    'kompres-dokumen': 'Kompres Dokumen',
     'ekstrak': 'Ekstrak Halaman',
     'hapus-halaman': 'Hapus Halaman',
     'putar': 'Putar Halaman',
@@ -82,6 +83,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   utility: {
     'json-base64': 'JSON & Base64',
     'bulk-teks': 'Bulk Teks',
+    'capture-website': 'Capture Website',
     'cetak': 'Cetak File & Dokumen',
     'link-media': 'Link Media',
     'alias-email': 'Alias Email',
@@ -117,6 +119,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   audio: {
     'konversi': 'Konversi Audio',
     'kompres': 'Kompres Audio',
+    'visualizer': 'Audio Visualizer',
     'edit-audio': 'Edit Audio',
     'transkrip-audio': 'Transkrip Audio',
     'suara-ke-teks': 'Speech to Text',
