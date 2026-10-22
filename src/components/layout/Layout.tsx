@@ -84,6 +84,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'json-base64': 'JSON & Base64',
     'bulk-teks': 'Bulk Teks',
     'capture-website': 'Capture Website',
+    'koordinat': 'Koordinat',
     'cetak': 'Cetak File & Dokumen',
     'link-media': 'Link Media',
     'alias-email': 'Alias Email',

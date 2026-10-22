@@ -22,6 +22,7 @@ import {
   Table2,
   RefreshCw,
   LayoutGrid,
+  MapPin,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -90,6 +91,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Doc Studio',   path: '/office/doc-studio',   icon: <BookOpen className="w-4 h-4 text-violet-500" /> },
       { name: 'Sheet Studio', path: '/office/sheet-studio', icon: <Table2 className="w-4 h-4 text-violet-500" /> },
       { name: 'Slide Studio', path: '/office/slide-studio', icon: <Presentation className="w-4 h-4 text-violet-500" /> },
+      { name: 'Diagram & Rumus Studio', path: '/office/diagram-rumus', icon: <Workflow className="w-4 h-4 text-violet-500" /> },
     ],
   },
   {
@@ -159,7 +161,7 @@ const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode
       { name: 'Kamus Dunia',      path: '/utility/kamus-dunia',      icon: <Languages className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'HTML Preview',     path: '/utility/html-preview',     icon: <AppWindow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'Capture Website',  path: '/utility/capture-website',  icon: <Camera className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
-      { name: 'Diagram & Rumus Studio', path: '/utility/diagram-rumus', icon: <Workflow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
+      { name: 'Koordinat',        path: '/utility/koordinat',        icon: <MapPin className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
       { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
       { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
       { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
