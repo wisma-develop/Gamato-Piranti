@@ -4,6 +4,7 @@ import {
   Trash2, Download, Printer, Loader2, Move, ChevronUp, ChevronDown, Copy,
   AlignLeft, AlignCenter, AlignRight, Bold, Italic, CaseUpper, FlipHorizontal2,
   Layers, Sparkles, Ruler, Palette,
+  Users,
 } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
@@ -13,6 +14,8 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { printCanvasImage } from "@/lib/printCanvas";
 import { renderCardSide } from "@/lib/businessCardEngine";
+import { forRender } from "@/lib/businessCardBulk";
+import { BusinessCardBulk } from "./BusinessCardBulk";
 import {
   CARD_SIZES,
   CARD_TEMPLATES,
@@ -50,7 +53,7 @@ import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/u
 
 type Side = "front" | "back";
 
-type EditorTabId = "template" | "kontak" | "ukuran" | "latar" | "elemen";
+type EditorTabId = "template" | "kontak" | "ukuran" | "latar" | "elemen" | "massal";
 
 const EDITOR_TABS: SettingsTabDef<EditorTabId>[] = [
   { id: "template", label: "Template", icon: <Sparkles className="w-3.5 h-3.5" /> },
@@ -58,6 +61,7 @@ const EDITOR_TABS: SettingsTabDef<EditorTabId>[] = [
   { id: "ukuran", label: "Ukuran Kartu", icon: <Ruler className="w-3.5 h-3.5" /> },
   { id: "latar", label: "Latar Belakang", icon: <Palette className="w-3.5 h-3.5" /> },
   { id: "elemen", label: "Elemen", icon: <Layers className="w-3.5 h-3.5" /> },
+  { id: "massal", label: "Massal (Bulk)", icon: <Users className="w-3.5 h-3.5" /> },
 ];
 
 interface StudioState {
@@ -118,6 +122,9 @@ export function BusinessCardGenerator() {
   const [activeSide, setActiveSide] = useState<Side>("front");
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [tab, setTab] = useState<EditorTabId>("template");
+  // Baris bulk yang sedang dipratinjau (null = tampilkan Data Kontak biasa)
+  const [bulkPreview, setBulkPreview] = useState<ContactData | null>(null);
+  const shown = useMemo(() => (bulkPreview ? forRender(bulkPreview) : contact), [bulkPreview, contact]);
   const [dragElementId, setDragElementId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [info, setInfo] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -304,7 +311,7 @@ export function BusinessCardGenerator() {
     let cancelled = false;
     (async () => {
       const offscreen = document.createElement("canvas");
-      await renderCardSide(offscreen, design.front, contact, design, imageCacheRef.current);
+      await renderCardSide(offscreen, design.front, shown, design, imageCacheRef.current);
       if (cancelled || frontSeqRef.current !== seq) return;
       const canvas = frontCanvasRef.current;
       if (!canvas) return;
@@ -315,14 +322,14 @@ export function BusinessCardGenerator() {
     return () => {
       cancelled = true;
     };
-  }, [design.front, design.sizeId, design.customWMM, design.customHMM, contact]);
+  }, [design.front, design.sizeId, design.customWMM, design.customHMM, shown]);
 
   useEffect(() => {
     const seq = ++backSeqRef.current;
     let cancelled = false;
     (async () => {
       const offscreen = document.createElement("canvas");
-      await renderCardSide(offscreen, design.back, contact, design, imageCacheRef.current);
+      await renderCardSide(offscreen, design.back, shown, design, imageCacheRef.current);
       if (cancelled || backSeqRef.current !== seq) return;
       const canvas = backCanvasRef.current;
       if (!canvas) return;
@@ -333,7 +340,7 @@ export function BusinessCardGenerator() {
     return () => {
       cancelled = true;
     };
-  }, [design.back, design.sizeId, design.customWMM, design.customHMM, contact]);
+  }, [design.back, design.sizeId, design.customWMM, design.customHMM, shown]);
 
   // ── export ──
   const activeCanvas = () => (activeSide === "front" ? frontCanvasRef.current : backCanvasRef.current);
@@ -345,7 +352,7 @@ export function BusinessCardGenerator() {
       const canvas = activeCanvas();
       if (!canvas) return;
       const blob = await canvasToBlob(canvas);
-      const base = sanitizeFileName(contact.name || "kartu-nama");
+      const base = sanitizeFileName((bulkPreview?.name || contact.name) || "kartu-nama");
       downloadBlob(blob, `${base}-${activeSide === "front" ? "depan" : "belakang"}.png`);
       setInfo({ type: "success", text: "Kartu nama berhasil diunduh sebagai PNG." });
     } catch (err: any) {
@@ -374,7 +381,7 @@ export function BusinessCardGenerator() {
       }
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
-      const base = sanitizeFileName(contact.name || "kartu-nama");
+      const base = sanitizeFileName((bulkPreview?.name || contact.name) || "kartu-nama");
       const suffix = mode === "both" ? "" : `-${activeSide === "front" ? "depan" : "belakang"}`;
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${base}-kartu-nama${suffix}.pdf`);
       setInfo({ type: "success", text: `Kartu nama berhasil diunduh sebagai PDF${mode === "both" ? " (2 halaman)" : ""}.` });
@@ -426,6 +433,8 @@ export function BusinessCardGenerator() {
         </div>
 
         <SettingsTabBar tabs={EDITOR_TABS} active={tab} onChange={setTab} />
+
+        {tab === "massal" && <BusinessCardBulk design={design} contact={contact} cache={imageCacheRef.current} onPreview={setBulkPreview} />}
 
         {/* Templates */}
         {tab === "template" && (
