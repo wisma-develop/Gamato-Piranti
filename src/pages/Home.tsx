@@ -25,7 +25,7 @@ const tools = [
   {
     icon: <Presentation className="w-7 h-7 text-white" />,
     title: 'Office Tools',
-    desc: 'Doc Studio, Sheet Studio, dan Slide Studio — editor dokumen, spreadsheet, dan presentasi langsung di browser.',
+    desc: 'Doc Studio, Sheet Studio, Slide Studio, serta Diagram & Rumus — editor dokumen, spreadsheet, presentasi, diagram, dan rumus langsung di browser.',
     path: '/office',
     gradient: 'from-violet-400 to-purple-600',
     badge: 'Baru',
@@ -57,7 +57,7 @@ const tools = [
   {
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
     title: 'Rak Utilitas',
-    desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, diagram & rumus, JSON, Base64, dan lainnya.',
+    desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, Capture Website, Koordinat, JSON, Base64, dan lainnya.',
     path: '/utility',
     gradient: 'from-pink-400 to-fuchsia-600',
     badge: '12 Alat',

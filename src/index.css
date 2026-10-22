@@ -189,3 +189,8 @@ textarea:focus-visible {
     opacity: 1; /* revealed on real hover */
   }
 }
+
+/* ── Leaflet (Koordinat): lawan aturan global img/canvas/svg agar peta tidak menyusut ── */
+.leaflet-container { font-family: inherit; z-index: 0; }
+.leaflet-container img, .leaflet-container canvas, .leaflet-container svg { max-width: none !important; max-height: none !important; }
+.gp-pin, .gp-num { background: transparent; border: 0; }

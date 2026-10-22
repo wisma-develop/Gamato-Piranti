@@ -1,6 +1,6 @@
 import {
   Code2, ListOrdered, Radio, Mail, BarChart3,
-  KeyRound, Calculator, Languages, AppWindow, Workflow, RefreshCw, Printer, Camera,
+  KeyRound, Calculator, Languages, AppWindow, RefreshCw, Printer, Camera, MapPin,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
@@ -29,6 +29,13 @@ export default function UtilitasCategory() {
           {
             section: "Tangkap",
             items: [
+              {
+                name: "Koordinat",
+                desc: "Cari tempat & pilih titik di peta dunia dengan pratinjau; dapatkan koordinat dalam semua format (DD, DMS, UTM, MGRS, Plus Code, Geohash), ukur jarak, generate titik, impor/ekspor CSV/GeoJSON/KML/GPX.",
+                path: "/utility/koordinat",
+                icon: <MapPin className="w-6 h-6" />,
+                badge: "Baru",
+              },
               {
                 name: "Capture Website",
                 desc: "Screenshot panjang website secara real-time dengan pratinjau & editor penuh: anotasi (gambar, bentuk, panah, corat-coret, teks, sensor), tumpukan hasil, ekspor gambar/ZIP atau PDF otomatis rapi.",
@@ -67,7 +74,6 @@ export default function UtilitasCategory() {
             items: [
               { name: "Kamus Dunia", desc: "Cari arti kata & terjemahkan kalimat lintas puluhan bahasa dunia.", path: "/utility/kamus-dunia", icon: <Languages className="w-6 h-6" /> },
               { name: "HTML Preview", desc: "Tulis HTML/CSS/JS, lihat hasilnya langsung secara real-time.", path: "/utility/html-preview", icon: <AppWindow className="w-6 h-6" /> },
-              { name: "Diagram & Rumus Studio", desc: "Buat & preview flowchart, struktur, chart, hingga rumus matematika (LaTeX).", path: "/utility/diagram-rumus", icon: <Workflow className="w-6 h-6" /> },
             ],
           },
           {

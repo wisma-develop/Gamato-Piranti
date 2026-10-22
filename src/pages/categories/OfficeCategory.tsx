@@ -1,4 +1,4 @@
-import { BookOpen, Table2, Presentation } from "lucide-react";
+import { BookOpen, Table2, Presentation, Workflow } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -7,7 +7,7 @@ export default function OfficeCategory() {
     <PageShell
       badge="Office Tools"
       title="Office Tools"
-      subtitle="Doc Studio, Sheet Studio, dan Slide Studio — editor dokumen, spreadsheet, dan presentasi, langsung di browser tanpa upload ke server."
+      subtitle="Doc Studio, Sheet Studio, Slide Studio, dan Diagram & Rumus Studio — editor dokumen, spreadsheet, presentasi, diagram, dan rumus, langsung di browser tanpa upload ke server."
     >
       <CategoryGrid
         groups={[
@@ -33,6 +33,12 @@ export default function OfficeCategory() {
                 path: "/office/slide-studio",
                 icon: <Presentation className="w-6 h-6" />,
                 badge: "Baru",
+              },
+              {
+                name: "Diagram & Rumus Studio",
+                desc: "Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).",
+                path: "/office/diagram-rumus",
+                icon: <Workflow className="w-6 h-6" />,
               },
             ],
           },

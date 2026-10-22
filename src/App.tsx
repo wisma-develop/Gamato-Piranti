@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import { lazy, Suspense, type FC } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
@@ -99,6 +99,7 @@ import { AudioTranscript } from "@/features/audio/AudioTranscript";
 import { AudioCompress } from "@/features/audio/AudioCompress";
 import { AudioVisualizer } from "@/features/audio/AudioVisualizer";
 import { CaptureWebsite } from "@/features/utility/CaptureWebsite";
+const CoordinateTool = lazy(() => import("@/features/utility/CoordinateTool").then((m) => ({ default: m.CoordinateTool })));
 
 import { CertificateGenerator } from "@/features/special/CertificateGenerator";
 import { WaLink } from "@/features/special/WaLink";
@@ -565,6 +566,16 @@ export const App: FC = () => (
         {/* ── Utilitas ─────────────────────────────────────────────────── */}
         <Route path="utility" element={<UtilitasCategory />} />
         <Route
+          path="utility/koordinat"
+          element={
+            <PageShell badge="Utilitas" title="Koordinat" subtitle="Cari tempat, pilih titik di peta dunia, lihat pratinjau, dan dapatkan koordinat dalam semua format (DD, DMS, UTM, MGRS, Plus Code, Geohash…). Ukur jarak, kelola daftar titik, generate titik, impor/ekspor CSV/GeoJSON/KML/GPX.">
+              <Suspense fallback={<div className="py-16 text-center text-sm text-slate-400">Memuat peta…</div>}>
+                <CoordinateTool />
+              </Suspense>
+            </PageShell>
+          }
+        />
+        <Route
           path="utility/capture-website"
           element={
             <PageShell badge="Utilitas" title="Capture Website" subtitle="Screenshot panjang website secara real-time: bagikan tab, beri anotasi langsung di pratinjau (pena, panah, bentuk, teks, sensor, gambar), tumpuk hasilnya, lalu unduh sebagai gambar/ZIP atau PDF yang rapi.">
@@ -661,13 +672,14 @@ export const App: FC = () => (
           }
         />
         <Route
-          path="utility/diagram-rumus"
+          path="office/diagram-rumus"
           element={
-            <PageShell badge="Utilitas" title="Diagram & Rumus Studio" subtitle="Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).">
+            <PageShell badge="Office" title="Diagram & Rumus Studio" subtitle="Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).">
               <UtilityDiagramFormula />
             </PageShell>
           }
         />
+        <Route path="utility/diagram-rumus" element={<Navigate to="/office/diagram-rumus" replace />} />
         <Route
           path="utility/convert"
           element={
