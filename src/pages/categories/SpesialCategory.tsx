@@ -1,4 +1,4 @@
-import { Award, MessageCircle, Receipt, FileSpreadsheet, ShoppingBag, IdCard, FileText } from "lucide-react";
+import { Award, MessageCircle, Receipt, FileSpreadsheet, ShoppingBag, IdCard, FileText, TicketPercent, MailOpen } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -18,6 +18,8 @@ export default function SpesialCategory() {
               { name: "Invoice", desc: "Invoice profesional dengan item dinamis, logo custom, diskon & pajak — export PNG & PDF.", path: "/special/invoice", icon: <FileSpreadsheet className="w-6 h-6" /> },
               { name: "Struk / Nota", desc: "Struk kasir custom dengan logo — export PNG & PDF, cetak langsung ke printer USB/Bluetooth.", path: "/special/struk", icon: <ShoppingBag className="w-6 h-6" /> },
               { name: "Kartu Nama", desc: "Studio desain full custom: template siap pakai, latar & elemen bebas, ukuran & sisi depan-belakang — export PNG & PDF, siap cetak.", path: "/special/kartu-nama", icon: <IdCard className="w-6 h-6" /> },
+              { name: "Kupon, Voucher & Tiket", desc: "Generator kupon, voucher, tiket event & gift card — kode unik, QR/barcode, tepi sobek, massal hingga 1.000 lembar, ZIP & lembar cetak.", path: "/special/kupon", icon: <TicketPercent className="w-6 h-6" /> },
+              { name: "Pembuat Surat", desc: "17 template surat (dinas, bisnis, lamaran, kuasa, perjanjian…), kop kustom, nomor otomatis, tanda tangan & materai, surat massal, ekspor PDF & Word.", path: "/special/surat", icon: <MailOpen className="w-6 h-6" /> },
             ],
           },
           {

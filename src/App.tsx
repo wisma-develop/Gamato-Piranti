@@ -108,6 +108,8 @@ import { InvoiceGenerator } from "@/features/special/InvoiceGenerator";
 import { StrukGenerator } from "@/features/special/StrukGenerator";
 import { BusinessCardGenerator } from "@/features/special/BusinessCardGenerator";
 import { CvMaker } from "@/features/special/CvMaker";
+import { CouponGenerator } from "@/features/special/CouponGenerator";
+import { LetterGenerator } from "@/features/special/LetterGenerator";
 import { VideoTrim } from "@/features/video/VideoTrim";
 import { VideoCrop } from "@/features/video/VideoCrop";
 import { VideoSubtitle } from "@/features/video/VideoSubtitle";
@@ -729,6 +731,22 @@ export const App: FC = () => (
           element={
             <PageShell badge="Spesial" title="Studio Kartu Nama" subtitle="Desain kartu nama full custom: template siap pakai, latar warna/gradasi/gambar, elemen bebas, ukuran & sisi depan-belakang — export PNG & PDF, siap cetak.">
               <BusinessCardGenerator />
+            </PageShell>
+          }
+        />
+        <Route
+          path="special/kupon"
+          element={
+            <PageShell badge="Spesial" title="Kupon, Voucher & Tiket" subtitle="Generator kupon diskon, voucher, tiket event, tiket masuk, gift card, dan kupon undian — 12 template, kode unik otomatis, QR & barcode, massal hingga 1.000 lembar.">
+              <CouponGenerator />
+            </PageShell>
+          }
+        />
+        <Route
+          path="special/surat"
+          element={
+            <PageShell badge="Spesial" title="Pembuat Surat" subtitle="Generator surat resmi, bisnis, lamaran, kuasa, pernyataan, perjanjian, dan lainnya — 17 template, kop surat kustom, nomor otomatis, tanda tangan & materai, surat massal, ekspor PDF/Word.">
+              <LetterGenerator />
             </PageShell>
           }
         />
