@@ -4,7 +4,9 @@ import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
 import { roundRect } from "@/lib/businessDocCanvas";
-import { Btn, Select, Label, Textarea } from "@/components/ui/primitives";
+import { loadGamatoIcon, GAMATO_NAME, type GamatoIcon } from "@/lib/gamatoIcon";
+import { Btn, Select, Label, Textarea, Input } from "@/components/ui/primitives";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -43,7 +45,9 @@ function anchorCenter(pos: Position, cw: number, ch: number, boxW: number, boxH:
 }
 
 type WatermarkConfig = {
-  mode: "text" | "logo";
+  mode: "text" | "icon" | "logo";
+  /** Mode "icon": tampilkan teks di samping ikon Gamato Piranti. */
+  iconLabel: boolean;
   text: string;
   fontFamily: string;
   sizePercent: number;
@@ -56,14 +60,15 @@ type WatermarkConfig = {
 };
 
 const DEFAULT_WATERMARK_CONFIG: WatermarkConfig = {
-  mode: "text",
-  text: "Gamato Piranti",
+  mode: "icon",
+  iconLabel: true,
+  text: GAMATO_NAME,
   fontFamily: FONT_FAMILIES[0],
   sizePercent: 6,
   color: "#ffffff",
-  opacity: 55,
-  rotation: -25,
-  position: "center",
+  opacity: 70,
+  rotation: 0,
+  position: "bottom-right",
   spacing: 14,
   outputFormat: "png",
 };
@@ -72,6 +77,13 @@ export const ImageWatermark: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [baseImg, setBaseImg] = useState<HTMLImageElement | null>(null);
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
+  // Ikon asli Gamato Piranti (sudah dipangkas dari ruang transparan, di-cache).
+  const [gIcon, setGIcon] = useState<GamatoIcon | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadGamatoIcon().then((i) => { if (alive) setGIcon(i); });
+    return () => { alive = false; };
+  }, []);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Seluruh pengaturan watermark (teks/logo, gaya, posisi) punya riwayat
@@ -85,8 +97,9 @@ export const ImageWatermark: React.FC = () => {
     wmHistory.set((prev) => ({ ...prev, [key]: value }), { commit: false });
     scheduleWmCommit();
   }
-  const { mode, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing, outputFormat } = wmConfig;
-  const setMode = (v: "text" | "logo") => setWmField("mode", v);
+  const { mode, iconLabel, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing, outputFormat } = wmConfig;
+  const setMode = (v: "text" | "icon" | "logo") => setWmField("mode", v);
+  const setIconLabel = (v: boolean) => setWmField("iconLabel", v);
   const setText = (v: string) => setWmField("text", v);
   const setFontFamily = (v: string) => setWmField("fontFamily", v);
   const setSizePercent = (v: number) => setWmField("sizePercent", v);
@@ -159,6 +172,46 @@ export const ImageWatermark: React.FC = () => {
         ctx.fillText(text, 0, 0);
         ctx.restore();
       }
+    } else if (mode === "icon" && gIcon) {
+      const iconW = (sizePercent / 100) * canvas.width * 1.6;
+      const iconH = iconW / gIcon.ratio;
+      const label = iconLabel ? text.trim() || GAMATO_NAME : "";
+      const fontPx = iconH * 0.36;
+      ctx.font = `bold ${fontPx}px ${fontFamily}`;
+      const gapX = label ? iconH * 0.26 : 0;
+      const labelW = label ? ctx.measureText(label).width : 0;
+      const boxW = iconW + gapX + labelW;
+      const boxH = iconH;
+      const draw = (cx: number, cy: number) => {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(gIcon.canvas, -boxW / 2, -iconH / 2, iconW, iconH);
+        if (label) {
+          ctx.font = `bold ${fontPx}px ${fontFamily}`;
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          // bayangan halus agar teks terang tetap terbaca di foto yang terang
+          ctx.shadowColor = "rgba(0,0,0,0.45)";
+          ctx.shadowBlur = iconH * 0.07;
+          ctx.shadowOffsetY = iconH * 0.015;
+          ctx.fillText(label, -boxW / 2 + iconW + gapX, iconH * 0.02);
+        }
+        ctx.restore();
+      };
+      if (position === "tile") {
+        const stepX = boxW + (spacing / 100) * canvas.width;
+        const stepY = boxH * 1.6 + (spacing / 100) * canvas.width;
+        let row = 0;
+        for (let y = -stepY; y < canvas.height + stepY; y += stepY, row++) {
+          for (let x = -stepX + (row % 2 ? stepX / 2 : 0); x < canvas.width + stepX; x += stepX) draw(x, y);
+        }
+      } else {
+        const [ax, ay] = anchorCenter(position, canvas.width, canvas.height, boxW, boxH);
+        draw(ax, ay);
+      }
     } else if (mode === "logo" && logoImg) {
       const boxW = (sizePercent / 100) * canvas.width * 2.5;
       const boxH = logoImg.naturalHeight * (boxW / logoImg.naturalWidth);
@@ -190,7 +243,7 @@ export const ImageWatermark: React.FC = () => {
   useEffect(() => {
     render();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseImg, logoImg, mode, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing]);
+  }, [baseImg, logoImg, gIcon, iconLabel, mode, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing]);
 
   const handleDownload = async () => {
     if (!canvasRef.current) return;
@@ -249,14 +302,16 @@ export const ImageWatermark: React.FC = () => {
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pengaturan Watermark</p>
             <UndoRedoBar canUndo={wmHistory.canUndo} canRedo={wmHistory.canRedo} onUndo={wmHistory.undo} onRedo={wmHistory.redo} hideLabel />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2" data-testid="wm-modes">
             {([
+              ["icon", "Ikon Gamato", <Layers key="g" className="w-4 h-4" />],
               ["text", "Teks", <Type key="t" className="w-4 h-4" />],
-              ["logo", "Logo/Gambar", <ImageIcon key="i" className="w-4 h-4" />],
+              ["logo", "Logo Sendiri", <ImageIcon key="i" className="w-4 h-4" />],
             ] as const).map(([id, label, icon]) => (
               <button
                 key={id}
                 type="button"
+                data-testid={`wm-mode-${id}`}
                 onClick={() => setMode(id)}
                 className={cn(
                   "flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
@@ -269,7 +324,32 @@ export const ImageWatermark: React.FC = () => {
             ))}
           </div>
 
-          {mode === "text" ? (
+          {mode === "icon" && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
+                <img src="/gamato-piranti.png" alt="" className="w-10 h-10 object-contain" />
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">Memakai ikon asli Gamato Piranti — tajam di semua ukuran, tanpa perlu mengunggah apa pun.</p>
+              </div>
+              <GamatoCheckbox checked={iconLabel} onChange={setIconLabel} label={<span className="text-sm text-slate-700 dark:text-slate-300">Tampilkan teks di samping ikon</span>} testId="wm-icon-label" />
+              {iconLabel && (
+                <>
+                  <Input label="Teks di samping ikon" value={text} onChange={(e) => setText(e.target.value)} placeholder={GAMATO_NAME} data-testid="wm-icon-text" />
+                  <Select label="Font" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
+                    {FONT_FAMILIES.map((f) => (
+                      <option key={f} value={f}>
+                        {f.split(",")[0].replace(/'/g, "")}
+                      </option>
+                    ))}
+                  </Select>
+                  <div className="flex items-center gap-3">
+                    <Label>Warna teks</Label>
+                    <GamatoColorPicker value={color} onChange={setColor} />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          {mode === "text" && (
             <>
               <Textarea label="Teks Watermark" rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="Contoh: © Namamu 2026" />
               <Select label="Font" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
@@ -284,7 +364,8 @@ export const ImageWatermark: React.FC = () => {
                 <GamatoColorPicker value={color} onChange={setColor} />
               </div>
             </>
-          ) : (
+          )}
+          {mode === "logo" && (
             <div>
               <Label>Upload Logo (PNG transparan disarankan)</Label>
               <input type="file" accept="image/*" onChange={(e) => addLogo(e.target.files)} className="mt-1.5 text-sm text-slate-600 dark:text-slate-300" />
@@ -369,7 +450,7 @@ export const ImageWatermark: React.FC = () => {
       <ToolInfoPanel
         icon={<Layers className="w-5 h-5" />}
         label="Watermark Gambar"
-        desc="Teks atau logo"
+        desc="Ikon Gamato, teks, atau logo"
         points={[
           "Watermark teks atau logo, bisa sekali tempel atau diulang (tile) ke seluruh gambar.",
           "Atur ukuran, warna, opacity, rotasi, dan posisi secara real-time di preview.",
