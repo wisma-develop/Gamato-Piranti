@@ -30,11 +30,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { GamatoTooltip } from '@/components/ui/GamatoTooltip';
 
-type DropGroup = 'kode' | 'dokumen' | 'office' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
+export type DropGroup = 'kode' | 'dokumen' | 'office' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
 
-type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
+export type MenuItem = { name: string; path: string; icon: ReactNode; section?: string };
 
-const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode; rootPath: string; items: MenuItem[] }[] = [
+export const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode; rootPath: string; items: MenuItem[] }[] = [
   {
     id: 'kode',
     title: 'Kode',

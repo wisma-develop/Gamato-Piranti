@@ -5,6 +5,11 @@ import {
   ArrowRight, ShieldCheck, Cpu, Lock, Gauge, Award, Clapperboard, AudioLines, Presentation
 } from 'lucide-react';
 
+import { menuGroups } from '@/components/layout/Header';
+
+/** Jumlah alat per kategori dihitung dari menu aktual agar lencana di kartu tidak pernah usang. */
+const countOf = (id: string) => menuGroups.find((g) => g.id === id)?.items.length ?? 0;
+
 const tools = [
   {
     icon: <QrCode className="w-7 h-7 text-white" />,
@@ -20,7 +25,7 @@ const tools = [
     desc: 'Toolkit PDF lengkap: kompres, gabung, pecah, konversi Office 2 arah, OCR, hingga keamanan & anotasi PDF.',
     path: '/pdf',
     gradient: 'from-blue-400 to-indigo-600',
-    badge: '20+ Alat',
+    badge: `${countOf('dokumen')} Alat`,
   },
   {
     icon: <Presentation className="w-7 h-7 text-white" />,
@@ -28,47 +33,47 @@ const tools = [
     desc: 'Doc Studio, Sheet Studio, Slide Studio, serta Diagram & Rumus — editor dokumen, spreadsheet, presentasi, diagram, dan rumus langsung di browser.',
     path: '/office',
     gradient: 'from-violet-400 to-purple-600',
-    badge: 'Baru',
+    badge: `${countOf('office')} Alat`,
   },
   {
     icon: <ImageIcon className="w-7 h-7 text-white" />,
     title: 'Image Lab',
-    desc: 'Kompres, ubah ukuran, konversi format, dan putar gambar langsung di perangkatmu.',
+    desc: 'Photo Editor, kolase, cetak foto, hapus background, watermark, kompres, ubah ukuran, dan konversi format — termasuk foto RAW.',
     path: '/image',
     gradient: 'from-orange-400 to-rose-500',
-    badge: 'JPG · PNG · WEBP',
+    badge: `${countOf('gambar')} Alat`,
   },
   {
     icon: <Clapperboard className="w-7 h-7 text-white" />,
     title: 'Video Studio',
-    desc: 'Konversi format/GIF/audio, potong, crop, teks/subtitle, gabung dengan transisi, sampai kecepatan & filter — ringan tanpa upload.',
+    desc: 'Konversi, kompres, potong, crop, teks/subtitle, gabung dengan transisi, sampai kecepatan & filter — ringan tanpa upload.',
     path: '/video',
     gradient: 'from-rose-400 to-red-600',
-    badge: '7 Alat',
+    badge: `${countOf('video')} Alat`,
   },
   {
     icon: <AudioLines className="w-7 h-7 text-white" />,
     title: 'Audio Studio',
-    desc: 'Konversi format, speech to text, text to speech, pengukur kekuatan suara, sampai ekstrak audio dari video.',
+    desc: 'Konversi, kompres & edit audio, visualizer, transkrip, speech to text, text to speech, sampai ekstrak audio dari video.',
     path: '/audio',
     gradient: 'from-cyan-400 to-sky-600',
-    badge: '6 Alat',
+    badge: `${countOf('audio')} Alat`,
   },
   {
     icon: <SlidersHorizontal className="w-7 h-7 text-white" />,
     title: 'Rak Utilitas',
-    desc: 'Kalkulator serba-guna, kamus dunia, HTML preview, Capture Website, Koordinat, JSON, Base64, dan lainnya.',
+    desc: 'Kalkulator, universal converter, kamus dunia, Capture Website, Koordinat, JSON, Base64, cetak file & dokumen, dan lainnya.',
     path: '/utility',
     gradient: 'from-pink-400 to-fuchsia-600',
-    badge: '12 Alat',
+    badge: `${countOf('utilitas')} Alat`,
   },
   {
     icon: <Award className="w-7 h-7 text-white" />,
     title: 'Spesial',
-    desc: 'Kwitansi, invoice, struk profesional, generator sertifikat & piagam massal, dan fitur andalan lainnya.',
+    desc: 'Kwitansi, invoice, struk, kartu nama, pembuat surat, kupon/voucher/tiket, sertifikat & piagam, CV — banyak yang bisa dibuat massal.',
     path: '/special',
     gradient: 'from-amber-400 to-orange-600',
-    badge: 'Unggulan',
+    badge: `${countOf('spesial')} Alat`,
   },
 ];
 

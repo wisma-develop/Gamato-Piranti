@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Zap, QrCode, FileText, Image as ImageIcon, SlidersHorizontal, ShieldCheck, Cpu, ArrowRight, Heart, Award, Clapperboard, AudioLines } from 'lucide-react';
+import { Zap, ShieldCheck, Cpu, ArrowRight, Heart } from 'lucide-react';
+import { menuGroups, type MenuItem } from '@/components/layout/Header';
 
 const pillars = [
   {
@@ -20,15 +21,32 @@ const pillars = [
   },
 ];
 
-const toolSuite = [
-  { icon: <QrCode className="w-5 h-5" />, label: 'QR & Barcode Studio', desc: 'QR code full custom — bentuk titik & sudut, warna, hingga logo — bukan QR generik. Barcode berbagai format dengan cetak massal langsung ke PDF.' },
-  { icon: <FileText className="w-5 h-5" />, label: 'PDF Lab & Doc Studio', desc: 'Suite PDF lengkap (kompres, gabung, pecah, ekstrak, atur halaman, konversi) plus editor dokumen ringan dengan ekspor .docx/.pdf/.txt, Find & Replace, dan template cepat.' },
-  { icon: <ImageIcon className="w-5 h-5" />, label: 'Image Lab', desc: 'Kompres, ubah ukuran, konversi format (JPG/PNG/WEBP), dan putar gambar secara batch langsung di perangkatmu.' },
-  { icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Rak Utilitas', desc: '12 alat: kalkulator serba-guna, kamus dunia, HTML preview, Capture Website, Koordinat, JSON formatter, Base64, bulk teks, statistik, password/token generator, dan lainnya.' },
-  { icon: <Clapperboard className="w-5 h-5" />, label: 'Video Studio', desc: 'Editor video ringan: potong/cut, crop & resize, teks & subtitle (CC), gabung dengan transisi, kecepatan & filter warna, hingga tangkap thumbnail/screenshot — tanpa upload ke server.' },
-  { icon: <AudioLines className="w-5 h-5" />, label: 'Audio Studio', desc: 'Speech to text, text to speech, pengukur kekuatan suara real-time, dan ekstrak audio dari file video — semua langsung dari browser.' },
-  { icon: <Award className="w-5 h-5" />, label: 'Spesial', desc: 'Kwitansi, invoice, dan struk/nota profesional dengan logo custom, generator sertifikat & piagam massal full custom, WA link, dan fitur unggulan lainnya.' },
-];
+/** Penjelasan singkat tiap kategori. Daftar alat di dalamnya DIAMBIL LANGSUNG dari menu (Header.tsx),
+ *  jadi urutan & nama selalu sama dengan menu — tidak perlu diperbarui manual saat ada alat baru. */
+const GROUP_BLURB: Record<string, string> = {
+  kode: 'QR Code & barcode full custom (bentuk, warna, logo), pemindai QR/barcode, scan HID, dan kode Morse.',
+  dokumen: 'Suite PDF lengkap: konversi dari/ke Word, Excel, PowerPoint & gambar, gabung, pecah, kompres, edit, tanda tangan, watermark, proteksi, OCR, hingga pembaca dokumen.',
+  office: 'Editor kantor langsung di browser: dokumen, spreadsheet, slide, serta diagram & rumus.',
+  gambar: 'Edit & perbaiki foto, kolase, cetak foto, hapus background, watermark, meme, kompres, ubah ukuran, dan konversi format — termasuk foto RAW.',
+  video: 'Konversi, kompres, potong, crop & resize, subtitle, gabung dengan transisi, kecepatan & filter warna, hingga tangkap thumbnail — tanpa upload ke server.',
+  audio: 'Konversi, kompres & edit audio, visualizer, transkrip, speech to text, text to speech, pengukur kekuatan suara, dan ekstrak audio dari video.',
+  utilitas: 'Kalkulator, universal converter, kamus dunia, capture website, koordinat, JSON & Base64, bulk teks, cetak file & dokumen, password & token, dan lainnya.',
+  spesial: 'Dokumen bisnis siap pakai: kwitansi, invoice, struk, kartu nama, pembuat surat, kupon/voucher/tiket, sertifikat & piagam, CV, dan WA link — banyak yang mendukung pembuatan massal.',
+};
+
+/** Kelompokkan item satu kategori menurut `section` (urutan kemunculan dipertahankan). */
+function groupBySection(items: MenuItem[]): { section: string | null; items: MenuItem[] }[] {
+  const out: { section: string | null; items: MenuItem[] }[] = [];
+  for (const it of items) {
+    const sec = it.section ?? null;
+    const last = out[out.length - 1];
+    if (last && last.section === sec) last.items.push(it);
+    else out.push({ section: sec, items: [it] });
+  }
+  return out;
+}
+
+const totalTools = menuGroups.reduce((n, g) => n + g.items.length, 0);
 
 export default function About() {
   return (
@@ -74,14 +92,38 @@ export default function About() {
 
       {/* Tool Suite */}
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Suite Alat Digital</h2>
-        <div className="space-y-3">
-          {toolSuite.map((tool) => (
-            <div key={tool.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-start gap-4 hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:shadow-md dark:hover:shadow-black/30 transition-all">
-              <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-2.5 rounded-xl shrink-0 text-slate-500 dark:text-slate-400">{tool.icon}</div>
-              <div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">{tool.label}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{tool.desc}</p>
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Suite Alat Digital</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400" data-testid="about-total">
+            <strong className="text-slate-900 dark:text-white">{totalTools} alat</strong> dalam <strong className="text-slate-900 dark:text-white">{menuGroups.length} kategori</strong>
+          </p>
+        </div>
+        <div className="space-y-3" data-testid="about-suite">
+          {menuGroups.map((g) => (
+            <div key={g.id} data-testid={`about-group-${g.id}`} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-500/40 hover:shadow-md dark:hover:shadow-black/30 transition-all">
+              <div className="flex items-start gap-4">
+                <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-2.5 rounded-xl shrink-0 text-slate-500 dark:text-slate-400">{g.icon}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <Link to={g.rootPath} className="font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{g.title}</Link>
+                    <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full px-2 py-0.5">{g.items.length} alat</span>
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{GROUP_BLURB[g.id]}</p>
+                  <div className="mt-3 space-y-2.5">
+                    {groupBySection(g.items).map((grp, gi) => (
+                      <div key={gi}>
+                        {grp.section && <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">{grp.section}</p>}
+                        <div className="flex flex-wrap gap-1.5">
+                          {grp.items.map((it) => (
+                            <Link key={it.path} to={it.path} className="text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500/60 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors">
+                              {it.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
