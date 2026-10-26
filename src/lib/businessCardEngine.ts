@@ -13,6 +13,7 @@ import {
   type CardBackground,
   type ContactData,
   PX_PER_MM,
+  PT_PX,
   resolveCardSizeMM,
 } from "@/lib/businessCardTypes";
 
@@ -145,13 +146,13 @@ function drawTextElement(ctx: CanvasRenderingContext2D, el: CardTextElement, dat
   ctx.globalAlpha = el.opacity;
   const weight = el.bold ? "700" : "400";
   const style = el.italic ? "italic" : "normal";
-  ctx.font = `${style} ${weight} ${el.fontSize}px ${fontStack(el.fontFamily)}`;
+  ctx.font = `${style} ${weight} ${el.fontSize * PT_PX}px ${fontStack(el.fontFamily)}`;
   ctx.fillStyle = el.color;
   ctx.textBaseline = "middle";
   ctx.textAlign = el.align;
 
   if (el.letterSpacing > 0) {
-    drawLetterSpaced(ctx, display, el.letterSpacing, el.align);
+    drawLetterSpaced(ctx, display, el.letterSpacing * PT_PX, el.align);
   } else {
     ctx.fillText(display, 0, 0);
   }

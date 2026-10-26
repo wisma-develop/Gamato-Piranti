@@ -29,6 +29,9 @@ export const CARD_SIZES: CardSizePreset[] = [
  *  canvas crisp for both screen preview and print/PDF export without being
  *  unnecessarily heavy (90mm × 55mm → 1080×660px). */
 export const PX_PER_MM = 12;
+/** 1 pt = 1/72 inci → piksel kanvas. Ukuran font & jarak huruf pada elemen teks kini dalam pt FISIK
+ *  (ukuran nyata di kartu cetak), bukan piksel mentah — 9–10 pt untuk kontak, 16–20 pt untuk nama. */
+export const PT_PX = (PX_PER_MM * 25.4) / 72;
 
 export function resolveCardSizeMM(design: Pick<CardDesign, "sizeId" | "customWMM" | "customHMM">): { wMM: number; hMM: number } {
   if (design.sizeId === "custom") {
@@ -153,7 +156,7 @@ export function makeTextElement(overrides: Partial<CardTextElement> = {}): CardT
     xPct: 50,
     yPct: 50,
     fontFamily: DEFAULT_FONT_FAMILY,
-    fontSize: 14,
+    fontSize: 11,
     color: "#0f172a",
     bold: false,
     italic: false,
@@ -274,19 +277,19 @@ function buildMinimal(): CardDesign {
     background: { type: "solid", color: "#ffffff" },
     elements: [
       makeShapeElement({ shape: "rect", xPct: 6, yPct: 50, widthPct: 1, heightPct: 70, fill: "#4f46e5", hasFill: true }),
-      contactText("name", { text: "Nama Anda", xPct: 13, yPct: 30, fontSize: 20, bold: true, align: "left", color: "#0f172a" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 13, yPct: 43, fontSize: 12, align: "left", color: "#4f46e5" }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 13, yPct: 66, fontSize: 10.5, align: "left", color: "#475569" }),
-      contactText("email", { text: "nama@email.com", xPct: 13, yPct: 77, fontSize: 10.5, align: "left", color: "#475569" }),
-      contactText("website", { text: "www.website.com", xPct: 13, yPct: 88, fontSize: 10.5, align: "left", color: "#475569" }),
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 92, yPct: 14, fontSize: 10, align: "right", uppercase: true, letterSpacing: 1.5, color: "#94a3b8" }),
+      contactText("name", { text: "Nama Anda", xPct: 13, yPct: 30, fontSize: 18.5, bold: true, align: "left", color: "#0f172a" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 13, yPct: 43, fontSize: 11, align: "left", color: "#4f46e5" }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 13, yPct: 66, fontSize: 9.5, align: "left", color: "#475569" }),
+      contactText("email", { text: "nama@email.com", xPct: 13, yPct: 77, fontSize: 9.5, align: "left", color: "#475569" }),
+      contactText("website", { text: "www.website.com", xPct: 13, yPct: 88, fontSize: 9.5, align: "left", color: "#475569" }),
+      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 92, yPct: 14, fontSize: 9, align: "right", uppercase: true, letterSpacing: 1.5, color: "#94a3b8" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#0f172a" },
     elements: [
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 48, widthPct: 80, fontSize: 16, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
-      contactText("tagline", { text: "Tagline singkat perusahaan Anda", xPct: 50, yPct: 60, widthPct: 80, fontSize: 9.5, align: "center", color: "#94a3b8" }),
+      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 48, widthPct: 80, fontSize: 14.5, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
+      contactText("tagline", { text: "Tagline singkat perusahaan Anda", xPct: 50, yPct: 60, widthPct: 80, fontSize: 8.5, align: "center", color: "#94a3b8" }),
     ],
   };
   return d;
@@ -297,19 +300,19 @@ function buildGradient(): CardDesign {
   d.front = {
     background: { type: "gradient", angle: 135, from: "#4f46e5", to: "#7c3aed" },
     elements: [
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 60, fontSize: 21, bold: true, align: "left", color: "#ffffff" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 72, fontSize: 11.5, align: "left", color: "#e0e7ff" }),
+      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 60, fontSize: 19.5, bold: true, align: "left", color: "#ffffff" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 72, fontSize: 10.5, align: "left", color: "#e0e7ff" }),
       makeShapeElement({ shape: "line", xPct: 18, yPct: 80, widthPct: 20, heightPct: 0.6, fill: "#ffffff", hasFill: true, strokeWidth: 2 }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 89, fontSize: 9.5, align: "left", color: "#f1f5f9" }),
-      contactText("company", { text: "PERUSAHAAN", xPct: 92, yPct: 15, fontSize: 11, align: "right", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 89, fontSize: 8.5, align: "left", color: "#f1f5f9" }),
+      contactText("company", { text: "PERUSAHAAN", xPct: 92, yPct: 15, fontSize: 10, align: "right", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
     ],
   };
   d.back = {
     background: { type: "gradient", angle: 135, from: "#7c3aed", to: "#4f46e5" },
     elements: [
-      contactText("website", { text: "www.website.com", xPct: 50, yPct: 45, widthPct: 80, fontSize: 12, align: "center", color: "#ffffff", bold: true }),
-      contactText("email", { text: "nama@email.com", xPct: 50, yPct: 56, widthPct: 80, fontSize: 10.5, align: "center", color: "#e0e7ff" }),
-      contactText("address", { text: "Kota, Indonesia", xPct: 50, yPct: 66, widthPct: 80, fontSize: 10, align: "center", color: "#e0e7ff" }),
+      contactText("website", { text: "www.website.com", xPct: 50, yPct: 45, widthPct: 80, fontSize: 11, align: "center", color: "#ffffff", bold: true }),
+      contactText("email", { text: "nama@email.com", xPct: 50, yPct: 56, widthPct: 80, fontSize: 9.5, align: "center", color: "#e0e7ff" }),
+      contactText("address", { text: "Kota, Indonesia", xPct: 50, yPct: 66, widthPct: 80, fontSize: 9, align: "center", color: "#e0e7ff" }),
     ],
   };
   return d;
@@ -321,19 +324,19 @@ function buildCorporate(): CardDesign {
     background: { type: "solid", color: "#0b1220" },
     elements: [
       makeShapeElement({ shape: "rect", xPct: 50, yPct: 97, widthPct: 100, heightPct: 6, fill: "#c9a227", hasFill: true }),
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 28, fontSize: 19, bold: true, align: "left", color: "#ffffff" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 40, fontSize: 11, align: "left", color: "#c9a227" }),
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 8, yPct: 60, fontSize: 12.5, align: "left", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 74, fontSize: 9.5, align: "left", color: "#94a3b8" }),
-      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 83, fontSize: 9.5, align: "left", color: "#94a3b8" }),
+      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 28, fontSize: 17.5, bold: true, align: "left", color: "#ffffff" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 40, fontSize: 10, align: "left", color: "#c9a227" }),
+      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 8, yPct: 60, fontSize: 11.5, align: "left", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 74, fontSize: 8.5, align: "left", color: "#94a3b8" }),
+      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 83, fontSize: 8.5, align: "left", color: "#94a3b8" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#0b1220" },
     elements: [
       makeShapeElement({ shape: "rect", xPct: 50, yPct: 3, widthPct: 100, heightPct: 6, fill: "#c9a227", hasFill: true }),
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 50, widthPct: 84, fontSize: 15, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
-      contactText("website", { text: "www.website.com", xPct: 50, yPct: 62, widthPct: 84, fontSize: 10, align: "center", color: "#c9a227" }),
+      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 50, widthPct: 84, fontSize: 14, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
+      contactText("website", { text: "www.website.com", xPct: 50, yPct: 62, widthPct: 84, fontSize: 9, align: "center", color: "#c9a227" }),
     ],
   };
   return d;
@@ -348,17 +351,17 @@ function buildElegant(): CardDesign {
     background: { type: "solid", color: "#faf6ec" },
     elements: [
       ...frameEls,
-      contactText("name", { text: "Nama Anda", xPct: 50, yPct: 40, widthPct: 80, fontSize: 24, align: "center", color: "#3f3421", fontFamily: "Great Vibes" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 50, yPct: 54, widthPct: 80, fontSize: 10, align: "center", uppercase: true, letterSpacing: 2, color: "#8a7a4f" }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 50, yPct: 75, widthPct: 84, fontSize: 8.5, align: "center", color: "#5c5238" }),
-      contactText("email", { text: "nama@email.com", xPct: 50, yPct: 82, widthPct: 84, fontSize: 8.5, align: "center", color: "#5c5238" }),
+      contactText("name", { text: "Nama Anda", xPct: 50, yPct: 40, widthPct: 80, fontSize: 22, align: "center", color: "#3f3421", fontFamily: "Great Vibes" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 50, yPct: 54, widthPct: 80, fontSize: 9, align: "center", uppercase: true, letterSpacing: 2, color: "#8a7a4f" }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 50, yPct: 75, widthPct: 84, fontSize: 8, align: "center", color: "#5c5238" }),
+      contactText("email", { text: "nama@email.com", xPct: 50, yPct: 82, widthPct: 84, fontSize: 8, align: "center", color: "#5c5238" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#faf6ec" },
     elements: [
       ...frameEls.map((e) => ({ ...e, id: newElementId("shape") })),
-      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 50, widthPct: 80, fontSize: 17, align: "center", color: "#3f3421", fontFamily: "Playfair Display" }),
+      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 50, widthPct: 80, fontSize: 15.5, align: "center", color: "#3f3421", fontFamily: "Playfair Display" }),
     ],
   };
   return d;
@@ -371,18 +374,18 @@ function buildCreative(): CardDesign {
     elements: [
       makeShapeElement({ shape: "circle", xPct: 92, yPct: 6, widthPct: 30, heightPct: 30, fill: "#fb7185", hasFill: true, opacity: 0.85 }),
       makeShapeElement({ shape: "circle", xPct: 99, yPct: 26, widthPct: 16, heightPct: 16, fill: "#facc15", hasFill: true, opacity: 0.85 }),
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 55, fontSize: 20, bold: true, align: "left", color: "#1c1917" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 66, fontSize: 11, align: "left", color: "#ea580c" }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 84, fontSize: 9.5, align: "left", color: "#57534e" }),
-      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 92, fontSize: 9.5, align: "left", color: "#57534e" }),
+      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 55, fontSize: 18.5, bold: true, align: "left", color: "#1c1917" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 66, fontSize: 10, align: "left", color: "#ea580c" }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 84, fontSize: 8.5, align: "left", color: "#57534e" }),
+      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 92, fontSize: 8.5, align: "left", color: "#57534e" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#fb7185" },
     elements: [
       makeShapeElement({ shape: "circle", xPct: 8, yPct: 92, widthPct: 26, heightPct: 26, fill: "#facc15", hasFill: true, opacity: 0.85 }),
-      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 45, widthPct: 84, fontSize: 16, align: "center", color: "#ffffff", bold: true }),
-      contactText("website", { text: "www.website.com", xPct: 50, yPct: 58, widthPct: 84, fontSize: 10, align: "center", color: "#fff1f2" }),
+      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 45, widthPct: 84, fontSize: 14.5, align: "center", color: "#ffffff", bold: true }),
+      contactText("website", { text: "www.website.com", xPct: 50, yPct: 58, widthPct: 84, fontSize: 9, align: "center", color: "#fff1f2" }),
     ],
   };
   return d;
@@ -394,17 +397,17 @@ function buildDarkTech(): CardDesign {
     background: { type: "solid", color: "#020617" },
     elements: [
       makeShapeElement({ shape: "line", xPct: 20, yPct: 20, widthPct: 24, heightPct: 0.5, fill: "#22d3ee", hasFill: true }),
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 40, fontSize: 19, bold: true, align: "left", color: "#f8fafc" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 51, fontSize: 10.5, align: "left", color: "#22d3ee", uppercase: true, letterSpacing: 1 }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 74, fontSize: 9, align: "left", color: "#94a3b8" }),
-      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 82, fontSize: 9, align: "left", color: "#94a3b8" }),
-      contactText("website", { text: "www.website.com", xPct: 8, yPct: 90, fontSize: 9, align: "left", color: "#94a3b8" }),
+      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 40, fontSize: 17.5, bold: true, align: "left", color: "#f8fafc" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 51, fontSize: 9.5, align: "left", color: "#22d3ee", uppercase: true, letterSpacing: 1 }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 74, fontSize: 8.5, align: "left", color: "#94a3b8" }),
+      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 82, fontSize: 8.5, align: "left", color: "#94a3b8" }),
+      contactText("website", { text: "www.website.com", xPct: 8, yPct: 90, fontSize: 8.5, align: "left", color: "#94a3b8" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#020617" },
     elements: [
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 50, widthPct: 84, fontSize: 15, align: "center", uppercase: true, letterSpacing: 3, color: "#22d3ee", bold: true }),
+      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 50, widthPct: 84, fontSize: 14, align: "center", uppercase: true, letterSpacing: 3, color: "#22d3ee", bold: true }),
     ],
   };
   return d;
@@ -416,16 +419,16 @@ function buildPastel(): CardDesign {
     background: { type: "gradient", angle: 160, from: "#fbcfe8", to: "#ddd6fe" },
     elements: [
       makeShapeElement({ shape: "circle", xPct: 50, yPct: 30, widthPct: 24, heightPct: 24, fill: "#ffffff", hasFill: true, opacity: 0.9 }),
-      contactText("name", { text: "Nama Anda", xPct: 50, yPct: 60, widthPct: 84, fontSize: 18, bold: true, align: "center", color: "#4c1d95" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 50, yPct: 70, widthPct: 84, fontSize: 10.5, align: "center", color: "#6d28d9" }),
-      contactText("phone", { text: "+62 812-3456-7890", xPct: 50, yPct: 86, widthPct: 84, fontSize: 9, align: "center", color: "#5b21b6" }),
+      contactText("name", { text: "Nama Anda", xPct: 50, yPct: 60, widthPct: 84, fontSize: 16.5, bold: true, align: "center", color: "#4c1d95" }),
+      contactText("title", { text: "Jabatan / Profesi", xPct: 50, yPct: 70, widthPct: 84, fontSize: 9.5, align: "center", color: "#6d28d9" }),
+      contactText("phone", { text: "+62 812-3456-7890", xPct: 50, yPct: 86, widthPct: 84, fontSize: 8.5, align: "center", color: "#5b21b6" }),
     ],
   };
   d.back = {
     background: { type: "gradient", angle: 160, from: "#ddd6fe", to: "#fbcfe8" },
     elements: [
-      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 45, widthPct: 84, fontSize: 15, align: "center", color: "#4c1d95", bold: true }),
-      contactText("website", { text: "www.website.com", xPct: 50, yPct: 58, widthPct: 84, fontSize: 9.5, align: "center", color: "#6d28d9" }),
+      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 45, widthPct: 84, fontSize: 14, align: "center", color: "#4c1d95", bold: true }),
+      contactText("website", { text: "www.website.com", xPct: 50, yPct: 58, widthPct: 84, fontSize: 8.5, align: "center", color: "#6d28d9" }),
     ],
   };
   return d;

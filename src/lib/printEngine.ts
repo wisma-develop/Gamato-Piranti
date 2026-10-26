@@ -6,6 +6,8 @@
 // sheet onto a canvas at any resolution, so the on-screen preview and the final
 // print/PDF output are produced by exactly the same code.
 
+import { loadGamatoIcon } from "@/lib/gamatoIcon";
+
 /* ───────────────────────────── paper ───────────────────────────── */
 
 export interface Paper { id: string; label: string; w: number; h: number } // mm, portrait
@@ -73,6 +75,8 @@ export interface PrintSettings {
   footerCenter: string;
   footerRight: string;
   watermark: string;
+  /** Tambahkan ikon asli Gamato Piranti sebagai watermark (di atas teks bila keduanya aktif). */
+  watermarkIcon: boolean;
   watermarkOpacity: number; // 0..1
   watermarkSize: number; // % of sheet short side
   watermarkAngle: number;
@@ -87,7 +91,7 @@ export const DEFAULT_SETTINGS: PrintSettings = {
   rangeMode: "all", rangeText: "", copies: 1, collate: true, reverse: false,
   color: "color", bwThreshold: 160, brightness: 0, contrast: 0, pageBorder: false, mirror: false,
   headerOn: false, footerOn: false, headerLeft: "{title}", headerCenter: "", headerRight: "{date}", footerLeft: "", footerCenter: "{page} / {pages}", footerRight: "",
-  watermark: "", watermarkOpacity: 0.15, watermarkSize: 14, watermarkAngle: -35, watermarkColor: "#ef4444",
+  watermark: "", watermarkIcon: false, watermarkOpacity: 0.15, watermarkSize: 14, watermarkAngle: -35, watermarkColor: "#ef4444",
   dpi: 200,
 };
 
@@ -389,16 +393,34 @@ export async function renderSheet(
   if (s.headerOn) drawBand(Math.max(plan.margins.top, 8) * ppm * 0.5 + fontPx(3), s.headerLeft, s.headerCenter, s.headerRight, "middle");
   if (s.footerOn) drawBand(H - Math.max(plan.margins.bottom, 8) * ppm * 0.5 - fontPx(3), s.footerLeft, s.footerCenter, s.footerRight, "middle");
 
-  if (s.watermark.trim()) {
+  if (s.watermark.trim() || s.watermarkIcon) {
+    const icon = s.watermarkIcon ? await loadGamatoIcon() : null;
+    const hasText = !!s.watermark.trim();
     ctx.save();
     ctx.globalAlpha = Math.max(0, Math.min(1, s.watermarkOpacity));
-    ctx.fillStyle = s.watermarkColor;
     ctx.translate(W / 2, H / 2);
     ctx.rotate((s.watermarkAngle * Math.PI) / 180);
-    ctx.font = `bold ${(Math.min(W, H) * s.watermarkSize) / 100}px Helvetica, Arial, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(s.watermark, 0, 0);
+    const unit = (Math.min(W, H) * s.watermarkSize) / 100;
+    // ikon: lebar ≈ 2.6× ukuran huruf; bila ada teks, ikon ditumpuk di atas teks
+    const iconW = unit * 2.6;
+    const iconH = icon ? iconW / icon.ratio : 0;
+    const gap = hasText && icon ? unit * 0.25 : 0;
+    const textH = hasText ? unit * 1.0 : 0;
+    const total = iconH + gap + textH;
+    let y = -total / 2;
+    if (icon) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(icon.canvas, -iconW / 2, y, iconW, iconH);
+      y += iconH + gap;
+    }
+    if (hasText) {
+      ctx.fillStyle = s.watermarkColor;
+      ctx.font = `bold ${unit}px Helvetica, Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(s.watermark, 0, y + textH / 2);
+    }
     ctx.restore();
   }
 
