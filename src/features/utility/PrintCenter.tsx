@@ -549,12 +549,13 @@ export const PrintCenter: React.FC = () => {
             <div className={card}>
               <p className={cap}>Watermark</p>
               <Input label="Teks watermark" value={s.watermark} onChange={(e) => patch({ watermark: e.target.value })} placeholder="mis. DRAFT / RAHASIA" data-testid="wm-text" />
-              {s.watermark && (
+              <GamatoCheckbox checked={s.watermarkIcon} onChange={(v) => patch({ watermarkIcon: v })} label="Tambahkan ikon asli Gamato Piranti" testId="wm-icon" />
+              {(s.watermark || s.watermarkIcon) && (
                 <>
                   <Slider label="Kepekatan" value={Math.round(s.watermarkOpacity * 100)} min={3} max={80} suffix="%" onChange={(v) => patch({ watermarkOpacity: v / 100 })} />
                   <Slider label="Ukuran" value={s.watermarkSize} min={4} max={40} suffix="%" onChange={(v) => patch({ watermarkSize: v })} />
                   <Slider label="Sudut" value={s.watermarkAngle} min={-90} max={90} suffix="°" onChange={(v) => patch({ watermarkAngle: v })} />
-                  <div className="flex items-center gap-3"><Label>Warna</Label><input type="color" value={s.watermarkColor} onChange={(e) => patch({ watermarkColor: e.target.value })} className="h-9 w-12 rounded-lg border border-slate-200 cursor-pointer" aria-label="Warna watermark" /></div>
+                  {s.watermark && <div className="flex items-center gap-3"><Label>Warna teks</Label><input type="color" value={s.watermarkColor} onChange={(e) => patch({ watermarkColor: e.target.value })} className="h-9 w-12 rounded-lg border border-slate-200 cursor-pointer" aria-label="Warna watermark" /></div>}
                 </>
               )}
             </div>

@@ -12,7 +12,7 @@ import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
-import { printCanvasImage } from "@/lib/printCanvas";
+import { printCanvasImage, printCanvasPages } from "@/lib/printCanvas";
 import { renderCardSide } from "@/lib/businessCardEngine";
 import { forRender } from "@/lib/businessCardBulk";
 import { BusinessCardBulk } from "./BusinessCardBulk";
@@ -29,6 +29,7 @@ import {
   makeShapeElement,
   makeImageElement,
   PX_PER_MM,
+  PT_PX,
   type CardDesign,
   type CardSide,
   type CardSizeId,
@@ -383,7 +384,7 @@ export function BusinessCardGenerator() {
       const pdfBytes = await pdfDoc.save();
       const base = sanitizeFileName((bulkPreview?.name || contact.name) || "kartu-nama");
       const suffix = mode === "both" ? "" : `-${activeSide === "front" ? "depan" : "belakang"}`;
-      downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${base}-kartu-nama${suffix}.pdf`);
+      downloadBlob(new Blob([pdfBytes as BlobPart], { type: "application/pdf" }), `${base}-kartu-nama${suffix}.pdf`);
       setInfo({ type: "success", text: `Kartu nama berhasil diunduh sebagai PDF${mode === "both" ? " (2 halaman)" : ""}.` });
     } catch (err: any) {
       setInfo({ type: "error", text: err?.message || "Gagal membuat PDF." });
@@ -398,6 +399,16 @@ export function BusinessCardGenerator() {
       const canvas = activeCanvas();
       if (!canvas) return;
       printCanvasImage(canvas, { widthMm: activeSizeMM.wMM, title: `Kartu Nama — ${contact.name || "Gamato Piranti"}` });
+    } catch (err: any) {
+      setInfo({ type: "error", text: err?.message || "Gagal membuka dialog cetak." });
+    }
+  };
+
+  const printBoth = () => {
+    setInfo(null);
+    try {
+      const pages = [frontCanvasRef.current, backCanvasRef.current].filter((c): c is HTMLCanvasElement => !!c);
+      printCanvasPages(pages, { title: `Kartu Nama — ${contact.name || "Gamato Piranti"}`, pageSizeMm: { w: activeSizeMM.wMM, h: activeSizeMM.hMM } });
     } catch (err: any) {
       setInfo({ type: "error", text: err?.message || "Gagal membuka dialog cetak." });
     }
@@ -444,6 +455,7 @@ export function BusinessCardGenerator() {
               <button
                 key={t.id}
                 type="button"
+                data-testid={`card-tpl-${t.id}`}
                 onClick={() => applyTemplate(t.id)}
                 className="text-left rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500 p-3 transition-all group"
               >
@@ -690,8 +702,10 @@ export function BusinessCardGenerator() {
           style={{ aspectRatio: `${activeSizeMM.wMM} / ${activeSizeMM.hMM}` }}
           className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm select-none touch-none bg-slate-100 dark:bg-slate-800"
         >
-          <canvas ref={frontCanvasRef} className={cn("w-full h-full block", activeSide !== "front" && "hidden")} />
-          <canvas ref={backCanvasRef} className={cn("w-full h-full block", activeSide !== "back" && "hidden")} />
+          {/* Sembunyikan dengan style inline (bukan kelas `hidden`): aturan global `canvas { display: block }`
+              di index.css tanpa layer mengalahkan utilitas Tailwind, sehingga kedua sisi sebelumnya tampil bertumpuk. */}
+          <canvas ref={frontCanvasRef} data-testid="card-canvas-front" className="w-full h-full" style={{ display: activeSide === "front" ? "block" : "none" }} />
+          <canvas ref={backCanvasRef} data-testid="card-canvas-back" className="w-full h-full" style={{ display: activeSide === "back" ? "block" : "none" }} />
           {currentSide.elements.map((el) => {
             // The hit-box's horizontal anchor must mirror how the renderer
             // actually anchors this element (see businessCardEngine.ts):
@@ -709,7 +723,7 @@ export function BusinessCardGenerator() {
                   left: `${el.xPct}%`,
                   top: `${el.yPct}%`,
                   width: `${el.widthPct}%`,
-                  height: `${el.kind === "text" ? 14 : el.heightPct}%`,
+                  height: `${el.kind === "text" ? Math.min(40, Math.max(5, ((el.fontSize * PT_PX * 1.35) / (activeSizeMM.hMM * PX_PER_MM)) * 100)) : el.heightPct}%`,
                   transform: `translate(${xOrigin}, -50%)`,
                 }}
                 className={cn(
@@ -736,8 +750,11 @@ export function BusinessCardGenerator() {
           <Btn onClick={() => downloadPdf("both")} disabled={isExporting} variant="secondary" className="gap-2">
             <Layers className="w-4 h-4" /> PDF (2 Sisi)
           </Btn>
-          <Btn onClick={printCurrent} variant="secondary" className="gap-2">
-            <Printer className="w-4 h-4" /> Cetak
+          <Btn onClick={printCurrent} variant="secondary" className="gap-2" data-testid="card-print-one">
+            <Printer className="w-4 h-4" /> Cetak Sisi Ini
+          </Btn>
+          <Btn onClick={printBoth} variant="secondary" className="gap-2 col-span-2" data-testid="card-print-both">
+            <Printer className="w-4 h-4" /> Cetak 2 Sisi (Depan + Belakang)
           </Btn>
         </div>
 
@@ -802,7 +819,7 @@ function TextElementPanel({
           onUpload={onUploadFont}
           onRemoveCustomFont={onRemoveCustomFont}
         />
-        <Input label="Ukuran (px)" type="number" min={6} max={80} value={el.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 14 }, { continuous: true })} />
+        <Input label="Ukuran (pt)" type="number" min={5} max={120} step={0.5} value={el.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 11 }, { continuous: true })} />
       </div>
       <FontPicker
         hideSelect
@@ -837,7 +854,7 @@ function TextElementPanel({
       </div>
 
       <SliderField label="Lebar Kotak Teks" unit="%" min={10} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-      <SliderField label="Jarak Antar Huruf" unit="px" min={0} max={10} step={0.5} value={el.letterSpacing} onChange={(v) => onChange({ letterSpacing: v }, { continuous: true })} />
+      <SliderField label="Jarak Antar Huruf" unit="pt" min={0} max={10} step={0.5} value={el.letterSpacing} onChange={(v) => onChange({ letterSpacing: v }, { continuous: true })} />
       <div className="grid grid-cols-2 gap-3">
         <SliderField label="Rotasi" unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
         <SliderField label="Opasitas" unit="%" min={10} max={100} value={Math.round(el.opacity * 100)} onChange={(v) => onChange({ opacity: v / 100 }, { continuous: true })} />
