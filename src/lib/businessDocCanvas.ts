@@ -148,3 +148,39 @@ export async function ensureFontReady(family: string, weight = "700"): Promise<v
     // Font Loading API unavailable — canvas will fall back gracefully to the system font.
   }
 }
+
+// ─── Skala ekspor (hasil tajam) ──────────────────────────────────────────────
+// Generator dokumen (Kwitansi, Invoice, Struk, …) menggambar dengan koordinat
+// LOGIS. Saat ekspor, `withExportScale(2, () => render(...))` membuat bitmap 2×
+// lebih besar (ctx.scale) — tata letak identik, hanya jauh lebih tajam. Pratinjau
+// memakai skala 1 sehingga tetap cepat.
+
+let currentRenderScale = 1;
+
+export function withExportScale<T>(scale: number, fn: () => T): T {
+  const prev = currentRenderScale;
+  currentRenderScale = Math.max(1, scale);
+  try {
+    return fn();
+  } finally {
+    currentRenderScale = prev;
+  }
+}
+
+/**
+ * Panggil SETELAH ukuran logis kanvas (width/height) ditetapkan dan konteks diambil,
+ * sebelum menggambar apa pun. Memperbesar bitmap sesuai skala aktif, menskalakan konteks,
+ * dan mengaktifkan smoothing kualitas tinggi untuk gambar (logo, tanda tangan).
+ */
+export function applyRenderScale(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+  const s = currentRenderScale;
+  if (s > 1) {
+    const w = canvas.width;
+    const h = canvas.height;
+    canvas.width = Math.round(w * s);
+    canvas.height = Math.round(h * s);
+    ctx.setTransform(s, 0, 0, s, 0, 0);
+  }
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+}
