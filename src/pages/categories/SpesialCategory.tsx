@@ -25,7 +25,7 @@ export default function SpesialCategory() {
           {
             section: "Lainnya",
             items: [
-              { name: "Pembuat CV", desc: "CV/resume profesional dengan 5 pilihan template, halaman otomatis mengikuti panjang isi — export PDF & PNG.", path: "/special/pembuat-cv", icon: <FileText className="w-6 h-6" /> },
+              { name: "Pembuat CV", desc: "Buat CV/resume profesional dengan 8 template, susunan & judul bagian yang bisa diatur, foto, auto-muat 1 halaman — ekspor PDF (teks bisa dipilih/ATS), DOCX, dan PNG tajam.", path: "/special/pembuat-cv", icon: <FileText className="w-6 h-6" /> },
               { name: "Sertifikat & Piagam", desc: "Generator massal, full custom — template, font, dan posisi bebas.", path: "/special/sertifikat", icon: <Award className="w-6 h-6" /> },
               { name: "WA Link", desc: "Buka chat WhatsApp langsung tanpa perlu menyimpan kontak.", path: "/special/wa-link", icon: <MessageCircle className="w-6 h-6" /> },
             ],

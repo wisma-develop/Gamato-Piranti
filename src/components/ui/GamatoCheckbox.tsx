@@ -48,7 +48,16 @@ export function GamatoCheckbox({
   if (!label) return <span className={className}>{box}</span>;
 
   return (
-    <label className={cn("flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none", disabled && "cursor-not-allowed opacity-60", className)}>
+    <label
+      // Klik pada TEKS label juga mengubah centang (span role="checkbox" bukan elemen yang bisa di-label oleh browser,
+      // jadi sebelumnya hanya kotak 18px yang responsif). Klik pada kotaknya sendiri sudah ditangani di atas.
+      onClick={(e) => {
+        if (disabled) return;
+        if ((e.target as HTMLElement).closest('[role="checkbox"]')) return;
+        onChange(!checked);
+      }}
+      className={cn("flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none", disabled && "cursor-not-allowed opacity-60", className)}
+    >
       {box}
       {label}
     </label>

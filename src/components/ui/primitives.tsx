@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
@@ -7,23 +7,32 @@ export const Label: React.FC<{ children: React.ReactNode; htmlFor?: string }> = 
   <label htmlFor={htmlFor} className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{children}</label>
 );
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string }> = ({ label, className, id, ...props }) => (
+export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string }> = ({ label, className, id, ...props }) => {
+  // Label selalu terhubung ke input (id otomatis) → klik label memfokuskan kolom & pembaca layar membacanya.
+  const autoId = useId();
+  const fieldId = id ?? (label ? autoId : undefined);
+  return (
   <div>
-    {label && <Label htmlFor={id}>{label}</Label>}
-    <input id={id} {...props} className={cn("w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 disabled:text-slate-400", className)} />
+    {label && <Label htmlFor={fieldId}>{label}</Label>}
+    <input id={fieldId} {...props} className={cn("w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 disabled:text-slate-400", className)} />
   </div>
-);
+  );
+};
 
 export const Select: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }> = (props) => (
   <GamatoSelect {...props} />
 );
 
-export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string }> = ({ label, className, id, ...props }) => (
+export const Textarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string }> = ({ label, className, id, ...props }) => {
+  const autoId = useId();
+  const fieldId = id ?? (label ? autoId : undefined);
+  return (
   <div>
-    {label && <Label htmlFor={id}>{label}</Label>}
-    <textarea id={id} {...props} className={cn("w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 resize-none", className)} />
+    {label && <Label htmlFor={fieldId}>{label}</Label>}
+    <textarea id={fieldId} {...props} className={cn("w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 resize-none", className)} />
   </div>
-);
+  );
+};
 
 export const Btn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "danger" | "ghost" }> = ({ variant = "primary", className, children, ...props }) => (
   <button {...props} className={cn(

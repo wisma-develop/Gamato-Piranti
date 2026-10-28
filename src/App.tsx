@@ -769,7 +769,7 @@ export const App: FC = () => (
         <Route
           path="special/pembuat-cv"
           element={
-            <PageShell badge="Spesial" title="Pembuat CV" subtitle="Buat CV/resume profesional dengan 5 pilihan template, halaman otomatis mengikuti panjang isi — export PDF & PNG.">
+            <PageShell badge="Spesial" title="Pembuat CV" subtitle="Buat CV/resume profesional dengan 8 template, susunan & judul bagian yang bisa diatur, foto, auto-muat 1 halaman — ekspor PDF (teks bisa dipilih/ATS), DOCX, dan PNG tajam.">
               <CvMaker />
             </PageShell>
           }
