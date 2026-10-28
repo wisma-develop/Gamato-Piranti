@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
 import {
   Ticket, Download, Printer, Loader2, Copy, Plus, Trash2, ArrowUp, ArrowDown, ChevronLeft, ChevronRight,
   Upload, Shuffle, Search, Save, FolderOpen, Layers, Palette, QrCode, Type, FileText, Table2, Check, X, Sparkles, FileArchive, Grid3x3,
@@ -758,7 +759,8 @@ export function CouponGenerator() {
       </div>
 
       {/* ── KANAN: pratinjau ── */}
-      <div className="lg:sticky lg:top-24 space-y-3 min-w-0">
+      <PreviewJumpFab targetId="kupon-preview" />
+      <div id="kupon-preview" className="lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin] space-y-3 min-w-0">
         <p className="text-xs font-bold uppercase tracking-widest text-slate-400 text-center">Pratinjau Real-time</p>
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%,transparent_75%,#e2e8f0_75%),linear-gradient(45deg,#e2e8f0_25%,transparent_25%,transparent_75%,#e2e8f0_75%)] dark:bg-none dark:bg-slate-800 bg-[length:16px_16px] bg-[position:0_0,8px_8px] bg-slate-100 p-4 flex items-center justify-center">
           <canvas ref={canvasRef} data-testid="coupon-canvas" style={{ width: "100%", height: "auto", maxWidth: Math.min(size.w, 560), display: "block", filter: "drop-shadow(0 6px 14px rgba(15,23,42,0.18))" }} />

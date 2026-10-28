@@ -12,7 +12,6 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { csvToRecipients, certificateCsvTemplate, type CsvRecipient } from "@/lib/csv";
 import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
-import { drawImageContain } from "@/lib/businessDocCanvas";
 import { loadImageCached } from "@/lib/businessCardEngine";
 import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { FontPicker } from "@/components/ui/FontPicker";
@@ -24,6 +23,8 @@ import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
+import { ExportQuality } from "@/components/ui/ExportQuality";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 
@@ -59,7 +60,7 @@ type Layer = TextLayer | ImageLayer;
 
 const DEFAULT_CANVAS_W = 1600;
 const DEFAULT_CANVAS_H = 1131; // ~A4 landscape ratio, used only when there's no uploaded template
-const MAX_TEMPLATE_DIMENSION = 1800; // cap resolution for performance/memory when a template is uploaded
+const MAX_TEMPLATE_DIMENSION = 2000; // cap resolution for performance/memory when a template is uploaded
 
 /** Canvas resolution follows the uploaded template's own aspect ratio (capped), so a
  *  square or 16:9 template is never stretched to fit a fixed A4-ish shape. */
@@ -145,18 +146,43 @@ async function ensureFontsReady(layers: Layer[]) {
   }
 }
 
+/**
+ * Menggambar sertifikat ke kanvas.
+ *
+ * Semua hal yang bersifat async (memuat gambar tanda tangan) diselesaikan di
+ * AWAL; setelah itu seluruh penggambaran berjalan SINKRON tanpa jeda. Dengan
+ * begitu dua render yang tumpang-tindih (mis. saat menggeser lapisan atau
+ * mencoret tanda tangan) tidak bisa lagi saling menimpa di kanvas yang sama —
+ * itulah penyebab tanda tangan terlihat "double" di pratinjau.
+ *
+ * `scale` memperbesar resolusi bitmap (ekspor tajam 2×/3×) tanpa mengubah tata
+ * letak: semua koordinat tetap logis (ctx.scale).
+ */
 async function renderToCanvas(
   canvas: HTMLCanvasElement,
   templateImg: HTMLImageElement | null,
   layers: Layer[],
   fields: Record<string, string>,
-  imageCache: Map<string, HTMLImageElement>
-) {
+  imageCache: Map<string, HTMLImageElement>,
+  opts: { scale?: number; isStale?: () => boolean } = {}
+): Promise<boolean> {
+  const scale = Math.max(1, opts.scale ?? 1);
+  const loaded = new Map<string, HTMLImageElement | null>();
+  await Promise.all(
+    layers.map(async (l) => {
+      if (l.kind === "image" && l.src) loaded.set(l.id, await loadImageCached(l.src, imageCache));
+    })
+  );
+  if (opts.isStale?.()) return false;
+
   const { w, h } = resolveCanvasSize(templateImg);
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = Math.round(w * scale);
+  canvas.height = Math.round(h * scale);
   const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (!ctx) return false;
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.clearRect(0, 0, w, h);
 
   if (templateImg) ctx.drawImage(templateImg, 0, 0, w, h);
@@ -164,13 +190,14 @@ async function renderToCanvas(
 
   for (const layer of layers) {
     if (layer.kind === "image") {
-      if (!layer.src) continue;
-      const img = await loadImageCached(layer.src, imageCache);
+      const img = loaded.get(layer.id);
       if (!img) continue;
+      // Kotak = persis kotak seret di pratinjau (lebar = widthPct, tinggi mengikuti rasio gambar),
+      // jadi gambar di kanvas selalu sama ukuran/posisinya dengan yang terlihat.
       const boxW = (layer.widthPct / 100) * w;
       const ratio = (img.naturalHeight || 1) / (img.naturalWidth || 1);
       const boxH = boxW * ratio;
-      drawImageContain(ctx, img, (layer.xPct / 100) * w - boxW / 2, (layer.yPct / 100) * h - boxH / 2, boxW, boxH);
+      ctx.drawImage(img, (layer.xPct / 100) * w - boxW / 2, (layer.yPct / 100) * h - boxH / 2, boxW, boxH);
       continue;
     }
     const text = applyPlaceholders(layer.text, fields);
@@ -183,6 +210,7 @@ async function renderToCanvas(
     ctx.textBaseline = "middle";
     ctx.fillText(text, (layer.xPct / 100) * w, (layer.yPct / 100) * h);
   }
+  return true;
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -197,7 +225,7 @@ const TABS: SettingsTabDef<TabId>[] = [
   { id: "template", label: "Template Latar", icon: <ImageIcon className="w-3.5 h-3.5" /> },
   { id: "lapisan", label: "Lapisan & Tanda Tangan", icon: <Layers className="w-3.5 h-3.5" /> },
   { id: "penerima", label: "Daftar Penerima", icon: <Users className="w-3.5 h-3.5" /> },
-  { id: "file", label: "Nama File", icon: <FileDown className="w-3.5 h-3.5" /> },
+  { id: "file", label: "Ekspor & File", icon: <FileDown className="w-3.5 h-3.5" /> },
 ];
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -227,6 +255,8 @@ export function CertificateGenerator() {
   const [info, setInfo] = useState<string | null>(null);
   const [dragLayerId, setDragLayerId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("template");
+  // Kualitas ekspor: resolusi bitmap = ukuran dasar × skala. 2× = tajam (bawaan, cocok cetak A4), 3× = ultra.
+  const [exportScale, setExportScale] = useState<1 | 2 | 3>(2);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -316,7 +346,9 @@ export function CertificateGenerator() {
       if (cancelled || renderSeqRef.current !== seq) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      await renderToCanvas(canvas, templateImg, layers, previewFields, imageCacheRef.current);
+      await renderToCanvas(canvas, templateImg, layers, previewFields, imageCacheRef.current, {
+        isStale: () => cancelled || renderSeqRef.current !== seq,
+      });
     })();
     return () => { cancelled = true; };
   }, [layers, templateImg, previewFields]);
@@ -383,7 +415,7 @@ export function CertificateGenerator() {
       const fields: Record<string, string> = { ...rec.fields, nama: rec.nama };
       if (!fields.nomor || !fields.nomor.trim()) fields.nomor = String(i + 1);
       if (!fields.tanggal || !fields.tanggal.trim()) fields.tanggal = todayLong();
-      await renderToCanvas(offscreen, templateImg, layers, fields, imageCacheRef.current);
+      await renderToCanvas(offscreen, templateImg, layers, fields, imageCacheRef.current, { scale: exportScale });
       const blob = await canvasToBlob(offscreen);
       const systemName = `sertifikat-${String(i + 1).padStart(3, "0")}`;
       const baseName = fileNameMode === "recipient" ? (sanitizeFileName(rec.nama) || systemName) : systemName;
@@ -400,9 +432,9 @@ export function CertificateGenerator() {
     setIsGenerating(true);
     try {
       await ensureFontsReady(layers);
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const blob = await canvasToBlob(canvas);
+      const offscreen = document.createElement("canvas");
+      await renderToCanvas(offscreen, templateImg, layers, previewFields, imageCacheRef.current, { scale: exportScale });
+      const blob = await canvasToBlob(offscreen);
       downloadBlob(blob, `${sanitizeFileName(previewName) || "sertifikat"}.png`);
       setInfo("Contoh sertifikat berhasil diunduh.");
     } catch (err: any) {
@@ -450,8 +482,11 @@ export function CertificateGenerator() {
       for (const { blob } of items) {
         const bytes = new Uint8Array(await blob.arrayBuffer());
         const img = await pdfDoc.embedPng(bytes);
-        const page = pdfDoc.addPage([img.width, img.height]);
-        page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+        // Ukuran halaman = ukuran logis (bukan piksel bitmap) → PDF tetap proporsional dan bitmap 2×/3× membuatnya tajam saat di-zoom/cetak.
+        const pw = img.width / exportScale;
+        const ph = img.height / exportScale;
+        const page = pdfDoc.addPage([pw, ph]);
+        page.drawImage(img, { x: 0, y: 0, width: pw, height: ph });
       }
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
@@ -648,6 +683,7 @@ export function CertificateGenerator() {
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
                   <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
                   <SignaturePad
+                    key={selectedLayer.id}
                     value={selectedLayer.src || null}
                     onChange={(dataUrl) => updateLayer(selectedLayer.id, { src: dataUrl || "" })}
                     label="Tanda Tangan / Stempel"
@@ -755,7 +791,9 @@ export function CertificateGenerator() {
           )}
 
           {tab === "file" && (
-            <PanelCard title="Nama File Hasil Unduhan" subtitle="Berlaku untuk unduhan ZIP/PDF bulk semua penerima">
+            <PanelCard title="Ekspor & Nama File" subtitle="Kualitas gambar dan penamaan file hasil unduhan">
+              <ExportQuality value={exportScale} onChange={setExportScale} baseWidth={resolveCanvasSize(templateImg).w} baseHeight={resolveCanvasSize(templateImg).h} />
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 pt-1">Nama file (unduhan ZIP/PDF semua penerima)</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -789,7 +827,8 @@ export function CertificateGenerator() {
         </div>
 
         {/* RIGHT: live preview + export */}
-        <div className="space-y-4 lg:sticky lg:top-24">
+        <PreviewJumpFab targetId="sertifikat-preview" />
+        <div id="sertifikat-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
             <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret untuk atur posisi</span>
@@ -820,7 +859,7 @@ export function CertificateGenerator() {
               >
                 {layer.kind === "image" ? (
                   layer.src ? (
-                    <img src={layer.src} alt="" className="w-full h-auto block opacity-90 pointer-events-none" draggable={false} />
+                    <img src={layer.src} alt="" className="w-full h-auto block opacity-0 pointer-events-none" draggable={false} />
                   ) : (
                     <div className="w-full aspect-[3/1] border-2 border-dashed border-indigo-300 bg-indigo-50/40 pointer-events-none rounded" />
                   )

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
 import {
   IdCard, Type, Square, Circle, Minus as LineIcon, Image as ImageIcon,
   Trash2, Download, Printer, Loader2, Move, ChevronUp, ChevronDown, Copy,
@@ -678,7 +679,8 @@ export function BusinessCardGenerator() {
       </div>
 
       {/* RIGHT: preview + export */}
-      <div className="space-y-4 lg:sticky lg:top-24">
+      <PreviewJumpFab targetId="kartu-preview" />
+      <div id="kartu-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
           <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret elemen untuk atur posisi</span>

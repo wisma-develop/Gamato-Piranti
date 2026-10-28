@@ -6,6 +6,9 @@ import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
+import { withExportScale, applyRenderScale } from "@/lib/businessDocCanvas";
+import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
+import { ExportQuality, type ExportScale } from "@/components/ui/ExportQuality";
 import { formatIDR } from "@/lib/utilityHelpers";
 import { todayISODate, formatDateID, nowTimeHHMM } from "@/lib/dateFormat";
 import { drawDashedLine, drawSolidLine, drawLogoFit, drawImageContain, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
@@ -156,6 +159,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
 
   // ── Draw pass (reuses the exact wrapped lines measured above) ──
   canvas.height = H;
+  applyRenderScale(canvas, ctx);
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
   ctx.textBaseline = "alphabetic";
@@ -325,6 +329,7 @@ const TABS: SettingsTabDef<TabId>[] = [
 export function StrukGenerator() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [exportScale, setExportScale] = useState<ExportScale>(2);
   const [isPrinting, setIsPrinting] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("usaha");
@@ -425,8 +430,10 @@ export function StrukGenerator() {
     setInfo(null);
     setIsGenerating(true);
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const preview = canvasRef.current;
+      if (!preview) return;
+      const canvas = document.createElement("canvas");
+      withExportScale(exportScale, () => renderStrukToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       downloadBlob(blob, `${sanitizeFileName(form.transactionNo) || "struk"}.png`);
       setInfo("Struk berhasil diunduh sebagai PNG.");
@@ -441,14 +448,18 @@ export function StrukGenerator() {
     setInfo(null);
     setIsGenerating(true);
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const preview = canvasRef.current;
+      if (!preview) return;
+      const canvas = document.createElement("canvas");
+      withExportScale(exportScale, () => renderStrukToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       const bytes = new Uint8Array(await blob.arrayBuffer());
       const pdfDoc = await PDFDocument.create();
       const img = await pdfDoc.embedPng(bytes);
-      const page = pdfDoc.addPage([img.width, img.height]);
-      page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      const pageW = img.width / exportScale;
+      const pageH = img.height / exportScale;
+      const page = pdfDoc.addPage([pageW, pageH]);
+      page.drawImage(img, { x: 0, y: 0, width: pageW, height: pageH });
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(form.transactionNo) || "struk"}.pdf`);
@@ -608,7 +619,9 @@ export function StrukGenerator() {
         )}
       </div>
 
-      <div className="space-y-4 lg:sticky lg:top-24">
+      <PreviewJumpFab targetId="struk-preview" />
+
+      <div id="struk-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
         <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
         <div className="flex justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
           <div className="rounded-xl overflow-hidden shadow-lg bg-white" style={{ maxWidth: form.paperWidth === "58" ? 300 : 380 }}>
@@ -617,6 +630,10 @@ export function StrukGenerator() {
         </div>
 
         {info && <GamatoInlineAlert message={info} tone="success" />}
+
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+          <ExportQuality value={exportScale} onChange={setExportScale} />
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Btn onClick={downloadPng} disabled={isGenerating} variant="secondary" className="gap-2">

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
 import {
   FileText, Download, Printer, Loader2, Copy, Plus, Trash2, Table2, Upload, FolderOpen, Save, FileArchive, ZoomIn, ZoomOut,
   LayoutTemplate, Building2, PenLine, Palette, Layers, Check, FileType2, ClipboardCopy, Type as TypeIcon, Stamp,
@@ -649,7 +650,8 @@ export function LetterGenerator() {
       </div>
 
       {/* ── KANAN: pratinjau ── */}
-      <div className="lg:sticky lg:top-24 space-y-3 min-w-0">
+      <PreviewJumpFab targetId="surat-preview" />
+      <div id="surat-preview" className="lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin] space-y-3 min-w-0">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Pratinjau · <span data-testid="page-count">{pages.length}</span> halaman</p>
           <div className="flex items-center gap-1">

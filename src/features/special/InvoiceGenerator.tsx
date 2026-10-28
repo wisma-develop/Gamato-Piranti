@@ -6,6 +6,9 @@ import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
 import { downloadBlob } from "@/lib/file";
 import { canvasToBlob } from "@/lib/canvas";
+import { withExportScale, applyRenderScale } from "@/lib/businessDocCanvas";
+import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
+import { ExportQuality, type ExportScale } from "@/components/ui/ExportQuality";
 import { formatIDR } from "@/lib/utilityHelpers";
 import { todayISODate, formatDateID } from "@/lib/dateFormat";
 import { drawWrappedText, drawSolidLine, drawLogoFit, drawImageContain, roundRect, ensureFontReady, wrapText } from "@/lib/businessDocCanvas";
@@ -158,6 +161,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   canvas.height = Math.round(H);
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
+  applyRenderScale(canvas, ctx);
 
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
@@ -404,6 +408,7 @@ export function InvoiceGenerator() {
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [exportScale, setExportScale] = useState<ExportScale>(2);
   const [info, setInfo] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("perusahaan");
   const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
@@ -440,8 +445,10 @@ export function InvoiceGenerator() {
     setInfo(null);
     setIsGenerating(true);
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const preview = canvasRef.current;
+      if (!preview) return;
+      const canvas = document.createElement("canvas");
+      withExportScale(exportScale, () => renderInvoiceToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       downloadBlob(blob, `${sanitizeFileName(data.invoiceNo) || "invoice"}.png`);
       setInfo("Invoice berhasil diunduh sebagai PNG.");
@@ -456,14 +463,18 @@ export function InvoiceGenerator() {
     setInfo(null);
     setIsGenerating(true);
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      const preview = canvasRef.current;
+      if (!preview) return;
+      const canvas = document.createElement("canvas");
+      withExportScale(exportScale, () => renderInvoiceToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       const bytes = new Uint8Array(await blob.arrayBuffer());
       const pdfDoc = await PDFDocument.create();
       const img = await pdfDoc.embedPng(bytes);
-      const page = pdfDoc.addPage([img.width, img.height]);
-      page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+      const pageW = img.width / exportScale;
+      const pageH = img.height / exportScale;
+      const page = pdfDoc.addPage([pageW, pageH]);
+      page.drawImage(img, { x: 0, y: 0, width: pageW, height: pageH });
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(data.invoiceNo) || "invoice"}.pdf`);
@@ -635,13 +646,19 @@ export function InvoiceGenerator() {
         )}
       </div>
 
-      <div className="space-y-4 lg:sticky lg:top-24">
+      <PreviewJumpFab targetId="invoice-preview" />
+
+      <div id="invoice-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
         <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
         <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-white">
           <canvas ref={canvasRef} className="w-full h-auto block" />
         </div>
 
         {info && <GamatoInlineAlert message={info} tone="success" />}
+
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3">
+          <ExportQuality value={exportScale} onChange={setExportScale} />
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Btn onClick={downloadPng} disabled={isGenerating} variant="secondary" className="gap-2">
