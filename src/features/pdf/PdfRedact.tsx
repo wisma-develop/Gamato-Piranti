@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { EyeOff, Upload, Loader2, Undo2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -182,6 +183,7 @@ export function PdfRedact() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Redaksi PDF" className="lg:col-span-full" />
       <div className="space-y-4">
         {!file ? (
           <Dropzone

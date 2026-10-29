@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -579,6 +580,7 @@ export const CoordinateTool: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <GamatoDesktopRecommended toolName="Alat Koordinat" />
       {/* Bilah pencarian */}
       <div className={cn(card, "!p-4 space-y-3")} data-testid="co-searchbar">
         <div className="flex flex-col md:flex-row gap-2">

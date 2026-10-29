@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
 import {
   Ticket, Download, Printer, Loader2, Copy, Plus, Trash2, ArrowUp, ArrowDown, ChevronLeft, ChevronRight,
@@ -355,6 +356,7 @@ export function CouponGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_440px] gap-6 items-start" data-testid="coupon-root">
+      <GamatoDesktopRecommended toolName="Kupon, Voucher & Tiket" className="lg:col-span-full" />
       {/* ── KIRI: pengaturan ── */}
       <div className="space-y-4 min-w-0">
         <div className="flex items-center justify-between gap-3 flex-wrap">

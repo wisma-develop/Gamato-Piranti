@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { FileSpreadsheet, Download, Printer, Loader2, Plus, Trash2, Building2, ClipboardList, Users, Landmark, ListOrdered, Percent, PenLine } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { cn } from "@/utils/cn";
@@ -499,6 +500,7 @@ export function InvoiceGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Invoice" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Invoice</span>

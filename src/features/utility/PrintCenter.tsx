@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import {
   Printer, FileText, Download, Plus, X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Loader2, Settings2, Layers, Frame, Palette, FilePlus2, Info, Type,
   FileImage, FileSpreadsheet, Presentation, File as FileIcon, AlertTriangle,
@@ -325,6 +326,7 @@ export const PrintCenter: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-6 items-start" data-testid="print-root">
+      <GamatoDesktopRecommended toolName="Pusat Cetak" className="lg:col-span-full" />
       <input ref={openRef} type="file" multiple accept={ACCEPT} className="hidden" data-testid="print-file" onChange={(e) => { const f = Array.from(e.target.files ?? []); e.target.value = ""; if (f.length) addFiles(f); }} />
 
       {/* ───────── LEFT: preview ───────── */}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Layers, FileText, Trash2, Loader2, Zap, Type, Image as ImageIcon } from "lucide-react";
 import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
@@ -185,6 +186,7 @@ export const PdfWatermark: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Watermark PDF" className="lg:col-span-full" />
       <div className="space-y-5">
         <Dropzone
           onFiles={addFiles}
