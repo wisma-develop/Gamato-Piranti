@@ -50,5 +50,38 @@ export function installHighQualityCanvasDefaults() {
       },
     });
   }
+
+  // JPEG tidak mendukung transparansi: browser mengisi area transparan dengan HITAM, sehingga PNG/WebP/logo
+  // transparan yang diekspor ke JPEG tampil dengan latar hitam. Ratakan di atas PUTIH lebih dulu — berlaku
+  // untuk semua alat (kompres, resize, crop, watermark, kolase, editor foto, dst.) agar hasil unduhan
+  // sama dengan yang terlihat di pratinjau.
+  const flattenOnWhite = (src: HTMLCanvasElement): HTMLCanvasElement | null => {
+    try {
+      if (!src.width || !src.height) return null;
+      const tmp = document.createElement("canvas");
+      tmp.width = src.width;
+      tmp.height = src.height;
+      const c = tmp.getContext("2d");
+      if (!c) return null;
+      c.fillStyle = "#ffffff";
+      c.fillRect(0, 0, tmp.width, tmp.height);
+      c.drawImage(src, 0, 0);
+      return tmp;
+    } catch {
+      return null;
+    }
+  };
+  const isJpeg = (t?: string) => typeof t === "string" && /^image\/jpe?g$/i.test(t);
+
+  const origToBlob = proto.toBlob as HTMLCanvasElement["toBlob"];
+  proto.toBlob = function patchedToBlob(this: HTMLCanvasElement, cb: BlobCallback, type?: string, quality?: any) {
+    const src = isJpeg(type) ? flattenOnWhite(this) ?? this : this;
+    return origToBlob.call(src, cb, type, quality);
+  };
+  const origToDataURL = proto.toDataURL as HTMLCanvasElement["toDataURL"];
+  proto.toDataURL = function patchedToDataURL(this: HTMLCanvasElement, type?: string, quality?: any) {
+    const src = isJpeg(type) ? flattenOnWhite(this) ?? this : this;
+    return origToDataURL.call(src, type, quality);
+  };
   proto.__gpHighQuality = true;
 }

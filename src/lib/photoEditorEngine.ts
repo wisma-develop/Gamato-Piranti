@@ -60,6 +60,14 @@ export type PhotoAdjustmentValues = {
   highlightTint: string;
 };
 
+/**
+ * Dimensi acuan (sisi terpanjang, px) untuk efek yang ukurannya bergantung pada resolusi (blur & butiran film).
+ * Pratinjau dikecilkan ke ≤1400px sedangkan ekspor memakai resolusi penuh; bila radius blur/butiran dihitung
+ * dalam piksel mentah, efeknya terlihat jauh lebih kuat di pratinjau daripada di hasil unduhan. Dengan
+ * mengukurnya RELATIF terhadap sisi terpanjang gambar, pratinjau dan ekspor tampak sama persis (WYSIWYG).
+ */
+export const PHOTO_EFFECT_REF_DIM = 1400;
+
 export type PhotoTransform = { rotateDeg: number; flipH: boolean; flipV: boolean };
 
 /** The 8 "classic" filters as a canvas 2D `ctx.filter` CSS string — also reused to render cheap live thumbnails via a plain `<img style={{filter}}>`. */
@@ -87,6 +95,37 @@ export function createGrainTile(size = 220): HTMLCanvasElement {
   return tile;
 }
 
+const grainCache = new WeakMap<HTMLCanvasElement, Map<number, HTMLCanvasElement>>();
+
+/** Tile butiran yang diperbesar dengan nearest-neighbor: butir tampak sama (relatif terhadap gambar) di pratinjau maupun ekspor. */
+function grainTileForScale(tile: HTMLCanvasElement, scale: number): HTMLCanvasElement {
+  const key = Math.max(1, Math.round(scale * 100) / 100);
+  if (key <= 1.001) return tile;
+  let perTile = grainCache.get(tile);
+  if (!perTile) {
+    perTile = new Map();
+    grainCache.set(tile, perTile);
+  }
+  const hit = perTile.get(key);
+  if (hit) return hit;
+  const size = Math.max(1, Math.round(tile.width * key));
+  const big = document.createElement("canvas");
+  big.width = size;
+  big.height = size;
+  const bctx = big.getContext("2d");
+  if (bctx) {
+    bctx.imageSmoothingEnabled = false;
+    bctx.drawImage(tile, 0, 0, size, size);
+  }
+  perTile.set(key, big);
+  return big;
+}
+
+export type PhotoDrawOptions = {
+  /** Warna latar yang diisi lebih dulu (mis. "#ffffff" untuk JPEG yang tidak mendukung transparansi) agar pratinjau = hasil ekspor. */
+  background?: string;
+};
+
 /**
  * Renders `img` onto `canvas` with the full adjustment pipeline applied.
  * Pass `maxDimension` to cap the output size for a fast live preview —
@@ -98,7 +137,8 @@ export function drawPhotoAdjustments(
   v: PhotoAdjustmentValues,
   transform: PhotoTransform,
   grainTile: HTMLCanvasElement | null,
-  maxDimension?: number
+  maxDimension?: number,
+  options: PhotoDrawOptions = {}
 ) {
   const { rotateDeg, flipH, flipV } = transform;
   const rotated90 = rotateDeg === 90 || rotateDeg === 270;
@@ -118,11 +158,20 @@ export function drawPhotoAdjustments(
 
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.clearRect(0, 0, outW, outH);
+  if (options.background) {
+    ctx.fillStyle = options.background;
+    ctx.fillRect(0, 0, outW, outH);
+  }
+
+  // Skala efek relatif terhadap sisi terpanjang hasil (lihat PHOTO_EFFECT_REF_DIM).
+  const effectScale = Math.max(outW, outH) / PHOTO_EFFECT_REF_DIM;
 
   // 1) Base image through the CSS filter chain, honoring rotate/flip/scale.
   ctx.save();
-  ctx.filter = buildCssFilter(v);
+  ctx.filter = buildCssFilter({ ...v, blur: Math.round(v.blur * effectScale * 100) / 100 });
   ctx.translate(outW / 2, outH / 2);
   ctx.rotate((rotateDeg * Math.PI) / 180);
   ctx.scale((flipH ? -1 : 1) * scale, (flipV ? -1 : 1) * scale);
@@ -184,7 +233,7 @@ export function drawPhotoAdjustments(
 
   // 6) Grain.
   if (v.grain > 0 && grainTile) {
-    const pattern = ctx.createPattern(grainTile, "repeat");
+    const pattern = ctx.createPattern(grainTileForScale(grainTile, effectScale), "repeat");
     if (pattern) {
       ctx.globalCompositeOperation = "overlay";
       ctx.globalAlpha = (v.grain / 100) * 0.5;
