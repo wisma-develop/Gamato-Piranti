@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { AudioLines, Play, Pause, Download, Loader2, X, Mic, MicOff, Upload, Save, FolderOpen, Film, Palette, Move, Image as ImageIcon, Type, Waves, Sparkles, AlertTriangle } from "lucide-react";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { Btn, Label, Select, Input } from "@/components/ui/primitives";
@@ -342,6 +343,7 @@ export const AudioVisualizer: React.FC = () => {
 
   return (
     <div className="grid xl:grid-cols-[minmax(0,1fr)_440px] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Visualizer Audio" className="lg:col-span-full" />
       {/* ── KIRI: pratinjau + transport ── */}
       <div className="space-y-4 xl:sticky xl:top-24">
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm" style={CHECKER} data-testid="av-preview-wrap">

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Crop as CropIcon, Image as ImageIcon, Loader2, Download } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
@@ -142,6 +143,7 @@ export const ImageCrop: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Crop Gambar" className="lg:col-span-full" />
       <div className="space-y-5">
         {!previewUrl ? (
           <Dropzone

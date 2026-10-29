@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import {
   Play, Pause, Square, Repeat, SkipBack, SkipForward, ZoomIn, ZoomOut, Maximize2, Scissors, Copy, ClipboardPaste, Trash2, Mic, Download,
   Upload, Volume2, Flag, AudioWaveform, Crop, Plus, Loader2, Undo2, Redo2, Headphones, Wand2, Sliders, SlidersHorizontal, Timer, Layers,
@@ -1231,6 +1232,7 @@ export const AudioEditor: React.FC = () => {
   if (!pcm) {
     return (
       <div className="space-y-5 max-w-3xl mx-auto" data-testid="audio-editor-empty">
+        <GamatoDesktopRecommended toolName="Editor Audio" />
         <input ref={openFileRef} type="file" className="hidden" accept="audio/*,video/*" data-testid="editor-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFiles([f]); }} />
         <Dropzone onFiles={onFiles} accept="audio/*,video/*" multiple={false} isDragging={isDragging} setIsDragging={setIsDragging} label="Buka audio untuk diedit" sublabel="MP3, WAV, OGG, M4A, FLAC — atau video, audionya akan diambil" icon={<AudioWaveform className="w-8 h-8" />} />
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -1261,6 +1263,7 @@ export const AudioEditor: React.FC = () => {
 
   return (
     <div ref={rootRef} tabIndex={-1} className="space-y-4 outline-none" data-testid="audio-editor">
+      <GamatoDesktopRecommended toolName="Editor Audio" />
       <input ref={mixFileRef} type="file" accept="audio/*,video/*" className="hidden" data-testid="mix-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; onMixFile(f); }} />
       <input ref={openFileRef} type="file" accept="audio/*,video/*" className="hidden" data-testid="editor-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFiles([f]); }} />
 

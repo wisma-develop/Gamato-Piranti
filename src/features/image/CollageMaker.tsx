@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import {
   LayoutGrid, Images, Palette, Frame, Type, Download, Copy, Printer, FileText, Trash2, Plus, RotateCw, RotateCcw,
   FlipHorizontal, FlipVertical, ArrowUpToLine, ArrowDownToLine, CopyPlus, Shuffle, Eraser, Move, Repeat, Loader2, Sparkles,
@@ -814,6 +815,7 @@ export const CollageMaker: React.FC = () => {
   /* ───────────────────────────── render ───────────────────────────── */
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-6 items-start" data-testid="collage-root">
+      <GamatoDesktopRecommended toolName="Collage Maker" className="lg:col-span-full" />
       {/* LEFT — preview */}
       <div className="space-y-3 lg:sticky lg:top-20">
         <div className="flex items-center justify-between gap-3 flex-wrap">

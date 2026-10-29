@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import {
   Printer, Trash2, Plus, Minus, ChevronLeft, ChevronRight,
   Images, LayoutGrid, Ruler, Scissors, Download, FileText, Loader2,
@@ -256,6 +257,7 @@ export const PhotoPrintLayout: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Tata Letak Cetak Foto" className="lg:col-span-full" />
       {/* LEFT: settings */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">

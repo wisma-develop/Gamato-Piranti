@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Smile, Image as ImageIcon, Plus, Trash2, Loader2, Download } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
@@ -151,6 +152,7 @@ export const MemeGenerator: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Meme Generator" className="lg:col-span-full" />
       <div className="space-y-5">
         {!previewUrl ? (
           <Dropzone

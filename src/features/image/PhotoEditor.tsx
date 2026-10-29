@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { SlidersHorizontal, Image as ImageIcon, RotateCw, Loader2, Download, RefreshCw, Sparkles, Palette, Film, Check, Eye } from "lucide-react";
 import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, canvasToBlob } from "@/lib/canvas";
@@ -42,6 +43,24 @@ const TABS: SettingsTabDef<TabId>[] = [
   { id: "efek", label: "Efek Gaya", icon: <Film className="w-3.5 h-3.5" /> },
   { id: "putar", label: "Putar & Ekspor", icon: <RotateCw className="w-3.5 h-3.5" /> },
 ];
+
+/**
+ * Baris slider. SENGAJA didefinisikan di luar komponen PhotoEditor: bila didefinisikan di dalamnya,
+ * identitas komponen berubah di setiap render sehingga React me-mount ulang slider tiap nilai berubah
+ * dan geseran (drag) terputus — gejala "slider harus diklik di titik tertentu".
+ */
+const SliderRow: React.FC<{ label: string; value: number; setValue: (v: number) => void; min: number; max: number; unit: string; disabled?: boolean }> = ({ label, value, setValue, min, max, unit, disabled }) => (
+  <div>
+    <div className="flex justify-between items-center mb-1.5">
+      <Label>{label}</Label>
+      <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+        {Math.round(value)}
+        {unit}
+      </span>
+    </div>
+    <GamatoSlider min={min} max={max} value={value} disabled={disabled} onChange={setValue} aria-label={label} />
+  </div>
+);
 
 export const PhotoEditor: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -152,7 +171,9 @@ export const PhotoEditor: React.FC = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !img) return;
-    drawPhotoAdjustments(canvas, img, adjustments, { rotateDeg: adjustments.rotateDeg, flipH: adjustments.flipH, flipV: adjustments.flipV }, grainTileRef.current, PREVIEW_MAX_DIM);
+    drawPhotoAdjustments(canvas, img, adjustments, { rotateDeg: adjustments.rotateDeg, flipH: adjustments.flipH, flipV: adjustments.flipV }, grainTileRef.current, PREVIEW_MAX_DIM, {
+      background: adjustments.outputFormat === "jpeg" ? "#ffffff" : undefined,
+    });
   }, [img, adjustments]);
 
   // "Tahan: Lihat Asli" — reuses the same engine with neutral adjustment
@@ -178,7 +199,9 @@ export const PhotoEditor: React.FC = () => {
     setIsWorking(true);
     try {
       const offscreen = document.createElement("canvas");
-      drawPhotoAdjustments(offscreen, img, adjustments, { rotateDeg: adjustments.rotateDeg, flipH: adjustments.flipH, flipV: adjustments.flipV }, grainTileRef.current);
+      drawPhotoAdjustments(offscreen, img, adjustments, { rotateDeg: adjustments.rotateDeg, flipH: adjustments.flipH, flipV: adjustments.flipV }, grainTileRef.current, undefined, {
+        background: outputFormat === "jpeg" ? "#ffffff" : undefined,
+      });
       const mime = outputFormat === "png" ? "image/png" : "image/jpeg";
       const blob = await canvasToBlob(offscreen, mime, mime === "image/jpeg" ? 0.92 : undefined);
       const base = (file?.name || "gambar").replace(/\.[^.]+$/, "");
@@ -208,21 +231,9 @@ export const PhotoEditor: React.FC = () => {
     { label: "Invert Warna", value: adjustments.invert, setValue: (v) => setGradeField("invert", v), min: 0, max: 100, unit: "%" },
   ];
 
-  const SliderRow: React.FC<{ label: string; value: number; setValue: (v: number) => void; min: number; max: number; unit: string }> = ({ label, value, setValue, min, max, unit }) => (
-    <div>
-      <div className="flex justify-between items-center mb-1.5">
-        <Label>{label}</Label>
-        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-          {Math.round(value)}
-          {unit}
-        </span>
-      </div>
-      <GamatoSlider min={min} max={max} value={value} disabled={!img} onChange={setValue} aria-label={label} />
-    </div>
-  );
-
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Photo Editor" className="lg:col-span-full" />
       {/* LEFT: upload + tabbed settings */}
       <div className="space-y-5">
         {!img && (

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { Layers, Image as ImageIcon, Loader2, Download, Type } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
@@ -141,6 +142,11 @@ export const ImageWatermark: React.FC = () => {
     canvas.height = baseImg.naturalHeight;
     const ctx = canvas.getContext("2d")!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // JPEG tidak mendukung transparansi → pratinjau memakai latar putih yang sama dengan hasil unduhan.
+    if (outputFormat === "jpeg") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
     ctx.drawImage(baseImg, 0, 0);
     ctx.globalAlpha = opacity / 100;
     ctx.fillStyle = color;
@@ -243,7 +249,7 @@ export const ImageWatermark: React.FC = () => {
   useEffect(() => {
     render();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [baseImg, logoImg, gIcon, iconLabel, mode, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing]);
+  }, [baseImg, logoImg, gIcon, iconLabel, mode, text, fontFamily, sizePercent, color, opacity, rotation, position, spacing, outputFormat]);
 
   const handleDownload = async () => {
     if (!canvasRef.current) return;
@@ -263,6 +269,7 @@ export const ImageWatermark: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+      <GamatoDesktopRecommended toolName="Watermark Gambar" className="lg:col-span-full" />
       <div className="space-y-5">
         {!baseImg ? (
           <Dropzone
