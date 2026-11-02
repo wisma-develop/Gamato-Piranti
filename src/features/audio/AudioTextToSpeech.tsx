@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { AudioFormatPicker, useAudioOutChoice } from "@/components/ui/AudioFormatPicker";
+import { encodeMp3, audioBufferToPcm } from "@/lib/mp3Encoder";
 import { Volume2, Play, Pause, Square, VolumeX, Download, Loader2, Circle } from "lucide-react";
 import { Select, Label, Textarea, Btn } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
@@ -24,6 +26,7 @@ function isRecordingSupported() {
 }
 
 export const AudioTextToSpeech: React.FC = () => {
+  const [outChoice, setOutChoice] = useAudioOutChoice();
   const { supported, voices, isSpeaking, isPaused, speak, pause, resume, stop } = useTextToSpeech();
   const [text, setText] = useState("Halo! Ini contoh teks yang akan dibacakan oleh Gamato Piranti.");
   const [voiceURI, setVoiceURI] = useState("");
@@ -109,7 +112,7 @@ export const AudioTextToSpeech: React.FC = () => {
         throw new Error('Tidak ada audio yang terekam. Pastikan Volume di atas 0% dan tab tidak di-mute saat berbagi audio, lalu coba lagi.');
       }
 
-      setRecordStage("Menyusun file .wav…");
+      setRecordStage(outChoice.format === "mp3" ? "Menyusun file .mp3…" : "Menyusun file .wav…");
       const arrayBuffer = await rawBlob.arrayBuffer();
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       const decodeCtx = new AudioCtx();
@@ -119,10 +122,14 @@ export const AudioTextToSpeech: React.FC = () => {
       } finally {
         decodeCtx.close().catch(() => {});
       }
-      const wavBlob = encodeAudioBufferToWav(audioBuffer);
       const base = sanitizeFileName(text.slice(0, 40).trim() || "gamato-tts") || "gamato-tts";
-      downloadBlob(wavBlob, `${base}.wav`);
-      setRecordDone("Audio berhasil direkam dan diunduh sebagai .wav.");
+      if (outChoice.format === "mp3") {
+        downloadBlob(await encodeMp3(audioBufferToPcm(audioBuffer), { kbps: outChoice.kbps }), `${base}.mp3`);
+        setRecordDone("Audio berhasil direkam dan diunduh sebagai .mp3.");
+      } else {
+        downloadBlob(encodeAudioBufferToWav(audioBuffer), `${base}.wav`);
+        setRecordDone("Audio berhasil direkam dan diunduh sebagai .wav.");
+      }
     } catch (err: any) {
       stop();
       if (err?.name === "NotAllowedError") {
@@ -209,6 +216,7 @@ export const AudioTextToSpeech: React.FC = () => {
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
+          <AudioFormatPicker value={outChoice} onChange={setOutChoice} disabled={isRecording} nativeTitle="WAV" nativeLabel="Tanpa kompresi, ukuran besar" />
           <Btn
             onClick={recordAndDownload}
             disabled={!text.trim() || isRecording || isSpeaking}
@@ -222,13 +230,13 @@ export const AudioTextToSpeech: React.FC = () => {
               </>
             ) : (
               <>
-                <Download className="w-4 h-4" /> Rekam &amp; Unduh Audio (.wav)
+                <Download className="w-4 h-4" /> Rekam &amp; Unduh Audio (.{outChoice.format === "mp3" ? "mp3" : "wav"})
               </>
             )}
           </Btn>
-          {recordStage === "Menyusun file .wav…" && (
+          {(recordStage === "Menyusun file .wav…" || recordStage === "Menyusun file .mp3…") && (
             <p className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyusun file .wav…
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> {recordStage}
             </p>
           )}
           {recordError && <p className="text-xs text-red-600 dark:text-red-400">{recordError}</p>}

@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { AudioFormatPicker, useAudioOutChoice } from "@/components/ui/AudioFormatPicker";
+import { extractAudioToMp3 } from "@/lib/mp3Encoder";
 import { AudioLines, Upload, Download, Loader2 } from "lucide-react";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { GamatoPlayer } from "@/components/ui/GamatoPlayer";
@@ -37,6 +39,9 @@ export function AudioExtractFromVideo() {
     if (file) load(file);
   };
 
+  const [outChoice, setOutChoice] = useAudioOutChoice();
+  const [mp3Done, setMp3Done] = useState(false);
+
   const runExtractAudio = async () => {
     if (!meta) return;
     setIsExtractingAudio(true);
@@ -45,9 +50,23 @@ export function AudioExtractFromVideo() {
     if (audioResultUrl) URL.revokeObjectURL(audioResultUrl);
     setAudioResultUrl(null);
     try {
-      const blob = await extractAudioFromVideo({ sourceUrl: meta.url, start: trimStart, end: trimEnd, onProgress: setAudioProgress });
-      const format = getBestAudioFormat();
-      setAudioFormat(format);
+      let blob: Blob;
+      if (outChoice.format === "mp3") {
+        try {
+          blob = await extractAudioToMp3(meta.file, { kbps: outChoice.kbps, start: trimStart, end: trimEnd, onProgress: setAudioProgress });
+          setAudioFormat({ mimeType: "audio/mpeg", ext: "mp3", label: "MP3" });
+          setMp3Done(true);
+        } catch {
+          // Cadangan: browser tak bisa mendekode audio video ini → rekam real-time lalu simpan sebagai format asli.
+          blob = await extractAudioFromVideo({ sourceUrl: meta.url, start: trimStart, end: trimEnd, onProgress: setAudioProgress });
+          setAudioFormat(getBestAudioFormat());
+          setMp3Done(false);
+        }
+      } else {
+        blob = await extractAudioFromVideo({ sourceUrl: meta.url, start: trimStart, end: trimEnd, onProgress: setAudioProgress });
+        setAudioFormat(getBestAudioFormat());
+        setMp3Done(false);
+      }
       setAudioResultUrl(URL.createObjectURL(blob));
     } catch (err: any) {
       setAudioError(err?.message || "Gagal mengekstrak audio.");
@@ -90,7 +109,9 @@ export function AudioExtractFromVideo() {
                   <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(audioProgress * 100)}%</p>
                 </div>
               )}
-              <Btn onClick={runExtractAudio} disabled={isExtractingAudio || !bestAudioFormat} className="w-full gap-2">
+              <AudioFormatPicker value={outChoice} onChange={setOutChoice} disabled={isExtractingAudio} nativeLabel={bestAudioFormat?.label} />
+              {outChoice.format === "mp3" && audioResultUrl && !mp3Done && <p className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser tidak bisa mendekode audio video ini untuk MP3, jadi hasil disimpan dalam format asli ({audioFormat?.label}).</p>}
+              <Btn onClick={runExtractAudio} disabled={isExtractingAudio || (outChoice.format === "asli" && !bestAudioFormat)} className="w-full gap-2">
                 {isExtractingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <AudioLines className="w-4 h-4" />}
                 {isExtractingAudio ? "Memproses…" : "Ekstrak Audio"}
               </Btn>

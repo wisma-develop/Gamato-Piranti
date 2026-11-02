@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { encodeMp3, MP3_BITRATES } from "@/lib/mp3Encoder";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import {
   Play, Pause, Square, Repeat, SkipBack, SkipForward, ZoomIn, ZoomOut, Maximize2, Scissors, Copy, ClipboardPaste, Trash2, Mic, Download,
@@ -115,7 +116,8 @@ export const AudioEditor: React.FC = () => {
 
   // export
   const [expScope, setExpScope] = useState<"all" | "sel">("all");
-  const [expFormat, setExpFormat] = useState<"wav16" | "wav24" | "wav32" | "opus">("wav16");
+  const [expFormat, setExpFormat] = useState<"wav16" | "wav24" | "wav32" | "mp3" | "opus">("wav16");
+  const [expKbps, setExpKbps] = useState<number>(192);
   const [expRate, setExpRate] = useState(0);
   const [expMono, setExpMono] = useState(false);
   const [expNorm, setExpNorm] = useState(false);
@@ -947,6 +949,9 @@ export const AudioEditor: React.FC = () => {
         tmp.close().catch(() => {});
       }
     }
+    if (fmt === "mp3") {
+      return { blob: await encodeMp3(p, { kbps: expKbps, onProgress }), ext: "mp3" };
+    }
     const depth: WavDepth = fmt === "wav16" ? 16 : fmt === "wav24" ? 24 : 32;
     return { blob: encodeWavPcm(p, depth, expDither), ext: "wav" };
   };
@@ -957,7 +962,7 @@ export const AudioEditor: React.FC = () => {
     const p = buildExportPcm(expScope);
     if (!p) return;
     stopAll();
-    setBusy({ label: expFormat === "opus" ? "Mengkodekan Opus (real-time)…" : "Menulis file…", progress: expFormat === "opus" ? 0 : null });
+    setBusy({ label: expFormat === "opus" ? "Mengkodekan Opus (real-time)…" : expFormat === "mp3" ? "Mengkodekan MP3…" : "Menulis file…", progress: expFormat === "opus" || expFormat === "mp3" ? 0 : null });
     setInfo(null);
     try {
       await new Promise((r) => setTimeout(r, 20));
@@ -987,9 +992,9 @@ export const AudioEditor: React.FC = () => {
         if (expRate > 0 && expRate !== seg.sampleRate) seg = resamplePcm(seg, expRate);
         if (expMono) seg = toMono(seg);
         if (expNorm) seg = normalizePeak(seg, -1);
-        const { blob } = await encodeFor(seg, fmt);
+        const { blob, ext } = await encodeFor(seg, fmt);
         const label = (labels[i] ?? `bagian-${i + 1}`).replace(/[\\/:*?"<>|]+/g, "_");
-        zip.file(`${String(i + 1).padStart(2, "0")}-${label}.wav`, await blob.arrayBuffer());
+        zip.file(`${String(i + 1).padStart(2, "0")}-${label}.${ext}`, await blob.arrayBuffer());
         setBusy({ label: "Membuat ZIP…", progress: (i + 1) / (cuts.length - 1) });
         await new Promise((r) => setTimeout(r, 0));
       }
@@ -1632,6 +1637,7 @@ export const AudioEditor: React.FC = () => {
                   <option value="wav16">WAV 16-bit (umum)</option>
                   <option value="wav24">WAV 24-bit (studio)</option>
                   <option value="wav32">WAV 32-bit float</option>
+                  <option value="mp3">MP3 (universal, kecil)</option>
                   <option value="opus" disabled={!getBestCompressedAudioFormat()}>Opus (kecil, real-time)</option>
                 </Select>
                 <Select label="Bagian" value={expScope} onChange={(e) => setExpScope(e.target.value as "all" | "sel")} data-testid="exp-scope">
@@ -1647,7 +1653,12 @@ export const AudioEditor: React.FC = () => {
                   <GamatoCheckbox checked={expNorm} onChange={setExpNorm} label="Normalisasi −1 dB" testId="exp-norm" />
                 </div>
               </div>
-              {expFormat !== "wav32" && expFormat !== "opus" && <GamatoCheckbox checked={expDither} onChange={setExpDither} label="Dither (TPDF) — kualitas lebih halus saat dikurangi bit-nya" />}
+              {expFormat === "mp3" && (
+                <Select label="Kualitas MP3 (bitrate)" value={String(expKbps)} onChange={(e) => setExpKbps(parseInt(e.target.value))} data-testid="exp-kbps">
+                  {MP3_BITRATES.map((k) => <option key={k} value={k}>{k} kbps{k === 192 ? " (seimbang)" : k === 320 ? " (maksimum)" : k === 128 ? " (standar)" : ""}</option>)}
+                </Select>
+              )}
+              {expFormat !== "wav32" && expFormat !== "opus" && expFormat !== "mp3" && <GamatoCheckbox checked={expDither} onChange={setExpDither} label="Dither (TPDF) — kualitas lebih halus saat dikurangi bit-nya" />}
               <Btn className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" disabled={disabled} onClick={doExport} data-testid="btn-export"><Download className="w-4 h-4" /> Unduh audio</Btn>
               {expFormat === "opus" && <p className="text-[11px] text-amber-600">Opus diproses real-time: durasi proses ≈ durasi audio.</p>}
             </div>

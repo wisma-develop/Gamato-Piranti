@@ -9,6 +9,8 @@ import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommend
 import { Btn } from "@/components/ui/primitives";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
+import { encodeMp3, audioBufferToPcm, MP3_BITRATES } from "@/lib/mp3Encoder";
+import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import {
   loadAudioMeta,
   audioFileToWav,
@@ -19,7 +21,7 @@ import {
   type CompressedAudioFormat,
 } from "@/lib/audioEngine";
 
-type Mode = "wav" | "compressed";
+type Mode = "mp3" | "wav" | "compressed";
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -35,6 +37,7 @@ function formatTime(t: number): string {
 }
 
 const MODES: { id: Mode; label: string; desc: string }[] = [
+  { id: "mp3", label: "MP3 (Universal)", desc: "Format audio paling universal — diputar di semua HP, mobil, pemutar musik, dan platform. Pilih bitrate sesuai kebutuhan." },
   { id: "wav", label: "WAV (Lossless)", desc: "Kualitas penuh, tanpa kompresi — file lebih besar tapi tidak ada penurunan mutu sama sekali." },
   { id: "compressed", label: "Terkompresi (Opus)", desc: "File jauh lebih kecil, cocok untuk berbagi — kualitas tetap jernih untuk suara/musik biasa." },
 ];
@@ -44,7 +47,9 @@ export function AudioConvertHub() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [mode, setMode] = useState<Mode>("wav");
+  const [mode, setMode] = useState<Mode>("mp3");
+  const [mp3Kbps, setMp3Kbps] = useState<number>(192);
+  const [mp3Mono, setMp3Mono] = useState(false);
   const [trimStart, setTrimStart] = useState(0);
   const [trimEnd, setTrimEnd] = useState(0);
 
@@ -103,7 +108,10 @@ export function AudioConvertHub() {
     setProgress(0);
     clearResult();
     try {
-      if (mode === "wav") {
+      if (mode === "mp3") {
+        const blob = await encodeMp3(audioBufferToPcm(meta.buffer), { kbps: mp3Kbps, start: trimStart, end: trimEnd, mono: mp3Mono, onProgress: setProgress });
+        setResult({ url: URL.createObjectURL(blob), ext: "mp3", label: "MP3", sizeBytes: blob.size });
+      } else if (mode === "wav") {
         setProgress(0.3);
         const blob = await audioFileToWav(meta.file);
         setProgress(1);
@@ -134,7 +142,7 @@ export function AudioConvertHub() {
     downloadBlob(blob, `${base}.${result.ext}`);
   };
 
-  const canRun = !!meta && !isProcessing && (mode === "wav" ? true : trimEnd > trimStart && !!compressedFormat);
+  const canRun = !!meta && !isProcessing && (mode === "wav" ? true : mode === "mp3" ? trimEnd > trimStart : trimEnd > trimStart && !!compressedFormat);
   const activeModeInfo = MODES.find((m) => m.id === mode) ?? MODES[0];
 
   return (
@@ -143,7 +151,7 @@ export function AudioConvertHub() {
         <GamatoDesktopRecommended toolName="Konversi Audio" />
 
         {/* Mode tabs */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {MODES.map((m) => (
             <button
               key={m.id}
@@ -173,10 +181,37 @@ export function AudioConvertHub() {
             <GamatoAudioPlayer src={meta.url} label={meta.file.name} />
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-              {mode === "compressed" && (
+              {(mode === "compressed" || mode === "mp3") && (
                 <div>
                   <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Rentang yang Dikonversi</p>
                   <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(s, e) => { setTrimStart(s); setTrimEnd(e); clearResult(); }} />
+                </div>
+              )}
+
+              {mode === "mp3" && (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Kualitas (Bitrate)</p>
+                    <div className="grid grid-cols-6 gap-1.5" role="radiogroup" aria-label="Bitrate MP3">
+                      {MP3_BITRATES.map((k) => (
+                        <button
+                          key={k}
+                          type="button"
+                          role="radio"
+                          aria-checked={mp3Kbps === k}
+                          onClick={() => { setMp3Kbps(k); clearResult(); }}
+                          className={cn(
+                            "py-2 rounded-xl text-xs font-semibold border-2 transition-all",
+                            mp3Kbps === k ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"
+                          )}
+                        >
+                          {k}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">kbps — 128 cukup untuk suara/podcast, 192 seimbang, 320 kualitas maksimum.</p>
+                  </div>
+                  <GamatoCheckbox checked={mp3Mono} onChange={(v) => { setMp3Mono(v); clearResult(); }} label="Jadikan mono (file lebih kecil — cocok untuk suara/rekaman)" />
                 </div>
               )}
 
@@ -258,7 +293,13 @@ export function AudioConvertHub() {
           label={`Konversi Audio — ${activeModeInfo.label}`}
           desc={activeModeInfo.desc}
           points={
-            mode === "wav"
+            mode === "mp3"
+              ? [
+                  "Audio didekode lewat Web Audio API lalu di-encode ke MP3 (LAME) langsung di browser — bukan real-time, jadi cepat (file 5 menit biasanya hitungan detik).",
+                  "MP3 diputar di hampir semua perangkat, mobil, dan platform. Bitrate lebih tinggi = lebih jernih tetapi file lebih besar.",
+                  "File tidak pernah diunggah ke server mana pun.",
+                ]
+              : mode === "wav"
               ? [
                   "Audio didekode lewat Web Audio API lalu ditulis ulang sebagai WAV PCM 16-bit — cara paling universal dan pasti bisa dibuka di mana saja.",
                   "Cocok untuk MP3, OGG, M4A/AAC, FLAC sebagai sumber (tergantung dukungan decoder browser).",
