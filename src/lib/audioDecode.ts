@@ -23,10 +23,15 @@ export function peekMp3SampleRate(buf: ArrayBuffer): number | null {
 export async function decodeFileToPcm(file: File): Promise<PCM> {
   const ab = await file.arrayBuffer();
   const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-  const hint = peekWavSampleRate(ab) ?? peekMp3SampleRate(ab);
+  // Petunjuk laju sampel HANYA untuk berkas WAV/MP3 sungguhan. Memindai byte berkas lain (mis. video WebM/MP4)
+  // bisa menemukan pola "sync MP3" palsu dan menghasilkan laju sampel keliru (mis. 16 kHz) → audio jadi redup.
+  const looksWav = /\.wav$/i.test(file.name) || /wav/i.test(file.type);
+  const looksMp3 = /\.mp3$/i.test(file.name) || /mpeg|mp3/i.test(file.type);
+  const hint = looksWav ? peekWavSampleRate(ab) : looksMp3 ? peekMp3SampleRate(ab) : null;
   let ctx: AudioContext;
   try {
-    ctx = hint && hint >= 8000 && hint <= 96000 ? new AudioCtx({ sampleRate: hint }) : new AudioCtx();
+    // Tanpa petunjuk laju sampel (mis. audio di dalam video), minta 48 kHz — tanpa ini sebagian perangkat/headless memakai laju perangkat yang rendah (mis. 16 kHz) sehingga hasil terdengar redup.
+    ctx = new AudioCtx({ sampleRate: hint && hint >= 8000 && hint <= 96000 ? hint : 48000 });
   } catch {
     ctx = new AudioCtx();
   }
