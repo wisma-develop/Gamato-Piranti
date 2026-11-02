@@ -71,6 +71,7 @@ import { HtmlToImage } from "@/features/image/HtmlToImage";
 import { MemeGenerator } from "@/features/image/MemeGenerator";
 import { ColorPicker } from "@/features/image/ColorPicker";
 import { PhotoEditor } from "@/features/image/PhotoEditor";
+import { DocToImage } from "@/features/image/DocToImage";
 import { PhotoPrintLayout } from "@/features/image/PhotoPrintLayout";
 import { CollageMaker } from "@/features/image/CollageMaker";
 
@@ -473,6 +474,54 @@ export const App: FC = () => (
           element={
             <PageShell badge="Gambar" title="Putar Gambar" subtitle="Putar foto yang miring atau terbalik, diterapkan ke semua file yang dipilih.">
               <ImageRotate />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/dokumen-ke-gambar"
+          element={
+            <PageShell badge="Gambar" title="Dokumen ke Gambar" subtitle="Ubah PDF, Word, PowerPoint, Excel/CSV, dan teks/Markdown menjadi gambar PNG/JPG/WebP — per halaman atau satu gambar panjang.">
+              <DocToImage kind="auto" />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/pdf-ke-gambar"
+          element={
+            <PageShell badge="Gambar" title="PDF ke Gambar" subtitle="Render setiap halaman PDF menjadi gambar PNG/JPG/WebP hingga 400 dpi, pilih halaman, atau gabung jadi satu gambar panjang.">
+              <DocToImage kind="pdf" />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/word-ke-gambar"
+          element={
+            <PageShell badge="Gambar" title="Word ke Gambar" subtitle="Ubah dokumen Word (.docx) menjadi gambar per halaman — judul, daftar, tabel, dan gambar ikut dirender.">
+              <DocToImage kind="word" />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/ppt-ke-gambar"
+          element={
+            <PageShell badge="Gambar" title="PowerPoint ke Gambar" subtitle="Ubah setiap slide PowerPoint (.pptx) menjadi gambar lengkap dengan latar, tema warna, bentuk, teks, dan gambar.">
+              <DocToImage kind="ppt" />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/excel-ke-gambar"
+          element={
+            <PageShell badge="Gambar" title="Excel & CSV ke Gambar" subtitle="Render lembar Excel (.xlsx) atau CSV menjadi gambar — warna sel, garis, sel gabungan, dan format angka dipertahankan.">
+              <DocToImage kind="excel" />
+            </PageShell>
+          }
+        />
+        <Route
+          path="image/teks-ke-gambar"
+          element={
+            <PageShell badge="Gambar" title="Teks & Markdown ke Gambar" subtitle="Ubah .txt, .md, .json, .rtf, kode, dan log menjadi gambar rapi dengan font Unicode penuh.">
+              <DocToImage kind="teks" />
             </PageShell>
           }
         />

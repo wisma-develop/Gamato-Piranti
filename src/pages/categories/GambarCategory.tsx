@@ -1,4 +1,4 @@
-import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal, Pipette, Printer, LayoutGrid } from "lucide-react";
+import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal, Pipette, Printer, LayoutGrid, Files, FileText, FileType2, Presentation, Sheet, AlignLeft } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryGrid } from "@/components/CategoryGrid";
 
@@ -44,6 +44,17 @@ export default function GambarCategory() {
               { name: "Konversi Format", desc: "Konversi antar format JPEG, PNG, dan WEBP.", path: "/image/konversi", icon: <Wand2 className="w-6 h-6" /> },
               { name: "Baca Foto RAW", desc: "Ekstrak preview JPEG dari file RAW kamera (CR2, NEF, ARW, DNG, dll).", path: "/image/raw-preview", icon: <Camera className="w-6 h-6" /> },
               { name: "Hapus Metadata", desc: "Hapus EXIF/GPS dari gambar via re-encode canvas.", path: "/image/hapus-metadata", icon: <Eraser className="w-6 h-6" /> },
+            ],
+          },
+          {
+            section: "Dokumen ke Gambar",
+            items: [
+              { name: "Semua Dokumen ke Gambar", desc: "Satu tempat untuk PDF, Word, PowerPoint, Excel/CSV, dan teks/Markdown — jenis file dikenali otomatis.", path: "/image/dokumen-ke-gambar", icon: <Files className="w-6 h-6" /> },
+              { name: "PDF ke Gambar", desc: "Render halaman PDF jadi PNG/JPG/WebP tajam (hingga 400 dpi), atau gabung jadi satu gambar panjang.", path: "/image/pdf-ke-gambar", icon: <FileText className="w-6 h-6" /> },
+              { name: "Word ke Gambar", desc: "Ubah dokumen .docx jadi gambar per halaman — judul, daftar, tabel, dan gambar ikut dirender.", path: "/image/word-ke-gambar", icon: <FileType2 className="w-6 h-6" /> },
+              { name: "PowerPoint ke Gambar", desc: "Setiap slide .pptx jadi satu gambar lengkap dengan latar, tema warna, bentuk, dan teks.", path: "/image/ppt-ke-gambar", icon: <Presentation className="w-6 h-6" /> },
+              { name: "Excel & CSV ke Gambar", desc: "Render lembar .xlsx/.csv jadi gambar — warna sel, garis, sel gabungan, dan format angka dipertahankan.", path: "/image/excel-ke-gambar", icon: <Sheet className="w-6 h-6" /> },
+              { name: "Teks & Markdown ke Gambar", desc: "Ubah .txt, .md, .json, .rtf, kode, dan log jadi gambar rapi dengan font Unicode penuh.", path: "/image/teks-ke-gambar", icon: <AlignLeft className="w-6 h-6" /> },
             ],
           },
         ]}
