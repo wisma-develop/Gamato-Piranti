@@ -1,4 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { VideoContainerPicker, useVideoContainerChoice } from "@/components/ui/VideoContainerPicker";
+import { AudioFormatPicker, useAudioOutChoice } from "@/components/ui/AudioFormatPicker";
+import { convertVideoBlob, finalizeVideoExport } from "@/lib/videoContainer";
+import { extractAudioToMp3 } from "@/lib/mp3Encoder";
 import { FileVideo2, Image as ImageIcon, AudioLines, Upload, Download, Loader2, Info } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -25,7 +29,7 @@ import { encodeGif } from "@/lib/gifEncoder";
 type Mode = "container" | "gif" | "audio";
 
 const MODES: { id: Mode; label: string; icon: React.ReactNode; desc: string }[] = [
-  { id: "container", label: "Format Video", icon: <FileVideo2 className="w-4 h-4" />, desc: "Ganti/perbaiki kontainer video (MP4/WebM sesuai dukungan browser)" },
+  { id: "container", label: "Format Video", icon: <FileVideo2 className="w-4 h-4" />, desc: "Ubah video ke MP4, MOV, atau WebM — cepat, langsung di browser" },
   { id: "gif", label: "Ke GIF", icon: <ImageIcon className="w-4 h-4" />, desc: "Jadikan potongan video sebagai GIF bergerak" },
   { id: "audio", label: "Ke Audio", icon: <AudioLines className="w-4 h-4" />, desc: "Ambil track suara saja dari video" },
 ];
@@ -57,6 +61,9 @@ export function VideoConvertHub() {
   const [gifFps, setGifFps] = useState(10);
   const [gifMaxWidth, setGifMaxWidth] = useState(320);
 
+  const [container, setContainer] = useVideoContainerChoice();
+  const [audioOut, setAudioOut] = useAudioOutChoice();
+  const [note, setNote] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +113,24 @@ export function VideoConvertHub() {
     clearResult();
     try {
       if (mode === "container") {
+        setNote(null);
+        const whole = trimStart <= 0.05 && trimEnd >= meta.duration - 0.05;
+        // Jalur cepat (bukan real-time): kemas/transkode langsung dari berkas sumber ke MP4/MOV/WebM pilihan.
+        if (container !== "asli") {
+          try {
+            const r = await convertVideoBlob(meta.file, container, {
+              trim: whole ? undefined : { start: trimStart, end: trimEnd },
+              onProgress: setProgress,
+            });
+            setNote(r.note ?? null);
+            setResult({ kind: "container", url: URL.createObjectURL(r.blob), ext: r.fmt.ext, label: r.fmt.label, sizeBytes: r.blob.size });
+            return;
+          } catch (fastErr: any) {
+            if (!bestVideoFormat) throw fastErr;
+            setNote(`Jalur cepat tidak tersedia (${fastErr?.message || "tidak didukung"}). Memakai perekaman real-time…`);
+            setProgress(0);
+          }
+        }
         if (!bestVideoFormat) throw new Error("Browser ini tidak mendukung ekspor video (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru.");
         const blob = await exportSegmentedVideo({
           sourceUrl: meta.url,
@@ -116,7 +141,9 @@ export function VideoConvertHub() {
           drawFrame: (ctx, video, canvas) => ctx.drawImage(video, 0, 0, canvas.width, canvas.height),
           onProgress: setProgress,
         });
-        setResult({ kind: "container", url: URL.createObjectURL(blob), ext: bestVideoFormat.ext, label: bestVideoFormat.label, sizeBytes: blob.size });
+        const fin = await finalizeVideoExport(blob, bestVideoFormat, container);
+        setNote((prev) => fin.note ?? prev);
+        setResult({ kind: "container", url: URL.createObjectURL(fin.blob), ext: fin.fmt.ext, label: fin.fmt.label, sizeBytes: fin.blob.size });
       } else if (mode === "gif") {
         const frames = await sampleVideoFrames({
           sourceUrl: meta.url,
@@ -131,6 +158,18 @@ export function VideoConvertHub() {
         });
         setResult({ kind: "gif", url: URL.createObjectURL(blob), ext: "gif", label: "GIF", sizeBytes: blob.size });
       } else {
+        setNote(null);
+        if (audioOut.format === "mp3") {
+          try {
+            const blob = await extractAudioToMp3(meta.file, { kbps: audioOut.kbps, start: trimStart, end: trimEnd, onProgress: setProgress });
+            setResult({ kind: "audio", url: URL.createObjectURL(blob), ext: "mp3", label: "MP3", sizeBytes: blob.size });
+            return;
+          } catch (mp3Err: any) {
+            if (!bestAudioFormat) throw mp3Err;
+            setNote("Browser tidak bisa mendekode audio video ini untuk MP3, jadi hasil disimpan dalam format asli perekam.");
+            setProgress(0);
+          }
+        }
         if (!bestAudioFormat) throw new Error("Browser ini tidak mendukung ekstraksi audio (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru.");
         const blob = await extractAudioFromVideo({ sourceUrl: meta.url, start: trimStart, end: trimEnd, onProgress: setProgress });
         setResult({ kind: "audio", url: URL.createObjectURL(blob), ext: bestAudioFormat.ext, label: bestAudioFormat.label, sizeBytes: blob.size });
@@ -154,7 +193,7 @@ export function VideoConvertHub() {
     !!meta &&
     !isProcessing &&
     trimEnd > trimStart &&
-    (mode === "container" ? !!bestVideoFormat : mode === "audio" ? !!bestAudioFormat : true);
+    (mode === "container" ? container !== "asli" || !!bestVideoFormat : mode === "audio" ? audioOut.format === "mp3" || !!bestAudioFormat : true);
 
   const activeModeInfo = MODES.find((m) => m.id === mode) ?? MODES[0];
 
@@ -245,10 +284,22 @@ export function VideoConvertHub() {
                 </div>
               )}
 
-              {mode === "container" && !bestVideoFormat && (
+              {mode === "container" && (
+                <>
+                  <VideoContainerPicker value={container} onChange={(v) => { setContainer(v); clearResult(); }} disabled={isProcessing} />
+                  {note && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{note}</p>}
+                </>
+              )}
+              {mode === "audio" && (
+                <>
+                  <AudioFormatPicker value={audioOut} onChange={(v) => { setAudioOut(v); clearResult(); }} disabled={isProcessing} nativeLabel={bestAudioFormat?.label} />
+                  {note && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{note}</p>}
+                </>
+              )}
+              {mode === "container" && container === "asli" && !bestVideoFormat && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekspor video. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
               )}
-              {mode === "audio" && !bestAudioFormat && (
+              {mode === "audio" && audioOut.format === "asli" && !bestAudioFormat && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekstraksi audio. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
               )}
 

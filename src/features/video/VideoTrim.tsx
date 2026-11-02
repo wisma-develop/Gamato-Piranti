@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { VideoContainerPicker, useVideoContainerChoice } from "@/components/ui/VideoContainerPicker";
+import { finalizeVideoExport } from "@/lib/videoContainer";
 import { Scissors, Upload, Download, Loader2, Plus, Trash2, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -47,6 +49,9 @@ export function VideoTrim() {
   const [exportError, setExportError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [resultFormat, setResultFormat] = useState<ExportFormat | null>(null);
+  const [container, setContainer] = useVideoContainerChoice();
+  const [packing, setPacking] = useState(false);
+  const [exportNote, setExportNote] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const format = useMemo(() => getBestExportFormat(), []);
@@ -85,6 +90,7 @@ export function VideoTrim() {
   const removeRemoveSegment = (id: string) => setRemoveSegments((prev) => prev.filter((s) => s.id !== id));
 
   const runExport = async () => {
+    setExportNote(null);
     if (!meta || !keepSegments.length) return;
     setIsExporting(true);
     setExportError(null);
@@ -101,13 +107,22 @@ export function VideoTrim() {
         drawFrame: (ctx, video, canvas) => ctx.drawImage(video, 0, 0, canvas.width, canvas.height),
         onProgress: setProgress,
       });
-      const bestFormat = getBestExportFormat();
-      setResultFormat(bestFormat);
-      setResultUrl(URL.createObjectURL(blob));
+      setPacking(true);
+
+      setProgress(0);
+
+      const fin = await finalizeVideoExport(blob, getBestExportFormat()!, container, setProgress);
+
+      setExportNote(fin.note ?? null);
+
+      setResultFormat(fin.fmt);
+
+      setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
       setExportError(err?.message || "Gagal memotong video.");
     } finally {
       setIsExporting(false);
+      setPacking(false);
     }
   };
 
@@ -225,9 +240,11 @@ export function VideoTrim() {
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(progress * 100)}%</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
               </div>
             )}
+            <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
+            {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
             <Btn onClick={runExport} disabled={isExporting || !keepSegments.length || !format} className="w-full gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scissors className="w-4 h-4" />}
               {isExporting ? "Memproses…" : "Potong & Ekspor"}

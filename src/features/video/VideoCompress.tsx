@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { VideoContainerPicker, useVideoContainerChoice } from "@/components/ui/VideoContainerPicker";
+import { finalizeVideoExport } from "@/lib/videoContainer";
 import { Shrink, Download, Loader2, X, AlertTriangle, Timer, CheckCircle2, FlaskConical } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -42,6 +44,9 @@ export function VideoCompress() {
   const { meta, error: loadError, isLoading, load, reset } = useVideoFile();
   const formats = useMemo(() => getSupportedExportFormats(), []);
   const [formatIdx, setFormatIdx] = useState(0);
+  const [container, setContainer] = useVideoContainerChoice();
+  const [packing, setPacking] = useState(false);
+  const [packNote, setPackNote] = useState<string | null>(null);
   const [presetId, setPresetId] = useState("balanced");
   const [custom, setCustom] = useState(false);
   const [s, setS] = useState<Settings>(PRESETS[1].s);
@@ -121,6 +126,7 @@ export function VideoCompress() {
   const run = async (mode: "full" | "test") => {
     if (!meta || !fmt) return;
     setError(null);
+    setPackNote(null);
     clearResult();
     cancelRef.current = { cancelled: false };
     setRunning(mode);
@@ -145,13 +151,19 @@ export function VideoCompress() {
         drawFrame: (ctx, video, canvas) => ctx.drawImage(video, 0, 0, canvas.width, canvas.height),
         onProgress: setProgress,
       });
-      const url = URL.createObjectURL(blob);
+      // Kemas ke MP4/MOV/WebM pilihan pengguna — bitrate dipertahankan sesuai pengaturan kompresi agar ukuran file tetap sesuai target.
+      setPacking(true);
+      setProgress(0);
+      const fin = await finalizeVideoExport(blob, fmt, container, setProgress, { videoBitrate: effVKbps * 1000 });
+      setPackNote(fin.note ?? null);
+      const url = URL.createObjectURL(fin.blob);
       resultUrlRef.current = url;
-      setResult({ blob, url, fmt, w: outDims.w, h: outDims.h, test: mode === "test", segSec: b - a, settings: { ...s, vKbps: effVKbps } });
+      setResult({ blob: fin.blob, url, fmt: fin.fmt, w: outDims.w, h: outDims.h, test: mode === "test", segSec: b - a, settings: { ...s, vKbps: effVKbps } });
     } catch (e: any) {
       if (e?.message !== "Dibatalkan.") setError(e?.message ?? "Kompresi gagal.");
     } finally {
       setRunning(null);
+      setPacking(false);
     }
   };
 
@@ -205,7 +217,7 @@ export function VideoCompress() {
             {running && (
               <div className="rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 p-4 space-y-2" data-testid="vc-progress">
                 <div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200">
-                  <Loader2 className="w-4 h-4 animate-spin" /> {running === "test" ? "Menguji 5 detik pertama…" : "Mengompres…"} {Math.round(progress * 100)}%
+                  <Loader2 className="w-4 h-4 animate-spin" /> {packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : running === "test" ? "Menguji 5 detik pertama…" : "Mengompres…"} {Math.round(progress * 100)}%
                   {eta != null && <span className="font-normal text-xs text-indigo-500 ml-auto">sisa ± {eta < 90 ? `${Math.round(eta)} dtk` : `${Math.round(eta / 60)} mnt`}</span>}
                 </div>
                 <div className="h-2 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden"><div className="h-full bg-indigo-500 transition-all" style={{ width: `${progress * 100}%` }} /></div>
@@ -282,7 +294,9 @@ export function VideoCompress() {
                   <p className="text-[11px] text-slate-400">Bitrate video dihitung otomatis dari durasi ({formatTime(segDur)}) → ≈ {effVKbps} kbps. Bitrate video di preset/kustom diabaikan.</p>
                 </>
               )}
-              {formats.length > 1 && (
+              <VideoContainerPicker value={container} onChange={setContainer} disabled={!!running} />
+              {packNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{packNote}</p>}
+              {container === "asli" && formats.length > 1 && (
                 <Select label="Format keluaran" value={String(formatIdx)} onChange={(e) => setFormatIdx(parseInt(e.target.value))} data-testid="vc-format">
                   {formats.map((f, i) => <option key={f.mimeType} value={i}>{f.label} (.{f.ext})</option>)}
                 </Select>

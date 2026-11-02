@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { VideoContainerPicker, useVideoContainerChoice } from "@/components/ui/VideoContainerPicker";
+import { finalizeVideoExport } from "@/lib/videoContainer";
 import { Captions, Upload, Download, Loader2, Plus, Trash2, FileText } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Dropzone } from "@/components/ui/Dropzone";
@@ -86,6 +88,9 @@ export function VideoSubtitle() {
   const [exportError, setExportError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [resultFormat, setResultFormat] = useState<ExportFormat | null>(null);
+  const [container, setContainer] = useVideoContainerChoice();
+  const [packing, setPacking] = useState(false);
+  const [exportNote, setExportNote] = useState<string | null>(null);
 
   const format = useMemo(() => getBestExportFormat(), []);
 
@@ -119,6 +124,7 @@ export function VideoSubtitle() {
   };
 
   const runBurnInExport = async () => {
+    setExportNote(null);
     if (!meta) return;
     setIsExporting(true);
     setExportError(null);
@@ -138,12 +144,22 @@ export function VideoSubtitle() {
         },
         onProgress: setProgress,
       });
-      setResultFormat(getBestExportFormat());
-      setResultUrl(URL.createObjectURL(blob));
+      setPacking(true);
+
+      setProgress(0);
+
+      const fin = await finalizeVideoExport(blob, getBestExportFormat()!, container, setProgress);
+
+      setExportNote(fin.note ?? null);
+
+      setResultFormat(fin.fmt);
+
+      setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
       setExportError(err?.message || "Gagal membakar teks ke video.");
     } finally {
       setIsExporting(false);
+      setPacking(false);
     }
   };
 
@@ -273,9 +289,11 @@ export function VideoSubtitle() {
                   <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(progress * 100)}%</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
                 </div>
               )}
+              <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
+              {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
               <Btn onClick={runBurnInExport} disabled={isExporting || !captions.length || !format} className="w-full gap-2">
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Captions className="w-4 h-4" />}
                 {isExporting ? "Memproses…" : "Bakar & Ekspor Video"}
