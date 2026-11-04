@@ -18,6 +18,8 @@ import {
   DEFAULT_SETTINGS, PAPERS, buildPrintHtml, canvasToBlob, paperSize, planPrint, renderSheet, type PrintSettings, type PrintPageSource, type RenderContext,
 } from "@/lib/printEngine";
 import { ACCEPT, DEFAULT_TEXT_OPTIONS, buildTextSource, loadPrintSource, type LoadedSource, type TextOptions } from "@/lib/printSources";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
+import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 
 type TabId = "sumber" | "halaman" | "layout" | "kertas" | "tampilan" | "tambahan";
 const TABS: SettingsTabDef<TabId>[] = [
@@ -347,10 +349,10 @@ export const PrintCenter: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <GamatoCheckbox checked={guides} onChange={setGuides} label="Garis margin" testId="chk-guides" />
-                <select value={String(zoom)} onChange={(e) => setZoom(e.target.value === "fit" ? "fit" : parseInt(e.target.value))} aria-label="Zoom" data-testid="zoom-select" className="text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5">
+                <GamatoSelect compact wrapperClassName="w-28" value={String(zoom)} onChange={(e) => setZoom(e.target.value === "fit" ? "fit" : parseInt(e.target.value))} aria-label="Zoom" data-testid="zoom-select">
                   <option value="fit">Pas layar</option>
                   {[50, 75, 100, 125, 150].map((z) => <option key={z} value={z}>{z}%</option>)}
-                </select>
+                </GamatoSelect>
               </div>
             </div>
 
@@ -557,7 +559,7 @@ export const PrintCenter: React.FC = () => {
                   <Slider label="Kepekatan" value={Math.round(s.watermarkOpacity * 100)} min={3} max={80} suffix="%" onChange={(v) => patch({ watermarkOpacity: v / 100 })} />
                   <Slider label="Ukuran" value={s.watermarkSize} min={4} max={40} suffix="%" onChange={(v) => patch({ watermarkSize: v })} />
                   <Slider label="Sudut" value={s.watermarkAngle} min={-90} max={90} suffix="°" onChange={(v) => patch({ watermarkAngle: v })} />
-                  {s.watermark && <div className="flex items-center gap-3"><Label>Warna teks</Label><input type="color" value={s.watermarkColor} onChange={(e) => patch({ watermarkColor: e.target.value })} className="h-9 w-12 rounded-lg border border-slate-200 cursor-pointer" aria-label="Warna watermark" /></div>}
+                  {s.watermark && <div className="flex items-center gap-3"><Label>Warna teks</Label><GamatoColorPicker value={s.watermarkColor} onChange={(hex) => patch({ watermarkColor: hex })} label="Warna watermark" testId="pc-wm-color" /></div>}
                 </>
               )}
             </div>

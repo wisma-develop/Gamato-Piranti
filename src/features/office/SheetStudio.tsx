@@ -22,6 +22,7 @@ import {
 import { sheetToXlsxBlob } from "./sheet/exportXlsx";
 import { sheetToPdfBlob } from "./sheet/exportPdf";
 import { SheetToolbar } from "./sheet/SheetToolbar";
+import { copyText, readClipboardText } from "@/lib/permissions";
 
 const ROW_HEADER_WIDTH = 44;
 const DEFAULT_COL_WIDTH = 96;
@@ -336,19 +337,13 @@ export const SheetStudio: React.FC = () => {
       }
       lines.push(row.join("\t"));
     }
-    try {
-      await navigator.clipboard.writeText(lines.join("\n"));
-    } catch {
-      // Clipboard API may be unavailable (permissions/non-HTTPS) — fail silently, nothing else to do.
-    }
+    await copyText(lines.join("\n")); // Clipboard API → fallback execCommand
   }, [selection, values]);
 
   const pasteAtSelection = useCallback(async () => {
-    let text: string;
-    try {
-      text = await navigator.clipboard.readText();
-    } catch {
-      setInfo("Tidak bisa mengakses clipboard. Izinkan akses clipboard di browser, atau ketik manual.");
+    const { text, failure } = await readClipboardText();
+    if (text === null) {
+      setInfo(failure ? `${failure.title}. ${failure.message}` : "Tidak bisa mengakses clipboard. Tempel manual dengan Ctrl+V.");
       return;
     }
     if (!text) return;

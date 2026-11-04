@@ -7,6 +7,7 @@ import { Btn, Select, Textarea } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { copyText as gamatoCopyText } from "@/lib/permissions";
 
 export const PdfOcr: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -58,7 +59,7 @@ export const PdfOcr: React.FC = () => {
 
   const copyText = async () => {
     try {
-      await navigator.clipboard.writeText(resultText);
+      if (!(await gamatoCopyText(resultText))) throw new Error("clipboard");
       setInfo("Teks disalin ke clipboard.");
     } catch {
       setInfo("Gagal menyalin teks.");

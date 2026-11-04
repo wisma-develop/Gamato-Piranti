@@ -37,6 +37,7 @@ import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 import { LetterBlocksEditor } from "@/features/special/LetterBlocksEditor";
+import { copyText } from "@/lib/permissions";
 
 type TabId = "template" | "kop" | "isi" | "ttd" | "tampilan" | "massal" | "ekspor";
 
@@ -214,7 +215,7 @@ export function LetterGenerator() {
   const dlDocx = () => run("docx", async () => { downloadBlob(await letterToDocx(doc, vars, assets), `${fileBase}.docx`); setInfo({ tone: "success", msg: "DOCX berhasil diunduh — bisa diedit di Word / Google Docs." }); });
   const dlTxt = () => { downloadBlob(new Blob([letterToText(doc, vars)], { type: "text/plain;charset=utf-8" }), `${fileBase}.txt`); setInfo({ tone: "success", msg: "Teks berhasil diunduh." }); };
   const copyTxt = async () => {
-    try { await navigator.clipboard.writeText(letterToText(doc, vars)); setInfo({ tone: "success", msg: "Teks surat disalin ke papan klip." }); }
+    try { if (!(await copyText(letterToText(doc, vars)))) throw new Error("clipboard"); setInfo({ tone: "success", msg: "Teks surat disalin ke papan klip." }); }
     catch { setInfo({ tone: "error", msg: "Gagal menyalin — izinkan akses papan klip." }); }
   };
   const doPrint = () => {
@@ -273,7 +274,7 @@ export function LetterGenerator() {
   const missingCols = mergeRows.length ? used.filter((k) => !BUILTIN_VARS.includes(k) && !mergeHeaders.includes(k) && !(k in (doc.vars ?? {})) && !fieldKeys.includes(k) && !doc.customVars.some((c) => c.label.toLowerCase() === k)) : [];
   const allVarChips = Array.from(new Set([...BUILTIN_VARS, ...fieldKeys, ...doc.customVars.map((c) => c.label.trim().toLowerCase()).filter(Boolean)]));
   const [copied, setCopied] = useState<string | null>(null);
-  const copyChip = async (k: string) => { try { await navigator.clipboard.writeText(`{{${k}}}`); setCopied(k); window.setTimeout(() => setCopied(null), 1300); } catch { /* abaikan */ } };
+  const copyChip = async (k: string) => { try { if (!(await copyText(`{{${k}}}`))) throw new Error("clipboard"); setCopied(k); window.setTimeout(() => setCopied(null), 1300); } catch { /* abaikan */ } };
 
   const setBlocks = (fn: (b: LetterBlock[]) => LetterBlock[], o?: { continuous?: boolean }) => {
     history.set((p) => ({ ...p, blocks: fn(p.blocks) }), { commit: !o?.continuous });

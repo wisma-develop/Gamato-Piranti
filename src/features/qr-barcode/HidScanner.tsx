@@ -3,6 +3,7 @@ import { Barcode, Copy, Download, Trash2, Zap } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { copyText } from "@/lib/permissions";
 
 interface ScanEntry {
   id: string;
@@ -51,7 +52,7 @@ export const HidScanner: React.FC = () => {
 
   const copyAll = async () => {
     try {
-      await navigator.clipboard.writeText(entries.map((e) => e.value).join("\n"));
+      if (!(await copyText(entries.map((e) => e.value).join("\n")))) throw new Error("clipboard");
     } catch {
       // clipboard unavailable — ignore silently
     }

@@ -8,6 +8,10 @@ import { Btn } from "@/components/ui/primitives";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { copyToClipboard } from "@/lib/utilityHelpers";
 import { sanitizeUrl } from "@/utils/sanitize";
+import { requestCamera, stopStream, PermissionError, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
+import { useMediaDevices } from "@/hooks/useMediaDevices";
 
 type Mode = "upload" | "camera";
 
@@ -55,6 +59,9 @@ export function QrScanner() {
   const [result, setResult] = useState<ScanHit | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [permFail, setPermFail] = useState<PermFailure | null>(null);
+  const [cameraId, setCameraId] = useState("");
+  const { devices: cameras, refresh: refreshCameras } = useMediaDevices("videoinput");
   const [isScanning, setIsScanning] = useState(false);
   const [copied, setCopied] = useState(false);
   const [detectorSupported, setDetectorSupported] = useState(false);
@@ -151,7 +158,7 @@ export function QrScanner() {
   const stopCamera = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    stopStream(streamRef.current);
     streamRef.current = null;
     busyRef.current = false;
     setIsScanning(false);
@@ -159,11 +166,16 @@ export function QrScanner() {
 
   const startCamera = useCallback(async () => {
     setError(null);
+    setPermFail(null);
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      streamRef.current = stream;
+      stream = await requestCamera(cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" });
+      // Label kamera baru tersedia setelah izin diberikan.
+      void refreshCameras();
       const video = videoRef.current;
-      if (!video) return;
+      if (!video) { stopStream(stream); return; }
+      stopStream(streamRef.current);
+      streamRef.current = stream;
       video.srcObject = stream;
       await video.play();
       setIsScanning(true);
@@ -199,14 +211,13 @@ export function QrScanner() {
       };
       rafRef.current = requestAnimationFrame(loop);
     } catch (err: any) {
+      stopStream(stream);
+      streamRef.current = null;
       setIsScanning(false);
-      setError(
-        err?.name === "NotAllowedError"
-          ? "Izin kamera ditolak. Aktifkan akses kamera di pengaturan browser untuk memakai alat ini."
-          : "Gagal mengakses kamera. Pastikan perangkatmu punya kamera yang aktif."
-      );
+      if (err instanceof PermissionError) setPermFail(err.failure);
+      else setError("Gagal memulai pratinjau kamera. Coba lagi atau pilih kamera lain.");
     }
-  }, [pushResult, decodeFrame, getScanCanvas, stopCamera]);
+  }, [pushResult, decodeFrame, getScanCanvas, stopCamera, cameraId, refreshCameras]);
 
   useEffect(() => {
     return () => stopCamera();
@@ -217,6 +228,7 @@ export function QrScanner() {
     setMode(m);
     setResult(null);
     setError(null);
+    setPermFail(null);
   };
 
   const handleFiles = (files: File[]) => {
@@ -268,6 +280,11 @@ export function QrScanner() {
             </div>
           )
         ) : (
+          <>
+          {cameras.length > 1 && (
+            <MediaDevicePicker label="Kamera" devices={cameras} value={cameraId} testId="qr-camera-picker"
+              onChange={(id) => { setCameraId(id); if (isScanning) { stopCamera(); } }} />
+          )}
           <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative">
             <video ref={videoRef} playsInline muted className="w-full h-auto max-h-[420px] block" />
             {!isScanning && (
@@ -289,8 +306,10 @@ export function QrScanner() {
               </>
             )}
           </div>
+          </>
         )}
 
+        <GamatoPermissionNotice failure={permFail} onRetry={startCamera} onDismiss={() => setPermFail(null)} />
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         {result && (

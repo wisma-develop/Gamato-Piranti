@@ -10,6 +10,7 @@ import { PanelCard } from "@/components/ui/PanelCard";
 import { useDialog, type DialogField } from "@/hooks/useDialog";
 import { cn } from "@/utils/cn";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { copyText } from "@/lib/permissions";
 
 // ─── Template definitions ─────────────────────────────────────────────────
 // Each template opens a custom Gamato Piranti form dialog (instead of the
@@ -369,7 +370,7 @@ export function WaLink() {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(waLink);
+      if (!(await copyText(waLink))) throw new Error("clipboard");
       setInfo("Link disalin!");
     } catch {
       setInfo("Gagal menyalin.");

@@ -36,6 +36,7 @@ import { ImageField } from "@/components/ui/ImageField";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { copyText as gamatoCopyText } from "@/lib/permissions";
 
 type TabId = "jenis" | "isi" | "tampilan" | "kode" | "massal" | "ekspor";
 
@@ -328,7 +329,7 @@ export function CouponGenerator() {
     return hit ?? false;
   }, [checkCode, records]);
   const copyText = async (text: string, key: string) => {
-    try { await navigator.clipboard.writeText(text); setCopied(key); window.setTimeout(() => setCopied(null), 1400); } catch { /* clipboard tidak tersedia */ }
+    try { if (!(await gamatoCopyText(text))) throw new Error("clipboard"); setCopied(key); window.setTimeout(() => setCopied(null), 1400); } catch { /* clipboard tidak tersedia */ }
   };
 
   const tokens = availableTokens(records);

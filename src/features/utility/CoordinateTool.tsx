@@ -13,6 +13,8 @@ import { SettingsTabBar } from "@/components/ui/SettingsTabs";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
+import { requestPosition, copyText, PermissionError, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
 import {
   fmtDD, fmtDDM, fmtDMS, fmtUTM, normLng, parseCoordinate, toGeohash, toMaidenhead, toMGRS, toPlusCode, toWebMercator, tileXY, clamp,
   type LatLng, type ParsedKind,
@@ -69,18 +71,7 @@ const timeAt = (d: Date | null, off: number) => {
 function useCopy() {
   const [copied, setCopied] = useState<string | null>(null);
   const copy = useCallback(async (key: string, text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand("copy"); } catch { /* abaikan */ }
-      ta.remove();
-    }
+    await copyText(text); // Clipboard API → fallback execCommand (lihat lib/permissions)
     setCopied(key);
     setTimeout(() => setCopied((c) => (c === key ? null : c)), 1400);
   }, []);
@@ -129,6 +120,7 @@ export const CoordinateTool: React.FC = () => {
   const [address, setAddress] = useState<string | null>(null);
   const [elev, setElev] = useState<string | null>(null);
   const [busyNet, setBusyNet] = useState<string | null>(null);
+  const [geoFail, setGeoFail] = useState<PermFailure | null>(null);
   const [sunDate, setSunDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [sunOff, setSunOff] = useState(() => fmtLocalOffset());
   const [pointName, setPointName] = useState("");
@@ -391,18 +383,24 @@ export const CoordinateTool: React.FC = () => {
     } finally { setSearching(false); }
   };
 
-  const locate = () => {
-    if (!navigator.geolocation) { setNote("error", "Browser tidak mendukung geolokasi."); return; }
+  const locate = async () => {
+    setGeoFail(null);
     setBusyNet("Mencari lokasi Anda…");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        selectPoint({ lat: pos.coords.latitude, lng: pos.coords.longitude }, { fly: true, zoom: 16 });
-        setNote("success", `Lokasi Anda: ${fmtDD({ lat: pos.coords.latitude, lng: pos.coords.longitude }, 6)} (akurasi ±${Math.round(pos.coords.accuracy)} m)`);
-        setBusyNet(null);
-      },
-      (err) => { setBusyNet(null); setNote("error", err.code === 1 ? "Izin lokasi ditolak." : "Lokasi tidak tersedia."); },
-      { enableHighAccuracy: true, timeout: 15000 }
-    );
+    try {
+      const fix = await requestPosition();
+      const here = { lat: fix.lat, lng: fix.lng };
+      selectPoint(here, { fly: true, zoom: fix.accuracy > 2000 ? 12 : 16 });
+      setNote(
+        fix.approximate ? "warning" : "success",
+        `Lokasi Anda: ${fmtDD(here, 6)} (akurasi ±${Math.round(fix.accuracy)} m${fix.approximate ? " — perkiraan kasar dari Wi-Fi/seluler; nyalakan GPS untuk lebih akurat" : ""})`
+      );
+    } catch (err) {
+      setInfo(null);
+      if (err instanceof PermissionError) setGeoFail(err.failure);
+      else setNote("error", "Lokasi tidak tersedia.");
+    } finally {
+      setBusyNet(null);
+    }
   };
 
   // ── daftar titik ──
@@ -613,6 +611,7 @@ export const CoordinateTool: React.FC = () => {
             ))}
           </div>
         )}
+        <GamatoPermissionNotice failure={geoFail} onRetry={locate} onDismiss={() => setGeoFail(null)} />
         {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
       </div>
 

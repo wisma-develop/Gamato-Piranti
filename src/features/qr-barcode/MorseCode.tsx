@@ -8,6 +8,7 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { copyText } from "@/lib/permissions";
 
 export const MorseCode: React.FC = () => {
   const [mode, setMode] = useState<"encode" | "decode">("encode");
@@ -40,7 +41,7 @@ export const MorseCode: React.FC = () => {
 
   const copyOutput = async () => {
     try {
-      await navigator.clipboard.writeText(output);
+      if (!(await copyText(output))) throw new Error("clipboard");
       setInfo("Hasil disalin ke clipboard.");
     } catch {
       setInfo("Gagal menyalin.");

@@ -20,6 +20,7 @@ import { LongStitcher, type StitchStatus } from "@/lib/capture/stitch";
 import { captureHtml, measureFrameHeight } from "@/lib/capture/htmlCapture";
 import { exportImages, exportPdf, type CaptureItem, type ImgFormat, type PageSize } from "@/lib/capture/captureExport";
 import { AnnotationStage, DEFAULT_STYLE, type ToolStyle } from "./AnnotationStage";
+import { requestDisplay, stopStream, PermissionError } from "@/lib/permissions";
 
 type Source = "screen" | "html" | "image";
 type Alert = { msg: string; tone: "success" | "error" | "warning" | "info" } | null;
@@ -283,7 +284,7 @@ export const CaptureWebsite: React.FC = () => {
     if (longTimer.current) { clearInterval(longTimer.current); longTimer.current = null; }
     stitcherRef.current = null;
     setLongRun(null);
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    stopStream(streamRef.current);
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
     setSharing(false);
@@ -300,9 +301,10 @@ export const CaptureWebsite: React.FC = () => {
     }
     try {
       stopShare();
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30 } }, audio: false });
+      const stream = await requestDisplay({ video: { frameRate: { ideal: 30 } }, audio: false });
+      const v = videoRef.current;
+      if (!v) { stopStream(stream); return; }
       streamRef.current = stream;
-      const v = videoRef.current!;
       v.srcObject = stream;
       await v.play().catch(() => {});
       stream.getVideoTracks()[0].addEventListener("ended", () => stopShare());
@@ -313,6 +315,10 @@ export const CaptureWebsite: React.FC = () => {
       setSharing(true);
       setAlert({ msg: "Layar dibagikan. Atur jendela/tab yang ingin ditangkap, beri anotasi bila perlu, lalu klik “Ambil Tangkapan”.", tone: "info" });
     } catch (e: any) {
+      if (e instanceof PermissionError) {
+        setAlert({ msg: `${e.failure.title}. ${e.failure.message}`, tone: e.failure.code === "dismissed" ? "warning" : "error" });
+        return;
+      }
       const n = e?.name;
       setAlert({
         msg: n === "NotAllowedError" ? "Izin tangkap layar ditolak atau dibatalkan." : n === "NotFoundError" ? "Tidak ada layar/tab yang bisa ditangkap." : n === "NotReadableError" ? "Layar/tab tidak bisa dibaca (diblokir sistem atau browser)." : `Gagal memulai tangkap layar${e?.message ? `: ${e.message}` : "."}`,

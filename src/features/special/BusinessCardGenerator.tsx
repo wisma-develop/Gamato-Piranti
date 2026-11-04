@@ -52,6 +52,7 @@ import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
 
 type Side = "front" | "back";
 
@@ -791,16 +792,16 @@ function TextElementPanel({
     <div className="space-y-4">
       <div>
         <Label>Sumber Teks</Label>
-        <select
+        <GamatoSelect
           value={el.bind ?? ""}
           onChange={(e) => onChange({ bind: (e.target.value || null) as CardTextElement["bind"] })}
-          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
+          data-testid="card-bind-select"
         >
           <option value="">Teks Bebas</option>
           {CONTACT_FIELD_KEYS.map((f) => (
             <option key={f} value={f}>{`Tertaut: ${CONTACT_FIELD_LABEL[f]}`}</option>
           ))}
-        </select>
+        </GamatoSelect>
       </div>
 
       <Textarea

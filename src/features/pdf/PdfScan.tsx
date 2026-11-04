@@ -10,6 +10,10 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { requestCamera, stopStream, PermissionError, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
+import { useMediaDevices } from "@/hooks/useMediaDevices";
 
 type ScanMode = "original" | "grayscale" | "bw";
 type InputMode = "upload" | "camera";
@@ -31,6 +35,9 @@ export const PdfScan: React.FC = () => {
   const [inputMode, setInputMode] = useState<InputMode>("upload");
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [permFail, setPermFail] = useState<PermFailure | null>(null);
+  const [cameraId, setCameraId] = useState("");
+  const { devices: cameras, refresh: refreshCameras } = useMediaDevices("videoinput");
   const [flash, setFlash] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -50,31 +57,35 @@ export const PdfScan: React.FC = () => {
   };
 
   const stopCamera = () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    stopStream(streamRef.current);
     streamRef.current = null;
     setIsCameraOn(false);
   };
 
   const startCamera = async () => {
     setCameraError(null);
+    setPermFail(null);
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false,
+      stream = await requestCamera({
+        ...(cameraId ? { deviceId: { exact: cameraId } } : { facingMode: "environment" }),
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
       });
-      streamRef.current = stream;
+      void refreshCameras();
       const video = videoRef.current;
-      if (!video) return;
+      if (!video) { stopStream(stream); return; }
+      stopStream(streamRef.current);
+      streamRef.current = stream;
       video.srcObject = stream;
       await video.play();
       setIsCameraOn(true);
     } catch (err: any) {
+      stopStream(stream);
+      streamRef.current = null;
       setIsCameraOn(false);
-      setCameraError(
-        err?.name === "NotAllowedError"
-          ? "Izin kamera ditolak. Aktifkan akses kamera di pengaturan browser untuk memakai fitur ini."
-          : "Gagal mengakses kamera. Pastikan perangkatmu punya kamera yang aktif dan tidak dipakai aplikasi lain."
-      );
+      if (err instanceof PermissionError) setPermFail(err.failure);
+      else setCameraError("Gagal memulai pratinjau kamera. Coba lagi atau pilih kamera lain.");
     }
   };
 
@@ -107,12 +118,13 @@ export const PdfScan: React.FC = () => {
     if (m === "upload") stopCamera();
     setInputMode(m);
     setCameraError(null);
+    setPermFail(null);
   };
 
   // Always release the camera when leaving the page, not just on explicit stop.
   useEffect(() => {
     return () => {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      stopStream(streamRef.current);
     };
   }, []);
 
@@ -203,6 +215,11 @@ export const PdfScan: React.FC = () => {
             setIsDragging={setIsDragging}
           />
         ) : (
+          <>
+          {cameras.length > 1 && (
+            <MediaDevicePicker label="Kamera" devices={cameras} value={cameraId} testId="scan-camera-picker"
+              onChange={(id) => { setCameraId(id); if (isCameraOn) stopCamera(); }} />
+          )}
           <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative">
             <video ref={videoRef} playsInline muted className="w-full h-auto max-h-[480px] block" />
             {flash && <div className="absolute inset-0 bg-white animate-pulse pointer-events-none" style={{ opacity: 0.7 }} />}
@@ -233,7 +250,9 @@ export const PdfScan: React.FC = () => {
               </>
             )}
           </div>
+          </>
         )}
+        <GamatoPermissionNotice failure={permFail} onRetry={startCamera} onDismiss={() => setPermFail(null)} />
         {cameraError && <p className="text-sm text-red-600 dark:text-red-400">{cameraError}</p>}
 
         {items.length > 0 && (
