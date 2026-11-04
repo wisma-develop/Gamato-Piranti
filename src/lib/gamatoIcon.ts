@@ -5,8 +5,10 @@
 // asli SATU kali, memangkas bagian transparan, lalu men-cache hasilnya — satu sumber kebenaran: bila
 // berkas ikon diganti di /public, semua watermark ikut berubah tanpa mengubah kode.
 
+import { SITE_HOST } from "@/lib/site";
+
 export const GAMATO_ICON_URL = "/gamato-piranti.png";
-export const GAMATO_SITE = "gamatopiranti.zone.id";
+export const GAMATO_SITE = SITE_HOST;
 export const GAMATO_NAME = "Gamato Piranti";
 
 export interface GamatoIcon {

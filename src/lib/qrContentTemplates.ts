@@ -4,6 +4,7 @@ import {
   MapPin, CalendarClock, Share2, Video, Coins, Wallet, Apple,
 } from "lucide-react";
 import { sanitizeText, sanitizeUrl, sanitizeNumberString, sanitizePhone } from "@/utils/sanitize";
+import { SITE_URL } from "@/lib/site";
 
 // ─── Field schema types ─────────────────────────────────────────────────────
 // The whole "isi QR" panel is data-driven off QR_TEMPLATES below instead of
@@ -98,7 +99,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     label: "URL",
     icon: Link2,
     fields: [{ key: "url", label: "URL / Link", type: "url", placeholder: "https://example.com" }],
-    defaultData: { url: "https://gamato-piranti.local" },
+    defaultData: { url: SITE_URL },
     buildPayload: (d) => sanitizeUrl(raw(d, "url")),
   },
   {

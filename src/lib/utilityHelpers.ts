@@ -1,3 +1,4 @@
+import { copyText } from "@/lib/permissions";
 // Shared helpers for the Rak Utilitas tools (password/token generator, currency, clipboard)
 export function cryptoRandomInt(max: number): number {
   const buf = new Uint32Array(1);
@@ -13,13 +14,9 @@ export function formatIDR(n: number): string {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(n);
 }
 
+/** Salin teks — Clipboard API dengan fallback execCommand (lihat lib/permissions). */
 export async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
+  return copyText(text);
 }
 
 export function bytesToBase64(bytes: Uint8Array): string {
