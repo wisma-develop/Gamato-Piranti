@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { PageShell } from "@/components/PageShell";
 import ScrollToTop from "@/components/ScrollToTop";
+import SeoSync from "@/components/SeoSync";
 
 import Home from "@/pages/Home";
 import About from "@/pages/About";
@@ -123,6 +124,7 @@ import { VideoConvertHub } from "@/features/video/VideoConvertHub";
 export const App: FC = () => (
   <BrowserRouter>
     <ScrollToTop />
+    <SeoSync />
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />

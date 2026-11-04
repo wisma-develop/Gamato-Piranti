@@ -32,12 +32,19 @@ function extractOptions(children: React.ReactNode): OptionInfo[] {
 }
 
 export const GamatoSelect: React.FC<
-  React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }
-> = ({ label, className, id, children, value, defaultValue, onChange, disabled, ...rest }) => {
+  React.SelectHTMLAttributes<HTMLSelectElement> & {
+    label?: string;
+    /** Varian ringkas (teks kecil, padding tipis) untuk baris padat; daftar pilihan melebar & menyesuaikan sisi layar. */
+    compact?: boolean;
+    /** Kelas untuk pembungkus terluar (mis. `flex-1` di dalam baris flex). */
+    wrapperClassName?: string;
+  }
+> = ({ label, className, id, children, value, defaultValue, onChange, disabled, compact, wrapperClassName, ...rest }) => {
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(() => (defaultValue !== undefined ? String(defaultValue) : ""));
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const [alignRight, setAlignRight] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +62,8 @@ export const GamatoSelect: React.FC<
 
   useEffect(() => {
     if (open) {
+      const r = wrapRef.current?.getBoundingClientRect();
+      if (r) setAlignRight(r.left + r.width / 2 > window.innerWidth / 2);
       const idx = options.findIndex((o) => o.value === currentValue);
       setHighlight(idx >= 0 ? idx : 0);
     }
@@ -91,7 +100,7 @@ export const GamatoSelect: React.FC<
   };
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className={cn("relative", wrapperClassName)}>
       {label && <label htmlFor={id} className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{label}</label>}
       <button
         id={id}
@@ -102,7 +111,8 @@ export const GamatoSelect: React.FC<
         aria-haspopup="listbox"
         aria-expanded={open}
         className={cn(
-          "w-full flex items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+          "w-full flex items-center justify-between gap-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+          compact ? "rounded-lg px-2 py-1.5 text-xs" : "rounded-xl px-4 py-3 text-sm",
           open && "border-indigo-400 dark:border-indigo-500 ring-2 ring-indigo-500/10",
           className
         )}
@@ -118,7 +128,7 @@ export const GamatoSelect: React.FC<
         <div
           ref={listRef}
           role="listbox"
-          className="absolute z-50 mt-1.5 w-full max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5"
+          className={cn("absolute z-50 mt-1.5 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5", compact ? cn("w-max min-w-full max-w-[min(18rem,calc(100vw-1.5rem))]", alignRight ? "right-0" : "left-0") : "w-full")}
         >
           {options.map((opt, i) => (
             <button

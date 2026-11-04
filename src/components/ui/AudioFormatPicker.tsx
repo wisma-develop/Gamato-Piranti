@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Music2, Info } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { MP3_BITRATES } from "@/lib/mp3Encoder";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
 
 export type AudioOutChoice = { format: "mp3" | "asli"; kbps: number };
 
@@ -57,19 +58,20 @@ export function AudioFormatPicker({ value, onChange, disabled, nativeLabel, nati
       {value.format === "mp3" && (
         <div className="flex items-center gap-2">
           <label htmlFor="audio-mp3-kbps" className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">Bitrate</label>
-          <select
+          <GamatoSelect
             id="audio-mp3-kbps"
+            compact
+            wrapperClassName="flex-1 min-w-0"
             value={value.kbps}
             disabled={disabled}
             onChange={(e) => onChange({ ...value, kbps: parseInt(e.target.value) })}
-            className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-xs text-slate-800 dark:text-slate-100"
           >
             {MP3_BITRATES.map((k) => (
               <option key={k} value={k}>
                 {k} kbps{k === 128 ? " (standar)" : k === 192 ? " (seimbang)" : k === 320 ? " (maksimum)" : ""}
               </option>
             ))}
-          </select>
+          </GamatoSelect>
         </div>
       )}
       <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-1.5 leading-snug">

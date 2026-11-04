@@ -1,3 +1,4 @@
+import { SITE_HOST, SITE_URL } from "@/lib/site";
 import { Link } from 'react-router-dom';
 import { Heart, ShieldCheck } from 'lucide-react';
 
@@ -56,6 +57,8 @@ export default function Footer() {
           <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500 font-medium">
             <span>Dikembangkan oleh</span>
             <span className="text-slate-600 dark:text-slate-300 font-bold">WisDev</span>
+            <span className="text-slate-200 dark:text-slate-700">•</span>
+            <a href={SITE_URL} className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors" data-testid="footer-domain">{SITE_HOST}</a>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Kebijakan Privasi</Link>

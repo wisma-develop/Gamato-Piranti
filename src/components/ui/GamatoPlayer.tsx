@@ -1,4 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { GamatoSpeakerButton } from "@/components/ui/GamatoSpeakerButton";
 import { Play, Pause, Volume2, Volume1, VolumeX, Maximize, Minimize, RotateCcw, Gauge, Zap } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
@@ -234,6 +235,8 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
           </span>
 
           <div className="flex-1" />
+
+          <GamatoSpeakerButton mediaRef={videoRef} tone="dark" />
 
           <div className="relative">
             <button

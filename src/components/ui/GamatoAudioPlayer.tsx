@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Play, Pause, Volume2, VolumeX, Music2 } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { GamatoSpeakerButton } from "@/components/ui/GamatoSpeakerButton";
 
 /** GamatoAudioPlayer — engine pemutar audio kustom bermerek Gamato Piranti, tanpa `<audio controls>` bawaan browser. */
 export function GamatoAudioPlayer({ src, className, label = "Audio" }: { src: string; className?: string; label?: string }) {
@@ -25,7 +26,7 @@ export function GamatoAudioPlayer({ src, className, label = "Audio" }: { src: st
   const togglePlay = () => {
     const a = audioRef.current;
     if (!a) return;
-    if (a.paused) a.play().catch(() => {});
+    if (a.paused) a.play().catch(() => { setPlaying(false); });
     else a.pause();
   };
 
@@ -82,6 +83,8 @@ export function GamatoAudioPlayer({ src, className, label = "Audio" }: { src: st
       >
         {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
       </button>
+
+      <GamatoSpeakerButton mediaRef={audioRef} tone="dark" className="shrink-0" />
 
       <span className="text-[11px] font-mono text-white/60 shrink-0 tabular-nums">{fmt(current)} / {fmt(duration)}</span>
     </div>

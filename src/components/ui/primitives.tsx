@@ -2,12 +2,25 @@ import React, { useId } from "react";
 import { ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
+import { GamatoDatePicker } from "@/components/ui/GamatoDatePicker";
 
 export const Label: React.FC<{ children: React.ReactNode; htmlFor?: string }> = ({ children, htmlFor }) => (
   <label htmlFor={htmlFor} className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{children}</label>
 );
 
 export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label?: string }> = ({ label, className, id, ...props }) => {
+  // type="date" → kalender Gamato (bukan pemilih tanggal bawaan browser/OS).
+  if (props.type === "date") {
+    const { type: _t, value, defaultValue: _d, onChange, min, max, disabled, required, placeholder, ...rest } = props;
+    return (
+      <GamatoDatePicker
+        label={label} id={id} value={typeof value === "string" ? value : value == null ? "" : String(value)} onChange={onChange}
+        min={typeof min === "string" ? min : undefined} max={typeof max === "string" ? max : undefined}
+        disabled={disabled} required={required} placeholder={placeholder} className={className}
+        {...(rest as Record<string, unknown>)}
+      />
+    );
+  }
   // Label selalu terhubung ke input (id otomatis) → klik label memfokuskan kolom & pembaca layar membacanya.
   const autoId = useId();
   const fieldId = id ?? (label ? autoId : undefined);
