@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/* ── Dark mode via a toggleable .dark class (instead of only OS preference) ── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Global typeface ── */
+html {
+  font-family: "Alan Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Media elements ── */
+img, canvas, video, svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Base layout ──
+   overflow-x: clip (not "hidden") on purpose: "hidden" turns html/body into
+   a scroll container, which breaks position:sticky for descendants like the
+   navbar in a lot of browsers. "clip" prevents the same horizontal overflow
+   bleed without creating that scroll container, so the sticky header keeps
+   working correctly while scrolling the page. ── */
+html, body {
+  width: 100%;
+  overflow-x: clip;
+}
+
+/* ── Smooth color transition when toggling theme ── */
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+.dark body {
+  background-color: #020617;
+  color: #f1f5f9;
+}
+
+/* ── Prevent zero min-width collapse ── */
+* { min-width: 0; }
+
+/* ── Guard icon-only buttons against being crushed to invisibility ──
+   Root cause of the "missing icon" bug: `* { min-width: 0 }` above removes a
+   flex item's natural min-content floor, and `svg { max-width: 100% }` below
+   makes icons shrink together with their button. In a tight row (e.g. several
+   Bold/Italic/Align toggle buttons side by side in a narrow sidebar), the
+   buttons get compressed by flexbox and their icons collapse to near-zero
+   size. This rule guarantees any button whose only child is an icon keeps
+   its natural size and never gets squeezed by a flex/grid parent. ── */
+button:has(> svg:only-child) {
+  flex-shrink: 0;
+}
+
+/* ── Mobile: prevent input zoom on iOS (font-size < 16px triggers zoom) ── */
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* ── Override font-size back to design spec via Tailwind's text-sm on desktop ── */
+@media (min-width: 640px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="url"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  select,
+  textarea {
+    font-size: 0.875rem; /* text-sm = 14px */
+  }
+}
+
+/* ── Smooth scrolling ── */
+.scroll-area {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Gamato Piranti inline alert/toast fade-in ── */
+@keyframes gamatoFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes gamatoToastIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes gamatoToastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(8px) scale(0.96); }
+}
+
+/* ── Gamato Piranti custom scrollbar — bermerek, konsisten di semua browser modern ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a5b4fc transparent; /* indigo-300 */
+}
+.dark * {
+  scrollbar-color: #4338ca transparent; /* indigo-700 */
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #a5b4fc; /* indigo-300 */
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #6366f1; /* indigo-500 */
+}
+.dark *::-webkit-scrollbar-thumb {
+  background-color: #4338ca; /* indigo-700 */
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: #6366f1; /* indigo-500 */
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Visible keyboard focus ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Respect reduced-motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Reveal-on-hover UI that must stay visible on touch/tablet ──
+   Tailwind's `hover:`/`group-hover:` variants only apply on devices that
+   report real hover support (@media (hover: hover)). That's correct on
+   phones (which already show these elements via their own mobile-first
+   classes) but on tablets and touchscreen laptops — which ARE wide enough
+   to hit a `sm:`/`md:` breakpoint yet have no mouse — a "hidden until
+   hover" element would stay invisible forever with no way to reveal it.
+   These two utilities replace that pattern with a guard that only
+   collapses/hides the element when the device both (a) is at/above the
+   given width AND (b) genuinely supports hover with a fine pointer
+   (mouse/trackpad). Verified against real Chromium with iPad/touchscreen
+   device emulation. */
+.gp-volume-track {
+  width: 3rem; /* visible by default: phones, tablets, touchscreens */
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+  .gp-volume-track {
+    width: 0px; /* collapsed at rest for mouse users on sm+ screens */
+  }
+  .gp-vol-group:hover .gp-volume-track {
+    width: 4rem; /* revealed on real hover */
+  }
+}
+
+.gp-hover-reveal {
+  opacity: 1; /* visible by default: phones, tablets, touchscreens */
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 640px) {
+  .gp-hover-reveal {
+    opacity: 0; /* hidden at rest for mouse users on sm+ screens */
+  }
+  .group:hover .gp-hover-reveal {
+    opacity: 1; /* revealed on real hover */
+  }
+}
+
+/* ── Leaflet (Koordinat): lawan aturan global img/canvas/svg agar peta tidak menyusut ── */
+.leaflet-container { font-family: inherit; z-index: 0; }
+.leaflet-container img, .leaflet-container canvas, .leaflet-container svg { max-width: none !important; max-height: none !important; }
+.gp-pin, .gp-num { background: transparent; border: 0; }

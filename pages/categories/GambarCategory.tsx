@@ -1,0 +1,64 @@
+import { FileDown, ArrowLeftRight, Wand2, RotateCw, Eraser, Camera, Crop, Layers, Code2, Smile, SlidersHorizontal, Pipette, Printer, LayoutGrid, Files, FileText, FileType2, Presentation, Sheet, AlignLeft } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
+import { CategoryGrid } from "@/components/CategoryGrid";
+
+export default function GambarCategory() {
+  return (
+    <PageShell
+      badge="Gambar"
+      title="Gambar"
+      subtitle="Image Lab — mulai dari editor foto lengkap, crop, hapus background, watermark, sampai meme generator. Semua diproses langsung di perangkatmu."
+    >
+      <CategoryGrid
+        groups={[
+          {
+            section: "Kolase & Cetak",
+            items: [
+              { name: "Kolase Gambar", desc: "Gabungkan banyak foto jadi satu kolase — 46 template, mode bebas, bentuk, bingkai, latar, teks & stiker.", path: "/image/kolase", icon: <LayoutGrid className="w-6 h-6" />, badge: "Baru" },
+              { name: "Cetak Foto (Pas Foto & Custom)", desc: "Susun 2x3, 3x4, 4x6, 4R & ukuran lain di satu/beberapa lembar — unduh PDF siap cetak atau cetak langsung.", path: "/image/cetak-foto", icon: <Printer className="w-6 h-6" />, badge: "Baru" },
+            ],
+          },
+          {
+            section: "Edit & Perbaiki",
+            items: [
+              { name: "Photo Editor", desc: "Sesuaikan kecerahan, kontras, saturasi, filter warna, putar & balik.", path: "/image/photo-editor", icon: <SlidersHorizontal className="w-6 h-6" /> },
+              { name: "Crop Gambar", desc: "Potong area gambar secara interaktif dengan preset rasio.", path: "/image/crop", icon: <Crop className="w-6 h-6" /> },
+              { name: "Putar Gambar", desc: "Putar foto yang miring atau terbalik.", path: "/image/putar", icon: <RotateCw className="w-6 h-6" /> },
+              { name: "Hapus Background", desc: "Hapus warna latar solid (chroma-key), unduh PNG transparan.", path: "/image/hapus-background", icon: <Eraser className="w-6 h-6" /> },
+            ],
+          },
+          {
+            section: "Kreatif",
+            items: [
+              { name: "Watermark Gambar", desc: "Tempel watermark teks atau logo, sekali atau berulang (tile).", path: "/image/watermark", icon: <Layers className="w-6 h-6" /> },
+              { name: "Meme Generator", desc: "Tambahkan teks bergaya meme yang bisa digeser bebas.", path: "/image/meme-generator", icon: <Smile className="w-6 h-6" /> },
+              { name: "HTML ke Gambar", desc: "Render kode HTML/CSS jadi gambar PNG — kartu kutipan, badge, banner.", path: "/image/html-ke-gambar", icon: <Code2 className="w-6 h-6" /> },
+              { name: "Color Picker & Palette", desc: "Ambil warna dari gambar (HEX/RGB/HSL) dan ekstrak palet dominan otomatis.", path: "/image/color-picker", icon: <Pipette className="w-6 h-6" /> },
+            ],
+          },
+          {
+            section: "Konversi & Optimasi",
+            items: [
+              { name: "Kompres Gambar", desc: "Kurangi ukuran file gambar tanpa mengubah dimensi.", path: "/image/kompres", icon: <FileDown className="w-6 h-6" /> },
+              { name: "Ubah Ukuran", desc: "Ubah dimensi gambar dengan rasio tetap terjaga.", path: "/image/resize", icon: <ArrowLeftRight className="w-6 h-6" /> },
+              { name: "Konversi Format", desc: "Konversi antar format JPEG, PNG, dan WEBP.", path: "/image/konversi", icon: <Wand2 className="w-6 h-6" /> },
+              { name: "Baca Foto RAW", desc: "Ekstrak preview JPEG dari file RAW kamera (CR2, NEF, ARW, DNG, dll).", path: "/image/raw-preview", icon: <Camera className="w-6 h-6" /> },
+              { name: "Hapus Metadata", desc: "Hapus EXIF/GPS dari gambar via re-encode canvas.", path: "/image/hapus-metadata", icon: <Eraser className="w-6 h-6" /> },
+            ],
+          },
+          {
+            section: "Dokumen ke Gambar",
+            items: [
+              { name: "Semua Dokumen ke Gambar", desc: "Satu tempat untuk PDF, Word, PowerPoint, Excel/CSV, dan teks/Markdown — jenis file dikenali otomatis.", path: "/image/dokumen-ke-gambar", icon: <Files className="w-6 h-6" /> },
+              { name: "PDF ke Gambar", desc: "Render halaman PDF jadi PNG/JPG/WebP tajam (hingga 400 dpi), atau gabung jadi satu gambar panjang.", path: "/image/pdf-ke-gambar", icon: <FileText className="w-6 h-6" /> },
+              { name: "Word ke Gambar", desc: "Ubah dokumen .docx jadi gambar per halaman — judul, daftar, tabel, dan gambar ikut dirender.", path: "/image/word-ke-gambar", icon: <FileType2 className="w-6 h-6" /> },
+              { name: "PowerPoint ke Gambar", desc: "Setiap slide .pptx jadi satu gambar lengkap dengan latar, tema warna, bentuk, dan teks.", path: "/image/ppt-ke-gambar", icon: <Presentation className="w-6 h-6" /> },
+              { name: "Excel & CSV ke Gambar", desc: "Render lembar .xlsx/.csv jadi gambar — warna sel, garis, sel gabungan, dan format angka dipertahankan.", path: "/image/excel-ke-gambar", icon: <Sheet className="w-6 h-6" /> },
+              { name: "Teks & Markdown ke Gambar", desc: "Ubah .txt, .md, .json, .rtf, kode, dan log jadi gambar rapi dengan font Unicode penuh.", path: "/image/teks-ke-gambar", icon: <AlignLeft className="w-6 h-6" /> },
+            ],
+          },
+        ]}
+      />
+    </PageShell>
+  );
+}
