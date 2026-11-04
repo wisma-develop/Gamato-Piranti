@@ -11,6 +11,10 @@ import { Btn, Input, Label, Select } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { requestMicrophone, stopStream, PermissionError, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
+import { useMediaDevices } from "@/hooks/useMediaDevices";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { SettingsTabBar, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 import { cn } from "@/utils/cn";
@@ -113,6 +117,9 @@ export const AudioEditor: React.FC = () => {
   const [playing, setPlaying] = useState<"none" | "main" | "preview">("none");
   const [volume, setVolume] = useState(1);
   const [recording, setRecording] = useState<{ sec: number } | null>(null);
+  const [micFail, setMicFail] = useState<PermFailure | null>(null);
+  const [micId, setMicId] = useState("");
+  const { devices: mics, refresh: refreshMics } = useMediaDevices("audioinput");
 
   // export
   const [expScope, setExpScope] = useState<"all" | "sel">("all");
@@ -852,18 +859,22 @@ export const AudioEditor: React.FC = () => {
 
   /* ── recording ── */
   const startRecording = async () => {
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return toast("Browser ini tidak mendukung perekaman audio.", "error");
+    if (typeof MediaRecorder === "undefined") return toast("Browser ini tidak mendukung perekaman audio.", "error");
+    setMicFail(null);
+    let stream: MediaStream | null = null;
     try {
       stopAll();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-      const mr = new MediaRecorder(stream);
+      stream = await requestMicrophone({ ...(micId ? { deviceId: { exact: micId } } : {}), echoCancellation: false, noiseSuppression: false, autoGainControl: false });
+      void refreshMics();
+      const media = stream;
+      const mr = new MediaRecorder(media);
       const chunks: Blob[] = [];
       mr.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
       const started = Date.now();
       const timer = window.setInterval(() => setRecording({ sec: (Date.now() - started) / 1000 }), 200);
       mr.onstop = async () => {
         window.clearInterval(timer);
-        stream.getTracks().forEach((t) => t.stop());
+        stopStream(media);
         recRef.current = null;
         setRecording(null);
         const blob = new Blob(chunks, { type: mr.mimeType || "audio/webm" });
@@ -894,10 +905,12 @@ export const AudioEditor: React.FC = () => {
         }
       };
       mr.start();
-      recRef.current = { mr, stream, timer };
+      recRef.current = { mr, stream: media, timer };
       setRecording({ sec: 0 });
     } catch (e: any) {
-      toast(e?.name === "NotAllowedError" ? "Izin mikrofon ditolak. Aktifkan izin mikrofon di pengaturan browser." : `Tidak bisa mengakses mikrofon: ${e?.message ?? e}`, "error");
+      stopStream(stream);
+      if (e instanceof PermissionError) setMicFail(e.failure);
+      else toast(`Tidak bisa merekam: ${e?.message ?? e}`, "error");
     }
   };
 
@@ -1248,6 +1261,8 @@ export const AudioEditor: React.FC = () => {
             <Btn variant="secondary" onClick={startRecording} data-testid="rec-start"><Mic className="w-4 h-4" /> Rekam dari mikrofon</Btn>
           )}
         </div>
+        {mics.length > 1 && !recording && <div className="max-w-xs mx-auto"><MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>}
+        <GamatoPermissionNotice failure={micFail} onRetry={startRecording} onDismiss={() => setMicFail(null)} className="max-w-xl mx-auto" />
         {busy && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300"><Loader2 className="w-4 h-4 animate-spin" />{busy.label}</div>}
         {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
         <ToolInfoPanel
@@ -1595,6 +1610,8 @@ export const AudioEditor: React.FC = () => {
               ) : (
                 <Btn variant="secondary" className="w-full" disabled={disabled} onClick={startRecording} data-testid="rec-start"><Mic className="w-4 h-4" /> Mulai rekam (disisipkan di kursor)</Btn>
               )}
+              {mics.length > 1 && !recording && <MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker-panel" />}
+              <GamatoPermissionNotice failure={micFail} onRetry={startRecording} onDismiss={() => setMicFail(null)} />
               <p className="text-[11px] text-slate-400">Butuh izin mikrofon. Rekaman diproses di perangkatmu.</p>
             </div>
           </>

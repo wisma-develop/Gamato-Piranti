@@ -10,6 +10,7 @@ import { encodeAudioBufferToWav } from "@/lib/audioEngine";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { cn } from "@/utils/cn";
+import { requestDisplay, stopStream, PermissionError } from "@/lib/permissions";
 
 // The Web Speech API only ever plays audio through the device speakers — it
 // never exposes the synthesized speech as a capturable MediaStream, so there
@@ -43,7 +44,7 @@ export const AudioTextToSpeech: React.FC = () => {
   const effectiveVoiceURI = voiceURI || voices.find((v) => v.lang?.startsWith("id"))?.voiceURI || voices[0]?.voiceURI || "";
 
   const cleanupDisplayStream = () => {
-    displayStreamRef.current?.getTracks().forEach((t) => t.stop());
+    stopStream(displayStreamRef.current);
     displayStreamRef.current = null;
   };
 
@@ -60,7 +61,7 @@ export const AudioTextToSpeech: React.FC = () => {
     setIsRecording(true);
     setRecordStage("Menunggu izin berbagi tab…");
     try {
-      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+      const displayStream = await requestDisplay({
         video: true,
         audio: true,
         // Chrome-only hints so the picker defaults to "share this tab" with
@@ -69,7 +70,7 @@ export const AudioTextToSpeech: React.FC = () => {
         preferCurrentTab: true,
         selfBrowserSurface: "include",
         systemAudio: "include",
-      } as MediaStreamConstraints);
+      } as DisplayMediaStreamOptions);
       displayStreamRef.current = displayStream;
 
       const audioTracks = displayStream.getAudioTracks();
@@ -132,7 +133,9 @@ export const AudioTextToSpeech: React.FC = () => {
       }
     } catch (err: any) {
       stop();
-      if (err?.name === "NotAllowedError") {
+      if (err instanceof PermissionError && err.failure.code !== "dismissed") {
+        setRecordError(`${err.failure.title}. ${err.failure.message}`);
+      } else if (err?.name === "NotAllowedError" || err instanceof PermissionError) {
         setRecordError('Berbagi tab dibatalkan atau ditolak. Coba lagi, pilih "Tab ini", dan pastikan "Bagikan audio tab ini" dicentang.');
       } else {
         setRecordError(err?.message || "Gagal merekam audio.");

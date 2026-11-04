@@ -13,6 +13,7 @@ import { PCM, pcmDuration, resamplePcm, toMono, normalizePeak, removeSilences, e
 import { COMPRESS_PRESETS, encodeOpusOgg, fmtBytes, isOpusEncoderSupported } from "@/lib/audioCompress";
 import { encodeAudioBufferCompressed, getBestCompressedAudioFormat } from "@/lib/audioEngine";
 import { encodeMp3 } from "@/lib/mp3Encoder";
+import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
 
 interface Item {
   id: string;
@@ -227,7 +228,7 @@ export const AudioCompress: React.FC = () => {
                     {it.status === "error" && <p className="text-xs text-red-500">{it.message}</p>}
                     {it.status === "done" && it.result && (
                       <div className="flex flex-wrap items-center gap-2">
-                        <audio controls src={it.result.url} className="h-9 flex-1 min-w-[180px]" />
+                        <GamatoAudioPlayer src={it.result.url} label={outName(it)} className="flex-1 min-w-[220px]" />
                         <Btn variant="secondary" className="text-xs py-1.5" onClick={() => downloadBlob(it.result!.blob, outName(it))} data-testid="acomp-download"><Download className="w-3.5 h-3.5" /> Unduh</Btn>
                       </div>
                     )}

@@ -5,6 +5,8 @@ import { downloadBlob } from "@/lib/file";
 import { Select, Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { copyText as gamatoCopyText, describePermissionError, queryPermission, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
 
 const LANGUAGES = [
   { id: "id-ID", label: "Bahasa Indonesia" },
@@ -21,6 +23,7 @@ export const AudioSpeechToText: React.FC = () => {
   const [interim, setInterim] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [permFail, setPermFail] = useState<PermFailure | null>(null);
   const recognitionRef = useRef<any>(null);
 
   const SpeechRecognitionCtor = typeof window !== "undefined" ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition : null;
@@ -35,6 +38,7 @@ export const AudioSpeechToText: React.FC = () => {
   const start = () => {
     if (!SpeechRecognitionCtor) return;
     setInfo(null);
+    setPermFail(null);
     const recognition = new SpeechRecognitionCtor();
     recognition.lang = lang;
     recognition.continuous = true;
@@ -51,16 +55,34 @@ export const AudioSpeechToText: React.FC = () => {
       if (finalChunk) setTranscript((prev) => (prev ? `${prev} ${finalChunk.trim()}` : finalChunk.trim()));
       setInterim(interimChunk);
     };
-    recognition.onerror = (e: any) => {
-      setInfo(`Terjadi kendala: ${e?.error || "tidak diketahui"}. Coba lagi.`);
+    recognition.onerror = async (e: any) => {
+      const code: string = e?.error || "";
       setIsListening(false);
+      if (code === "aborted") return; // dihentikan pengguna
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        const prior = await queryPermission("microphone");
+        setPermFail(describePermissionError("microphone", { name: "NotAllowedError" }, prior));
+      } else if (code === "audio-capture") {
+        setPermFail(describePermissionError("microphone", { name: "NotFoundError" }));
+      } else if (code === "no-speech") {
+        setInfo("Tidak ada suara terdeteksi. Bicaralah lebih dekat ke mikrofon, lalu coba lagi.");
+      } else if (code === "network") {
+        setInfo("Pengenalan suara memakai layanan bawaan browser dan butuh koneksi internet. Periksa koneksi lalu coba lagi.");
+      } else {
+        setInfo(`Terjadi kendala: ${code || "tidak diketahui"}. Coba lagi.`);
+      }
     };
     recognition.onend = () => {
       setIsListening(false);
       setInterim("");
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch {
+      setInfo("Pengenalan suara tidak bisa dimulai. Tunggu sebentar lalu coba lagi.");
+      return;
+    }
     recognitionRef.current = recognition;
     setIsListening(true);
   };
@@ -72,7 +94,7 @@ export const AudioSpeechToText: React.FC = () => {
 
   const copyText = async () => {
     try {
-      await navigator.clipboard.writeText(transcript);
+      if (!(await gamatoCopyText(transcript))) throw new Error("clipboard");
       setInfo("Teks disalin ke clipboard.");
     } catch {
       setInfo("Gagal menyalin teks.");
@@ -138,6 +160,7 @@ export const AudioSpeechToText: React.FC = () => {
           </div>
         </div>
 
+        <GamatoPermissionNotice failure={permFail} onRetry={start} onDismiss={() => setPermFail(null)} />
         {info && <GamatoInlineAlert message={info} tone="warning" />}
       </div>
 
@@ -145,7 +168,7 @@ export const AudioSpeechToText: React.FC = () => {
         icon={<Mic className="w-5 h-5" />}
         label="Speech to Text"
         desc="Ucapan menjadi teks"
-        points={["Butuh izin mikrofon dari browser saat pertama kali dipakai.", "Bekerja paling baik di ruangan yang tidak berisik.", "Teks hasil transkrip bisa langsung diedit sebelum disalin/diunduh."]}
+        points={["Butuh izin mikrofon dari browser saat pertama kali dipakai.", "Bekerja paling baik di ruangan yang tidak berisik.", "Teks hasil transkrip bisa langsung diedit sebelum disalin/diunduh.", "Catatan: pengenalan suara ini memakai layanan bawaan browser (di Chrome/Edge audio diproses oleh penyedia browser, bukan oleh Gamato). Untuk transkrip yang 100% di perangkat, pakai alat Transkrip Audio."]}
       />
     </div>
   );

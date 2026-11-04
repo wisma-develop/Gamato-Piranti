@@ -8,6 +8,10 @@ import { Btn, Input, Label, Select } from "@/components/ui/primitives";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { requestMicrophone, stopStream, PermissionError, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
+import { useMediaDevices } from "@/hooks/useMediaDevices";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
@@ -22,6 +26,8 @@ import {
   topKeywords, type FormatOptions, type Segment, type TranscriptMeta,
 } from "@/lib/transcriptEngine";
 import { buildTranscriptDocx, buildTranscriptPdf, hasNonLatin } from "@/lib/transcriptDocs";
+import { copyText as gamatoCopyText } from "@/lib/permissions";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
 
 /* ───────────────────────────── helpers ───────────────────────────── */
 
@@ -68,10 +74,10 @@ const SegmentRow = React.memo(function SegmentRow({
           </button>
         )}
         {showSpeaker && (
-          <select value={seg.speaker ?? ""} onChange={(e) => onSpeaker(seg.id, e.target.value === "" ? null : parseInt(e.target.value))} aria-label="Pembicara" data-testid="seg-speaker" className={cn("text-[11px] font-semibold rounded-md border px-1.5 py-0.5 focus:outline-none", seg.speaker != null ? SPEAKER_STYLES[seg.speaker % SPEAKER_STYLES.length] : "text-slate-500 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800")}>
+          <GamatoSelect compact wrapperClassName="w-auto" value={seg.speaker == null ? "" : String(seg.speaker)} onChange={(e) => onSpeaker(seg.id, e.target.value === "" ? null : parseInt(e.target.value))} aria-label="Pembicara" data-testid="seg-speaker" className={cn("px-1.5 py-0.5 text-[11px] rounded-md font-semibold", seg.speaker != null ? SPEAKER_STYLES[seg.speaker % SPEAKER_STYLES.length] : "text-slate-500")}>
             <option value="">— Pembicara —</option>
-            {speakers.map((s, i) => <option key={i} value={i}>{s}</option>)}
-          </select>
+            {speakers.map((s, i) => <option key={i} value={String(i)}>{s}</option>)}
+          </GamatoSelect>
         )}
         <div className="flex-1" />
         <div className="flex items-center gap-0.5 text-slate-400">
@@ -148,6 +154,9 @@ export const AudioTranscript: React.FC = () => {
   const openRef = useRef<HTMLInputElement>(null);
   const recRef = useRef<{ mr: MediaRecorder; stream: MediaStream; timer: number } | null>(null);
   const [recording, setRecording] = useState<number | null>(null);
+  const [micFail, setMicFail] = useState<PermFailure | null>(null);
+  const [micId, setMicId] = useState("");
+  const { devices: mics, refresh: refreshMics } = useMediaDevices("audioinput");
 
   const duration = src?.duration ?? (segments.length ? Math.max(...segments.map((s) => s.end)) : 0);
   const running = run.stage === "prepare" || run.stage === "download" || run.stage === "loading" || run.stage === "transcribing";
@@ -316,27 +325,33 @@ export const AudioTranscript: React.FC = () => {
 
   /* ── recording ── */
   const startRecording = async () => {
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") return msg("Browser ini tidak mendukung perekaman audio.", "error");
+    if (typeof MediaRecorder === "undefined") return msg("Browser ini tidak mendukung perekaman audio.", "error");
+    setMicFail(null);
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
+      stream = await requestMicrophone(micId ? { deviceId: { exact: micId } } : true);
+      void refreshMics();
+      const media = stream;
+      const mr = new MediaRecorder(media);
       const chunks: Blob[] = [];
       mr.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
       const t0 = Date.now();
       const timer = window.setInterval(() => setRecording((Date.now() - t0) / 1000), 250);
       mr.onstop = () => {
         window.clearInterval(timer);
-        stream.getTracks().forEach((t) => t.stop());
+        stopStream(media);
         recRef.current = null;
         setRecording(null);
         const blob = new Blob(chunks, { type: mr.mimeType || "audio/webm" });
         loadSource(new File([blob], "rekaman.webm", { type: blob.type }));
       };
       mr.start();
-      recRef.current = { mr, stream, timer };
+      recRef.current = { mr, stream: media, timer };
       setRecording(0);
     } catch (e: any) {
-      msg(e?.name === "NotAllowedError" ? "Izin mikrofon ditolak. Aktifkan izin mikrofon di pengaturan browser." : `Tidak bisa mengakses mikrofon: ${e?.message ?? e}`, "error");
+      stopStream(stream);
+      if (e instanceof PermissionError) setMicFail(e.failure);
+      else msg(`Tidak bisa merekam: ${e?.message ?? e}`, "error");
     }
   };
   const stopRecording = () => { const r = recRef.current; if (r && r.mr.state !== "inactive") r.mr.stop(); };
@@ -474,7 +489,7 @@ export const AudioTranscript: React.FC = () => {
 
   const copyText = async () => {
     try {
-      await navigator.clipboard.writeText(exportClipboardText(meta, paragraphs, { timestamps: expTime, speakers: expSpeakers }));
+      if (!(await gamatoCopyText(exportClipboardText(meta, paragraphs, { timestamps: expTime, speakers: expSpeakers })))) throw new Error("clipboard");
       msg("Transkrip disalin ke clipboard.", "success");
     } catch {
       msg("Gagal menyalin — izin clipboard ditolak browser.", "error");
@@ -513,6 +528,8 @@ export const AudioTranscript: React.FC = () => {
             )}
             <Btn variant="secondary" onClick={() => importRef.current?.click()} data-testid="btn-import"><FileUp className="w-4 h-4" /> Impor transkrip (.srt / .vtt / .txt)</Btn>
           </div>
+          {mics.length > 1 && recording == null && <div className="max-w-xs mx-auto"><MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>}
+          <GamatoPermissionNotice failure={micFail} onRetry={startRecording} onDismiss={() => setMicFail(null)} />
           {run.stage === "prepare" && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300"><Loader2 className="w-4 h-4 animate-spin" />{run.msg}</div>}
           {run.stage === "error" && <GamatoInlineAlert tone="error" message={run.message} />}
           {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
@@ -556,9 +573,9 @@ export const AudioTranscript: React.FC = () => {
                     <span className="font-mono text-xs text-slate-600 dark:text-slate-300 w-12 text-right" data-testid="cur-time">{fmtTime(curTime)}</span>
                     <div className="flex-1"><GamatoSlider min={0} max={Math.max(1, src.duration)} step={0.1} value={Math.min(curTime, src.duration)} onChange={(v) => { if (audioRef.current) { audioRef.current.currentTime = v; setCurTime(v); } }} aria-label="Posisi audio" /></div>
                     <span className="font-mono text-xs text-slate-400 w-12">{fmtTime(src.duration)}</span>
-                    <select value={rate} onChange={(e) => setRate(parseFloat(e.target.value))} aria-label="Kecepatan putar" className="text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 py-1">
-                      {[0.75, 1, 1.25, 1.5, 2].map((r) => <option key={r} value={r}>{r}×</option>)}
-                    </select>
+                    <GamatoSelect compact wrapperClassName="w-20" value={String(rate)} onChange={(e) => setRate(parseFloat(e.target.value))} aria-label="Kecepatan putar">
+                      {[0.75, 1, 1.25, 1.5, 2].map((r) => <option key={r} value={String(r)}>{r}×</option>)}
+                    </GamatoSelect>
                   </div>
                 )}
               </div>

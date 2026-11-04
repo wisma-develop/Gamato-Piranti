@@ -7,6 +7,8 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { requestMicrophone, stopStream, ensureAudioRunning, PermissionError, type PermFailure } from "@/lib/permissions";
 import { SettingsTabBar } from "@/components/ui/SettingsTabs";
 import { FontPicker } from "@/components/ui/FontPicker";
 import { LogoUpload } from "@/components/ui/LogoUpload";
@@ -70,6 +72,7 @@ export const AudioVisualizer: React.FC = () => {
   const [current, setCurrent] = useState(0);
   const [range, setRange] = useState<[number, number]>([0, 0]);
   const [micOn, setMicOn] = useState(false);
+  const [micFail, setMicFail] = useState<PermFailure | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const micRef = useRef<{ ctx: AudioContext; stream: MediaStream; source: AnalyserSource } | null>(null);
@@ -155,7 +158,7 @@ export const AudioVisualizer: React.FC = () => {
   function stopMic() {
     const m = micRef.current;
     if (m) {
-      m.stream.getTracks().forEach((t) => t.stop());
+      stopStream(m.stream);
       m.ctx.close().catch(() => {});
       micRef.current = null;
     }
@@ -163,19 +166,26 @@ export const AudioVisualizer: React.FC = () => {
   }
   const toggleMic = async () => {
     if (micOn) return stopMic();
+    setMicFail(null);
+    let stream: MediaStream | null = null;
+    let ctx: AudioContext | null = null;
     try {
       audioRef.current?.pause();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      stream = await requestMicrophone({ echoCancellation: false, noiseSuppression: false, autoGainControl: false });
       const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx: AudioContext = new Ctx();
+      ctx = new Ctx() as AudioContext;
+      await ensureAudioRunning(ctx);
       const an = ctx.createAnalyser();
       an.fftSize = 8192;
       ctx.createMediaStreamSource(stream).connect(an);
       micRef.current = { ctx, stream, source: new AnalyserSource(an, ctx.sampleRate) };
       setMicOn(true);
       setAlert({ msg: "Mikrofon aktif — hanya untuk pratinjau live. Ekspor memakai berkas audio.", tone: "info" });
-    } catch {
-      setAlert({ msg: "Mikrofon tidak bisa diakses (izin ditolak atau tidak ada perangkat).", tone: "error" });
+    } catch (e) {
+      stopStream(stream);
+      ctx?.close().catch(() => {});
+      if (e instanceof PermissionError) setMicFail(e.failure);
+      else setAlert({ msg: "Mikrofon tidak bisa dipakai. Coba lagi.", tone: "error" });
     }
   };
   useEffect(() => () => { stopMic(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -387,6 +397,7 @@ export const AudioVisualizer: React.FC = () => {
             {micOn ? <><MicOff className="w-4 h-4" />Matikan mikrofon</> : <><Mic className="w-4 h-4" />Atau pratinjau dari mikrofon (live)</>}
           </button>
         )}
+        <GamatoPermissionNotice failure={micFail} onRetry={toggleMic} onDismiss={() => setMicFail(null)} />
         {alert && <GamatoInlineAlert message={alert.msg} tone={alert.tone} />}
         <audio ref={audioRef} src={audioUrl ?? undefined} preload="auto" className="hidden" style={{ display: "none" }} />
       </div>

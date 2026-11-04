@@ -34,6 +34,7 @@ import {
   type FocusY,
 } from "@/lib/photoPrintEngine";
 import { PAPER_SIZES, PHOTO_SIZES, getPaperSize, getPhotoSize } from "@/lib/photoPrintPresets";
+import { GamatoSelect } from "@/components/ui/GamatoSelect";
 
 let itemCounter = 0;
 const newItemId = () => `print-item-${Date.now()}-${itemCounter++}`;
@@ -321,24 +322,26 @@ export const PhotoPrintLayout: React.FC = () => {
                       {state.fitMode === "cover" && (
                         <div className="flex items-center gap-1.5">
                           <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">Fokus potong:</span>
-                          <select
+                          <GamatoSelect
+                            compact
+                            aria-label="Fokus potong horizontal"
                             value={item.focusX}
                             onChange={(e) => updateItem(item.id, { focusX: e.target.value as FocusX })}
-                            className="text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 py-1 px-1.5"
                           >
                             {FOCUS_X_OPTIONS.map((o) => (
                               <option key={o.id} value={o.id}>{o.label}</option>
                             ))}
-                          </select>
-                          <select
+                          </GamatoSelect>
+                          <GamatoSelect
+                            compact
+                            aria-label="Fokus potong vertikal"
                             value={item.focusY}
                             onChange={(e) => updateItem(item.id, { focusY: e.target.value as FocusY })}
-                            className="text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 py-1 px-1.5"
                           >
                             {FOCUS_Y_OPTIONS.map((o) => (
                               <option key={o.id} value={o.id}>{o.label}</option>
                             ))}
-                          </select>
+                          </GamatoSelect>
                         </div>
                       )}
                     </div>

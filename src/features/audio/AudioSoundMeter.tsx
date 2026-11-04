@@ -3,6 +3,10 @@ import { Mic, MicOff, Gauge } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { requestMicrophone, stopStream, ensureAudioRunning, PermissionError, type PermFailure } from "@/lib/permissions";
+import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
+import { useMediaDevices } from "@/hooks/useMediaDevices";
 
 function levelInfo(pct: number): { label: string; tone: string } {
   if (pct < 15) return { label: "Hening", tone: "text-emerald-500 dark:text-emerald-400" };
@@ -18,6 +22,9 @@ export const AudioSoundMeter: React.FC = () => {
   const [peak, setPeak] = useState(0);
   const [dbfs, setDbfs] = useState<number>(-Infinity);
   const [error, setError] = useState<string | null>(null);
+  const [permFail, setPermFail] = useState<PermFailure | null>(null);
+  const [micId, setMicId] = useState("");
+  const { devices: mics, refresh: refreshMics } = useMediaDevices("audioinput");
 
   const streamRef = useRef<MediaStream | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -27,7 +34,7 @@ export const AudioSoundMeter: React.FC = () => {
   const stop = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
+    stopStream(streamRef.current);
     streamRef.current = null;
     if (audioCtxRef.current) {
       audioCtxRef.current.close().catch(() => {});
@@ -42,13 +49,17 @@ export const AudioSoundMeter: React.FC = () => {
 
   const start = useCallback(async () => {
     setError(null);
+    setPermFail(null);
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await requestMicrophone(micId ? { deviceId: { exact: micId } } : true);
+      void refreshMics();
       streamRef.current = stream;
 
       const AudioCtx: typeof AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
+      await ensureAudioRunning(ctx);
 
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
@@ -80,14 +91,15 @@ export const AudioSoundMeter: React.FC = () => {
       };
       loop();
     } catch (err: any) {
+      stopStream(stream);
+      streamRef.current = null;
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
       setIsActive(false);
-      setError(
-        err?.name === "NotAllowedError"
-          ? "Izin mikrofon ditolak. Aktifkan akses mikrofon di pengaturan browser untuk memakai alat ini."
-          : "Gagal mengakses mikrofon. Pastikan perangkatmu punya mikrofon yang aktif."
-      );
+      if (err instanceof PermissionError) setPermFail(err.failure);
+      else setError("Gagal memulai pengukuran. Coba lagi.");
     }
-  }, []);
+  }, [micId, refreshMics]);
 
   useEffect(() => {
     return () => stop();
@@ -136,6 +148,10 @@ export const AudioSoundMeter: React.FC = () => {
               )}
             </Btn>
 
+            {mics.length > 1 && !isActive && (
+              <div className="w-full max-w-xs"><MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>
+            )}
+            <GamatoPermissionNotice failure={permFail} onRetry={start} onDismiss={() => setPermFail(null)} className="w-full max-w-md" />
             {error && <p className="text-sm text-red-600 dark:text-red-400 text-center max-w-sm">{error}</p>}
           </div>
         </div>
