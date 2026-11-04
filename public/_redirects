@@ -1,1 +1,3 @@
+# SPA fallback (Cloudflare Pages / Netlify). Pengalihan host lama → https://gamatopiranti.zone.id
+# ditangani di vercel.json (host-based) dan skrip kecil di index.html (berlaku di hosting mana pun).
 /*    /index.html   200

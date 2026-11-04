@@ -65,3 +65,10 @@ Laporan bug dan saran fitur sangat diterima melalui Issues. Pastikan untuk tidak
 ---
 
 © 2025 Gamato Piranti · Dikembangkan oleh **WisDev**
+
+## Domain & izin (v2.10)
+
+- Domain resmi: **https://gamatopiranti.zone.id** — konstanta di `src/lib/site.ts`. Host lama (`gamato-piranti.vercel.app`, `www.…`) dialihkan otomatis.
+- Pastikan di dashboard hosting: tambahkan `gamatopiranti.zone.id` sebagai domain utama (DNS CNAME/A sesuai petunjuk Vercel), dan `www` sebagai alias agar redirect berjalan.
+- Header keamanan & `Permissions-Policy` ada di `vercel.json` (dan `public/_headers`). Jangan menambah `geolocation=()` / `camera=()` — itu memblokir fitur.
+- Semua akses kamera/mikrofon/lokasi/clipboard/tangkap layar lewat `src/lib/permissions.ts`.
