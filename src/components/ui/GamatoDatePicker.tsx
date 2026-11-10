@@ -68,9 +68,14 @@ export function GamatoDatePicker({
   const wrapRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // Bulan/hari fokus ditetapkan SAAT dibuka (bukan di effect) — supaya render pertama langsung benar, tanpa kedip bulan lama.
+  const toggleOpen = () => {
+    if (!open) setFocusDay(selected ?? new Date());
+    setOpen((v) => !v);
+  };
+
   useEffect(() => {
     if (!open) return;
-    setFocusDay(selected ?? new Date());
     const r = wrapRef.current?.getBoundingClientRect();
     if (r) setAlignRight(r.left + 288 > window.innerWidth - 8 && r.right - 288 >= 8);
     const onDown = (e: MouseEvent | TouchEvent) => {
@@ -124,7 +129,7 @@ export function GamatoDatePicker({
         id={fieldId}
         type="button"
         disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleOpen}
         aria-haspopup="dialog"
         aria-expanded={open}
         data-value={value ?? ""}

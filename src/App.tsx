@@ -109,6 +109,7 @@ import { KwitansiGenerator } from "@/features/special/KwitansiGenerator";
 import { InvoiceGenerator } from "@/features/special/InvoiceGenerator";
 import { StrukGenerator } from "@/features/special/StrukGenerator";
 import { BusinessCardGenerator } from "@/features/special/BusinessCardGenerator";
+import { NametagGenerator } from "@/features/special/NametagGenerator";
 import { CvMaker } from "@/features/special/CvMaker";
 import { CouponGenerator } from "@/features/special/CouponGenerator";
 import { LetterGenerator } from "@/features/special/LetterGenerator";
@@ -774,6 +775,14 @@ export const App: FC = () => (
           element={
             <PageShell badge="Spesial" title="Struk / Nota" subtitle="Struk kasir custom dengan logo — export PNG & PDF, cetak langsung ke printer USB/Bluetooth.">
               <StrukGenerator />
+            </PageShell>
+          }
+        />
+        <Route
+          path="special/name-tag"
+          element={
+            <PageShell badge="Spesial" title="Name Tag Studio" subtitle="Generator name tag, badge acara & ID card full custom: template siap pakai, warna otomatis per peran, foto, QR/barcode, lubang tali, meja nama lipat — satu per satu atau massal dari tabel/CSV/XLSX.">
+              <NametagGenerator />
             </PageShell>
           }
         />

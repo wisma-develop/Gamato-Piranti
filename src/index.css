@@ -194,3 +194,8 @@ textarea:focus-visible {
 .leaflet-container { font-family: inherit; z-index: 0; }
 .leaflet-container img, .leaflet-container canvas, .leaflet-container svg { max-width: none !important; max-height: none !important; }
 .gp-pin, .gp-num { background: transparent; border: 0; }
+
+/* ── Peta mode malam: ubin OpenStreetMap digelapkan di browser (tanpa API/penyedia peta lain) ── */
+.leaflet-layer.gp-tiles-dark {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.7);
+}

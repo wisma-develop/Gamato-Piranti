@@ -103,6 +103,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
     'invoice': 'Invoice',
     'struk': 'Struk / Nota',
     'kartu-nama': 'Kartu Nama',
+    'name-tag': 'Name Tag Studio',
     'kupon': 'Kupon, Voucher & Tiket',
     'surat': 'Pembuat Surat',
     'sertifikat': 'Sertifikat & Piagam',

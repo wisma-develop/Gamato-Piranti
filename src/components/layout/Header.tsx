@@ -26,6 +26,7 @@ import {
   RefreshCw,
   LayoutGrid,
   MapPin,
+  Tag,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
@@ -190,6 +191,7 @@ export const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: Re
       { name: 'Invoice',             path: '/special/invoice',    icon: <FileSpreadsheet className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Struk / Nota',        path: '/special/struk',      icon: <ShoppingBag className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Kartu Nama',          path: '/special/kartu-nama', icon: <IdCard className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
+      { name: 'Name Tag',            path: '/special/name-tag',   icon: <Tag className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Pembuat Surat', path: '/special/surat', icon: <MailOpen className="w-4 h-4 text-sky-500" />, section: 'Dokumen Bisnis' },
       { name: 'Kupon, Voucher & Tiket', path: '/special/kupon',    icon: <TicketPercent className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
       { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
