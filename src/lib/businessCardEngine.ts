@@ -67,7 +67,7 @@ function drawImageContain(ctx: CanvasRenderingContext2D, img: HTMLImageElement, 
 
 // ── Background ───────────────────────────────────────────────────────────
 
-function drawBackground(ctx: CanvasRenderingContext2D, bg: CardBackground, w: number, h: number, img: HTMLImageElement | null) {
+export function drawBackground(ctx: CanvasRenderingContext2D, bg: CardBackground, w: number, h: number, img: HTMLImageElement | null) {
   if (bg.type === "solid") {
     ctx.fillStyle = bg.color || "#ffffff";
     ctx.fillRect(0, 0, w, h);
@@ -161,7 +161,7 @@ function drawTextElement(ctx: CanvasRenderingContext2D, el: CardTextElement, dat
 
 // ── Shapes ───────────────────────────────────────────────────────────────
 
-function drawShapeElement(ctx: CanvasRenderingContext2D, el: CardShapeElement, w: number, h: number) {
+export function drawShapeElement(ctx: CanvasRenderingContext2D, el: CardShapeElement, w: number, h: number) {
   const cx = (el.xPct / 100) * w;
   const cy = (el.yPct / 100) * h;
   const bw = (el.widthPct / 100) * w;
@@ -205,7 +205,7 @@ function drawShapeElement(ctx: CanvasRenderingContext2D, el: CardShapeElement, w
 
 // ── Images ───────────────────────────────────────────────────────────────
 
-async function drawImageElement(ctx: CanvasRenderingContext2D, el: CardImageElement, w: number, h: number, cache: Map<string, HTMLImageElement>) {
+export async function drawImageElement(ctx: CanvasRenderingContext2D, el: CardImageElement, w: number, h: number, cache: Map<string, HTMLImageElement>) {
   const img = await loadImageCached(el.src, cache);
   if (!img) return;
   const cx = (el.xPct / 100) * w;
