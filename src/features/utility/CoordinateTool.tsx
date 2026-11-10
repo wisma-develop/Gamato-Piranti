@@ -34,12 +34,13 @@ type BaseId = "offline" | "osm" | "topo" | "sat" | "dark";
 const card = "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4";
 const cap = "text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500";
 
-const BASES: { id: BaseId; label: string; url?: string; attr?: string; max: number; sub?: string[] }[] = [
+const BASES: { id: BaseId; label: string; url?: string; attr?: string; max: number; sub?: string[]; cls?: string }[] = [
   { id: "offline", label: "Peta dunia offline (vektor)", max: 18 },
   { id: "osm", label: "OpenStreetMap", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", attr: "© OpenStreetMap contributors", max: 19 },
   { id: "topo", label: "Topografi (OpenTopoMap)", url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", attr: "© OpenStreetMap, SRTM | © OpenTopoMap (CC-BY-SA)", max: 17, sub: ["a", "b", "c"] },
   { id: "sat", label: "Citra satelit (Esri)", url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr: "Tiles © Esri — Esri, Maxar, Earthstar Geographics", max: 18 },
-  { id: "dark", label: "Gelap (CARTO)", url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png", attr: "© OpenStreetMap contributors © CARTO", max: 19, sub: ["a", "b", "c", "d"] },
+  // Mode malam TANPA penyedia/API tambahan: ubin OpenStreetMap yang sama, digelapkan di browser lewat filter CSS (.gp-tiles-dark).
+  { id: "dark", label: "Gelap (mode malam OSM)", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", attr: "© OpenStreetMap contributors", max: 19, cls: "gp-tiles-dark" },
 ];
 
 const pinIcon = (color: string) =>
@@ -237,7 +238,7 @@ export const CoordinateTool: React.FC = () => {
     setTileWarn(false);
     const b = BASES.find((x) => x.id === base)!;
     if (!b.url) return;
-    const layer = L.tileLayer(b.url, { attribution: b.attr, maxZoom: b.max, subdomains: b.sub ?? "abc", crossOrigin: false, noWrap: true });
+    const layer = L.tileLayer(b.url, { attribution: b.attr, maxZoom: b.max, subdomains: b.sub ?? "abc", crossOrigin: false, noWrap: true, className: b.cls });
     layer.on("tileerror", () => { tileErrRef.current += 1; if (tileErrRef.current >= 4) setTileWarn(true); });
     layer.on("tileload", () => { if (tileErrRef.current < 4) setTileWarn(false); });
     layer.addTo(map);
@@ -867,7 +868,7 @@ export const CoordinateTool: React.FC = () => {
               </div>
               <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-xs text-slate-500 dark:text-slate-400 space-y-1">
                 <p><b>Privasi:</b> konversi, parsing, jarak, daftar titik, ekspor, dan deteksi negara berjalan <b>sepenuhnya offline</b> di perangkat.</p>
-                <p>Hanya ubin peta (OpenStreetMap/OpenTopoMap/Esri/CARTO), pencarian tempat/alamat (Nominatim), dan ketinggian (Open-Meteo) memakai internet — dan baru dipanggil bila Anda memakainya. Pilih “Peta dunia offline” untuk tanpa jaringan.</p>
+                <p>Hanya ubin peta (OpenStreetMap/OpenTopoMap/Esri), pencarian tempat/alamat (Nominatim), dan ketinggian (Open-Meteo) memakai internet — dan baru dipanggil bila Anda memakainya. Pilih “Peta dunia offline” untuk tanpa jaringan.</p>
               </div>
             </div>
           )}
