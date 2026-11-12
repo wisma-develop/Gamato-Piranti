@@ -76,3 +76,9 @@ Laporan bug dan saran fitur sangat diterima melalui Issues. Pastikan untuk tidak
 ## Name Tag Studio (v2.11)
 
 Menu Spesial → **Name Tag** (`/special/name-tag`): 11 template, editor depan/belakang, warna otomatis per peran, foto per orang, QR/barcode berisi data tiap orang, lubang tali, meja nama lipat, dan mode massal dari CSV/XLSX (ZIP PNG, PDF, lembar cetak). Kode: `src/lib/nametag{Types,Engine,Bulk}.ts`, `src/features/special/Nametag{Generator,Bulk}.tsx`.
+
+## Pencarian alat & popover (v2.12)
+
+- Tekan **Ctrl/⌘ + K** (atau `/`) di halaman mana pun untuk mencari alat. Indeks otomatis dibangun dari `menuGroups` di `components/layout/Header.tsx` — tambahkan alat baru di menu, ia langsung bisa dicari (sinonim tambahan opsional di `lib/toolIndex.ts`).
+- Popover baru **wajib** memakai `components/ui/AnchoredPortal.tsx` (portal + posisi fixed). Jangan membuat panel `absolute` di dalam kartu — terpotong `overflow-hidden` dan bisa tertutup kartu lain.
+- Gaya global yang harus ada di `@layer` (bukan unlayered): `min-width` reset & `svg{display:block}`; aturan unlayered mengalahkan semua utilitas Tailwind.
