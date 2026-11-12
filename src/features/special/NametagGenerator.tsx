@@ -433,7 +433,7 @@ export function NametagGenerator() {
               {design.roles.map((r, i) => (
                 <div key={i} className="flex items-center gap-2" data-testid="nt-role-row">
                   <Input value={r.role} onChange={(e) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, role: e.target.value } : x)), { continuous: true })} aria-label={`Nama peran ${i + 1}`} className="!py-2" />
-                  <GamatoColorPicker value={r.color} onChange={(c) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, color: c } : x)))} />
+                  <GamatoColorPicker compact label={`Warna ${r.role || "peran"}`} value={r.color} onChange={(c) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, color: c } : x)))} />
                   <button type="button" aria-label="Hapus peran" onClick={() => setRoles(design.roles.filter((_, k) => k !== i))} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}

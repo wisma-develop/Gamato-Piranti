@@ -35,7 +35,7 @@ export const UtilityMediaLink: React.FC = () => {
 
   return (
     <PanelCard title="Helper Link & Media" subtitle="Analisis link video/file untuk unduhan langsung">
-      <div className="space-y-4 max-w-xl">
+      <div className="space-y-4 max-w-xl mx-auto w-full">
         <Input label="URL Video / File" type="url" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://example.com/video.mp4" />
         <Btn onClick={analyzeMedia} variant="secondary" className="gap-2">
           <Info className="w-4 h-4" />Analisis Link

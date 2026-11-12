@@ -31,7 +31,7 @@ export const UtilityStatistics: React.FC = () => {
 
   return (
     <PanelCard title="Statistik Sederhana" subtitle="Mean, median, min, max, standar deviasi">
-      <div className="space-y-4 max-w-lg">
+      <div className="space-y-4 max-w-lg mx-auto w-full">
         <Textarea label="Angka (pisahkan dengan spasi, koma, atau baris baru)" rows={5} value={statsInput} onChange={(e) => setStatsInput(e.target.value)} placeholder={"10 20 30 40 50\natau\n1, 2, 3, 4, 5"} />
         <Btn onClick={runStats} className="w-full gap-2">
           <BarChart3 className="w-4 h-4" />Analisis

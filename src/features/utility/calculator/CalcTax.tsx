@@ -32,7 +32,7 @@ export const CalcTax: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-xl">
+    <div className="space-y-4 max-w-xl mx-auto w-full">
       <div className="grid grid-cols-2 gap-4">
         <MoneyInput label="Nilai Dasar (Rp)" value={taxBase} onChange={setTaxBase} placeholder="1000000" prefix="Rp" />
         <Input label="Tarif Pajak (%)" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="11" />

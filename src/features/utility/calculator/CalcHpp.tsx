@@ -69,7 +69,7 @@ export const CalcHpp: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6 max-w-xl mx-auto w-full">
       <div>
         <Label>Jenis Usaha</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">

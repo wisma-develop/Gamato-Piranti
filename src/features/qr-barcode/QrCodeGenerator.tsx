@@ -734,7 +734,7 @@ export function QrCodeGenerator() {
           <div className="flex items-center justify-center gap-2">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Preview Real-time</p>
             <GamatoTooltip label="Muat ulang preview bila tidak muncul" side="top">
-              <button type="button" onClick={refreshPreview} className="text-slate-300 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
+              <button type="button" onClick={refreshPreview} className="p-1.5 -m-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </GamatoTooltip>

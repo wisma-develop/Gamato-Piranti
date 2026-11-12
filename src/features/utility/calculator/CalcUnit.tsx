@@ -151,7 +151,7 @@ export const CalcUnit: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-xl">
+    <div className="space-y-4 max-w-xl mx-auto w-full">
       <div className="flex flex-wrap gap-2">
         {CATEGORIES.map((c) => (
           <button

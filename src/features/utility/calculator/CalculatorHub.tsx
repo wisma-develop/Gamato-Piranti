@@ -30,7 +30,7 @@ export const CalculatorHub: React.FC = () => {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap justify-center gap-2">
         {CALCULATORS.map((c) => (
           <button
             key={c.id}

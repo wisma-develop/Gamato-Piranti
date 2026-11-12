@@ -29,7 +29,7 @@ export const CalcInterest: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-xl">
+    <div className="space-y-4 max-w-xl mx-auto w-full">
       <div className="grid grid-cols-2 gap-4">
         <MoneyInput label="Pokok (Rp)" value={princ} onChange={setPrinc} placeholder="5000000" prefix="Rp" />
         <Input label="Bunga Tahunan (%)" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="10" />

@@ -34,7 +34,7 @@ export const CalcInvestment: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-xl">
+    <div className="space-y-4 max-w-xl mx-auto w-full">
       <div className="grid grid-cols-2 gap-4">
         <MoneyInput label="Modal Awal (Rp)" value={initial} onChange={setInitial} placeholder="5000000" prefix="Rp" />
         <MoneyInput label="Setoran Rutin / Bulan (Rp)" value={monthly} onChange={setMonthly} placeholder="500000" prefix="Rp" />

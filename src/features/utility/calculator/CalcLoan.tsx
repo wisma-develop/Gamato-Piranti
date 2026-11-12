@@ -29,7 +29,7 @@ export const CalcLoan: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-xl">
+    <div className="space-y-4 max-w-xl mx-auto w-full">
       <div className="grid grid-cols-2 gap-4">
         <MoneyInput label="Jumlah Pinjaman (Rp)" value={principal} onChange={setPrincipal} placeholder="20000000" prefix="Rp" />
         <Input label="Bunga per Tahun (%)" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="6" />

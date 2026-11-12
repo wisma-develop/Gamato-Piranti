@@ -31,7 +31,7 @@ export const UtilityInterestCalculator: React.FC = () => {
 
   return (
     <PanelCard title="Kalkulator Bunga" subtitle="Hitung bunga sederhana & majemuk">
-      <div className="space-y-4 max-w-xl">
+      <div className="space-y-4 max-w-xl mx-auto w-full">
         <div className="grid grid-cols-2 gap-4">
           <MoneyInput label="Pokok (Rp)" value={princ} onChange={setPrinc} placeholder="5000000" prefix="Rp" />
           <Input label="Bunga Tahunan (%)" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="10" />

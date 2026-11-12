@@ -44,7 +44,7 @@ export const CalcFormula: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 max-w-xl">
+    <div className="space-y-4 max-w-xl mx-auto w-full">
       <Textarea
         label="Rumus"
         rows={2}

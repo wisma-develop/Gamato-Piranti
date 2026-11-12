@@ -34,7 +34,7 @@ export const UtilityAliasEmail: React.FC = () => {
 
   return (
     <PanelCard title="Alias & Temp Email Planner" subtitle="Buat alamat email alternatif untuk pendaftaran">
-      <div className="space-y-4 max-w-lg">
+      <div className="space-y-4 max-w-lg mx-auto w-full">
         <Input label="Email Utama (opsional — untuk plus-address)" type="email" value={baseEmail} onChange={(e) => setBaseEmail(sanitizeText(e.target.value))} placeholder="nama@gmail.com" />
         <Input label="Domain Alternatif" value={aliasDomain} onChange={(e) => setAliasDomain(sanitizeText(e.target.value))} placeholder="tempmail.com" />
         <div className="flex gap-3">
