@@ -1,6 +1,7 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Speaker, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
 import { canSelectAudioOutput, listMediaDevices, pickAudioOutput, setMediaSink, type MediaDeviceOption } from "@/lib/permissions";
 
 /**
@@ -22,6 +23,10 @@ export function GamatoSpeakerButton({
   const [active, setActive] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const supported = canSelectAudioOutput();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement | null>(null);
+  useOutsideClose(open, [wrapRef, popRef], () => setOpen(false));
+  useEscapeClose(open, () => setOpen(false));
 
   useEffect(() => {
     if (!open) return;
@@ -47,7 +52,7 @@ export function GamatoSpeakerButton({
   };
 
   return (
-    <div className={cn("relative", className)}>
+    <div ref={wrapRef} className={cn("relative", className)}>
       <button
         type="button"
         onClick={onClick}
@@ -58,8 +63,7 @@ export function GamatoSpeakerButton({
       >
         <Speaker className="w-4 h-4" />
       </button>
-      {open && (
-        <div role="listbox" className="absolute bottom-full right-0 mb-2 z-30 min-w-[190px] max-w-[260px] bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl">
+      <AnchoredPortal anchorRef={wrapRef} open={open} side="top" align="end" offset={8} panelRef={popRef} role="listbox" aria-label="Pilih speaker" className="min-w-[190px] max-w-[260px] bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl">
           <button type="button" role="option" aria-selected={active === ""} onClick={() => choose("")} className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-semibold text-white/85 hover:bg-white/10 text-left">
             <span className="truncate">Speaker bawaan</span>{active === "" && <Check className="w-3 h-3 text-indigo-300" />}
           </button>
@@ -69,8 +73,7 @@ export function GamatoSpeakerButton({
             </button>
           ))}
           {note && <p className="px-3 py-1.5 text-[11px] text-amber-300">{note}</p>}
-        </div>
-      )}
+      </AnchoredPortal>
     </div>
   );
 }

@@ -105,7 +105,7 @@ export default function About() {
                 <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-2.5 rounded-xl shrink-0 text-slate-500 dark:text-slate-400">{g.icon}</div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <Link to={g.rootPath} className="font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{g.title}</Link>
+                    <Link to={g.rootPath} className="inline-block py-1.5 font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{g.title}</Link>
                     <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full px-2 py-0.5">{g.items.length} alat</span>
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{GROUP_BLURB[g.id]}</p>
@@ -133,10 +133,10 @@ export default function About() {
       {/* Craft & commitment */}
       <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }} className="bg-slate-900 dark:ring-1 dark:ring-slate-800 rounded-3xl p-8 md:p-10 text-white">
         <h2 className="text-2xl font-bold mb-4">Dirawat dengan serius, dikembangkan berkelanjutan</h2>
-        <p className="text-slate-400 leading-relaxed max-w-2xl">
+        <p className="text-slate-300 leading-relaxed max-w-2xl">
           Setiap alat di Gamato Piranti dirancang, diuji, dan diperbarui secara berkala untuk menjaga performa, kompatibilitas, dan keamanan. Kami terus mendengarkan masukan pengguna untuk membuat setiap alat semakin relevan dengan kebutuhan sehari-hari.
         </p>
-        <div className="flex items-center gap-2 text-slate-400 text-sm border-t border-slate-800 mt-8 pt-6">
+        <div className="flex items-center gap-2 text-slate-300 text-sm border-t border-slate-800 mt-8 pt-6">
           <Heart className="w-4 h-4 text-red-400" />
           <span>Dikembangkan & dirawat oleh</span>
           <span className="text-white font-bold text-base">WisDev</span>

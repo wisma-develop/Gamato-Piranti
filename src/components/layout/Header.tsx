@@ -28,9 +28,10 @@ import {
   MapPin,
   Tag,
 } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { GamatoTooltip } from '@/components/ui/GamatoTooltip';
+import { SearchTrigger } from '@/components/search/ToolSearch';
 
 export type DropGroup = 'kode' | 'dokumen' | 'office' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
 
@@ -242,6 +243,15 @@ function GroupedItems({ items, onNavigate, dense }: { items: MenuItem[]; onNavig
 }
 
 export default function Header() {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const f = () => setScrolled(window.scrollY > 6);
+    f();
+    window.addEventListener("scroll", f, { passive: true });
+    return () => window.removeEventListener("scroll", f);
+  }, []);
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 28, restDelta: 0.001 });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<DropGroup>(null);
   const [activeDropdown, setActiveDropdown] = useState<DropGroup>(null);
@@ -267,7 +277,7 @@ export default function Header() {
   const isActive = (items: { path: string }[]) => items.some(i => location.pathname === i.path);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+    <header className={`sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-b transition-shadow duration-300 ${scrolled ? "border-slate-200 dark:border-slate-800 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] dark:shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]" : "border-slate-200/70 dark:border-slate-800"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
@@ -344,6 +354,10 @@ export default function Header() {
 
             <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
 
+            <GamatoTooltip label="Cari alat (Ctrl K)">
+              <SearchTrigger className="!px-2.5" />
+            </GamatoTooltip>
+
             <GamatoTooltip label="Tentang Kami">
               <Link
                 to="/about"
@@ -369,6 +383,7 @@ export default function Header() {
 
           {/* Mobile theme toggle + hamburger — mirrors the nav's xl: cutover above */}
           <div className="xl:hidden flex items-center gap-1">
+            <SearchTrigger compact className="!rounded-xl" />
             <button
               type="button"
               onClick={toggleTheme}
@@ -461,6 +476,8 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Progres gulir halaman — garis tipis bergradien di tepi bawah header */}
+      <motion.div aria-hidden="true" data-testid="scroll-progress" style={{ scaleX: progress }} className="absolute inset-x-0 -bottom-px h-[2px] origin-left bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-400 pointer-events-none" />
     </header>
   );
 }

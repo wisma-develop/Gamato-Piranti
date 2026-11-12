@@ -74,7 +74,7 @@ export function VideoContainerPicker({
             )}
           >
             <span className={cn("block text-xs font-bold", value === o.id ? "text-indigo-700 dark:text-indigo-300" : "text-slate-700 dark:text-slate-200")}>{o.label}</span>
-            <span className="block text-[10px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5">{o.sub}</span>
+            <span className="block text-[10px] text-slate-600 dark:text-slate-400 leading-tight mt-0.5">{o.sub}</span>
           </button>
         ))}
       </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pipette, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { useClampedPopover } from "@/hooks/useClampedPopover";
+import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
 
 /**
  * GamatoColorPicker — engine pemilih warna kustom bermerek Gamato Piranti.
@@ -55,18 +55,21 @@ export function GamatoColorPicker({
   label,
   className,
   testId,
+  compact,
 }: {
   value: string;
   onChange: (hex: string) => void;
   label?: string;
   className?: string;
   testId?: string;
+  /** Hanya kotak warna (tanpa teks hex) — untuk toolbar padat. `label` dipakai sebagai nama aksesibel. */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [hexInput, setHexInput] = useState(value);
   const wrapRef = useRef<HTMLDivElement>(null);
   const svRef = useRef<HTMLDivElement>(null);
-  const { ref: popRef, style: popStyle } = useClampedPopover<HTMLDivElement>();
+  const popRef = useRef<HTMLDivElement | null>(null);
   const [hsv, setHsv] = useState(() => hexToHsv(value || "#000000"));
 
   useEffect(() => {
@@ -89,13 +92,9 @@ export function GamatoColorPicker({
     });
   }, [value]);
 
-  useEffect(() => {
-    const onClickOutside = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
+  // Panel dirender di portal (document.body) → periksa jangkar DAN panel saat klik di luar.
+  useOutsideClose(open, [wrapRef, popRef], () => setOpen(false));
+  useEscapeClose(open, () => setOpen(false));
 
   const commit = (hex: string) => {
     onChange(hex);
@@ -139,26 +138,35 @@ export function GamatoColorPicker({
 
   return (
     <div ref={wrapRef} className={cn("relative", className)}>
-      {label && <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">{label}</p>}
+      {label && !compact && <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">{label}</p>}
       <button
         type="button"
         data-testid={testId ? `${testId}-trigger` : undefined}
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 shadow-sm hover:border-indigo-300 transition-colors"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={label ? `${label}: ${value}` : `Pilih warna (${value})`}
+        className={cn(
+          "flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:border-indigo-300 transition-colors",
+          compact ? "justify-center p-1" : "gap-2.5 px-3 py-2"
+        )}
       >
         <span
-          className="w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-600 shrink-0 shadow-inner"
+          className={cn("rounded-lg border border-slate-200 dark:border-slate-600 shrink-0 shadow-inner", compact ? "w-6 h-6" : "w-7 h-7")}
           style={{ backgroundColor: isValidHex(value) ? value : "#000000" }}
         />
-        <span className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">{value}</span>
+        {!compact && <span className="text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">{value}</span>}
       </button>
 
-      {open && (
-        <div
-          ref={popRef}
-          style={popStyle}
-          className="absolute z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 space-y-3"
-        >
+      <AnchoredPortal
+        anchorRef={wrapRef}
+        open={open}
+        panelRef={popRef}
+        role="dialog"
+        aria-label="Pemilih warna"
+        offset={8}
+        className="w-64 max-w-[calc(100vw-1rem)] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 space-y-3"
+      >
           {/* Saturation/Value box */}
           <div
             ref={svRef}
@@ -226,8 +234,7 @@ export function GamatoColorPicker({
               </button>
             ))}
           </div>
-        </div>
-      )}
+      </AnchoredPortal>
     </div>
   );
 }

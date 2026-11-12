@@ -5,6 +5,7 @@ import Layout from "@/components/layout/Layout";
 import { PageShell } from "@/components/PageShell";
 import ScrollToTop from "@/components/ScrollToTop";
 import SeoSync from "@/components/SeoSync";
+import { ToolSearchProvider } from "@/components/search/ToolSearch";
 
 import Home from "@/pages/Home";
 import About from "@/pages/About";
@@ -126,6 +127,7 @@ export const App: FC = () => (
   <BrowserRouter>
     <ScrollToTop />
     <SeoSync />
+    <ToolSearchProvider>
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
@@ -531,7 +533,7 @@ export const App: FC = () => (
         <Route
           path="image/hapus-metadata"
           element={
-            <PageShell badge="Gambar" title="Hapus Metadata" subtitle="Hapus EXIF, GPS, dan data sensitif lainnya dari gambar via re-encode canvas.">
+            <PageShell badge="Gambar" title="Hapus Metadata" width="narrow" subtitle="Hapus EXIF, GPS, dan data sensitif lainnya dari gambar via re-encode canvas.">
               <ImageMetadataRemover />
             </PageShell>
           }
@@ -664,7 +666,7 @@ export const App: FC = () => (
         <Route
           path="utility/link-media"
           element={
-            <PageShell badge="Utilitas" title="Link Media" subtitle="Analisis link video/file untuk unduhan langsung.">
+            <PageShell badge="Utilitas" title="Link Media" width="narrow" subtitle="Analisis link video/file untuk unduhan langsung.">
               <UtilityMediaLink />
             </PageShell>
           }
@@ -672,7 +674,7 @@ export const App: FC = () => (
         <Route
           path="utility/alias-email"
           element={
-            <PageShell badge="Utilitas" title="Alias Email" subtitle="Buat alamat email alternatif untuk pendaftaran.">
+            <PageShell badge="Utilitas" title="Alias Email" width="narrow" subtitle="Buat alamat email alternatif untuk pendaftaran.">
               <UtilityAliasEmail />
             </PageShell>
           }
@@ -680,7 +682,7 @@ export const App: FC = () => (
         <Route
           path="utility/kalkulator-pajak"
           element={
-            <PageShell badge="Utilitas" title="Kalkulator Pajak" subtitle="Hitung PPN eksklusif maupun inklusif.">
+            <PageShell badge="Utilitas" title="Kalkulator Pajak" width="narrow" subtitle="Hitung PPN eksklusif maupun inklusif.">
               <UtilityTaxCalculator />
             </PageShell>
           }
@@ -688,7 +690,7 @@ export const App: FC = () => (
         <Route
           path="utility/kalkulator-bunga"
           element={
-            <PageShell badge="Utilitas" title="Kalkulator Bunga" subtitle="Hitung bunga sederhana & majemuk.">
+            <PageShell badge="Utilitas" title="Kalkulator Bunga" width="narrow" subtitle="Hitung bunga sederhana & majemuk.">
               <UtilityInterestCalculator />
             </PageShell>
           }
@@ -696,7 +698,7 @@ export const App: FC = () => (
         <Route
           path="utility/statistik"
           element={
-            <PageShell badge="Utilitas" title="Statistik" subtitle="Mean, median, min, max, dan standar deviasi dari sekumpulan angka.">
+            <PageShell badge="Utilitas" title="Statistik" width="narrow" subtitle="Mean, median, min, max, dan standar deviasi dari sekumpulan angka.">
               <UtilityStatistics />
             </PageShell>
           }
@@ -746,7 +748,7 @@ export const App: FC = () => (
         <Route
           path="utility/kalkulator"
           element={
-            <PageShell badge="Utilitas" title="Kalkulator" subtitle="Satu tempat untuk semua kalkulator: standar, pajak, bunga, investasi, cicilan, rumus, hingga HPP/COGS.">
+            <PageShell badge="Utilitas" title="Kalkulator" width="medium" subtitle="Satu tempat untuk semua kalkulator: standar, pajak, bunga, investasi, cicilan, rumus, hingga HPP/COGS.">
               <CalculatorHub />
             </PageShell>
           }
@@ -888,7 +890,7 @@ export const App: FC = () => (
         <Route
           path="video/kompres"
           element={
-            <PageShell badge="Video" title="Kompres Video" subtitle="Perkecil ukuran video — pilih preset, atur resolusi, fps & bitrate, atau tentukan target ukuran file. Uji 5 detik dulu sebelum memproses seluruh video.">
+            <PageShell badge="Video" title="Kompres Video" width="medium" subtitle="Perkecil ukuran video — pilih preset, atur resolusi, fps & bitrate, atau tentukan target ukuran file. Uji 5 detik dulu sebelum memproses seluruh video.">
               <VideoCompress />
             </PageShell>
           }
@@ -916,7 +918,7 @@ export const App: FC = () => (
         <Route
           path="audio/edit-audio"
           element={
-            <PageShell badge="Audio" title="Edit Audio" subtitle="Editor waveform lengkap: pangkas, potong, tempel, fade, volume, tempo & pitch, equalizer, kompresor, reverb, noise gate, marker, hingga ekspor WAV/Opus — semua di browser.">
+            <PageShell badge="Audio" title="Edit Audio" width="medium" subtitle="Editor waveform lengkap: pangkas, potong, tempel, fade, volume, tempo & pitch, equalizer, kompresor, reverb, noise gate, marker, hingga ekspor WAV/Opus — semua di browser.">
               <AudioEditor />
             </PageShell>
           }
@@ -986,5 +988,6 @@ export const App: FC = () => (
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
+    </ToolSearchProvider>
   </BrowserRouter>
 );

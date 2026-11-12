@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.generated.css";
 
 /* ── Dark mode via a toggleable .dark class (instead of only OS preference) ── */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -9,11 +10,18 @@ html {
 }
 
 /* ── Media elements ── */
-img, canvas, video, svg {
+img, canvas, video {
   max-width: 100%;
   height: auto;
   display: block;
 }
+
+/* SVG: `display:block` ada di @layer base — bukan unlayered — supaya utilitas Tailwind (`inline`, `inline-block`,
+   `hidden`, `sm:inline`, …) pada ikon BENAR-BENAR berlaku. Aturan unlayered mengalahkan semua utilitas, sehingga
+   ikon di tengah kalimat (mis. ♥ di footer) dulu pecah baris. (img/canvas/video sengaja tetap unlayered — lihat
+   catatan bug `canvas{display:block}` vs `.hidden`.) */
+svg { max-width: 100%; height: auto; }
+@layer base { svg { display: block; } }
 
 /* ── Base layout ──
    overflow-x: clip (not "hidden") on purpose: "hidden" turns html/body into
@@ -37,8 +45,11 @@ body {
   color: #f1f5f9;
 }
 
-/* ── Prevent zero min-width collapse ── */
-* { min-width: 0; }
+/* ── Prevent zero min-width collapse ──
+   Ditulis di @layer base: versi unlayered (`* { min-width:0 }`) mengalahkan SEMUA utilitas Tailwind, sehingga
+   setiap `min-w-[140px]`, `min-w-8`, … di seluruh aplikasi diam-diam diabaikan (mis. kolom Cari/Ganti di Transkrip
+   menyempit jadi serpihan di HP). Di layer base, default "boleh menyusut" tetap berlaku tetapi utilitas menang. */
+@layer base { * { min-width: 0; } }
 
 /* ── Guard icon-only buttons against being crushed to invisibility ──
    Root cause of the "missing icon" bug: `* { min-width: 0 }` above removes a
@@ -102,10 +113,10 @@ textarea {
 /* ── Gamato Piranti custom scrollbar — bermerek, konsisten di semua browser modern ── */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #a5b4fc transparent; /* indigo-300 */
+  scrollbar-color: var(--color-indigo-300) transparent;
 }
 .dark * {
-  scrollbar-color: #4338ca transparent; /* indigo-700 */
+  scrollbar-color: var(--color-indigo-700) transparent;
 }
 *::-webkit-scrollbar {
   width: 10px;
@@ -115,19 +126,19 @@ textarea {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background-color: #a5b4fc; /* indigo-300 */
+  background-color: var(--color-indigo-300);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background-color: #6366f1; /* indigo-500 */
+  background-color: var(--color-indigo-500);
 }
 .dark *::-webkit-scrollbar-thumb {
-  background-color: #4338ca; /* indigo-700 */
+  background-color: var(--color-indigo-700);
 }
 .dark *::-webkit-scrollbar-thumb:hover {
-  background-color: #6366f1; /* indigo-500 */
+  background-color: var(--color-indigo-500);
 }
 *::-webkit-scrollbar-corner {
   background: transparent;
@@ -139,7 +150,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #6366f1;
+  outline: 2px solid var(--color-indigo-500);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -198,4 +209,134 @@ textarea:focus-visible {
 /* ── Peta mode malam: ubin OpenStreetMap digelapkan di browser (tanpa API/penyedia peta lain) ── */
 .leaflet-layer.gp-tiles-dark {
   filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.7);
+}
+
+/* ── Target sentuh: perbesar tombol/tautan kecil di layar sempit tanpa mengubah tampilan desktop ── */
+@media (max-width: 640px), (pointer: coarse) {
+  button.p-1:not([class*="w-"]):not([class*="h-"]) { padding: 0.375rem; }
+  footer a:not([class*="flex"]):not([class*="inline-flex"]) { display: inline-block; padding-block: 0.5rem; }
+  /* tombol berupa teks saja (Salin / Hapus / Reset / Tambah …) → area ketuk ≥ 28px.
+     Pola kelas memakai awalan spasi/awal string agar "gap-1" tidak ikut terhitung sebagai "p-". */
+  main button:is(.text-xs, .text-sm, [class*="text-["]):not([class*=" p-"]):not([class^="p-"]):not([class*=" px-"]):not([class*=" py-"]):not([class*=" h-"]):not([class*=" w-"]):not([class*=" min-h-"]) { padding-block: 0.4rem; }
+  main button.text-slate-300:not([class*=" p-"]):not([class*=" h-"]):not([class*=" w-"]) { padding: 0.35rem; }
+  main li > a.font-semibold { display: inline-block; padding-block: 0.4rem; }
+}
+
+@keyframes gamatoSearchIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Orb latar hero (melayang pelan) & hormati preferensi "kurangi gerakan" ── */
+@keyframes gamatoFloat {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(28px, -22px, 0) scale(1.08); }
+}
+.gp-orb { animation: gamatoFloat 16s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* ── Transisi halaman: hanya opasitas+geser kecil di awal (fill-mode backwards → tidak meninggalkan transform
+   permanen yang bisa mengubah perilaku elemen fixed/sticky di dalamnya) ── */
+@keyframes gamatoPageIn { from { opacity: 0; transform: translateY(6px); } }
+.gp-page-in { animation: gamatoPageIn 0.32s ease-out backwards; }
+
+/* ── Detail halus: seleksi, fokus, scrollbar ── */
+::selection { background: color-mix(in oklab, var(--color-indigo-500) 28%, transparent); }
+:where(a, button, [role="button"], [role="tab"], summary):focus-visible { outline: 2px solid color-mix(in oklab, var(--color-indigo-500) 75%, transparent); outline-offset: 2px; }
+html { scrollbar-width: thin; scrollbar-color: rgba(100, 116, 139, 0.45) transparent; }
+html.dark { scrollbar-color: rgba(148, 163, 184, 0.35) transparent; }
+
+/* ── Kontras teks kecil (WCAG AA ≥ 4.5:1) ──
+   Tailwind slate-400 di atas putih hanya ±2,5:1. Teks memakai slate-500 di mode terang; di mode gelap,
+   slate-500 pada latar gelap dinaikkan ke slate-400. Ditulis DI DALAM @layer utilities dengan :where()
+   (spesifisitas minimum) supaya varian hover:/focus:/dark: milik Tailwind tetap menang — aturan unlayered
+   akan mematikan efek hover. */
+@layer utilities {
+  :where(html:not(.dark)) .text-slate-400 { color: #64748b; }
+  :where(html.dark) .dark\:text-slate-500 { color: #94a3b8; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════════════════════════
+   v2.13 — Tampilan baru: banner alat bertema, hero Beranda, bento kategori, efek kaca & cahaya.
+   Semua animasi hanya transform/opacity (murah), dan otomatis diam bila "kurangi gerakan" aktif.
+   ════════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Grid kategori: baris terakhir yang tidak penuh DIRATAKAN TENGAH (bukan menempel kiri). */
+.gp-cat-grid { --gap: 1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap); }
+.gp-cat-grid > * { flex: 0 0 100%; }
+@media (min-width: 768px)  { .gp-cat-grid > * { flex-basis: calc((100% - var(--gap)) / 2); } }
+@media (min-width: 1024px) { .gp-cat-grid { --gap: 1.25rem; } }
+@media (min-width: 1280px) { .gp-cat-grid > * { flex-basis: calc((100% - 2 * var(--gap)) / 3); } }
+
+/* Deretan chip yang bisa digeser (pengalih alat sekategori) — tepi memudar, bilah gulir disembunyikan. */
+.gp-chip-scroll {
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 28px), transparent);
+          mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 28px), transparent);
+}
+.gp-chip-scroll::-webkit-scrollbar { display: none; }
+
+/* Derau halus di atas gradien agar tidak terlihat "plastik". */
+.gp-noise::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+.dark .gp-noise::after { opacity: .35; }
+
+/* Keyframes */
+@keyframes gamatoMarquee { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+@keyframes gamatoMarqueeRev { from { transform: translate3d(-50%, 0, 0); } to { transform: translate3d(0, 0, 0); } }
+@keyframes gamatoScan { 0%, 100% { transform: translateY(0); opacity: 0; } 8%, 92% { opacity: 1; } 50% { transform: translateY(var(--scan-h, 200px)); } }
+@keyframes gamatoBar { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+@keyframes gamatoGradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+@keyframes gamatoShine { from { transform: translateX(-130%) skewX(-18deg); } to { transform: translateX(330%) skewX(-18deg); } }
+@keyframes gamatoBob { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -9px, 0); } }
+@keyframes gamatoSpinSlow { to { transform: rotate(360deg); } }
+@keyframes gamatoWordIn { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes gamatoBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+.gp-marquee { display: flex; width: max-content; animation: gamatoMarquee 60s linear infinite; }
+.gp-marquee-rev { animation-name: gamatoMarqueeRev; animation-duration: 75s; }
+.gp-marquee-wrap:hover .gp-marquee { animation-play-state: paused; }
+.gp-gradient-text-anim { background-size: 220% 100%; animation: gamatoGradientShift 9s ease-in-out infinite; }
+.gp-bob { animation: gamatoBob 6s ease-in-out infinite; }
+.gp-bar { transform-origin: 50% 100%; animation: gamatoBar 1.2s ease-in-out infinite; }
+.gp-word-in { animation: gamatoWordIn .45s cubic-bezier(.16,1,.3,1) both; }
+.gp-caret { animation: gamatoBlink 1s steps(1) infinite; }
+
+/* Tombol utama dengan kilau yang menyapu saat hover */
+.gp-shine { position: relative; overflow: hidden; isolation: isolate; }
+.gp-shine::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 40%; z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.38), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+}
+.gp-shine:hover::before { animation: gamatoShine .9s ease-out; }
+
+/* Border gradien berputar (kotak cari Beranda) */
+.gp-orbit-border { position: relative; border-radius: 1.1rem; padding: 1.5px; overflow: hidden; isolation: isolate; }
+.gp-orbit-border::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 220%; aspect-ratio: 1; z-index: -2; translate: -50% -50%;
+  background: conic-gradient(from 0deg, transparent 0 55%, var(--color-indigo-400) 72%, var(--color-violet-400) 86%, transparent 100%);
+  animation: gamatoSpinSlow 7s linear infinite; opacity: .9;
+}
+
+/* Kartu dengan sorotan yang mengikuti kursor (variabel --mx/--my diisi komponen SpotlightCard) */
+.gp-spot { position: relative; isolation: isolate; }
+.gp-spot::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--spot, rgba(99,102,241,.16)), transparent 65%);
+}
+@media (hover: hover) and (pointer: fine) { .gp-spot:hover::before { opacity: 1; } }
+
+/* Kaca (glassmorphism) */
+.gp-glass { background: color-mix(in oklab, #fff 72%, transparent); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); }
+.dark .gp-glass { background: color-mix(in oklab, #0f172a 62%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-marquee, .gp-bob, .gp-bar, .gp-word-in, .gp-gradient-text-anim, .gp-orbit-border::before { animation: none !important; }
+  .gp-bar { transform: scaleY(.6); }
 }

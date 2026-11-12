@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { cn } from "@/utils/cn";
+import { AnchoredPortal } from "@/components/ui/AnchoredPortal";
 
 /**
  * GamatoTooltip — engine tooltip kustom bermerek Gamato Piranti.
@@ -19,6 +20,7 @@ export function GamatoTooltip({
 }) {
   const [open, setOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorRef = useRef<HTMLSpanElement>(null);
 
   if (!label) return children;
 
@@ -40,15 +42,9 @@ export function GamatoTooltip({
     timerRef.current = setTimeout(() => setOpen(false), 1600);
   };
 
-  const posClasses: Record<string, string> = {
-    top: "bottom-full left-1/2 -translate-x-1/2 mb-1.5",
-    bottom: "top-full left-1/2 -translate-x-1/2 mt-1.5",
-    left: "right-full top-1/2 -translate-y-1/2 mr-1.5",
-    right: "left-full top-1/2 -translate-y-1/2 ml-1.5",
-  };
-
   return (
     <span
+      ref={anchorRef}
       className={cn("relative inline-flex", className)}
       onMouseEnter={show}
       onMouseLeave={hide}
@@ -57,16 +53,9 @@ export function GamatoTooltip({
       onTouchStart={showOnTouch}
     >
       {children}
-      <span
-        role="tooltip"
-        className={cn(
-          "pointer-events-none absolute z-50 max-w-[min(220px,calc(100vw-1.5rem))] text-center whitespace-normal rounded-lg bg-slate-900 dark:bg-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-lg transition-all duration-150",
-          posClasses[side],
-          open ? "opacity-100 scale-100" : "opacity-0 scale-95"
-        )}
-      >
+      <AnchoredPortal anchorRef={anchorRef} open={open} side={side} align="center" offset={6} role="tooltip" className={"pointer-events-none max-w-[min(220px,calc(100vw-1.5rem))] text-center whitespace-normal rounded-lg bg-slate-900 dark:bg-slate-700 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-lg transition-all duration-150 animate-[gamatoFadeIn_0.12s_ease-out]"}>
         {label}
-      </span>
+      </AnchoredPortal>
     </span>
   );
 }

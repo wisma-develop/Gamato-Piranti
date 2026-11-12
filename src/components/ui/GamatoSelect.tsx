@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { AnchoredPortal, useOutsideClose } from "@/components/ui/AnchoredPortal";
 
 /**
  * GamatoSelect — engine dropdown kustom bermerek Gamato Piranti.
@@ -44,7 +45,6 @@ export const GamatoSelect: React.FC<
   const [internalValue, setInternalValue] = useState(() => (defaultValue !== undefined ? String(defaultValue) : ""));
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
-  const [alignRight, setAlignRight] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -52,22 +52,20 @@ export const GamatoSelect: React.FC<
   const currentValue = isControlled ? String(value) : internalValue;
   const selected = options.find((o) => o.value === currentValue);
 
-  useEffect(() => {
-    const onClickOutside = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
+  // Daftar dirender di portal (document.body) → klik di panel bukan "di dalam wrapRef", jadi dua-duanya dicek.
+  useOutsideClose(open, [wrapRef, listRef], () => setOpen(false));
 
   useEffect(() => {
     if (open) {
-      const r = wrapRef.current?.getBoundingClientRect();
-      if (r) setAlignRight(r.left + r.width / 2 > window.innerWidth / 2);
       const idx = options.findIndex((o) => o.value === currentValue);
       setHighlight(idx >= 0 ? idx : 0);
     }
   }, [open, currentValue, options]);
+
+  useEffect(() => {
+    if (!open) return;
+    (listRef.current?.children[highlight] as HTMLElement | undefined)?.scrollIntoView({ block: "nearest" });
+  }, [open, highlight]);
 
   const commit = (opt: OptionInfo) => {
     if (opt.disabled) return;
@@ -124,12 +122,17 @@ export const GamatoSelect: React.FC<
         <ChevronDown className={cn("w-4 h-4 shrink-0 text-slate-400 transition-transform", open && "rotate-180")} />
       </button>
 
-      {open && (
-        <div
-          ref={listRef}
-          role="listbox"
-          className={cn("absolute z-50 mt-1.5 max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5", compact ? cn("w-max min-w-full max-w-[min(18rem,calc(100vw-1.5rem))]", alignRight ? "right-0" : "left-0") : "w-full")}
-        >
+      <AnchoredPortal
+        anchorRef={wrapRef}
+        open={open}
+        matchWidth
+        maxHeight={256}
+        offset={6}
+        panelRef={listRef}
+        role="listbox"
+        aria-label={typeof label === "string" ? label : undefined}
+        className={cn("w-max max-w-[min(32rem,calc(100vw-1rem))] overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1.5 animate-[gamatoFadeIn_0.12s_ease-out]")}
+      >
           {options.map((opt, i) => (
             <button
               key={opt.value + i}
@@ -152,8 +155,7 @@ export const GamatoSelect: React.FC<
               {opt.value === currentValue && <Check className="w-3.5 h-3.5 shrink-0 text-indigo-600 dark:text-indigo-400" />}
             </button>
           ))}
-        </div>
-      )}
+      </AnchoredPortal>
     </div>
   );
 };

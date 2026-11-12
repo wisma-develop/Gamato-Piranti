@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useLayoutEffect, useState, type CSSProperties } from "react";
 
 /**
  * useClampedPopover — keeps a freshly-mounted absolute/anchored popover panel
@@ -24,18 +24,20 @@ import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
  *   <div ref={ref} style={style} className="absolute ... left-0 w-64">...
  */
 export function useClampedPopover<T extends HTMLElement>(margin = 8) {
-  const ref = useRef<T>(null);
+  // Callback ref + state: efek dijalankan SETIAP kali panel benar-benar terpasang (panel biasanya dirender
+  // kondisional saat dibuka). Versi lama memakai useRef dengan dependency [margin] saja, sehingga hanya
+  // mengukur saat komponen induk pertama dipasang (ref masih null) dan koreksi tidak pernah berjalan.
+  const [el, setEl] = useState<T | null>(null);
   const [style, setStyle] = useState<CSSProperties>({});
 
   useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    if (!el) { setStyle({}); return; }
 
     const measure = () => {
       // Reset any earlier correction before measuring the panel's natural position.
       el.style.transform = "";
       const rect = el.getBoundingClientRect();
-      const vw = window.innerWidth;
+      const vw = document.documentElement.clientWidth;
       let shift = 0;
       if (rect.right > vw - margin) shift -= rect.right - (vw - margin);
       if (rect.left + shift < margin) shift += margin - (rect.left + shift);
@@ -45,8 +47,7 @@ export function useClampedPopover<T extends HTMLElement>(margin = 8) {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [margin]);
+  }, [el, margin]);
 
-  return { ref, style };
+  return { ref: setEl as (node: T | null) => void, style };
 }

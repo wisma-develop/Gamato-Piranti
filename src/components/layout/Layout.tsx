@@ -1,8 +1,10 @@
+import { useLayoutEffect } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { ChevronRight, Home } from 'lucide-react';
 import { GamatoToastProvider } from '@/components/ui/GamatoToast';
+import { themeForPath } from '@/lib/categoryTheme';
 
 const CATEGORY_LABELS: Record<string, string> = {
   qr: 'Kode',
@@ -141,14 +143,26 @@ export default function Layout() {
   const categoryLabel = category ? CATEGORY_LABELS[category] : undefined;
   const modeLabel = category && mode ? MODE_LABELS[category]?.[mode] : undefined;
 
+  // Tema warna kategori dipasang di <html> (bukan di wrapper) supaya popover/tooltip yang dirender ke <body>
+  // lewat portal ikut berwarna sama. Beranda & halaman info = tema merek (tanpa atribut).
+  const theme = themeForPath(pathname);
+  useLayoutEffect(() => {
+    const el = document.documentElement;
+    if (theme) el.dataset.gpTheme = theme; else delete el.dataset.gpTheme;
+  }, [theme]);
+
   return (
     <GamatoToastProvider>
       <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
         <Header />
-      <main className="flex-1">
+      <main className="flex-1 relative isolate">
+        {/* Cahaya latar bertema di bawah header — mengikuti warna kategori aktif */}
+        {!isHome && (
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[460px] bg-[radial-gradient(ellipse_75%_100%_at_50%_0%,color-mix(in_oklab,var(--color-indigo-500)_13%,transparent),transparent_72%)] dark:bg-[radial-gradient(ellipse_75%_100%_at_50%_0%,color-mix(in_oklab,var(--color-indigo-500)_22%,transparent),transparent_72%)]" />
+        )}
         {/* Breadcrumb — only on non-home pages */}
         {!isHome && categoryLabel && (
-          <div className="border-b border-slate-100 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70">
+          <div className="border-b border-slate-100/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 backdrop-blur-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
               <nav className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 flex-wrap">
                 <Link to="/" className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
@@ -169,7 +183,9 @@ export default function Layout() {
             </div>
           </div>
         )}
-        <Outlet />
+        <div key={pathname} className="gp-page-in">
+          <Outlet />
+        </div>
       </main>
       <Footer />
       </div>

@@ -17,22 +17,24 @@ export const ToolInfoPanel: React.FC<{
   infoTone?: "success" | "error";
   badgeText?: string;
 }> = ({ icon, label, desc, points, info, infoTone = "success", badgeText = "Proses native di perangkatmu" }) => (
-  <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 lg:sticky lg:top-24">
-    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Tentang Alat Ini</p>
-    <div className="flex items-center gap-3">
-      <span className="text-indigo-400">{icon}</span>
+  <div className="gp-noise relative overflow-hidden bg-slate-900 ring-1 ring-slate-800 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 lg:sticky lg:top-24">
+    <span aria-hidden="true" className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-indigo-500/25 blur-3xl" />
+    <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent" />
+    <p className="relative text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Tentang Alat Ini</p>
+    <div className="relative flex items-center gap-3">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-500/15 ring-1 ring-indigo-400/30 text-indigo-300">{icon}</span>
       <div>
         <p className="font-bold text-white">{label}</p>
         <p className="text-xs text-slate-400 dark:text-slate-500">{desc}</p>
       </div>
     </div>
-    <div className="border-t border-slate-800 pt-4 space-y-2 text-sm text-slate-300">
+    <div className="relative border-t border-slate-800 pt-4 space-y-2 text-sm text-slate-300">
       {points.map((p, i) => (
         <p key={i}>• {p}</p>
       ))}
     </div>
     {info && <GamatoInlineAlert message={info} tone={infoTone} variant="dark" />}
-    <div className="pt-2">
+    <div className="relative pt-2">
       <SectionBadge>{badgeText}</SectionBadge>
     </div>
   </div>

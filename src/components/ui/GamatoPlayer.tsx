@@ -1,5 +1,6 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { GamatoSpeakerButton } from "@/components/ui/GamatoSpeakerButton";
+import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
 import { Play, Pause, Volume2, Volume1, VolumeX, Maximize, Minimize, RotateCcw, Gauge, Zap } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
@@ -51,6 +52,10 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
   const [muted, setMuted] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [showSpeed, setShowSpeed] = useState(false);
+  const speedWrapRef = useRef<HTMLDivElement>(null);
+  const speedPopRef = useRef<HTMLDivElement | null>(null);
+  useOutsideClose(showSpeed, [speedWrapRef, speedPopRef], () => setShowSpeed(false));
+  useEscapeClose(showSpeed, () => setShowSpeed(false));
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [scrubbing, setScrubbing] = useState(false);
   const [hideChrome, setHideChrome] = useState(false);
@@ -238,7 +243,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
 
           <GamatoSpeakerButton mediaRef={videoRef} tone="dark" />
 
-          <div className="relative">
+          <div className="relative" ref={speedWrapRef}>
             <button
               type="button"
               onClick={() => setShowSpeed((v) => !v)}
@@ -248,8 +253,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
               <Gauge className="w-3.5 h-3.5" />
               {speed}×
             </button>
-            {showSpeed && (
-              <div className="absolute bottom-full right-0 mb-2 bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl min-w-[64px]">
+            <AnchoredPortal anchorRef={speedWrapRef} open={showSpeed} side="top" align="end" offset={8} panelRef={speedPopRef} role="menu" aria-label="Kecepatan putar" className="bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl min-w-[64px]">
                 {SPEEDS.map((s) => (
                   <button
                     key={s}
@@ -260,8 +264,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
                     {s}×
                   </button>
                 ))}
-              </div>
-            )}
+            </AnchoredPortal>
           </div>
 
           <button type="button" onClick={toggleFullscreen} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label="Layar penuh">

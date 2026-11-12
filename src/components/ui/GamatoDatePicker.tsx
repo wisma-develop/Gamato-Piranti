@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
 
 /**
  * GamatoDatePicker — engine pemilih tanggal kustom bermerek Gamato Piranti.
@@ -64,8 +65,8 @@ export function GamatoDatePicker({
   const maxD = useMemo(() => parseISODate(max), [max]);
   const [open, setOpen] = useState(false);
   const [focusDay, setFocusDay] = useState<Date>(() => selected ?? new Date());
-  const [alignRight, setAlignRight] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   // Bulan/hari fokus ditetapkan SAAT dibuka (bukan di effect) — supaya render pertama langsung benar, tanpa kedip bulan lama.
@@ -74,21 +75,17 @@ export function GamatoDatePicker({
     setOpen((v) => !v);
   };
 
+  // Kalender dirender di portal → klik di dalamnya tidak "di dalam" wrapRef; periksa keduanya.
+  useOutsideClose(open, [wrapRef, popRef], () => setOpen(false));
+
+  useEscapeClose(open, () => setOpen(false));
+
+  // Fokus dipindah setelah panel benar-benar tampil: render pertama portal masih `visibility:hidden` sampai posisinya dihitung,
+  // dan elemen tersembunyi tidak bisa difokus — jadi tunggu frame berikutnya.
   useEffect(() => {
     if (!open) return;
-    const r = wrapRef.current?.getBoundingClientRect();
-    if (r) setAlignRight(r.left + 288 > window.innerWidth - 8 && r.right - 288 >= 8);
-    const onDown = (e: MouseEvent | TouchEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("touchstart", onDown);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("touchstart", onDown); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  useEffect(() => {
-    if (open) gridRef.current?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus();
+    const id = requestAnimationFrame(() => gridRef.current?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus());
+    return () => cancelAnimationFrame(id);
   }, [open, focusDay]);
 
   const isDisabledDay = (d: Date) => (minD ? d < minD : false) || (maxD ? d > maxD : false);
@@ -105,19 +102,37 @@ export function GamatoDatePicker({
     return Array.from({ length: 6 }, (_, w) => Array.from({ length: 7 }, (_, i) => addDays(start, w * 7 + i)));
   }, [focusDay]);
 
-  const onKey = (e: React.KeyboardEvent) => {
-    let next: Date | null = null;
-    if (e.key === "ArrowLeft") next = addDays(focusDay, -1);
-    else if (e.key === "ArrowRight") next = addDays(focusDay, 1);
-    else if (e.key === "ArrowUp") next = addDays(focusDay, -7);
-    else if (e.key === "ArrowDown") next = addDays(focusDay, 7);
-    else if (e.key === "PageUp") next = addMonths(focusDay, e.shiftKey ? -12 : -1);
-    else if (e.key === "PageDown") next = addMonths(focusDay, e.shiftKey ? 12 : 1);
-    else if (e.key === "Home") next = addDays(focusDay, -((focusDay.getDay() + 6) % 7));
-    else if (e.key === "End") next = addDays(focusDay, 6 - ((focusDay.getDay() + 6) % 7));
-    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setOpen(false); (wrapRef.current?.querySelector("button") as HTMLButtonElement | null)?.focus(); return; }
-    if (next) { e.preventDefault(); setFocusDay(next); }
-  };
+  // Papan ketik ditangani di tingkat DOKUMEN selama kalender terbuka — tidak bergantung pada kapan fokus
+  // sempat berpindah ke dalam panel (fokus baru dipindah setelah panel tampil).
+  const focusDayRef = useRef(focusDay);
+  focusDayRef.current = focusDay;
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => {
+      const fd = focusDayRef.current;
+      const inPanel = !!popRef.current && popRef.current.contains(document.activeElement);
+      let next: Date | null = null;
+      if (e.key === "ArrowLeft") next = addDays(fd, -1);
+      else if (e.key === "ArrowRight") next = addDays(fd, 1);
+      else if (e.key === "ArrowUp") next = addDays(fd, -7);
+      else if (e.key === "ArrowDown") next = addDays(fd, 7);
+      else if (e.key === "PageUp") next = addMonths(fd, e.shiftKey ? -12 : -1);
+      else if (e.key === "PageDown") next = addMonths(fd, e.shiftKey ? 12 : 1);
+      else if (e.key === "Home") next = addDays(fd, -((fd.getDay() + 6) % 7));
+      else if (e.key === "End") next = addDays(fd, 6 - ((fd.getDay() + 6) % 7));
+      else if (e.key === "Enter" || e.key === " ") {
+        // Pada sel hari / pemicu: pilih hari yang sedang disorot (focusDay) — fokus DOM bisa tertinggal satu frame.
+        const ae = document.activeElement as HTMLElement | null;
+        const onCell = !!ae && ae.getAttribute("role") === "gridcell";
+        const onTrigger = !!ae && ae === wrapRef.current?.querySelector("button");
+        if (onCell || (onTrigger && !inPanel)) { e.preventDefault(); pick(fd); return; }
+      }
+      if (next) { e.preventDefault(); setFocusDay(next); }
+    };
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const today = new Date();
   const navBtn = "p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors";
@@ -144,16 +159,15 @@ export function GamatoDatePicker({
         <CalendarIcon className="w-4 h-4 shrink-0 text-slate-400" />
       </button>
 
-      {open && (
-        <div
-          role="dialog"
-          aria-label="Pilih tanggal"
-          onKeyDown={onKey}
-          className={cn(
-            "absolute z-50 mt-1.5 w-72 max-w-[calc(100vw-1rem)] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-3 animate-[gamatoFadeIn_0.15s_ease-out]",
-            alignRight ? "right-0" : "left-0"
-          )}
-        >
+      <AnchoredPortal
+        anchorRef={wrapRef}
+        open={open}
+        panelRef={popRef}
+        role="dialog"
+        aria-label="Pilih tanggal"
+        offset={6}
+        className="w-72 max-w-[calc(100vw-1rem)] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-3 animate-[gamatoFadeIn_0.15s_ease-out]"
+      >
           <div className="flex items-center justify-between gap-1 mb-2">
             <div className="flex">
               <button type="button" className={navBtn} aria-label="Tahun sebelumnya" onClick={() => setFocusDay(addMonths(focusDay, -12))}><ChevronsLeft className="w-4 h-4" /></button>
@@ -208,8 +222,7 @@ export function GamatoDatePicker({
               <button type="button" onClick={() => { commit(""); setOpen(false); }} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-red-500"><X className="w-3 h-3" />Hapus</button>
             )}
           </div>
-        </div>
-      )}
+      </AnchoredPortal>
     </div>
   );
 }
