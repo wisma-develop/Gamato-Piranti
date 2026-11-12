@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
-import { useClampedPopover } from "@/hooks/useClampedPopover";
+import { AnchoredPortal } from "@/components/ui/AnchoredPortal";
 
 interface ColorSwatchPickerProps {
   presets: string[];
@@ -58,7 +58,8 @@ function isValidHex(v: string) {
  * that native `<input type="color">` used to require is no longer necessary.
  */
 export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, onPick, onClose, onCustomPickerOpen, allowNone, noneLabel }) => {
-  const { ref: popRef, style: popStyle } = useClampedPopover<HTMLDivElement>();
+  // Penanda jangkar: induk bersifat `relative`, jadi titik ini = pojok kiri-bawah induk. Panel dirender di portal.
+  const anchorRef = useRef<HTMLSpanElement>(null);
   const [customColor, setCustomColor] = useState(presets[0] || "#4f46e5");
   const [hsv, setHsv] = useState(() => hexToHsv(presets[0] || "#4f46e5"));
   const [hexInput, setHexInput] = useState(customColor);
@@ -89,7 +90,8 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, o
   return (
     <>
       <div className="fixed inset-0 z-10" onClick={onClose} />
-      <div ref={popRef} style={popStyle} className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-3 w-56">
+      <span ref={anchorRef} aria-hidden className="absolute left-0 top-full w-0 h-0 pointer-events-none" />
+      <AnchoredPortal anchorRef={anchorRef} open role="dialog" aria-label="Pilih warna" offset={4} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-3 w-56 max-w-[calc(100vw-1rem)]">
         <div className="grid grid-cols-6 gap-1.5 mb-3">
           {allowNone && (
             <button
@@ -190,7 +192,7 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, o
             </GamatoTooltip>
           </div>
         </div>
-      </div>
+      </AnchoredPortal>
     </>
   );
 };

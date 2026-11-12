@@ -43,7 +43,7 @@ export const ImageMetadataRemover: React.FC = () => {
 
   return (
     <PanelCard title="Hapus Metadata Gambar" subtitle="EXIF, GPS, dan data sensitif lainnya dihapus via re-encode canvas">
-      <div className="space-y-4 max-w-lg">
+      <div className="space-y-4 max-w-lg mx-auto w-full">
         <Dropzone onFiles={(f) => setMetaFiles(f.filter((f2) => f2.type.startsWith("image/")))} accept="image/*" label="Drop gambar di sini" sublabel="Bisa pilih beberapa sekaligus" icon={<ImageIcon className="w-8 h-8" />} />
         {metaFiles.length > 0 && (
           <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3">

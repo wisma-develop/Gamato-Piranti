@@ -9,11 +9,11 @@ import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
 import { useMediaDevices } from "@/hooks/useMediaDevices";
 
 function levelInfo(pct: number): { label: string; tone: string } {
-  if (pct < 15) return { label: "Hening", tone: "text-emerald-500 dark:text-emerald-400" };
-  if (pct < 40) return { label: "Tenang", tone: "text-emerald-500 dark:text-emerald-400" };
-  if (pct < 65) return { label: "Normal", tone: "text-amber-500 dark:text-amber-400" };
-  if (pct < 85) return { label: "Ramai", tone: "text-orange-500 dark:text-orange-400" };
-  return { label: "Sangat Keras", tone: "text-red-500 dark:text-red-400" };
+  if (pct < 15) return { label: "Hening", tone: "text-emerald-600 dark:text-emerald-400" };
+  if (pct < 40) return { label: "Tenang", tone: "text-emerald-600 dark:text-emerald-400" };
+  if (pct < 65) return { label: "Normal", tone: "text-amber-600 dark:text-amber-400" };
+  if (pct < 85) return { label: "Ramai", tone: "text-orange-600 dark:text-orange-400" };
+  return { label: "Sangat Keras", tone: "text-red-600 dark:text-red-400" };
 }
 
 export const AudioSoundMeter: React.FC = () => {
@@ -128,7 +128,7 @@ export const AudioSoundMeter: React.FC = () => {
 
             <div className="text-center">
               <p className={cn("text-4xl font-bold tabular-nums", tone)}>{isActive ? level : 0}%</p>
-              <p className={cn("text-sm font-semibold mt-1", tone)}>{isActive ? label : "Belum aktif"}</p>
+              <p className={cn("text-sm font-semibold mt-1", tone.replace("-600", "-700"))}>{isActive ? label : "Belum aktif"}</p>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                 {isActive ? `${dbfs === -Infinity ? "-∞" : dbfs.toFixed(1)} dBFS relatif` : "Tekan mulai untuk mengaktifkan mikrofon"}
               </p>

@@ -894,7 +894,7 @@ export const CollageMaker: React.FC = () => {
                         <img src={p.img.src} alt={p.name} className="w-full h-full object-cover" draggable={false} />
                       </button>
                       {usage.get(p.id) ? <span className="absolute bottom-1 left-1 text-[10px] font-bold bg-indigo-600 text-white rounded-full px-1.5">{usage.get(p.id)}×</span> : null}
-                      <button type="button" onClick={() => removePhoto(p.id)} aria-label="Hapus foto" className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full items-center justify-center hidden group-hover:flex"><X className="w-3 h-3" /></button>
+                      <button type="button" onClick={() => removePhoto(p.id)} aria-label="Hapus foto" className="absolute -top-2 -right-2 w-7 h-7 sm:-top-1.5 sm:-right-1.5 sm:w-5 sm:h-5 bg-red-500 text-white rounded-full items-center justify-center hidden group-hover:flex"><X className="w-3 h-3" /></button>
                     </div>
                   ))}
                 </div>

@@ -9,6 +9,7 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import type { CellFormat, NumberFormat } from "./sheetModel";
+import { AnchoredPortal, useOutsideClose } from "@/components/ui/AnchoredPortal";
 
 const ToolBtn: React.FC<{ active?: boolean; onClick: () => void; title: string; children: React.ReactNode; disabled?: boolean }> = ({
   active,
@@ -57,14 +58,10 @@ export const SheetToolbar: React.FC<{
   const importRef = React.useRef<HTMLInputElement>(null);
   const [exportOpen, setExportOpen] = React.useState(false);
   const exportRef = React.useRef<HTMLDivElement>(null);
+  const exportPopRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) setExportOpen(false);
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
+  // Menu ekspor dirender di portal (document.body) agar tidak terpotong toolbar/kartu — periksa jangkar & panel.
+  useOutsideClose(exportOpen, [exportRef, exportPopRef], () => setExportOpen(false));
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-sm">
@@ -109,8 +106,8 @@ export const SheetToolbar: React.FC<{
         </GamatoSelect>
       </div>
       <Sep />
-      <GamatoColorPicker label="" value={format.bg ?? "#ffffff"} onChange={(hex) => onFormat({ bg: hex })} className="w-8" />
-      <GamatoColorPicker label="" value={format.color ?? "#0f172a"} onChange={(hex) => onFormat({ color: hex })} className="w-8" />
+      <GamatoColorPicker compact label="Warna isi sel" value={format.bg ?? "#ffffff"} onChange={(hex) => onFormat({ bg: hex })} />
+      <GamatoColorPicker compact label="Warna teks sel" value={format.color ?? "#0f172a"} onChange={(hex) => onFormat({ color: hex })} />
       <Sep />
       <ToolBtn title="Sisipkan Baris di Bawah" onClick={onInsertRow}>
         <Rows3 className="w-4 h-4" />
@@ -149,8 +146,7 @@ export const SheetToolbar: React.FC<{
           Ekspor
           <ChevronDown className={cn("w-3 h-3 transition-transform", exportOpen && "rotate-180")} />
         </button>
-        {exportOpen && (
-          <div className="absolute right-0 mt-1.5 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-20">
+        <AnchoredPortal anchorRef={exportRef} open={exportOpen} align="end" offset={6} panelRef={exportPopRef} role="menu" aria-label="Ekspor" className="w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
             {[
               { label: "Excel (.xlsx)", fn: onExportXlsx },
               { label: "CSV (.csv)", fn: onExportCsv },
@@ -168,8 +164,7 @@ export const SheetToolbar: React.FC<{
                 {opt.label}
               </button>
             ))}
-          </div>
-        )}
+        </AnchoredPortal>
       </div>
     </div>
   );

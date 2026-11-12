@@ -5,7 +5,7 @@ import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import { fileToDataUrl } from "@/lib/file";
 import { useDialog } from "@/hooks/useDialog";
-import { useClampedPopover } from "@/hooks/useClampedPopover";
+import { AnchoredPortal } from "@/components/ui/AnchoredPortal";
 import { ColorSwatchPicker } from "./ColorSwatchPicker";
 import { cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSuperscript,
   cmdToggleList, cmdAlign, cmdForeColor, cmdHighlight,
@@ -67,7 +67,7 @@ export const RichToolbar: React.FC<{
   const dialog = useDialog();
   const [fontSize, setFontSize] = useState(16);
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
-  const { ref: shapeMenuPopRef, style: shapeMenuPopStyle } = useClampedPopover<HTMLDivElement>();
+  const shapeAnchorRef = useRef<HTMLDivElement>(null);
   const [textColorOpen, setTextColorOpen] = useState(false);
   const [highlightOpen, setHighlightOpen] = useState(false);
   const [shapeStroke, setShapeStroke] = useState("#4f46e5");
@@ -433,14 +433,14 @@ export const RichToolbar: React.FC<{
       <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageFile(e.target.files)} />
 
       {/* Shapes */}
-      <div className="relative">
+      <div className="relative" ref={shapeAnchorRef}>
         <ToolBtn title="Sisipkan bentuk" onClick={() => setShapeMenuOpen((v) => !v)} active={shapeMenuOpen}>
           <Shapes className="w-4 h-4" />
         </ToolBtn>
         {shapeMenuOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => { setShapeMenuOpen(false); setShapeColorOpen(null); }} />
-            <div ref={shapeMenuPopRef} style={shapeMenuPopStyle} className="absolute top-full left-0 mt-1 z-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2.5 w-64">
+            <AnchoredPortal anchorRef={shapeAnchorRef} open role="dialog" aria-label="Sisipkan bentuk" offset={4} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2.5 w-64 max-w-[calc(100vw-1rem)]">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">Warna bentuk</p>
               <div className="flex items-center gap-2 mb-2.5">
                 <div className="relative flex-1">
@@ -487,7 +487,7 @@ export const RichToolbar: React.FC<{
                   </button>
                 ))}
               </div>
-            </div>
+            </AnchoredPortal>
           </>
         )}
       </div>

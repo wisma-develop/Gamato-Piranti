@@ -298,7 +298,7 @@ export const PhotoPrintLayout: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => updateItem(item.id, { copies: Math.max(1, item.copies - 1) })}
-                          className="w-6 h-6 shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-400"
+                          className="w-8 h-8 sm:w-6 sm:h-6 shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-400"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -313,7 +313,7 @@ export const PhotoPrintLayout: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => updateItem(item.id, { copies: Math.min(999, item.copies + 1) })}
-                          className="w-6 h-6 shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-400"
+                          className="w-8 h-8 sm:w-6 sm:h-6 shrink-0 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-indigo-400"
                         >
                           <Plus className="w-3 h-3" />
                         </button>

@@ -70,7 +70,7 @@ const Seg: React.FC<{ children: React.ReactNode; active: boolean; onClick: () =>
     )}
   >
     <span className={cn("block text-xs font-bold", active ? "text-indigo-700 dark:text-indigo-300" : "text-slate-700 dark:text-slate-200")}>{children}</span>
-    {sub && <span className="block text-[10px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5">{sub}</span>}
+    {sub && <span className="block text-[10px] text-slate-600 dark:text-slate-400 leading-tight mt-0.5">{sub}</span>}
   </button>
 );
 
@@ -280,8 +280,8 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Pilih halaman <span className="font-normal text-slate-400">({pickedIdx.length}/{session.count} dipilih)</span></p>
               <div className="flex gap-3 text-xs font-semibold">
-                <button type="button" className="text-indigo-600 dark:text-indigo-400 hover:underline" onClick={() => setSelected(new Set(Array.from({ length: session.count }, (_, i) => i)))}>Pilih semua</button>
-                <button type="button" className="text-slate-500 hover:underline" onClick={() => setSelected(new Set())}>Kosongkan</button>
+                <button type="button" className="py-1.5 text-indigo-600 dark:text-indigo-400 hover:underline" onClick={() => setSelected(new Set(Array.from({ length: session.count }, (_, i) => i)))}>Pilih semua</button>
+                <button type="button" className="py-1.5 text-slate-500 hover:underline" onClick={() => setSelected(new Set())}>Kosongkan</button>
               </div>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[560px] overflow-y-auto pr-1">

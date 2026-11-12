@@ -186,7 +186,8 @@ export const MemeGenerator: React.FC = () => {
               </button>
             </div>
             <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-950">
-              <div ref={containerRef} className="relative select-none max-w-full" style={{ width: "min(100%, 560px)", aspectRatio: naturalSize ? `${naturalSize.w} / ${naturalSize.h}` : undefined }}>
+              <div ref={containerRef} className="relative select-none max-w-full" // `cqw` pada teks = persen LEBAR GAMBAR → kontainer ukuran harus pada panggung (ini), bukan pada tiap lapisan teks.
+              style={{ width: "min(100%, 560px)", aspectRatio: naturalSize ? `${naturalSize.w} / ${naturalSize.h}` : undefined, containerType: "inline-size" }}>
                 <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none" draggable={false} />
                 {layers.map((l) => (
                   <div
@@ -200,7 +201,6 @@ export const MemeGenerator: React.FC = () => {
                       color: l.color,
                       WebkitTextStroke: `${Math.max(0.5, l.strokeWidth / 14)}px ${l.stroke}`,
                       fontFamily: "Impact, 'Arial Black', sans-serif",
-                      containerType: "inline-size",
                     }}
                   >
                     {l.uppercase ? l.text.toUpperCase() : l.text}

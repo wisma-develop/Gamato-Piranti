@@ -85,7 +85,7 @@ export const ImageCompress: React.FC = () => {
                       setFiles((f) => f.filter((_, j) => j !== i));
                       setPreviewUrls((u) => u.filter((_, j) => j !== i));
                     }}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs items-center justify-center flex sm:hidden sm:group-hover:flex"
+                    className="absolute -top-2 -right-2 w-7 h-7 sm:-top-1.5 sm:-right-1.5 sm:w-5 sm:h-5 bg-red-500 text-white rounded-full text-xs items-center justify-center flex sm:hidden sm:group-hover:flex"
                   >
                     <Minus className="w-3 h-3" />
                   </button>
