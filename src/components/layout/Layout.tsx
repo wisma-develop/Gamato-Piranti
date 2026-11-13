@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { Suspense, useLayoutEffect } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
@@ -135,6 +135,17 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
   },
 };
 
+/** Kerangka ringan saat potongan kode halaman diunduh. Tinggi minimum mencegah footer melompat (CLS). */
+function RouteFallback() {
+  return (
+    <div role="status" aria-live="polite" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 min-h-[100svh]">
+      <span className="sr-only">Memuat…</span>
+      <div aria-hidden="true" className="h-36 sm:h-40 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 animate-pulse" />
+      <div aria-hidden="true" className="mt-6 h-72 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 animate-pulse" />
+    </div>
+  );
+}
+
 export default function Layout() {
   const { pathname } = useLocation();
   const isHome = pathname === '/';
@@ -162,7 +173,7 @@ export default function Layout() {
         )}
         {/* Breadcrumb — only on non-home pages */}
         {!isHome && categoryLabel && (
-          <div className="border-b border-slate-100/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 backdrop-blur-sm">
+          <div className="border-b border-slate-100/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 gp-blur">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
               <nav className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 flex-wrap">
                 <Link to="/" className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
@@ -184,7 +195,9 @@ export default function Layout() {
           </div>
         )}
         <div key={pathname} className="gp-page-in">
-          <Outlet />
+          <Suspense fallback={<RouteFallback />}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
       <Footer />

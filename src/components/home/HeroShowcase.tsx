@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform, type MotionStyle } from "framer-motion";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePresence";
 import { AudioLines, Check, Clapperboard, FileText, Gauge, Image as ImageIcon, Play, QrCode, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -50,9 +50,9 @@ function SceneQr() {
             <path d={QR_PATH} fill="url(#gp-hero-qr)" />
           </svg>
         </div>
-        <span aria-hidden="true" className="absolute left-2 right-2 top-3 h-0.5 rounded-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_14px_3px_rgba(52,211,153,.55)]" style={{ animation: "gamatoScan 2.8s ease-in-out infinite" }} />
+        <span aria-hidden="true" className="absolute left-2 right-2 top-3 h-0.5 rounded-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_14px_3px_rgba(52,211,153,.55)] gp-scan" />
         <span aria-hidden="true" className="absolute left-1/2 top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-xl bg-white shadow-md ring-1 ring-slate-200">
-          <img src="/gamato-piranti.png" alt="" className="h-7 w-7 rounded-lg object-cover" />
+          <img src="/gamato-piranti-128.webp" width={28} height={28} alt="" className="h-7 w-7 rounded-lg object-cover" />
         </span>
       </div>
       <div className="hidden space-y-2.5 sm:block">
@@ -74,26 +74,28 @@ function ScenePdf() {
   return (
     <div className="relative flex h-full items-center justify-center">
       {[0, 1, 2].map((i) => (
-        <motion.div
+        <div
           key={i}
-          initial={{ x: (i - 1) * 96, rotate: (i - 1) * 9, y: 12, opacity: 0 }}
-          animate={{ x: (i - 1) * 12, rotate: (i - 1) * 4, y: i * -5, opacity: 1 }}
-          transition={{ delay: 0.15 + i * 0.12, type: "spring", stiffness: 80, damping: 14 }}
           className="absolute h-[9.5rem] w-28 space-y-1.5 rounded-lg bg-white p-3 shadow-lg ring-1 ring-slate-200"
-          style={{ zIndex: i }}
+          style={{
+            zIndex: i,
+            ["--x0" as string]: `${(i - 1) * 96}px`, ["--r0" as string]: `${(i - 1) * 9}deg`,
+            ["--x1" as string]: `${(i - 1) * 12}px`, ["--r1" as string]: `${(i - 1) * 4}deg`, ["--y1" as string]: `${i * -5}px`,
+            animation: `gpPdfCard .8s ${0.15 + i * 0.12}s cubic-bezier(.34,1.45,.64,1) both`,
+          } as CSSProperties}
         >
           <span className="inline-block rounded bg-rose-500 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-white">PDF</span>
           <div className="h-1.5 w-full rounded bg-slate-200" /><div className="h-1.5 w-4/5 rounded bg-slate-200" />
           <div className="h-1.5 w-full rounded bg-slate-200" /><div className="h-1.5 w-3/5 rounded bg-slate-200" />
           <div className="mt-2 h-8 w-full rounded bg-gradient-to-br from-indigo-100 to-violet-100" />
-        </motion.div>
+        </div>
       ))}
-      <motion.span
-        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}
+      <span
         className="absolute bottom-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-lg dark:bg-white dark:text-slate-900"
+        style={{ animation: "gpRiseFade .5s .9s ease-out both" }}
       >
         <Check className="h-3.5 w-3.5 text-emerald-400 dark:text-emerald-600" />3 file → 1 PDF
-      </motion.span>
+      </span>
     </div>
   );
 }
@@ -112,7 +114,7 @@ function SceneImage() {
           <span className="text-emerald-700 dark:text-emerald-400">890 KB · −79%</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-          <motion.div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" initial={{ width: "100%" }} animate={{ width: "21%" }} transition={{ delay: 0.45, duration: 1.1, ease: "easeInOut" }} />
+          <div className="h-full w-full origin-left rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" style={{ animation: "gpShrink 1.1s .45s ease-in-out both" }} />
         </div>
       </div>
     </div>
@@ -130,7 +132,7 @@ function SceneAudio() {
       </div>
       <div className="flex w-full max-w-sm items-center gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900"><Play className="h-4 w-4 translate-x-px" fill="currentColor" /></span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"><motion.div className="h-full rounded-full bg-indigo-500" initial={{ width: "8%" }} animate={{ width: "64%" }} transition={{ duration: 3.2, ease: "linear" }} /></div>
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800"><div className="h-full w-full origin-left rounded-full bg-indigo-500" style={{ animation: "gpGrow 3.2s linear both" }} /></div>
         <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">02:08 / 03:15</span>
       </div>
     </div>
@@ -147,7 +149,7 @@ function SceneVideo() {
       <div className="w-full max-w-sm space-y-1.5">
         <div className="relative flex h-12 overflow-hidden rounded-lg">
           {Array.from({ length: 12 }, (_, i) => <span key={i} className="flex-1" style={{ background: `linear-gradient(135deg,hsl(${205 + i * 11} 70% 62%),hsl(${235 + i * 11} 65% 46%))` }} />)}
-          <motion.span className="absolute inset-y-0 rounded-md border-2 border-white shadow-[0_0_0_9999px_rgba(15,23,42,.55)]" initial={{ left: "4%", width: "92%" }} animate={{ left: "28%", width: "38%" }} transition={{ delay: 0.4, duration: 1.2, ease: "easeInOut" }} />
+          <span className="absolute inset-y-0 rounded-md border-2 border-white shadow-[0_0_0_9999px_rgba(15,23,42,.55)]" style={{ animation: "gpTrim 1.2s .4s ease-in-out both" }} />
         </div>
         <p className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400">Potong 00:12 – 00:48</p>
       </div>
@@ -158,10 +160,10 @@ function SceneVideo() {
 const SCENE_VIEW: Record<SceneId, ReactNode> = { qr: <SceneQr />, pdf: <ScenePdf />, gambar: <SceneImage />, audio: <SceneAudio />, video: <SceneVideo /> };
 
 /* ──────────────────────────────────────────── Showcase ──────────────────────────────────────────── */
-/** Kartu kaca melayang. Luar = parallax kursor (framer-motion, transform inline); dalam = mengambang (CSS) —
+/** Kartu kaca melayang. Luar = parallax kursor (CSS var, kelas `gp-hero-far|near`); dalam = mengambang (CSS) —
  *  dipisah supaya dua animasi `transform` tidak saling menimpa. */
-const GlassChip = ({ icon, title, text, className, style, bobDelay }: { icon: ReactNode; title: string; text: string; className?: string; style?: MotionStyle; bobDelay?: string }) => (
-  <motion.div style={style} className={className}>
+const GlassChip = ({ icon, title, text, className, bobDelay }: { icon: ReactNode; title: string; text: string; className?: string; bobDelay?: string }) => (
+  <div className={className}>
     <div className="gp-bob flex items-center gap-3 gp-glass rounded-2xl border border-white/60 dark:border-slate-700/70 px-3.5 py-2.5 shadow-xl shadow-slate-900/10 dark:shadow-black/40" style={bobDelay ? { animationDelay: bobDelay } : undefined}>
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">{icon}</span>
       <span className="leading-tight">
@@ -169,11 +171,11 @@ const GlassChip = ({ icon, title, text, className, style, bobDelay }: { icon: Re
         <span className="block text-xs text-slate-500 dark:text-slate-400">{text}</span>
       </span>
     </div>
-  </motion.div>
+  </div>
 );
 
 export function HeroShowcase({ totalTools }: { totalTools: number }) {
-  const reduce = useReducedMotion();
+  const reduce = usePrefersReducedMotion();
   const [idx, setIdx] = useState(0);
   const [pausedUntil, setPausedUntil] = useState(0);
   const scene = SCENES[idx];
@@ -185,41 +187,41 @@ export function HeroShowcase({ totalTools }: { totalTools: number }) {
     return () => window.clearInterval(t);
   }, [reduce, pausedUntil]);
 
-  // Parallax kursor: hanya mouse (bukan sentuh), hanya bila gerakan diizinkan.
+  // Parallax kursor: hanya mouse (bukan sentuh) & hanya bila gerakan diizinkan. Menulis --px/--py langsung ke DOM
+  // (rAF) — tidak ada re-render React saat kursor bergerak.
   const wrapRef = useRef<HTMLDivElement>(null);
-  const mx = useMotionValue(0), my = useMotionValue(0);
-  const sx = useSpring(mx, { stiffness: 90, damping: 18 }), sy = useSpring(my, { stiffness: 90, damping: 18 });
-  const rotY = useTransform(sx, [-0.5, 0.5], [6, -6]);
-  const rotX = useTransform(sy, [-0.5, 0.5], [-4, 4]);
-  const farX = useTransform(sx, [-0.5, 0.5], [-16, 16]);
-  const farY = useTransform(sy, [-0.5, 0.5], [-10, 10]);
-  const nearX = useTransform(sx, [-0.5, 0.5], [20, -20]);
-  const nearY = useTransform(sy, [-0.5, 0.5], [12, -12]);
-
-  const onMove = useCallback((e: React.PointerEvent) => {
-    if (reduce || e.pointerType !== "mouse" || !wrapRef.current) return;
-    const r = wrapRef.current.getBoundingClientRect();
-    mx.set((e.clientX - r.left) / r.width - 0.5);
-    my.set((e.clientY - r.top) / r.height - 0.5);
-  }, [reduce, mx, my]);
-  const onLeave = useCallback(() => { mx.set(0); my.set(0); }, [mx, my]);
+  const raf = useRef(0);
+  const onMove = (e: React.PointerEvent) => {
+    const el = wrapRef.current;
+    if (reduce || e.pointerType !== "mouse" || !el) return;
+    const { clientX, clientY } = e;
+    if (raf.current) return;
+    raf.current = requestAnimationFrame(() => {
+      raf.current = 0;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--px", ((clientX - r.left) / r.width - 0.5).toFixed(3));
+      el.style.setProperty("--py", ((clientY - r.top) / r.height - 0.5).toFixed(3));
+    });
+  };
+  const onLeave = () => { const el = wrapRef.current; if (el) { el.style.setProperty("--px", "0"); el.style.setProperty("--py", "0"); } };
+  useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
 
   return (
     <div ref={wrapRef} onPointerMove={onMove} onPointerLeave={onLeave} className="relative mx-auto w-full max-w-[34rem] lg:max-w-none" data-testid="hero-showcase">
       {/* Halo di belakang jendela */}
-      <div aria-hidden="true" className="pointer-events-none absolute -inset-6 -z-10 rounded-[3rem] bg-gradient-to-tr from-indigo-500/25 via-violet-500/20 to-sky-400/25 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -inset-6 -z-10 rounded-[3rem] bg-gradient-to-tr from-indigo-500/25 via-violet-500/20 to-sky-400/25 gp-soft" />
 
       {/* Kartu kaca melayang (hanya ≥ lg): dua menjepit sudut jendela, satu gelembung ikon di tepi kiri.
           Posisinya sengaja di area kosong jendela (sudut kanan-atas bilah judul, sudut kanan-bawah bilah status). */}
-      <GlassChip icon={<Search className="h-5 w-5" />} title={`${totalTools}+ alat`} text="Cari cepat · Ctrl K" style={{ x: nearX, y: nearY }} className="absolute -right-5 -top-7 z-20 hidden lg:block" bobDelay="-2s" />
-      <GlassChip icon={<ShieldCheck className="h-5 w-5" />} title="Privasi penuh" text="0 byte diunggah" style={{ x: farX, y: farY }} className="absolute -bottom-8 -right-5 z-20 hidden lg:block" />
-      <motion.div aria-hidden="true" style={{ x: farX, y: nearY }} className="absolute -left-6 top-[46%] z-20 hidden lg:block">
+      <GlassChip icon={<Search className="h-5 w-5" />} title={`${totalTools}+ alat`} text="Cari cepat · Ctrl K" className="gp-hero-near absolute -right-5 -top-7 z-20 hidden lg:block" bobDelay="-2s" />
+      <GlassChip icon={<ShieldCheck className="h-5 w-5" />} title="Privasi penuh" text="0 byte diunggah" className="gp-hero-far absolute -bottom-8 -right-5 z-20 hidden lg:block" />
+      <div aria-hidden="true" className="gp-hero-far absolute -left-6 top-[46%] z-20 hidden lg:block">
         <div className="gp-bob gp-glass grid h-12 w-12 place-items-center rounded-2xl border border-white/60 dark:border-slate-700/70 shadow-xl shadow-slate-900/10 dark:shadow-black/40" style={{ animationDelay: "-4s" }}>
           <Gauge className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 1200 }} className="gp-noise relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/85 shadow-2xl shadow-indigo-500/20 dark:shadow-black/50 backdrop-blur">
+      <div className="gp-hero-win gp-noise relative overflow-hidden rounded-3xl border border-slate-200/90 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/85 shadow-2xl shadow-indigo-500/20 dark:shadow-black/50 backdrop-blur">
         {/* Bilah judul jendela */}
         <div className="flex items-center gap-3 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/70 px-4 py-2.5">
           <span className="flex gap-1.5" aria-hidden="true"><i className="h-2.5 w-2.5 rounded-full bg-rose-400" /><i className="h-2.5 w-2.5 rounded-full bg-amber-400" /><i className="h-2.5 w-2.5 rounded-full bg-emerald-400" /></span>
@@ -254,11 +256,9 @@ export function HeroShowcase({ totalTools }: { totalTools: number }) {
 
         {/* Panggung */}
         <div id="hero-stage" role="tabpanel" aria-labelledby={`hero-tab-${scene.id}`} className="relative h-[17.5rem] sm:h-[20rem] bg-[radial-gradient(ellipse_70%_90%_at_50%_0%,color-mix(in_oklab,var(--color-indigo-500)_9%,transparent),transparent)]">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={scene.id} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }} transition={{ duration: 0.28 }} className="absolute inset-0">
-              {SCENE_VIEW[scene.id]}
-            </motion.div>
-          </AnimatePresence>
+          <div key={scene.id} className="gp-scene-in absolute inset-0">
+            {SCENE_VIEW[scene.id]}
+          </div>
         </div>
 
         {/* Bilah status */}
@@ -269,7 +269,7 @@ export function HeroShowcase({ totalTools }: { totalTools: number }) {
             Di perangkatmu
           </span>
         </div>
-      </motion.div>
+      </div>
 
       {/* Versi ringkas kartu kaca untuk layar < lg */}
       <ul className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 lg:hidden" aria-label="Keunggulan">

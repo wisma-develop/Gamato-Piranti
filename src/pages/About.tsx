@@ -56,7 +56,7 @@ export default function About() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-center space-y-5">
         <div className="inline-flex items-center gap-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm pl-2 pr-4 py-2 rounded-2xl">
           <div className="rounded-xl overflow-hidden w-8 h-8 ring-1 ring-slate-100 dark:ring-slate-700">
-            <img src="/gamato-piranti.png" alt="Gamato Piranti" className="w-full h-full object-cover" />
+            <img src="/gamato-piranti-128.webp" alt="Gamato Piranti" className="w-full h-full object-cover" />
           </div>
           <span className="font-bold text-lg text-slate-900 dark:text-white">Gamato Piranti</span>
         </div>

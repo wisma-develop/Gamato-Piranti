@@ -28,7 +28,7 @@ import {
   MapPin,
   Tag,
 } from 'lucide-react';
-import { AnimatePresence, motion, useScroll, useSpring } from 'framer-motion';
+import { Presence } from '@/hooks/usePresence';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { GamatoTooltip } from '@/components/ui/GamatoTooltip';
 import { SearchTrigger } from '@/components/search/ToolSearch';
@@ -242,6 +242,26 @@ function GroupedItems({ items, onNavigate, dense }: { items: MenuItem[]; onNavig
   );
 }
 
+/** Garis progres gulir — satu listener pasif + rAF, menulis transform langsung (tanpa re-render React). */
+function ScrollProgress() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = ref.current; if (!el) return;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      el.style.transform = `scaleX(${max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0})`;
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  return <div ref={ref} aria-hidden="true" data-testid="scroll-progress" className="absolute inset-x-0 -bottom-px h-[2px] origin-left scale-x-0 bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-400 pointer-events-none" />;
+}
+
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -250,8 +270,6 @@ export default function Header() {
     window.addEventListener("scroll", f, { passive: true });
     return () => window.removeEventListener("scroll", f);
   }, []);
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, { stiffness: 140, damping: 28, restDelta: 0.001 });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<DropGroup>(null);
   const [activeDropdown, setActiveDropdown] = useState<DropGroup>(null);
@@ -277,14 +295,14 @@ export default function Header() {
   const isActive = (items: { path: string }[]) => items.some(i => location.pathname === i.path);
 
   return (
-    <header className={`sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-b transition-shadow duration-300 ${scrolled ? "border-slate-200 dark:border-slate-800 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] dark:shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]" : "border-slate-200/70 dark:border-slate-800"}`}>
+    <header className={`sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 gp-blur border-b transition-shadow duration-300 ${scrolled ? "border-slate-200 dark:border-slate-800 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] dark:shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]" : "border-slate-200/70 dark:border-slate-800"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="rounded-xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm group-hover:shadow-md group-hover:ring-indigo-200 dark:group-hover:ring-indigo-500/40 transition-all duration-300">
-              <img src="/gamato-piranti.png" alt="Gamato Piranti" className="w-9 h-9 object-cover" />
+            <div className="rounded-xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm group-hover:shadow-md group-hover:ring-indigo-200 dark:group-hover:ring-indigo-500/40 transition-[box-shadow,--tw-ring-color,rotate,scale] duration-300 group-hover:-rotate-6 group-hover:scale-110">
+              <img src="/gamato-piranti-128.webp" width={36} height={36} alt="Gamato Piranti" className="w-9 h-9 object-cover" />
             </div>
             <div className="leading-tight">
               <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -326,15 +344,13 @@ export default function Header() {
                     <ChevronDown className={`w-2.5 h-2.5 transition-transform duration-200 ${activeDropdown === group.id ? 'rotate-180' : ''}`} />
                   </button>
 
-                  <AnimatePresence>
-                    {activeDropdown === group.id && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                        transition={{ duration: 0.13 }}
-                        className={`absolute top-full ${alignClass} mt-2 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden ${wide ? 'w-[380px]' : 'w-64'}`}
-                      >
+                  <Presence
+                    show={activeDropdown === group.id}
+                    exitMs={130}
+                    openClassName="opacity-100 translate-y-0 scale-100"
+                    closedClassName="opacity-0 translate-y-2 scale-[0.97]"
+                    className={`absolute top-full ${alignClass} mt-2 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden transition-[opacity,translate,scale] duration-150 ease-out ${wide ? 'w-[380px]' : 'w-64'}`}
+                  >
                         <div className={`p-2 max-h-[70vh] overflow-y-auto ${wide ? 'grid grid-cols-2 gap-0.5' : 'space-y-0.5'}`}>
                           <GroupedItems items={group.items} onNavigate={() => setActiveDropdown(null)} dense={wide} />
                         </div>
@@ -345,9 +361,7 @@ export default function Header() {
                         >
                           Lihat semua {group.title}
                         </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  </Presence>
                 </div>
               );
             })}
@@ -404,15 +418,14 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="xl:hidden overflow-hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
-          >
+      <Presence
+        show={mobileOpen}
+        exitMs={200}
+        openClassName="grid-rows-[1fr] opacity-100"
+        closedClassName="grid-rows-[0fr] opacity-0"
+        className="xl:hidden grid transition-[grid-template-rows,opacity] duration-200 ease-out bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
+      >
+          <div className="min-h-0 overflow-hidden">
             <div className="px-4 py-5 space-y-3 max-h-[80vh] overflow-y-auto">
               {menuGroups.map((group) => {
                 const expanded = mobileExpanded === group.id;
@@ -428,15 +441,14 @@ export default function Header() {
                       <span className="flex items-center gap-2">{group.icon}<span>{group.title}</span></span>
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
                     </button>
-                    <AnimatePresence>
-                      {expanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.18 }}
-                          className="overflow-hidden"
-                        >
+                    <Presence
+                      show={expanded}
+                      exitMs={180}
+                      openClassName="grid-rows-[1fr] opacity-100"
+                      closedClassName="grid-rows-[0fr] opacity-0"
+                      className="grid transition-[grid-template-rows,opacity] duration-200 ease-out"
+                    >
+                      <div className="min-h-0 overflow-hidden">
                           <div className="p-1.5">
                             <GroupedItems items={group.items} onNavigate={() => setMobileOpen(false)} />
                           </div>
@@ -447,9 +459,8 @@ export default function Header() {
                           >
                             Lihat semua {group.title}
                           </Link>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                      </div>
+                    </Presence>
                   </div>
                 );
               })}
@@ -473,11 +484,10 @@ export default function Header() {
                 <span className="text-slate-500 dark:text-slate-400 font-bold">WisDev</span>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      </Presence>
       {/* Progres gulir halaman — garis tipis bergradien di tepi bawah header */}
-      <motion.div aria-hidden="true" data-testid="scroll-progress" style={{ scaleX: progress }} className="absolute inset-x-0 -bottom-px h-[2px] origin-left bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-400 pointer-events-none" />
+      <ScrollProgress />
     </header>
   );
 }

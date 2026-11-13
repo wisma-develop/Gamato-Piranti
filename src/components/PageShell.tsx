@@ -56,23 +56,26 @@ export const PageShell: React.FC<{
     <div className={cn("mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-5 sm:space-y-6", WIDTH_CLASS[width])}>
       <section
         data-testid="page-banner"
-        className="gp-noise relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white/75 dark:bg-slate-900/60 shadow-[0_1px_0_rgba(255,255,255,.6)_inset,0_18px_40px_-28px_color-mix(in_oklab,var(--color-indigo-600)_55%,transparent)]"
+        className="gp-spot gp-noise relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white/75 dark:bg-slate-900/60 shadow-[0_1px_0_rgba(255,255,255,.6)_inset,0_18px_40px_-28px_color-mix(in_oklab,var(--color-indigo-600)_55%,transparent)]"
       >
         {/* Latar: orb gradien + grid halus yang memudar — mengikuti warna tema kategori */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-28 -left-12 h-72 w-72 rounded-full bg-indigo-500/20 dark:bg-indigo-500/25 blur-3xl" />
-          <div className="absolute -bottom-32 right-[-4rem] h-72 w-96 rounded-full bg-violet-500/20 dark:bg-violet-500/20 blur-3xl" />
+          <div className="gp-orb absolute -top-28 -left-12 h-72 w-72 rounded-full bg-indigo-500/20 dark:bg-indigo-500/25 gp-soft" />
+          <div className="gp-orb absolute -bottom-32 right-[-4rem] h-72 w-96 rounded-full bg-violet-500/20 dark:bg-violet-500/20 gp-soft [animation-delay:-6s]" />
           <div className="absolute inset-0 opacity-[0.5] dark:opacity-[0.16] bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-indigo-300)_55%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--color-indigo-300)_55%,transparent)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(ellipse_80%_120%_at_85%_0%,#000_20%,transparent_70%)]" />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent" />
         </div>
 
         <div className="relative flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-7">
           {bannerIcon && (
-            <div
-              aria-hidden="true"
-              className="grid h-14 w-14 sm:h-[4.25rem] sm:w-[4.25rem] shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-white/70 dark:ring-white/5"
-            >
-              <span className="text-white [&_svg]:text-white">{bannerIcon}</span>
+            <div className="gp-bob shrink-0 [animation-duration:7s]">
+              <div
+                aria-hidden="true"
+                data-tilt="22"
+                className="grid h-14 w-14 sm:h-[4.25rem] sm:w-[4.25rem] place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30 ring-4 ring-white/70 dark:ring-white/5"
+              >
+                <span data-depth style={{ ["--z" as string]: "18px" }} className="text-white [&_svg]:text-white">{bannerIcon}</span>
+              </div>
             </div>
           )}
 

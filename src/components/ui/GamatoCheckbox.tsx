@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -10,6 +10,7 @@ export function GamatoCheckbox({
   checked,
   onChange,
   label,
+  ariaLabel,
   disabled,
   className,
   testId,
@@ -17,14 +18,20 @@ export function GamatoCheckbox({
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: React.ReactNode;
+  /** Nama aksesibel bila tidak ada `label` yang terlihat. */
+  ariaLabel?: string;
   disabled?: boolean;
   className?: string;
   testId?: string;
 }) {
+  // `<label>` tidak bisa melabeli <span role="checkbox"> secara otomatis → hubungkan lewat aria-labelledby.
+  const labelId = useId();
   const box = (
     <span
       role="checkbox"
       data-testid={testId}
+      aria-labelledby={label ? labelId : undefined}
+      aria-label={label ? undefined : ariaLabel ?? "Pilihan"}
       aria-checked={checked}
       tabIndex={disabled ? -1 : 0}
       onClick={() => !disabled && onChange(!checked)}
@@ -59,7 +66,7 @@ export function GamatoCheckbox({
       className={cn("flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none", disabled && "cursor-not-allowed opacity-60", className)}
     >
       {box}
-      {label}
+      <span id={labelId}>{label}</span>
     </label>
   );
 }

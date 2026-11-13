@@ -46,12 +46,15 @@ export const CategoryGrid: FC<{ groups: CategoryGroup[] }> = ({ groups }) => (
               className="group block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950"
             >
               <SpotlightCard
+                data-tilt="6"
                 spot="color-mix(in oklab, var(--color-indigo-500) 16%, transparent)"
-                className="relative h-full overflow-hidden flex items-start gap-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-indigo-300 dark:group-hover:border-indigo-500/50 group-hover:shadow-xl group-hover:shadow-indigo-500/15 dark:group-hover:shadow-black/40"
+                className="relative h-full flex items-start gap-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-indigo-300 dark:group-hover:border-indigo-500/50 group-hover:shadow-xl group-hover:shadow-indigo-500/15 dark:group-hover:shadow-black/40"
               >
-                <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 opacity-[0.07] blur-2xl transition-opacity duration-300 group-hover:opacity-[0.22]" />
-                <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-400 transition-transform duration-300 group-hover:scale-x-100" />
-                <div className="relative shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 ring-1 ring-indigo-100 dark:ring-indigo-500/20 transition-all duration-300 group-hover:bg-gradient-to-br group-hover:from-indigo-500 group-hover:to-violet-600 group-hover:text-white group-hover:ring-transparent group-hover:shadow-lg group-hover:shadow-indigo-500/30 group-hover:scale-105 group-hover:-rotate-3">
+                <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+                  <span className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 opacity-[0.07] gp-soft transition-opacity duration-300 group-hover:opacity-[0.22]" />
+                  <span className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-400 transition-transform duration-300 group-hover:scale-x-100" />
+                </span>
+                <div data-depth style={{ ["--z" as string]: "30px" }} className="relative shrink-0 inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 ring-1 ring-indigo-100 dark:ring-indigo-500/20 transition-[background-color,box-shadow,scale,rotate,color] duration-300 group-hover:bg-gradient-to-br group-hover:from-indigo-500 group-hover:to-violet-600 group-hover:text-white group-hover:ring-transparent group-hover:shadow-lg group-hover:shadow-indigo-500/30 group-hover:scale-105 group-hover:-rotate-3">
                   {item.icon}
                 </div>
                 <div className="relative min-w-0 flex-1">

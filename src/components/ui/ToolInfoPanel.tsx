@@ -17,8 +17,8 @@ export const ToolInfoPanel: React.FC<{
   infoTone?: "success" | "error";
   badgeText?: string;
 }> = ({ icon, label, desc, points, info, infoTone = "success", badgeText = "Proses native di perangkatmu" }) => (
-  <div className="gp-noise relative overflow-hidden bg-slate-900 ring-1 ring-slate-800 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 lg:sticky lg:top-24">
-    <span aria-hidden="true" className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-indigo-500/25 blur-3xl" />
+  <div className="gp-spot [--spot:rgba(129,140,248,.14)] gp-noise relative overflow-hidden bg-slate-900 ring-1 ring-slate-800 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4 lg:sticky lg:top-24">
+    <span aria-hidden="true" className="gp-orb pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-indigo-500/25 gp-soft" />
     <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/70 to-transparent" />
     <p className="relative text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Tentang Alat Ini</p>
     <div className="relative flex items-center gap-3">

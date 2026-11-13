@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @import "./theme.generated.css";
 
+/* Alan Sans (font UI) di-host sendiri: tanpa permintaan lintas-origin pada render pertama. File latin di-preload di index.html. */
+@font-face {
+  font-family: "Alan Sans"; font-style: normal; font-weight: 300 900; font-display: swap;
+  src: url("/fonts/alan-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: "Alan Sans"; font-style: normal; font-weight: 300 900; font-display: swap;
+  src: url("/fonts/alan-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
 /* ── Dark mode via a toggleable .dark class (instead of only OS preference) ── */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -232,7 +244,7 @@ textarea:focus-visible {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50%      { transform: translate3d(28px, -22px, 0) scale(1.08); }
 }
-.gp-orb { animation: gamatoFloat 16s ease-in-out infinite; will-change: transform; }
+html.gp-live .gp-orb { animation: gamatoFloat 16s ease-in-out infinite; will-change: transform; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
@@ -281,8 +293,8 @@ html.dark { scrollbar-color: rgba(148, 163, 184, 0.35) transparent; }
 
 /* Derau halus di atas gradien agar tidak terlihat "plastik". */
 .gp-noise::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: soft-light;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .55;
+  background-image: url("data:image/png;base64,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"); background-size: 64px 64px;
 }
 .dark .gp-noise::after { opacity: .35; }
 
@@ -298,12 +310,23 @@ html.dark { scrollbar-color: rgba(148, 163, 184, 0.35) transparent; }
 @keyframes gamatoWordIn { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes gamatoBlink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 
-.gp-marquee { display: flex; width: max-content; animation: gamatoMarquee 60s linear infinite; }
-.gp-marquee-rev { animation-name: gamatoMarqueeRev; animation-duration: 75s; }
-.gp-marquee-wrap:hover .gp-marquee { animation-play-state: paused; }
-.gp-gradient-text-anim { background-size: 220% 100%; animation: gamatoGradientShift 9s ease-in-out infinite; }
-.gp-bob { animation: gamatoBob 6s ease-in-out infinite; }
-.gp-bar { transform-origin: 50% 100%; animation: gamatoBar 1.2s ease-in-out infinite; }
+/* Animasi AMBIENT (berulang tanpa henti) baru menyala setelah halaman idle — kelas `gp-live` dipasang di <html> oleh
+   main.tsx. Render pertama jadi ringan; efeknya tetap hidup begitu halaman selesai dimuat. */
+.gp-marquee { display: flex; width: max-content; }
+html.gp-live .gp-marquee { animation: gamatoMarquee 60s linear infinite; }
+html.gp-live .gp-marquee-rev { animation-name: gamatoMarqueeRev; animation-duration: 75s; }
+html.gp-live .gp-marquee-wrap:hover .gp-marquee { animation-play-state: paused; }
+.gp-gradient-text-anim { background-size: 220% 100%; }
+html.gp-live .gp-gradient-text-anim { animation: gamatoGradientShift 9s ease-in-out infinite; }
+html.gp-live .gp-bob { animation: gamatoBob 6s ease-in-out infinite; }
+.gp-bar { transform-origin: 50% 100%; transform: scaleY(.6); }
+html.gp-live .gp-bar { animation: gamatoBar 1.2s ease-in-out infinite; }
+html.gp-live .gp-scan { animation: gamatoScan 2.8s ease-in-out infinite; }
+
+/* Pengganti blur-3xl untuk blob dekoratif: mask radial statis (satu kali raster, tanpa filter blur). */
+.gp-soft { -webkit-mask-image: radial-gradient(closest-side, #000 22%, transparent 100%); mask-image: radial-gradient(closest-side, #000 22%, transparent 100%); }
+/* backdrop-filter hanya setelah idle — sebelum itu latar translusen biasa. */
+html.gp-live .gp-blur { -webkit-backdrop-filter: blur(12px) saturate(1.2); backdrop-filter: blur(12px) saturate(1.2); }
 .gp-word-in { animation: gamatoWordIn .45s cubic-bezier(.16,1,.3,1) both; }
 .gp-caret { animation: gamatoBlink 1s steps(1) infinite; }
 
@@ -321,8 +344,42 @@ html.dark { scrollbar-color: rgba(148, 163, 184, 0.35) transparent; }
 .gp-orbit-border::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: 220%; aspect-ratio: 1; z-index: -2; translate: -50% -50%;
   background: conic-gradient(from 0deg, transparent 0 55%, var(--color-indigo-400) 72%, var(--color-violet-400) 86%, transparent 100%);
-  animation: gamatoSpinSlow 7s linear infinite; opacity: .9;
+  opacity: .9;
 }
+html.gp-live .gp-orbit-border::before { animation: gamatoSpinSlow 7s linear infinite; }
+
+/* ── Animasi masuk berbasis CSS (menggantikan framer-motion di jalur awal) ── */
+@keyframes gpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gpModalIn { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+/* Naik tanpa memudar — teks tetap terlihat sejak frame pertama (penting untuk LCP) */
+@keyframes gpRise { from { transform: translateY(18px); } to { transform: none; } }
+@keyframes gpRiseFade { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes gpSceneIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes gpShrink { from { transform: scaleX(1); } to { transform: scaleX(.21); } }
+@keyframes gpGrow { from { transform: scaleX(.08); } to { transform: scaleX(.64); } }
+@keyframes gpTrim { from { left: 4%; width: 92%; } to { left: 28%; width: 38%; } }
+@keyframes gpPdfCard { from { opacity: 0; transform: translate(var(--x0), 12px) rotate(var(--r0)); } to { opacity: 1; transform: translate(var(--x1), var(--y1)) rotate(var(--r1)); } }
+.gp-fade-in { animation: gpFadeIn .15s ease-out both; }
+.gp-modal-in { animation: gpModalIn .16s ease-out both; }
+.gp-rise { animation: gpRise .6s cubic-bezier(.16,1,.3,1) both; }
+.gp-rise-fade { animation: gpRiseFade .8s .15s cubic-bezier(.16,1,.3,1) both; }
+.gp-scene-in { animation: gpSceneIn .28s ease-out both; }
+
+/* Muncul saat di-scroll — dipakai komponen <Reveal> (IntersectionObserver menambahkan .is-in). */
+.gp-reveal { opacity: 0; transform: translateY(22px); transition: opacity .5s ease-out, transform .5s cubic-bezier(.16,1,.3,1); }
+.gp-reveal.is-in { opacity: 1; transform: none; }
+@media print { .gp-reveal { opacity: 1; transform: none; } }
+
+/* Parallax kursor hero — variabel --px/--py (−0.5…0.5) diisi lewat satu pointer handler, tanpa re-render React. */
+.gp-hero-win { transform: perspective(1200px) rotateX(calc(var(--py, 0) * -8deg)) rotateY(calc(var(--px, 0) * 12deg)); transition: transform .18s ease-out; will-change: transform; }
+.gp-hero-far { transform: translate3d(calc(var(--px, 0) * -32px), calc(var(--py, 0) * -20px), 0); transition: transform .25s ease-out; }
+.gp-hero-near { transform: translate3d(calc(var(--px, 0) * 40px), calc(var(--py, 0) * 24px), 0); transition: transform .25s ease-out; }
+
+/* Miring 3D mengikuti kursor (variabel --rx/--ry diisi src/lib/pointerFx.ts). Anak `[data-depth]` "timbul". */
+[data-tilt] { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transform-style: preserve-3d; transition: transform .45s cubic-bezier(.16, 1, .3, 1), box-shadow .3s, border-color .3s; }
+[data-tilt].is-tilting { transition: transform .09s linear, box-shadow .3s, border-color .3s; will-change: transform; }
+[data-depth] { transform: translateZ(var(--z, 26px)); transition: transform .45s cubic-bezier(.16, 1, .3, 1); }
+@media (prefers-reduced-motion: reduce) { [data-tilt], [data-depth] { transform: none !important; } }
 
 /* Kartu dengan sorotan yang mengikuti kursor (variabel --mx/--my diisi komponen SpotlightCard) */
 .gp-spot { position: relative; isolation: isolate; }
@@ -333,10 +390,15 @@ html.dark { scrollbar-color: rgba(148, 163, 184, 0.35) transparent; }
 @media (hover: hover) and (pointer: fine) { .gp-spot:hover::before { opacity: 1; } }
 
 /* Kaca (glassmorphism) */
-.gp-glass { background: color-mix(in oklab, #fff 72%, transparent); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); }
-.dark .gp-glass { background: color-mix(in oklab, #0f172a 62%, transparent); }
+.gp-glass { background: color-mix(in oklab, #fff 82%, transparent); }
+html.gp-live .gp-glass { -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); background: color-mix(in oklab, #fff 72%, transparent); }
+.dark .gp-glass, html.gp-live .dark .gp-glass { background: color-mix(in oklab, #0f172a 62%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
-  .gp-marquee, .gp-bob, .gp-bar, .gp-word-in, .gp-gradient-text-anim, .gp-orbit-border::before { animation: none !important; }
+  .gp-reveal { opacity: 1; transform: none; transition: none; }
+  .gp-marquee, .gp-bob, .gp-bar, .gp-word-in, .gp-rise, .gp-rise-fade, .gp-scene-in, .gp-hero-win, .gp-hero-far, .gp-hero-near, .gp-gradient-text-anim, .gp-orbit-border::before, .gp-orb, .gp-scan { animation: none !important; }
   .gp-bar { transform: scaleY(.6); }
 }
+
+/* Lewati render bagian layar yang belum terlihat (Style/Layout/Paint) — ukuran perkiraan mencegah lompatan scrollbar. */
+.gp-cv { content-visibility: auto; contain-intrinsic-size: auto 720px; }

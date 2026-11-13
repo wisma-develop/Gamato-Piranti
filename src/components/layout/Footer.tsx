@@ -12,7 +12,7 @@ export default function Footer() {
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center space-x-2.5">
               <div className="rounded-lg overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700">
-                <img src="/gamato-piranti.png" alt="Gamato Piranti" className="w-8 h-8 object-cover" />
+                <img src="/gamato-piranti-128.webp" width={32} height={32} loading="lazy" alt="Gamato Piranti" className="w-8 h-8 object-cover" />
               </div>
               <span className="font-bold text-lg text-slate-900 dark:text-white">Gamato Piranti</span>
             </div>
@@ -27,7 +27,7 @@ export default function Footer() {
 
           {/* Tools */}
           <div>
-            <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">Alat</h3>
+            <h2 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">Alat</h2>
             <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
               <li><Link to="/qr" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">QR & Barcode Studio</Link></li>
               <li><Link to="/pdf" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">PDF Lab – Suite</Link></li>
@@ -42,7 +42,7 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">Informasi</h3>
+            <h2 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm">Informasi</h2>
             <ul className="space-y-2.5 text-sm text-slate-500 dark:text-slate-400">
               <li><Link to="/about" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Tentang Kami</Link></li>
               <li><Link to="/privacy" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Kebijakan Privasi</Link></li>

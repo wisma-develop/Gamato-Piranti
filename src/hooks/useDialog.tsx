@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, HelpCircle, Info, Loader2, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -82,32 +81,24 @@ const TONE_STYLES: Record<NonNullable<AlertOptions["tone"]>, { icon: React.React
 const fieldInputClass = "w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-slate-100 shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-400 dark:focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/10";
 
 const Backdrop: React.FC<{ onClose: () => void; children: React.ReactNode }> = ({ onClose, children }) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.15 }}
-    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/50 dark:bg-slate-950/70 backdrop-blur-sm"
+  <div
+    className="gp-fade-in fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/50 dark:bg-slate-950/70 backdrop-blur-sm"
     onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
   >
     {children}
-  </motion.div>
+  </div>
 );
 
 const ModalCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 16, scale: 0.97 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: 10, scale: 0.97 }}
-    transition={{ duration: 0.16, ease: "easeOut" }}
+  <div
     onMouseDown={(e) => e.stopPropagation()}
     className={cn(
-      "w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 dark:border-slate-800 overflow-hidden",
+      "gp-modal-in w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 dark:border-slate-800 overflow-hidden",
       className
     )}
   >
     {children}
-  </motion.div>
+  </div>
 );
 
 export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -161,7 +152,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <DialogContext.Provider value={{ alert, confirm, form }}>
       {children}
-      <AnimatePresence>
+      <>
         {request && (
           <Backdrop onClose={() => closeWith(request.kind === "confirm" ? false : request.kind === "form" ? null : undefined)}>
             {request.kind === "alert" && (
@@ -307,7 +298,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             )}
           </Backdrop>
         )}
-      </AnimatePresence>
+      </>
     </DialogContext.Provider>
   );
 };
