@@ -1,0 +1,20 @@
+# Gamato Piranti
+
+> Suite alat digital berbasis browser: QR code & barcode, PDF, dokumen Office, gambar, video, audio, utilitas, dan dokumen bisnis. Semua file diproses langsung di perangkat pengguna — tidak ada unggahan ke server, tanpa akun, gratis.
+
+## Kategori alat
+
+- [QR & Barcode Studio](https://gamatopiranti.zone.id/qr): QR code kustom, barcode multi-format, pemindai QR
+- [PDF Lab](https://gamatopiranti.zone.id/pdf): gabung, pecah, kompres, konversi Office ⇄ PDF, OCR, tanda tangan, proteksi
+- [Office Tools](https://gamatopiranti.zone.id/office): Doc Studio, Sheet Studio, Slide Studio, Diagram & Rumus
+- [Image Lab](https://gamatopiranti.zone.id/image): editor foto, kolase, hapus background, kompres, konversi
+- [Video Studio](https://gamatopiranti.zone.id/video): konversi, kompres, potong, crop, subtitle, gabung
+- [Audio Studio](https://gamatopiranti.zone.id/audio): konversi, edit, transkrip, speech to text, text to speech
+- [Rak Utilitas](https://gamatopiranti.zone.id/utility): kalkulator, universal converter, kamus dunia, JSON, Base64
+- [Spesial](https://gamatopiranti.zone.id/special): invoice, kwitansi, kartu nama, sertifikat, CV, name tag
+
+## Informasi
+
+- [Tentang Kami](https://gamatopiranti.zone.id/about)
+- [Kebijakan Privasi](https://gamatopiranti.zone.id/privacy)
+- [Ketentuan Layanan](https://gamatopiranti.zone.id/terms)
