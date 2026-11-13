@@ -77,9 +77,9 @@ export const UtilityHtmlPreview: React.FC = () => {
   return (
     <div className="grid lg:grid-cols-2 gap-6 items-start">
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Kode HTML / CSS / JS</p>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <UndoRedoBar canUndo={codeHistory.canUndo} canRedo={codeHistory.canRedo} onUndo={codeHistory.undo} onRedo={codeHistory.redo} hideLabel />
             <button
               type="button"
