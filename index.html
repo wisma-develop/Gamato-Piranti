@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Gamato Piranti — Suite alat digital modern: QR code, PDF, editor dokumen, olah gambar, dan utilitas harian. Gratis, cepat, dan diproses langsung di perangkatmu." />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="application-name" content="Gamato Piranti" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
 
@@ -66,12 +66,15 @@
     </script>
 
     <script>
-      // Apply the saved/system theme before first paint to avoid a light/dark flash.
+      // Tema bawaan = TERANG (putih). Gelap hanya bila pengguna memilihnya sendiri (kunci "gp-theme-pref", ditulis saat
+      // tombol tema ditekan). Dijalankan sebelum paint pertama agar tidak ada kilatan terang/gelap.
       (function () {
         try {
-          var stored = localStorage.getItem("gp-theme");
-          var isDark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-          if (isDark) document.documentElement.classList.add("dark");
+          if (localStorage.getItem("gp-theme-pref") === "dark") {
+            document.documentElement.classList.add("dark");
+            var m = document.querySelector('meta[name="theme-color"]');
+            if (m) m.setAttribute("content", "#0f172a");
+          }
         } catch (e) {}
       })();
     </script>
