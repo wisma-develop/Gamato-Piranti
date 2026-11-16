@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Receipt, Download, Printer, Loader2, Building2, ReceiptText, PenLine } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { sanitizeFileName, sanitizeNumberString } from "@/utils/sanitize";
@@ -25,6 +25,9 @@ import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft, useDraftFile } from "@/hooks/useAutosave";
+import { mergeDraft, type DraftImage } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
@@ -208,11 +211,15 @@ function renderKwitansiToCanvas(
   ctx.fillText(data.receiverName || "(..............................)", sigX, y + 106);
 }
 
+const DRAFT_KEY = "gamato.draft.kwitansi";
+
 export function KwitansiGenerator() {
   // Semua field kwitansi (kop perusahaan + detail pembayaran + tanda tangan)
   // punya riwayat Undo/Redo. Mengetik digabung jadi satu langkah setelah jeda;
   // pilih warna preset/tanggal/logo/tanda tangan langsung commit sebagai satu langkah.
-  const history = useHistoryState<KwitansiData>(() => ({
+  const draft = useDraft<KwitansiData, { logo: DraftImage | null }>(DRAFT_KEY);
+  const [logoFile, setLogoFile, logoDraft] = useDraftFile(draft?.extra?.logo);
+  const history = useHistoryState<KwitansiData>(() => mergeDraft<KwitansiData>({
     companyName: "Nama Usaha / Perusahaan",
     companyAddress: "Jl. Contoh Alamat No. 123, Kota",
     companyPhone: "0812-3456-7890",
@@ -229,15 +236,16 @@ export function KwitansiGenerator() {
     signatureImage: null,
     accentColor: ACCENT_PRESETS[0],
     fontFamily: DEFAULT_FONT_FAMILY,
-  }));
+  }, draft?.data));
   const data = history.state;
+  const draftExtra = useMemo(() => ({ logo: logoDraft }), [logoDraft]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: data, extra: draftExtra, restored: !!draft });
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
   const updateField = <K extends keyof KwitansiData>(key: K, value: KwitansiData[K], opts?: { continuous?: boolean }) => {
     history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
     if (opts?.continuous) scheduleCommit();
   };
 
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [exportScale, setExportScale] = useState<ExportScale>(2);
   const [info, setInfo] = useState<string | null>(null);
@@ -325,6 +333,7 @@ export function KwitansiGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="kwitansi" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Kwitansi</span>

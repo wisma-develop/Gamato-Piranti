@@ -372,7 +372,7 @@ export const UniversalConverter: React.FC = () => {
                 </div>
               )}
               {sourceFormat?.id === "video" && !isVideoConvertSupported() && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Browser ini tidak mendukung konversi video (perlu MediaRecorder). Coba Chrome atau Edge terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Browser ini tidak mendukung konversi video (perlu MediaRecorder). Coba Chrome atau Edge terbaru.</p>
               )}
               {sourceFormat?.id === "gif" && (
                 <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Hanya frame pertama dari GIF animasi yang dipakai sebagai gambar sumber.</p>
@@ -383,7 +383,7 @@ export const UniversalConverter: React.FC = () => {
               {targetId === "audioOut" && (
                 <>
                   {!isAudioCompressionSupported() && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Browser ini tidak mendukung kompresi audio (perlu MediaRecorder + Opus). Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Browser ini tidak mendukung kompresi audio (perlu MediaRecorder + Opus). Coba Chrome, Edge, atau Firefox versi terbaru.</p>
                   )}
                   <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Proses berjalan secara real-time (durasi kompresi ≈ durasi audio) — biarkan tab ini terbuka & tidak dibisukan sampai selesai.</p>
                 </>

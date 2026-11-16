@@ -26,6 +26,9 @@ import { couponFileName, couponSheetInfo, exportCouponPdf, exportCouponSheet, ex
 import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { mergeDraft } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { FontPicker } from "@/components/ui/FontPicker";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
@@ -123,8 +126,12 @@ function normalizeLoaded(raw: unknown): CouponDesign | null {
 
 // ── Komponen utama ───────────────────────────────────────────────────────
 
+const DRAFT_KEY = "gamato.draft.coupon";
+
 export function CouponGenerator() {
-  const history = useHistoryState<CouponDesign>(() => defaultCouponDesign());
+  const draft = useDraft<CouponDesign>(DRAFT_KEY);
+  const history = useHistoryState<CouponDesign>(() => mergeDraft<CouponDesign>(defaultCouponDesign(), draft?.data));
+  const autosave = useAutosave({ key: DRAFT_KEY, value: history.state, restored: !!draft });
   const d = history.state;
   const { schedule } = useDebouncedCommit(history.commit, 600);
   const up = <K extends keyof CouponDesign>(key: K, value: CouponDesign[K], opts?: { continuous?: boolean }) => {
@@ -357,6 +364,7 @@ export function CouponGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_440px] gap-6 items-start" data-testid="coupon-root">
+      <AutosaveBar autosave={autosave} what="kupon" className="lg:col-span-full" />
       <GamatoDesktopRecommended toolName="Kupon, Voucher & Tiket" className="lg:col-span-full" />
       {/* ── KIRI: pengaturan ── */}
       <div className="space-y-4 min-w-0">

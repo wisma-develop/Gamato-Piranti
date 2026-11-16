@@ -26,6 +26,9 @@ import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft, useDraftFile } from "@/hooks/useAutosave";
+import { mergeDraft, type DraftImage } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
@@ -365,11 +368,15 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   ctx.fillText("Terima kasih atas kepercayaan Anda.", W / 2, yThankYou);
 }
 
+const DRAFT_KEY = "gamato.draft.invoice";
+
 export function InvoiceGenerator() {
   // Semua field invoice (kop, klien, item, pembayaran, tanda tangan) punya
   // riwayat Undo/Redo. Tambah/hapus item, ganti status, dan pilih warna
   // langsung commit; mengetik teks digabung jadi satu langkah setelah jeda.
-  const history = useHistoryState<InvoiceData>(() => ({
+  const draft = useDraft<InvoiceData, { logo: DraftImage | null }>(DRAFT_KEY);
+  const [logoFile, setLogoFile, logoDraft] = useDraftFile(draft?.extra?.logo);
+  const history = useHistoryState<InvoiceData>(() => mergeDraft<InvoiceData>({
     companyName: "Nama Usaha / Perusahaan",
     companyAddress: "Jl. Contoh Alamat No. 123, Kota",
     companyPhone: "0812-3456-7890",
@@ -393,8 +400,10 @@ export function InvoiceGenerator() {
     signatureImage: null,
     signerName: "",
     signerTitle: "",
-  }));
+  }, draft?.data));
   const data = history.state;
+  const draftExtra = useMemo(() => ({ logo: logoDraft }), [logoDraft]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: data, extra: draftExtra, restored: !!draft });
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
   const updateField = <K extends keyof InvoiceData>(key: K, value: InvoiceData[K], opts?: { continuous?: boolean }) => {
     history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
@@ -407,7 +416,6 @@ export function InvoiceGenerator() {
   const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), desc: "Item baru", qty: "1", price: "0" }] }));
   const removeItem = (id: string) => history.set((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
 
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [exportScale, setExportScale] = useState<ExportScale>(2);
   const [info, setInfo] = useState<string | null>(null);
@@ -500,6 +508,7 @@ export function InvoiceGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="invoice" className="lg:col-span-full" />
       <GamatoDesktopRecommended toolName="Invoice" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">

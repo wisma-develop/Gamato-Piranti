@@ -48,6 +48,9 @@ import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { mergeDraft } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
@@ -112,12 +115,16 @@ function ToggleRow<T extends string>({
   );
 }
 
+const DRAFT_KEY = "gamato.draft.businesscard";
+
 export function BusinessCardGenerator() {
   // Seluruh desain (ukuran, latar, elemen kedua sisi) + data kontak punya
   // riwayat Undo/Redo. Drag posisi & slider digabung jadi satu langkah
   // setelah jeda; aksi diskrit (tambah/hapus elemen, pilih template, dsb)
   // langsung commit.
-  const history = useHistoryState<StudioState>(() => defaultStudioState());
+  const draft = useDraft<StudioState>(DRAFT_KEY);
+  const history = useHistoryState<StudioState>(() => mergeDraft<StudioState>(defaultStudioState(), draft?.data));
+  const autosave = useAutosave({ key: DRAFT_KEY, value: history.state, restored: !!draft });
   const state = history.state;
   const { design, contact } = state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 500);
@@ -424,6 +431,7 @@ export function BusinessCardGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_440px] gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="kartu nama" className="lg:col-span-full" />
       {/* LEFT: editor */}
       <div className="space-y-5">
         <GamatoDesktopRecommended toolName="Studio Kartu Nama" />

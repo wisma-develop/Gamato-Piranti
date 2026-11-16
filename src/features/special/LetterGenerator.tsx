@@ -25,6 +25,9 @@ import {
 import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { mergeDraft } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { FontPicker } from "@/components/ui/FontPicker";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
@@ -128,8 +131,12 @@ function normalizeLoaded(raw: unknown): LetterDoc | null {
   return d;
 }
 
+const DRAFT_KEY = "gamato.draft.letter";
+
 export function LetterGenerator() {
-  const history = useHistoryState<LetterDoc>(() => applyLetterTemplate(blankLetter(), "dinas"));
+  const draft = useDraft<LetterDoc>(DRAFT_KEY);
+  const history = useHistoryState<LetterDoc>(() => mergeDraft<LetterDoc>(applyLetterTemplate(blankLetter(), "dinas"), draft?.data));
+  const autosave = useAutosave({ key: DRAFT_KEY, value: history.state, restored: !!draft });
   const doc = history.state;
   const { schedule } = useDebouncedCommit(history.commit, 600);
   const up = <K extends keyof LetterDoc>(key: K, value: LetterDoc[K], opts?: { continuous?: boolean }) => {
@@ -294,6 +301,7 @@ export function LetterGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_520px] gap-6 items-start" data-testid="letter-root">
+      <AutosaveBar autosave={autosave} what="surat" className="lg:col-span-full" />
       <GamatoDesktopRecommended toolName="Pembuat Surat" className="lg:col-span-full" />
       {/* ── KIRI ── */}
       <div className="space-y-4 min-w-0">

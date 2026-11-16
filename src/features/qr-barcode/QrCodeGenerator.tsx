@@ -676,7 +676,7 @@ export function QrCodeGenerator() {
                     ))}
                   </div>
                   {logoShape === "none" && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">Mode "Asli" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar &amp; logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Mode "Asli" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar &amp; logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.</p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">

@@ -26,6 +26,9 @@ import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { useImageFromDataUrl } from "@/hooks/useImageFromDataUrl";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft, useDraftFile } from "@/hooks/useAutosave";
+import { mergeDraft, type DraftImage } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
@@ -326,8 +329,9 @@ const TABS: SettingsTabDef<TabId>[] = [
   { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
 ];
 
+const DRAFT_KEY = "gamato.draft.struk";
+
 export function StrukGenerator() {
-  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [exportScale, setExportScale] = useState<ExportScale>(2);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -338,7 +342,9 @@ export function StrukGenerator() {
   // tanda tangan) punya riwayat Undo/Redo. Tambah/hapus item & pilih lebar
   // kertas langsung commit; mengetik nama/harga/qty digabung jadi satu
   // langkah setelah jeda.
-  const history = useHistoryState<StrukFormData>(() => ({
+  const draft = useDraft<StrukFormData, { logo: DraftImage | null }>(DRAFT_KEY);
+  const [logoFile, setLogoFile, logoDraft] = useDraftFile(draft?.extra?.logo);
+  const history = useHistoryState<StrukFormData>(() => mergeDraft<StrukFormData>({
     companyName: "Nama Usaha",
     companyAddress: "Jl. Contoh Alamat No. 123, Kota",
     companyPhone: "0812-3456-7890",
@@ -354,8 +360,10 @@ export function StrukGenerator() {
     fontFamily: DEFAULT_FONT_FAMILY,
     signatureImage: null,
     signerName: "",
-  }));
+  }, draft?.data));
   const form = history.state;
+  const draftExtra = useMemo(() => ({ logo: logoDraft }), [logoDraft]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: form, extra: draftExtra, restored: !!draft });
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 600);
   const updateField = <K extends keyof StrukFormData>(key: K, value: StrukFormData[K], opts?: { continuous?: boolean }) => {
     history.set((prev) => ({ ...prev, [key]: value }), { commit: !opts?.continuous });
@@ -500,6 +508,7 @@ export function StrukGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="struk" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Struk</span>

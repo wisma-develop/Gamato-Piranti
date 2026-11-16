@@ -61,6 +61,7 @@ export const UtilityWorldDictionary: React.FC = () => {
               <button
                 type="button"
                 onClick={swap}
+                aria-label="Tukar bahasa asal dan tujuan"
                 className="mb-0.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 <ArrowLeftRight className="w-4 h-4" />

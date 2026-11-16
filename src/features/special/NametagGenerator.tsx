@@ -29,6 +29,9 @@ import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { mergeDraft } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
@@ -77,8 +80,12 @@ const elIcon = (el: NtElement) =>
   el.kind === "text" ? <Type className="w-3.5 h-3.5" /> : el.kind === "image" ? <ImageIcon className="w-3.5 h-3.5" /> : el.kind === "photo" ? <UserSquare2 className="w-3.5 h-3.5" />
   : el.kind === "qr" ? <QrCode className="w-3.5 h-3.5" /> : el.kind === "barcode" ? <Barcode className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />;
 
+const DRAFT_KEY = "gamato.draft.nametag";
+
 export function NametagGenerator() {
-  const history = useHistoryState<Studio>(() => defaultStudio());
+  const draft = useDraft<Studio>(DRAFT_KEY);
+  const history = useHistoryState<Studio>(() => mergeDraft<Studio>(defaultStudio(), draft?.data));
+  const autosave = useAutosave({ key: DRAFT_KEY, value: history.state, restored: !!draft });
   const { design, rec } = history.state;
   const { schedule: scheduleCommit } = useDebouncedCommit(history.commit, 500);
 
@@ -277,6 +284,7 @@ export function NametagGenerator() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_440px] gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="name tag" className="lg:col-span-full" />
       {/* LEFT: editor */}
       <div className="space-y-5">
         <GamatoDesktopRecommended toolName="Name Tag Studio" />

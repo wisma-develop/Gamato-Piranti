@@ -297,10 +297,10 @@ export function VideoConvertHub() {
                 </>
               )}
               {mode === "container" && container === "asli" && !bestVideoFormat && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekspor video. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekspor video. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
               )}
               {mode === "audio" && audioOut.format === "asli" && !bestAudioFormat && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekstraksi audio. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekstraksi audio. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
               )}
 
               {isProcessing && (
@@ -382,7 +382,7 @@ export function VideoConvertHub() {
           }
         />
         {!videoExportOk && mode !== "gif" && (
-          <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
+          <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
             Browser ini mungkin tidak mendukung sebagian fitur ekspor (MediaRecorder/captureStream). GIF tetap bisa dipakai karena tidak bergantung pada API tersebut.
           </p>
         )}

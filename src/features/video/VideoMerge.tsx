@@ -243,7 +243,7 @@ export function VideoMerge() {
         {clips.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{clips.length} klip dipilih</p>
-            {clips.length < 2 && <p className="text-xs text-amber-600 dark:text-amber-400">Tambah minimal 2 klip untuk digabung.</p>}
+            {clips.length < 2 && <p className="text-xs text-amber-700 dark:text-amber-400">Tambah minimal 2 klip untuk digabung.</p>}
             {isExporting && (
               <div className="space-y-1.5">
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">

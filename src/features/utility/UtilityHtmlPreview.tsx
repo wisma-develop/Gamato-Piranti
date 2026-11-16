@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AppWindow, Download, ExternalLink, RotateCcw, Smartphone, Tablet, Monitor } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { downloadBlob } from "@/lib/file";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 const STARTER = `<!DOCTYPE html>
@@ -35,19 +37,25 @@ const DEVICE_ICONS: { id: Device; icon: typeof Smartphone }[] = [
   { id: "desktop", icon: Monitor },
 ];
 
+const DRAFT_KEY = "gamato.draft.htmlpreview";
+
 export const UtilityHtmlPreview: React.FC = () => {
+  const draft = useDraft<{ code: string; device: Device }>(DRAFT_KEY);
+  const draftCode = typeof draft?.data?.code === "string" && draft.data.code ? draft.data.code : null;
   // Kode HTML/CSS/JS punya riwayat Undo/Redo (digabung jadi satu langkah
   // setelah jeda singkat). Debounce preview iframe di bawah ini terpisah dan
   // tidak berubah.
-  const codeHistory = useHistoryState<string>(STARTER);
+  const codeHistory = useHistoryState<string>(draftCode ?? STARTER);
   const code = codeHistory.state;
   const { schedule: scheduleCodeCommit } = useDebouncedCommit(codeHistory.commit, 600);
   const setCode = (v: string) => {
     codeHistory.set(v, { commit: false });
     scheduleCodeCommit();
   };
-  const [previewCode, setPreviewCode] = useState(STARTER);
-  const [device, setDevice] = useState<Device>("desktop");
+  const [previewCode, setPreviewCode] = useState(draftCode ?? STARTER);
+  const [device, setDevice] = useState<Device>(draft?.data?.device === "mobile" || draft?.data?.device === "tablet" ? draft.data.device : "desktop");
+  const draftValue = useMemo(() => ({ code, device }), [code, device]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: draftValue, restored: !!draftCode });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -76,6 +84,7 @@ export const UtilityHtmlPreview: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="kode HTML" className="lg:col-span-2" />
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Kode HTML / CSS / JS</p>
@@ -95,6 +104,7 @@ export const UtilityHtmlPreview: React.FC = () => {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           spellCheck={false}
+          aria-label="Kode HTML, CSS, dan JavaScript"
           className="w-full h-[420px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-900 text-slate-100 font-mono text-xs leading-relaxed p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 resize-none"
         />
         <div className="flex flex-wrap gap-2">

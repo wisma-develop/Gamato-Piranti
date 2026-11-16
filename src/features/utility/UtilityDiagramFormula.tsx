@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "katex/dist/katex.min.css";
 import { Workflow, Sigma, Download, Image as ImageIcon, Copy, Loader2 } from "lucide-react";
 import { cn } from "@/utils/cn";
@@ -10,6 +10,8 @@ import { downloadBlob } from "@/lib/file";
 import { loadImageFromUrl, makeCanvas, canvasToBlob } from "@/lib/canvas";
 import { copyToClipboard } from "@/lib/utilityHelpers";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 
 type Mode = "diagram" | "formula";
@@ -61,13 +63,17 @@ function ensureSvgDimensions(svg: string): string {
   return svg.replace("<svg", `<svg width="${w}" height="${h}"`);
 }
 
+const DRAFT_KEY = "gamato.draft.diagramrumus";
+interface DiagramDraft { mode: Mode; diagram: string; formula: string }
+
 export const UtilityDiagramFormula: React.FC = () => {
   const { isDark } = useDarkMode();
-  const [mode, setMode] = useState<Mode>("diagram");
+  const draft = useDraft<DiagramDraft>(DRAFT_KEY);
+  const [mode, setMode] = useState<Mode>(draft?.data?.mode === "formula" ? "formula" : "diagram");
 
   // Kode diagram (Mermaid) dan kode rumus (LaTeX) masing-masing punya
   // riwayat Undo/Redo sendiri (digabung jadi satu langkah setelah jeda).
-  const diagramHistory = useHistoryState<string>(DIAGRAM_TEMPLATES[0].code);
+  const diagramHistory = useHistoryState<string>(typeof draft?.data?.diagram === "string" && draft.data.diagram ? draft.data.diagram : DIAGRAM_TEMPLATES[0].code);
   const diagramCode = diagramHistory.state;
   const { schedule: scheduleDiagramCommit } = useDebouncedCommit(diagramHistory.commit, 600);
   const setDiagramCode = (v: string) => {
@@ -80,8 +86,10 @@ export const UtilityDiagramFormula: React.FC = () => {
 
   // Kode rumus (LaTeX) punya riwayat Undo/Redo sendiri (digabung jadi satu
   // langkah setelah jeda).
-  const formulaHistory = useHistoryState<string>(FORMULA_TEMPLATES[0].code);
+  const formulaHistory = useHistoryState<string>(typeof draft?.data?.formula === "string" && draft.data.formula ? draft.data.formula : FORMULA_TEMPLATES[0].code);
   const formulaCode = formulaHistory.state;
+  const draftValue = useMemo<DiagramDraft>(() => ({ mode, diagram: diagramCode, formula: formulaCode }), [mode, diagramCode, formulaCode]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: draftValue, restored: !!draft });
   const { schedule: scheduleFormulaCommit } = useDebouncedCommit(formulaHistory.commit, 600);
   const setFormulaCode = (v: string) => {
     formulaHistory.set(v, { commit: false });
@@ -183,6 +191,7 @@ export const UtilityDiagramFormula: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AutosaveBar autosave={autosave} what="diagram/rumus" />
       <GamatoDesktopRecommended toolName="Diagram & Rumus Studio" />
       <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="space-y-5">

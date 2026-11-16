@@ -232,7 +232,7 @@ export function BarcodeGenerator() {
               </Select>
               <Input label="Tinggi (px)" type="number" min={40} max={200} value={barcodeHeight} onChange={e => setBarcodeHeight(Number(e.target.value) || 80)} />
             </div>
-            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2">Format EAN/UPC/ITF hanya mendukung angka dengan panjang tertentu. Pengaturan format &amp; warna di sini juga dipakai untuk cetak massal di bawah.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2">Format EAN/UPC/ITF hanya mendukung angka dengan panjang tertentu. Pengaturan format &amp; warna di sini juga dipakai untuk cetak massal di bawah.</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">

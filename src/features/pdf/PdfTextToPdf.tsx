@@ -5,9 +5,16 @@ import { downloadBlob } from "@/lib/file";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
+
+const DRAFT_KEY = "gamato.draft.teksketopdf";
 
 export const PdfTextToPdf: React.FC = () => {
-  const [textForPdf, setTextForPdf] = useState("");
+  const draft = useDraft<string>(DRAFT_KEY);
+  const draftText = typeof draft?.data === "string" && draft.data ? draft.data : null;
+  const [textForPdf, setTextForPdf] = useState(draftText ?? "");
+  const autosave = useAutosave({ key: DRAFT_KEY, value: textForPdf, restored: !!draftText });
   const [isWorking, setIsWorking] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
@@ -56,6 +63,7 @@ export const PdfTextToPdf: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <AutosaveBar autosave={autosave} what="teks" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <Textarea label="Teks untuk dijadikan PDF" rows={12} value={textForPdf} onChange={(e) => setTextForPdf(e.target.value)} placeholder="Tulis atau tempel teks di sini…" />

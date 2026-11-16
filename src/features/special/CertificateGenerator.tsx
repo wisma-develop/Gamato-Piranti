@@ -21,6 +21,9 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft, useDraftFile } from "@/hooks/useAutosave";
+import type { DraftImage } from "@/lib/draftStorage";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
@@ -230,25 +233,30 @@ const TABS: SettingsTabDef<TabId>[] = [
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
+const DRAFT_KEY = "gamato.draft.certificate";
+/** Yang disimpan otomatis: desain lapisan + daftar penerima manual + opsi ekspor (template gambar masuk `extra`). */
+interface CertDraft { layers: Layer[]; recipientsText: string; fileNameMode: "recipient" | "system"; exportScale: 1 | 2 | 3 }
+
 export function CertificateGenerator() {
-  const [templateFile, setTemplateFile] = useState<File | null>(null);
+  const draft = useDraft<CertDraft, { template: DraftImage | null }>(DRAFT_KEY);
+  const [templateFile, setTemplateFile, templateDraft] = useDraftFile(draft?.extra?.template);
   const [templateImg, setTemplateImg] = useState<HTMLImageElement | null>(null);
   // Layers punya riwayat Undo/Redo penuh: setiap aksi diskrit (tambah/hapus
   // lapisan, ganti font, toggle bold/italic/align) langsung tercatat sebagai
   // satu langkah; mengetik teks / menyeret slider posisi & warna digabung
   // jadi satu langkah setelah jeda singkat (lihat updateLayer di bawah).
-  const layersHistory = useHistoryState<Layer[]>(defaultLayers);
+  const layersHistory = useHistoryState<Layer[]>(() => (Array.isArray(draft?.data?.layers) && draft.data.layers.length ? draft.data.layers : defaultLayers()));
   const layers = layersHistory.state;
   const setLayers = layersHistory.set;
   const { schedule: scheduleLayersCommit, flushNow: flushLayersCommit } = useDebouncedCommit(layersHistory.commit, 600);
   const [selectedLayerId, setSelectedLayerId] = useState<string>(() => layers[2]?.id ?? layers[0].id);
   const [recipientMode, setRecipientMode] = useState<"manual" | "csv">("manual");
-  const [recipientsText, setRecipientsText] = useState("");
+  const [recipientsText, setRecipientsText] = useState(draft?.data?.recipientsText ?? "");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvRecipients, setCsvRecipients] = useState<CsvRecipient[]>([]);
   const [csvExtraColumns, setCsvExtraColumns] = useState<string[]>([]);
   const [csvError, setCsvError] = useState<string | null>(null);
-  const [fileNameMode, setFileNameMode] = useState<"recipient" | "system">("recipient");
+  const [fileNameMode, setFileNameMode] = useState<"recipient" | "system">(draft?.data?.fileNameMode === "system" ? "system" : "recipient");
   const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
@@ -256,7 +264,11 @@ export function CertificateGenerator() {
   const [dragLayerId, setDragLayerId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("template");
   // Kualitas ekspor: resolusi bitmap = ukuran dasar × skala. 2× = tajam (bawaan, cocok cetak A4), 3× = ultra.
-  const [exportScale, setExportScale] = useState<1 | 2 | 3>(2);
+  const [exportScale, setExportScale] = useState<1 | 2 | 3>(draft?.data?.exportScale === 1 || draft?.data?.exportScale === 3 ? draft.data.exportScale : 2);
+
+  const draftData = useMemo<CertDraft>(() => ({ layers, recipientsText, fileNameMode, exportScale }), [layers, recipientsText, fileNameMode, exportScale]);
+  const draftExtra = useMemo(() => ({ template: templateDraft }), [templateDraft]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: draftData, extra: draftExtra, restored: !!draft });
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const previewWrapRef = useRef<HTMLDivElement>(null);
@@ -502,6 +514,7 @@ export function CertificateGenerator() {
 
   return (
     <div className="space-y-6">
+      <AutosaveBar autosave={autosave} what="sertifikat" />
       <GamatoDesktopRecommended toolName="Sertifikat & Piagam" />
       <div className="grid lg:grid-cols-[380px_1fr] gap-6 items-start">
         {/* LEFT: controls */}
@@ -585,7 +598,7 @@ export function CertificateGenerator() {
                     placeholder="Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis"
                   />
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">
-                    Placeholder: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{'{tanggal}'}</code>
+                    Placeholder: <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{'{tanggal}'}</code>
                     {recipientMode === "csv" && csvExtraColumns.length > 0 && (
                       <>
                         {" "}{csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1">{`{${col}}`}</code>)}
@@ -817,7 +830,7 @@ export function CertificateGenerator() {
                 </button>
               </div>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-                Contoh nama file: <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">
+                Contoh nama file: <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">
                   {fileNameMode === "recipient" ? (sanitizeFileName(recipients[0]?.nama || "budi-santoso") || "budi-santoso") : "sertifikat-001"}.png
                 </code>
               </p>

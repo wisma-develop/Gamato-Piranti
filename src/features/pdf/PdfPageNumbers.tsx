@@ -96,8 +96,8 @@ export const PdfPageNumbers: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <Input label="Format" value={format} onChange={(e) => setFormat(e.target.value)} placeholder="{n} / {total}" />
           <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">
-            Gunakan <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{"{n}"}</code> untuk nomor halaman dan{" "}
-            <code className="bg-slate-100 dark:bg-slate-800 rounded px-1">{"{total}"}</code> untuk total halaman. Contoh: "Halaman {"{n}"}"
+            Gunakan <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{"{n}"}</code> untuk nomor halaman dan{" "}
+            <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{"{total}"}</code> untuk total halaman. Contoh: "Halaman {"{n}"}"
           </p>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Mulai dari" type="number" value={startAt} onChange={(e) => setStartAt(parseInt(e.target.value) || 1)} />
