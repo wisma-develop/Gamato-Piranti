@@ -41,6 +41,7 @@ svg { max-width: 100%; height: auto; }
    navbar in a lot of browsers. "clip" prevents the same horizontal overflow
    bleed without creating that scroll container, so the sticky header keeps
    working correctly while scrolling the page. ── */
+html { scroll-padding-top: 4.75rem; }
 html, body {
   width: 100%;
   overflow-x: clip;

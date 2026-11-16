@@ -267,7 +267,7 @@ export const SignaturePad: React.FC<{
                 type="button"
                 onClick={clearAll}
                 disabled={strokeCount === 0}
-                className="text-xs text-red-500 font-semibold flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none"
+                className="text-xs text-red-600 font-semibold flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none"
               >
                 <Eraser className="w-3.5 h-3.5" /> Bersihkan
               </button>

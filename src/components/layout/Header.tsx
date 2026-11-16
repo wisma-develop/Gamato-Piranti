@@ -295,7 +295,7 @@ export default function Header() {
   const isActive = (items: { path: string }[]) => items.some(i => location.pathname === i.path);
 
   return (
-    <header className={`sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 gp-blur border-b transition-shadow duration-300 ${scrolled ? "border-slate-200 dark:border-slate-800 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] dark:shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]" : "border-slate-200/70 dark:border-slate-800"}`}>
+    <header data-testid="site-header" className={`fixed inset-x-0 top-0 z-50 bg-white/90 dark:bg-slate-900/90 gp-blur border-b transition-shadow duration-300 ${scrolled ? "border-slate-200 dark:border-slate-800 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] dark:shadow-[0_6px_24px_-12px_rgba(0,0,0,0.6)]" : "border-slate-200/70 dark:border-slate-800"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
 
@@ -426,7 +426,7 @@ export default function Header() {
         className="xl:hidden grid transition-[grid-template-rows,opacity] duration-200 ease-out bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800"
       >
           <div className="min-h-0 overflow-hidden">
-            <div className="px-4 py-5 space-y-3 max-h-[80vh] overflow-y-auto">
+            <div className="px-4 py-5 space-y-3 max-h-[calc(100dvh-5rem)] overflow-y-auto">
               {menuGroups.map((group) => {
                 const expanded = mobileExpanded === group.id;
                 return (

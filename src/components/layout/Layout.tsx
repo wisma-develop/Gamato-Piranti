@@ -166,6 +166,8 @@ export default function Layout() {
     <GamatoToastProvider>
       <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
         <Header />
+        {/* Header memakai position:fixed (selalu terlihat di ponsel, tanpa menggulir ke atas) → spacer setinggi header (64px + 1px border) menjaga isi tidak tertutup. */}
+        <div aria-hidden="true" className="h-[65px] shrink-0" />
       <main className="flex-1 relative isolate">
         {/* Cahaya latar bertema di bawah header — mengikuti warna kategori aktif */}
         {!isHome && (

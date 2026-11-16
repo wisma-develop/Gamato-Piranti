@@ -27,7 +27,10 @@ export type CategoryGroup = {
  */
 export const CategoryGrid: FC<{ groups: CategoryGroup[] }> = ({ groups }) => (
   <div className="space-y-10">
-    {groups.map((group, gi) => (
+    {groups.map((group, gi) => {
+      // Tanpa judul seksi (h2) kartu langsung di bawah h1 → pakai h2 agar urutan heading tidak melompat.
+      const TitleTag = group.section ? "h3" : "h2";
+      return (
       <div key={group.section ?? gi} className="space-y-5">
         {group.section && (
           <div className="flex items-center gap-4" role="presentation">
@@ -59,7 +62,7 @@ export const CategoryGrid: FC<{ groups: CategoryGroup[] }> = ({ groups }) => (
                 </div>
                 <div className="relative min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{item.name}</h3>
+                    <TitleTag className="text-base font-bold text-slate-900 dark:text-white leading-snug transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{item.name}</TitleTag>
                     <ArrowUpRight className="w-4 h-4 mt-1 shrink-0 text-slate-300 dark:text-slate-600 transition-all group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
                   </div>
                   <p className="mt-1 text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{item.desc}</p>
@@ -73,6 +76,7 @@ export const CategoryGrid: FC<{ groups: CategoryGroup[] }> = ({ groups }) => (
           ))}
         </div>
       </div>
-    ))}
+      );
+    })}
   </div>
 );

@@ -1,17 +1,25 @@
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "gp-theme";
+/**
+ * Kunci preferensi tema. Hanya ditulis saat pengguna MENEKAN tombol tema — bukan otomatis saat halaman dibuka —
+ * sehingga "belum memilih" dan "memilih terang" bisa dibedakan. Kunci lama ("gp-theme") sengaja diabaikan karena
+ * versi sebelumnya menulisnya otomatis dari preferensi sistem (pengunjung lama yang tidak pernah memilih ikut kembali ke terang).
+ */
+const STORAGE_KEY = "gp-theme-pref";
 
 function getInitialTheme(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "dark") return true;
-    if (stored === "light") return false;
+    // Bawaan = TERANG (putih), apa pun preferensi sistem. Gelap hanya bila pengguna memilihnya sendiri.
+    return window.localStorage.getItem(STORAGE_KEY) === "dark";
   } catch {
-    // localStorage may be unavailable (private mode, etc.) — fall back silently.
+    return false; // localStorage tidak tersedia (mode privat, dll.)
   }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+}
+
+function applyTheme(isDark: boolean) {
+  document.documentElement.classList.toggle("dark", isDark);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isDark ? "#0f172a" : "#ffffff");
 }
 
 /**
@@ -23,14 +31,15 @@ function getInitialTheme(): boolean {
 export function useDarkMode() {
   const [isDark, setIsDark] = useState<boolean>(getInitialTheme);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDark);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
-    } catch {
-      // Ignore write failures (e.g. storage disabled) — theme still applies for this session.
-    }
-  }, [isDark]);
+  useEffect(() => { applyTheme(isDark); }, [isDark]);
 
-  return { isDark, toggle: () => setIsDark((v) => !v) };
+  const toggle = () => {
+    setIsDark((v) => {
+      const next = !v;
+      try { window.localStorage.setItem(STORAGE_KEY, next ? "dark" : "light"); } catch { /* tema tetap berlaku untuk sesi ini */ }
+      return next;
+    });
+  };
+
+  return { isDark, toggle };
 }
