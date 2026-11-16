@@ -10,6 +10,9 @@ import { parseEditor } from "./richtext/parseEditor";
 import { exportDocxFromBlocks } from "./richtext/exportDocx";
 import { exportPdfFromBlocks } from "./richtext/exportPdf";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { sanitizeEditorHtml } from "@/lib/sanitizeHtml";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 
@@ -39,12 +42,18 @@ const TEMPLATES: Record<"notulen" | "surat" | "catatan", { name: string; text: s
   },
 };
 
+const DRAFT_KEY = "gamato.draft.docstudio";
+const EMPTY_DOC = "<p><br></p>";
+
 export const DocTools: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
   const editorWrapRef = useRef<HTMLDivElement>(null);
-  const initialHtmlRef = useRef<string>("<p><br></p>");
+  // Draf dari sesi sebelumnya (HTML editor + nama file). HTML disanitasi sebelum dimasukkan lagi ke editor.
+  const draft = useDraft<{ html: string; fileName: string }>(DRAFT_KEY);
+  const draftHtml = useMemo(() => (draft && typeof draft.data.html === "string" ? sanitizeEditorHtml(draft.data.html) || null : null), [draft]);
+  const initialHtmlRef = useRef<string>(draftHtml ?? EMPTY_DOC);
 
-  const [fileName, setFileName] = useState("Gamato Piranti Dokumen");
+  const [fileName, setFileName] = useState(draft && typeof draft.data.fileName === "string" && draft.data.fileName ? draft.data.fileName : "Gamato Piranti Dokumen");
   const [docInfo, setDocInfo] = useState<string | null>(null);
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
@@ -72,7 +81,9 @@ export const DocTools: React.FC = () => {
   // replace, a template load, ...), and — while the user is simply typing —
   // debounced so a whole burst of keystrokes becomes one undo step instead
   // of one per character.
-  const contentHistory = useHistoryState<string>("<p><br></p>");
+  const contentHistory = useHistoryState<string>(initialHtmlRef.current);
+  const draftValue = useMemo(() => ({ html: contentHistory.state, fileName }), [contentHistory.state, fileName]);
+  const autosave = useAutosave({ key: DRAFT_KEY, value: draftValue, restored: !!draftHtml });
   const { schedule: scheduleContentCommit, flushNow: flushContentCommit } = useDebouncedCommit(contentHistory.commit, 800);
   const commitHistory = (opts?: { continuous?: boolean }) => {
     const el = editorRef.current;
@@ -120,6 +131,7 @@ export const DocTools: React.FC = () => {
     if (!el) return;
     el.innerHTML = initialHtmlRef.current;
     setPlainText(el.innerText || "");
+    setHasImages(!!el.querySelector("img"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -314,6 +326,7 @@ export const DocTools: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AutosaveBar autosave={autosave} what="dokumen" />
       <GamatoDesktopRecommended toolName="Doc Studio" />
       <div className="grid lg:grid-cols-[1fr_280px] gap-6 items-start">
       {/* Editor */}
@@ -469,7 +482,7 @@ export const DocTools: React.FC = () => {
       {/* Stats sidebar */}
       <div className="space-y-4 lg:sticky lg:top-24">
         <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Statistik</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-300">Statistik</p>
           <div className="grid grid-cols-3 gap-3">
             {([
               ["Kata", stats.words],
@@ -478,13 +491,13 @@ export const DocTools: React.FC = () => {
             ] as const).map(([l, v]) => (
               <div key={l} className="text-center bg-slate-800 rounded-xl p-3">
                 <div className="text-2xl font-bold text-white">{v}</div>
-                <div className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{l}</div>
+                <div className="text-xs text-slate-300 mt-0.5">{l}</div>
               </div>
             ))}
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Preview</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-2">Preview</p>
             <div className="bg-slate-800 rounded-xl p-3 max-h-40 overflow-hidden text-xs text-slate-300 leading-relaxed font-mono">
               {plainText ? (
                 plainText
@@ -503,7 +516,7 @@ export const DocTools: React.FC = () => {
 
           {outline.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Outline</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-2">Outline</p>
               <ul className="space-y-1">
                 {outline.slice(0, 8).map((item) => (
                   <li key={item.index} className="text-xs text-slate-300 truncate flex gap-1.5">

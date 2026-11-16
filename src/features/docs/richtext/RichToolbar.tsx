@@ -39,6 +39,8 @@ const ToolBtn: React.FC<{
   <GamatoTooltip label={title}>
     <button
       type="button"
+      aria-label={title}
+      aria-pressed={active === undefined ? undefined : active}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       className={cn(

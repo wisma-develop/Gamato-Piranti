@@ -123,6 +123,8 @@ export const AudioSpeechToText: React.FC = () => {
           <button
             type="button"
             onClick={isListening ? stop : start}
+            aria-label={isListening ? "Hentikan perekaman" : "Mulai merekam"}
+            aria-pressed={isListening}
             className={cn(
               "w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-lg",
               isListening ? "bg-red-500 hover:bg-red-600 animate-pulse" : "bg-indigo-600 hover:bg-indigo-700"
@@ -145,7 +147,7 @@ export const AudioSpeechToText: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Hasil Transkrip</p>
-            <button type="button" onClick={() => setTranscript("")} className="text-xs text-red-500 font-semibold flex items-center gap-1">
+            <button type="button" onClick={() => setTranscript("")} className="text-xs text-red-600 font-semibold flex items-center gap-1">
               <RefreshCw className="w-3.5 h-3.5" /> Bersihkan
             </button>
           </div>

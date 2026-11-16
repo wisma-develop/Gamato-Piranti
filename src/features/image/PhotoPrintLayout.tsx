@@ -466,7 +466,7 @@ export const PhotoPrintLayout: React.FC = () => {
 
         <div className="flex justify-center bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
           {!totalPhotos ? (
-            <div className="flex flex-col items-center justify-center gap-2 h-64 text-slate-400 dark:text-slate-500 text-sm text-center px-6">
+            <div className="flex flex-col items-center justify-center gap-2 h-64 text-slate-600 dark:text-slate-400 text-sm text-center px-6">
               <ImageOff className="w-8 h-8" />
               Unggah foto dulu di panel kiri untuk melihat pratinjau lembar cetak
             </div>

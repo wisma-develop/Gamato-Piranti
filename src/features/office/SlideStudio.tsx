@@ -5,6 +5,8 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
 import { readPptxSlides } from "@/lib/officeReaders";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { useToast } from "@/components/ui/GamatoToast";
 import {
@@ -22,9 +24,19 @@ import { deckToImagesZipBlob, deckToPdfBlob } from "./slide/exportPdf";
 import { SlideToolbar } from "./slide/SlideToolbar";
 import { SlideCanvas } from "./slide/SlideCanvas";
 
+const DRAFT_KEY = "gamato.draft.slidestudio";
+const isValidDeck = (v: unknown): v is Deck => {
+  const d = v as Deck | null;
+  return !!d && typeof d.title === "string" && Array.isArray(d.slides) && d.slides.length > 0
+    && d.slides.every((sl) => !!sl && typeof sl.id === "string" && typeof sl.background === "string" && Array.isArray(sl.elements));
+};
+
 export const SlideStudio: React.FC = () => {
-  const history = useHistoryState<Deck>(() => createEmptyDeck());
+  const draft = useDraft<Deck>(DRAFT_KEY);
+  const restored = isValidDeck(draft?.data);
+  const history = useHistoryState<Deck>(() => (isValidDeck(draft?.data) ? draft.data : createEmptyDeck()));
   const deck = history.state;
+  const autosave = useAutosave({ key: DRAFT_KEY, value: deck, restored });
   const [activeIdx, setActiveIdx] = useState(0);
   const activeSlide = deck.slides[Math.min(activeIdx, deck.slides.length - 1)];
 
@@ -320,6 +332,7 @@ export const SlideStudio: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <AutosaveBar autosave={autosave} what="presentasi" />
       <GamatoDesktopRecommended toolName="Slide Studio" />
 
       <SlideToolbar

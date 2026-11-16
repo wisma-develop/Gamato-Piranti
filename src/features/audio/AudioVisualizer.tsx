@@ -414,7 +414,7 @@ export const AudioVisualizer: React.FC = () => {
                 <button key={p.id} type="button" data-testid={`av-preset-${p.id}`} onClick={() => applyPreset(p.id)} title={p.desc}
                   className={cn("text-left px-3 py-2 rounded-xl border-2 text-sm transition-all", presetId === p.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
                   <span className="font-bold text-slate-800 dark:text-slate-100 block">{p.label}</span>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 line-clamp-1">{p.desc}</span>
+                  <span className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1">{p.desc}</span>
                 </button>
               ))}
             </div>

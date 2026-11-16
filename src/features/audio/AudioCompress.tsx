@@ -269,7 +269,7 @@ export const AudioCompress: React.FC = () => {
               {COMPRESS_PRESETS.map((p) => (
                 <button key={p.id} type="button" data-testid={`preset-${p.id}`} onClick={() => { setPresetId(p.id); setCustom(false); }} className={cn("w-full text-left rounded-xl border-2 px-3 py-2", !custom && presetId === p.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
                   <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{p.label}</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400">{p.desc}</div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400">{p.desc}</div>
                 </button>
               ))}
               <button type="button" data-testid="preset-custom" onClick={() => { setCustom(true); }} className={cn("w-full text-left rounded-xl border-2 px-3 py-2", custom ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>

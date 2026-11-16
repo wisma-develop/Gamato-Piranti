@@ -136,7 +136,7 @@ export const ImageConvert: React.FC = () => {
             )}
           </div>
           {targetFormat === "bmp" && bmpSupported === false && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
               Browser ini sepertinya tidak mendukung penulisan BMP asli — hasil bisa saja tetap berupa PNG dengan nama file .bmp. Coba Chrome atau Edge untuk dukungan BMP penuh.
             </p>
           )}

@@ -848,10 +848,10 @@ export const CollageMaker: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 justify-center text-[11px] text-slate-500 dark:text-slate-400">
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1"><MousePointer2 className="w-3 h-3" /> Klik sel untuk memilih</span>
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1"><Move className="w-3 h-3" /> {state.mode === "free" ? "Seret untuk memindah" : "Seret untuk menggeser foto"}</span>
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1">Scroll = zoom foto</span>
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1">Delete = hapus</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1"><MousePointer2 className="w-3 h-3" /> Klik sel untuk memilih</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1"><Move className="w-3 h-3" /> {state.mode === "free" ? "Seret untuk memindah" : "Seret untuk menggeser foto"}</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1">Scroll = zoom foto</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1">Delete = hapus</span>
         </div>
 
         {sel?.kind === "cell" && tab !== "sel" && (
@@ -1087,7 +1087,7 @@ export const CollageMaker: React.FC = () => {
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Sel #{sel.index + 1}</p>
                     <button type="button" onClick={() => patchCell(sel.index, { ...defaultCell(selCell.photoId) }, false)} className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">Reset sel</button>
                   </div>
-                  {!selCell.photoId && <p className="text-xs text-amber-600 dark:text-amber-400">Sel ini kosong — klik foto di tab “Foto” untuk mengisinya.</p>}
+                  {!selCell.photoId && <p className="text-xs text-amber-700 dark:text-amber-400">Sel ini kosong — klik foto di tab “Foto” untuk mengisinya.</p>}
                   <Slider label="Zoom foto" value={selCell.zoom} min={1} max={6} step={0.05} suffix="×" onChange={(v) => patchCell(sel.index, { zoom: v })} testId="cell-zoom" />
                   <div className="grid grid-cols-2 gap-4">
                     <Slider label="Geser X" value={selCell.panX} min={-1} max={1} step={0.01} onChange={(v) => patchCell(sel.index, { panX: v })} />

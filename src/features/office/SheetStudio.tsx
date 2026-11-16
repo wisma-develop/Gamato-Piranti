@@ -5,6 +5,8 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { downloadBlob, fileToArrayBuffer } from "@/lib/file";
 import { readXlsxGrid } from "@/lib/officeReaders";
 import { useHistoryState } from "@/hooks/useHistoryState";
+import { useAutosave, useDraft } from "@/hooks/useAutosave";
+import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { useToast } from "@/components/ui/GamatoToast";
@@ -55,9 +57,16 @@ function clampAddr(addr: CellAddr, sheet: SheetData): CellAddr {
   };
 }
 
+const DRAFT_KEY = "gamato.draft.sheetstudio";
+const isValidSheets = (v: unknown): v is SheetData[] =>
+  Array.isArray(v) && v.length > 0 && v.every((x) => !!x && typeof x.name === "string" && Number.isFinite(x.rowCount) && Number.isFinite(x.colCount) && !!x.cells && typeof x.cells === "object");
+
 export const SheetStudio: React.FC = () => {
-  const history = useHistoryState<SheetData[]>(() => [createEmptySheet("Sheet1")]);
+  const draft = useDraft<SheetData[]>(DRAFT_KEY);
+  const restored = isValidSheets(draft?.data);
+  const history = useHistoryState<SheetData[]>(() => (isValidSheets(draft?.data) ? draft.data : [createEmptySheet("Sheet1")]));
   const sheets = history.state;
+  const autosave = useAutosave({ key: DRAFT_KEY, value: sheets, restored });
   const [activeIdx, setActiveIdx] = useState(0);
   const activeSheet = sheets[Math.min(activeIdx, sheets.length - 1)];
 
@@ -478,6 +487,7 @@ export const SheetStudio: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <AutosaveBar autosave={autosave} what="spreadsheet" />
       <GamatoDesktopRecommended toolName="Sheet Studio" />
 
       <SheetToolbar
@@ -569,7 +579,7 @@ export const SheetStudio: React.FC = () => {
               {colHeaders.map((c) => (
                 <th
                   key={c}
-                  className="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-500 dark:text-slate-400"
+                  className="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400"
                   style={{ width: activeSheet.colWidths?.[c] ?? DEFAULT_COL_WIDTH, minWidth: 40, height: ROW_HEIGHT }}
                 >
                   {colIndexToLabel(c)}
@@ -581,7 +591,7 @@ export const SheetStudio: React.FC = () => {
             {rowIndices.map((r) => (
               <tr key={r}>
                 <td
-                  className="sticky left-0 z-10 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-500 dark:text-slate-400 text-center"
+                  className="sticky left-0 z-10 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 text-center"
                   style={{ width: ROW_HEADER_WIDTH, height: ROW_HEIGHT }}
                   onClick={() => setSelection({ anchor: { row: r, col: 0 }, focus: { row: r, col: activeSheet.colCount - 1 } })}
                 >
