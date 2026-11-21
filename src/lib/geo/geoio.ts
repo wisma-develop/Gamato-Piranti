@@ -1,6 +1,7 @@
 // Impor/ekspor daftar titik: CSV, GeoJSON, KML, GPX — plus pencarian negara offline (poligon Natural Earth 1:50m).
 
 import { fmtDD, normLng, parseCoordinate, toGeohash, toMGRS, toPlusCode, toUTM, type LatLng } from "./coords";
+import { tr } from "@/i18n";
 
 export interface GeoPoint extends LatLng { id: string; name: string; note?: string }
 
@@ -30,24 +31,24 @@ export function toGeoJSON(pts: GeoPoint[], shape: "points" | "line" | "polygon" 
   const point = (p: GeoPoint) => ({ type: "Feature", properties: { name: p.name, note: p.note ?? "" }, geometry: { type: "Point", coordinates: [+p.lng.toFixed(8), +p.lat.toFixed(8)] } });
   const coords = pts.map((p) => [+p.lng.toFixed(8), +p.lat.toFixed(8)]);
   const features: unknown[] = pts.map(point);
-  if (shape === "line" && pts.length > 1) features.push({ type: "Feature", properties: { name: "Garis" }, geometry: { type: "LineString", coordinates: coords } });
-  if (shape === "polygon" && pts.length > 2) features.push({ type: "Feature", properties: { name: "Poligon" }, geometry: { type: "Polygon", coordinates: [[...coords, coords[0]]] } });
+  if (shape === "line" && pts.length > 1) features.push({ type: "Feature", properties: { name: tr("Garis") }, geometry: { type: "LineString", coordinates: coords } });
+  if (shape === "polygon" && pts.length > 2) features.push({ type: "Feature", properties: { name: tr("Poligon") }, geometry: { type: "Polygon", coordinates: [[...coords, coords[0]]] } });
   return JSON.stringify({ type: "FeatureCollection", features }, null, 2);
 }
 
-export function toKML(pts: GeoPoint[], docName = "Titik Gamato Piranti"): string {
-  const pm = pts.map((p) => `    <Placemark>\n      <name>${xml(p.name)}</name>${p.note ? `\n      <description>${xml(p.note)}</description>` : ""}\n      <Point><coordinates>${p.lng.toFixed(8)},${p.lat.toFixed(8)},0</coordinates></Point>\n    </Placemark>`).join("\n");
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>${xml(docName)}</name>\n${pm}\n  </Document>\n</kml>\n`;
+export function toKML(pts: GeoPoint[], docName = tr("Titik Gamato Piranti")): string {
+  const pm = pts.map((p) => tr("    <Placemark>\n      <name>{0}</name>{1}\n      <Point><coordinates>{2},{3},0</coordinates></Point>\n    </Placemark>", xml(p.name), p.note ? `\n      <description>${xml(p.note)}</description>` : "", p.lng.toFixed(8), p.lat.toFixed(8))).join("\n");
+  return tr("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n  <Document>\n    <name>{0}</name>\n{1}\n  </Document>\n</kml>\n", xml(docName), pm);
 }
 
 export function toGPX(pts: GeoPoint[], asRoute = false): string {
-  const wpt = pts.map((p) => `  <wpt lat="${p.lat.toFixed(8)}" lon="${p.lng.toFixed(8)}">\n    <name>${xml(p.name)}</name>${p.note ? `\n    <desc>${xml(p.note)}</desc>` : ""}\n  </wpt>`).join("\n");
-  const rte = asRoute && pts.length > 1 ? `\n  <rte>\n    <name>Rute</name>\n${pts.map((p) => `    <rtept lat="${p.lat.toFixed(8)}" lon="${p.lng.toFixed(8)}"><name>${xml(p.name)}</name></rtept>`).join("\n")}\n  </rte>` : "";
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Gamato Piranti" xmlns="http://www.topografix.com/GPX/1/1">\n${wpt}${rte}\n</gpx>\n`;
+  const wpt = pts.map((p) => tr("  <wpt lat=\"{0}\" lon=\"{1}\">\n    <name>{2}</name>{3}\n  </wpt>", p.lat.toFixed(8), p.lng.toFixed(8), xml(p.name), p.note ? `\n    <desc>${xml(p.note)}</desc>` : "")).join("\n");
+  const rte = asRoute && pts.length > 1 ? tr("\n  <rte>\n    <name>Rute</name>\n{0}\n  </rte>", pts.map((p) => tr("    <rtept lat=\"{0}\" lon=\"{1}\"><name>{2}</name></rtept>", p.lat.toFixed(8), p.lng.toFixed(8), xml(p.name))).join("\n")) : "";
+  return tr("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Gamato Piranti\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n{0}{1}\n</gpx>\n", wpt, rte);
 }
 
 export function toPlainText(pts: GeoPoint[], dec = 6): string {
-  return pts.map((p, i) => `${p.name || `Titik ${i + 1}`}\t${fmtDD(p, dec)}`).join("\n");
+  return pts.map((p, i) => `${p.name || tr("Titik {0}", i + 1)}\t${fmtDD(p, dec)}`).join("\n");
 }
 
 // ── Impor ────────────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ export function parseCsvPoints(text: string): GeoPoint[] {
       const c = splitCsvLine(l, delim);
       const lat = parseFloat((c[iLat] ?? "").replace(",", ".")), lng = parseFloat((c[iLng] ?? "").replace(",", "."));
       if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180)
-        out.push({ id: pointId(), lat, lng, name: (iName >= 0 ? c[iName] : "") || `Titik ${out.length + 1}`, note: iNote >= 0 ? c[iNote] : undefined });
+        out.push({ id: pointId(), lat, lng, name: (iName >= 0 ? c[iName] : "") || tr("Titik {0}", out.length + 1), note: iNote >= 0 ? c[iNote] : undefined });
     }
     return out;
   }
@@ -94,7 +95,7 @@ export function parseCsvPoints(text: string): GeoPoint[] {
     const t = l.split(/\t|;/);
     if (t.length === 2 && !/^[-+\d]/.test(t[0].trim())) { name = t[0].trim(); coord = t[1]; }
     const p = parseCoordinate(coord);
-    if (p) out.push({ id: pointId(), lat: p.lat, lng: p.lng, name: name || `Titik ${out.length + 1}` });
+    if (p) out.push({ id: pointId(), lat: p.lat, lng: p.lng, name: name || tr("Titik {0}", out.length + 1) });
   }
   return out;
 }
@@ -107,7 +108,7 @@ export function parseGeoJSONPoints(text: string): GeoPoint[] {
     const lng = coords[0] as number, lat = coords[1] as number;
     if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return;
     const nm = props && (props.name ?? props.title ?? props.label);
-    out.push({ id: pointId(), lat, lng, name: typeof nm === "string" && nm ? nm : `Titik ${out.length + 1}`, note: props && typeof props.note === "string" ? props.note : undefined });
+    out.push({ id: pointId(), lat, lng, name: typeof nm === "string" && nm ? nm : tr("Titik {0}", out.length + 1), note: props && typeof props.note === "string" ? props.note : undefined });
   };
   const verts: { c: unknown; props: Record<string, unknown> | null | undefined }[] = [];
   const visit = (g: any, props?: Record<string, unknown> | null) => {
@@ -130,7 +131,7 @@ export function parseGeoJSONPoints(text: string): GeoPoint[] {
 
 export function parseKmlPoints(text: string): GeoPoint[] {
   const doc = new DOMParser().parseFromString(text, "application/xml");
-  if (doc.querySelector("parsererror")) throw new Error("KML tidak valid.");
+  if (doc.querySelector("parsererror")) throw new Error(tr("KML tidak valid."));
   const out: GeoPoint[] = [];
   doc.querySelectorAll("Placemark").forEach((pm) => {
     const name = pm.querySelector("name")?.textContent?.trim() || "";
@@ -139,7 +140,7 @@ export function parseKmlPoints(text: string): GeoPoint[] {
     coords.forEach((c) => {
       (c.textContent || "").trim().split(/\s+/).forEach((tok) => {
         const [lng, lat] = tok.split(",").map(Number);
-        if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) out.push({ id: pointId(), lat, lng, name: name || `Titik ${out.length + 1}`, note });
+        if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) out.push({ id: pointId(), lat, lng, name: name || tr("Titik {0}", out.length + 1), note });
       });
     });
   });
@@ -148,11 +149,11 @@ export function parseKmlPoints(text: string): GeoPoint[] {
 
 export function parseGpxPoints(text: string): GeoPoint[] {
   const doc = new DOMParser().parseFromString(text, "application/xml");
-  if (doc.querySelector("parsererror")) throw new Error("GPX tidak valid.");
+  if (doc.querySelector("parsererror")) throw new Error(tr("GPX tidak valid."));
   const out: GeoPoint[] = [];
   doc.querySelectorAll("wpt, rtept, trkpt").forEach((w) => {
     const lat = parseFloat(w.getAttribute("lat") || ""), lng = parseFloat(w.getAttribute("lon") || "");
-    if (Number.isFinite(lat) && Number.isFinite(lng)) out.push({ id: pointId(), lat, lng, name: w.querySelector("name")?.textContent?.trim() || `Titik ${out.length + 1}`, note: w.querySelector("desc")?.textContent?.trim() || undefined });
+    if (Number.isFinite(lat) && Number.isFinite(lng)) out.push({ id: pointId(), lat, lng, name: w.querySelector("name")?.textContent?.trim() || tr("Titik {0}", out.length + 1), note: w.querySelector("desc")?.textContent?.trim() || undefined });
   });
   return out;
 }
@@ -284,9 +285,9 @@ export async function countryAt(p: LatLng): Promise<string | null> {
       if (d < NEAR && (!best || d < best.d)) best = { name: c.name, d };
     }
   }
-  if (best) return `${best.name} (dekat garis pantai)`;
+  if (best) return tr("{0} (dekat garis pantai)", best.name);
   // Antarktika: cincin kutubnya di data 1:50m tidak cocok untuk uji titik-dalam-poligon datar
-  if (p.lat < -60) return "Antarctica (wilayah Perjanjian Antarktika)";
+  if (p.lat < -60) return tr("Antarctica (wilayah Perjanjian Antarktika)");
   return null;
 }
 

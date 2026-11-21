@@ -7,6 +7,7 @@ import {
   attr, child, childEls, cssFamily, defaultParaFmt, defaultStyle, descendants, emitLine, hexColor, hslAdjust, layoutParagraph, paraHeight, parseXml,
   type Op, type RasterDoc, type RasterPage, type RunStyle,
 } from "./core";
+import { LOCALE, isEn, tr } from "@/i18n";
 
 interface XFont { b: boolean; i: boolean; u: boolean; strike: boolean; color?: string; sz: number; name: string }
 interface XBorder { l?: string; r?: string; t?: string; b?: string }
@@ -14,7 +15,7 @@ interface XXf { numFmtId: number; font: XFont; fill?: string; border: XBorder; h
 
 const INDEXED = ["#000000", "#ffffff", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#000000", "#ffffff", "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff", "#800000", "#008000", "#000080", "#808000", "#800080", "#008080", "#c0c0c0", "#808080"];
 const THEME_ORDER = ["lt1", "dk1", "lt2", "dk2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hlink", "folHlink"];
-const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const MONTHS = [tr("Januari"), tr("Februari"), tr("Maret"), tr("April"), tr("Mei"), tr("Juni"), tr("Juli"), tr("Agustus"), tr("September"), tr("Oktober"), tr("November"), tr("Desember")];
 
 const colIndex = (ref: string) => {
   const m = /^([A-Z]+)(\d+)$/i.exec(ref);
@@ -32,7 +33,7 @@ function formatDate(serial: number, code: string): string {
   for (const m of parts.matchAll(re)) toks.push(m[1] ? { t: m[1], lit: false } : { t: (m[2] ?? m[3]).replace(/[\u0001\u0002]/g, ""), lit: true });
   const hasAmPm = toks.some((x) => /am\/pm|a\/p/i.test(x.t));
   const p2 = (v: number) => String(v).padStart(2, "0");
-  const DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const DAYS = [tr("Minggu"), tr("Senin"), tr("Selasa"), tr("Rabu"), tr("Kamis"), tr("Jumat"), tr("Sabtu")];
   return toks.map((x, i) => {
     if (x.lit) return x.t;
     const k = x.t.toLowerCase();
@@ -65,7 +66,7 @@ const BUILTIN: Record<number, string> = { 1: "0", 2: "0.00", 3: "#,##0", 4: "#,#
 
 function formatNumber(v: number, id: number, code: string | undefined): string {
   const c = code ?? BUILTIN[id];
-  if (!c || /^general$/i.test(c)) return Number.isInteger(v) ? v.toLocaleString("id-ID", { useGrouping: false, maximumFractionDigits: 0 }) : String(+v.toPrecision(11)).replace(".", ",");
+  if (!c || /^general$/i.test(c)) return Number.isInteger(v) ? v.toLocaleString(LOCALE, { useGrouping: false, maximumFractionDigits: 0 }) : (isEn ? String(+v.toPrecision(11)) : String(+v.toPrecision(11)).replace(".", ","));
   const isDate = BUILTIN_DATE_IDS.has(id) || (/[ymdhs]/i.test(c.replace(/"[^"]*"|\[[^\]]*\]|\\./g, "")) && !/^[#0?,.%\s]*$/.test(c));
   if (isDate && v >= 0) return formatDate(v, c);
   const sections = c.split(";");
@@ -83,7 +84,7 @@ function formatNumber(v: number, id: number, code: string | undefined): string {
   let x = Math.abs(v) * (pct ? 100 : 1);
   const dec = (m[2].split(".")[1] ?? "").replace(/,/g, "").length;
   const grouping = /,/.test(m[2].split(".")[0]);
-  const body = x.toLocaleString("id-ID", { minimumFractionDigits: dec, maximumFractionDigits: dec, useGrouping: grouping });
+  const body = x.toLocaleString(LOCALE, { minimumFractionDigits: dec, maximumFractionDigits: dec, useGrouping: grouping });
   void x;
   return `${neg ? "-" : ""}${restore(m[1])}${body}${pct ? "%" : ""}${restore(m[4].replace(/%/g, ""))}`;
 }
@@ -94,11 +95,11 @@ interface SheetData { name: string; cells: Map<string, Cell>; colW: number[]; ro
 export async function renderXlsx(file: File, opts: { gridlines?: boolean } = {}): Promise<RasterDoc> {
   const zip = await JSZip.loadAsync(file);
   const wbXml = await zip.file("xl/workbook.xml")?.async("text");
-  if (!wbXml) throw new Error("Bukan file .xlsx yang valid (xl/workbook.xml tidak ditemukan).");
+  if (!wbXml) throw new Error(tr("Bukan file .xlsx yang valid (xl/workbook.xml tidak ditemukan)."));
   const notes: string[] = [];
   const rels = new Map<string, string>();
   const relXml = await zip.file("xl/_rels/workbook.xml.rels")?.async("text");
-  if (relXml) for (const r of descendants(parseXml(relXml), "Relationship")) { let t = r.getAttribute("Target") || ""; t = t.startsWith("/") ? t.slice(1) : `xl/${t.replace(/^\.\//, "")}`; rels.set(r.getAttribute("Id") || "", t); }
+  if (relXml) for (const r of descendants(parseXml(relXml), tr("Relationship"))) { let t = r.getAttribute("Target") || ""; t = t.startsWith("/") ? t.slice(1) : `xl/${t.replace(/^\.\//, "")}`; rels.set(r.getAttribute("Id") || "", t); }
 
   // tema
   const theme = new Map<string, string>();
@@ -134,7 +135,7 @@ export async function renderXlsx(file: File, opts: { gridlines?: boolean } = {})
     const st = parseXml(stXml);
     for (const nf of descendants(st, "numFmt")) numFmts.set(Number(attr(nf, "numFmtId")), attr(nf, "formatCode") || "");
     for (const f of childEls(descendants(st, "fonts")[0] ?? null, "font")) {
-      fonts.push({ b: !!child(f, "b") && attr(child(f, "b"), "val") !== "0", i: !!child(f, "i") && attr(child(f, "i"), "val") !== "0", u: !!child(f, "u"), strike: !!child(f, "strike"), color: colorOf(child(f, "color")), sz: Number(attr(child(f, "sz"), "val") ?? 11), name: attr(child(f, "name"), "val") ?? "Calibri" });
+      fonts.push({ b: !!child(f, "b") && attr(child(f, "b"), "val") !== "0", i: !!child(f, "i") && attr(child(f, "i"), "val") !== "0", u: !!child(f, "u"), strike: !!child(f, "strike"), color: colorOf(child(f, "color")), sz: Number(attr(child(f, "sz"), "val") ?? 11), name: attr(child(f, "name"), "val") ?? tr("Calibri") });
     }
     for (const f of childEls(descendants(st, "fills")[0] ?? null, "fill")) {
       const pf = child(f, "patternFill");
@@ -148,13 +149,13 @@ export async function renderXlsx(file: File, opts: { gridlines?: boolean } = {})
     for (const x of childEls(descendants(st, "cellXfs")[0] ?? null, "xf")) {
       const al = child(x, "alignment");
       xfs.push({
-        numFmtId: Number(attr(x, "numFmtId") ?? 0), font: fonts[Number(attr(x, "fontId") ?? 0)] ?? { b: false, i: false, u: false, strike: false, sz: 11, name: "Calibri" },
+        numFmtId: Number(attr(x, "numFmtId") ?? 0), font: fonts[Number(attr(x, "fontId") ?? 0)] ?? { b: false, i: false, u: false, strike: false, sz: 11, name: tr("Calibri") },
         fill: fills[Number(attr(x, "fillId") ?? 0)], border: borders[Number(attr(x, "borderId") ?? 0)] ?? {},
         h: attr(al, "horizontal") ?? undefined, v: attr(al, "vertical") ?? undefined, wrap: attr(al, "wrapText") === "1", indent: Number(attr(al, "indent") ?? 0),
       });
     }
   }
-  const defaultXf: XXf = { numFmtId: 0, font: { b: false, i: false, u: false, strike: false, sz: 11, name: "Calibri" }, border: {}, wrap: false, indent: 0 };
+  const defaultXf: XXf = { numFmtId: 0, font: { b: false, i: false, u: false, strike: false, sz: 11, name: tr("Calibri") }, border: {}, wrap: false, indent: 0 };
 
   // shared strings
   const sst: string[] = [];
@@ -211,10 +212,10 @@ export async function renderXlsx(file: File, opts: { gridlines?: boolean } = {})
     for (const m of merges) { maxR = Math.max(maxR, m.r2); maxC = Math.max(maxC, m.c2); }
     for (let i = 0; i <= Math.min(maxC, 300); i++) if (colW[i] === undefined) colW[i] = toPt(defCol);
     (colW as any)._defRow = defRow;
-    sheets.push({ name: attr(s, "name") || `Sheet${sheets.length + 1}`, cells, colW, rowH, customH, merges, maxR, maxC, hiddenRows, hiddenCols });
-    if (descendants(doc, "drawing").length || descendants(doc, "legacyDrawing").length) notes.push("Grafik, gambar, dan objek lain di dalam lembar tidak ikut dirender (hanya isi sel).");
+    sheets.push({ name: attr(s, "name") || tr("Sheet{0}", sheets.length + 1), cells, colW, rowH, customH, merges, maxR, maxC, hiddenRows, hiddenCols });
+    if (descendants(doc, "drawing").length || descendants(doc, "legacyDrawing").length) notes.push(tr("Grafik, gambar, dan objek lain di dalam lembar tidak ikut dirender (hanya isi sel)."));
   }
-  if (!sheets.length) throw new Error("Tidak ada lembar yang bisa dibaca.");
+  if (!sheets.length) throw new Error(tr("Tidak ada lembar yang bisa dibaca."));
   const pages = layoutSheets(sheets, opts.gridlines ?? true, notes);
   return { pages, notes: Array.from(new Set(notes)) };
 }
@@ -234,12 +235,12 @@ export async function renderCsv(file: File, opts: { gridlines?: boolean } = {}):
     else cur += ch;
   }
   if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
-  if (!rows.length) throw new Error("File CSV kosong.");
+  if (!rows.length) throw new Error(tr("File CSV kosong."));
   const cols = Math.min(60, Math.max(...rows.map((r) => r.length)));
   const cells = new Map<string, Cell>();
   const widths: number[] = Array.from({ length: cols }, () => 40);
-  const hdr: XXf = { ...{ numFmtId: 0, font: { b: true, i: false, u: false, strike: false, sz: 11, name: "Calibri" }, border: {}, wrap: false, indent: 0 }, fill: "#e5e7eb" };
-  const plain: XXf = { numFmtId: 0, font: { b: false, i: false, u: false, strike: false, sz: 11, name: "Calibri" }, border: {}, wrap: false, indent: 0 };
+  const hdr: XXf = { ...{ numFmtId: 0, font: { b: true, i: false, u: false, strike: false, sz: 11, name: tr("Calibri") }, border: {}, wrap: false, indent: 0 }, fill: "#e5e7eb" };
+  const plain: XXf = { numFmtId: 0, font: { b: false, i: false, u: false, strike: false, sz: 11, name: tr("Calibri") }, border: {}, wrap: false, indent: 0 };
   const meas = defaultStyle({ size: 11 });
   void meas;
   const canvas = document.createElement("canvas").getContext("2d")!;
@@ -252,19 +253,19 @@ export async function renderCsv(file: File, opts: { gridlines?: boolean } = {}):
   const sheet: SheetData = { name: file.name, cells, colW: widths, rowH: new Map(), customH: new Set(), merges: [], maxR: Math.min(rows.length, 5000) - 1, maxC: cols - 1, hiddenRows: new Set(), hiddenCols: new Set() };
   (sheet.colW as any)._defRow = 15;
   const notes: string[] = [];
-  if (rows.length > 5000) notes.push("CSV dipotong pada 5.000 baris pertama.");
+  if (rows.length > 5000) notes.push(tr("CSV dipotong pada 5.000 baris pertama."));
   return { pages: layoutSheets([sheet], opts.gridlines ?? true, notes, true), notes };
 }
 
 function layoutSheets(sheets: SheetData[], gridlines: boolean, notes: string[], single = false): RasterPage[] {
   const PW = 841.89, PH = 595.28, M = 28;
   const pages: RasterPage[] = [];
-  const baseFont = cssFamily("Calibri");
+  const baseFont = cssFamily(tr("Calibri"));
   for (const sh of sheets) {
     const defRow = (sh.colW as any)._defRow ?? 15;
     const maxC = Math.min(sh.maxC, 299), maxR = Math.min(sh.maxR, 20000);
     if (sh.maxR < 0 || sh.maxC < 0) { continue; }
-    if (sh.maxR > 20000) notes.push(`Lembar "${sh.name}" dipotong pada 20.000 baris pertama.`);
+    if (sh.maxR > 20000) notes.push(tr("Lembar \"{0}\" dipotong pada 20.000 baris pertama.", sh.name));
     const cols: number[] = [];
     for (let c = 0; c <= maxC; c++) if (!sh.hiddenCols.has(c)) cols.push(c);
     // Angka/tanggal yang tidak muat di kolomnya diperlebar (maks. +60%) agar tidak terpotong di gambar.
@@ -299,7 +300,7 @@ function layoutSheets(sheets: SheetData[], gridlines: boolean, notes: string[], 
     const mergedAt = new Map<string, (typeof sh.merges)[0]>();
     const covered = new Set<string>();
     for (const m of sh.merges) { mergedAt.set(`${m.r1}:${m.c1}`, m); for (let r = m.r1; r <= m.r2; r++) for (let c = m.c1; c <= m.c2; c++) if (r !== m.r1 || c !== m.c1) covered.add(`${r}:${c}`); }
-    const styleFor = (cell: Cell): RunStyle => defaultStyle({ size: cell.xf.font.sz, bold: cell.xf.font.b, italic: cell.xf.font.i, underline: cell.xf.font.u, strike: cell.xf.font.strike, color: cell.xf.font.color ?? "#000000", font: cssFamily(cell.xf.font.name || "Calibri") || baseFont });
+    const styleFor = (cell: Cell): RunStyle => defaultStyle({ size: cell.xf.font.sz, bold: cell.xf.font.b, italic: cell.xf.font.i, underline: cell.xf.font.u, strike: cell.xf.font.strike, color: cell.xf.font.color ?? "#000000", font: cssFamily(cell.xf.font.name || tr("Calibri")) || baseFont });
     const rowHeights: number[] = [];
     for (let r = 0; r <= maxR; r++) {
       if (sh.hiddenRows.has(r)) { rowHeights.push(0); continue; }
@@ -323,7 +324,7 @@ function layoutSheets(sheets: SheetData[], gridlines: boolean, notes: string[], 
       let cur: RasterPage = { w: PW, h: PH, bg: "#ffffff", ops: [] };
       let y = M + headerH;
       const bottom = PH - M;
-      const title = () => { if (!single) cur.ops.push({ t: "text", x: M, y: M + 9, text: `${sh.name}${bands.length > 1 ? ` — bagian ${bi + 1}/${bands.length}` : ""}`, style: defaultStyle({ size: 9.5, bold: true, color: "#6b7280" }), w: 200 }); };
+      const title = () => { if (!single) cur.ops.push({ t: "text", x: M, y: M + 9, text: `${sh.name}${bands.length > 1 ? tr(" — bagian {0}/{1}", bi + 1, bands.length) : ""}`, style: defaultStyle({ size: 9.5, bold: true, color: "#6b7280" }), w: 200 }); };
       title();
       const bx0: number[] = [];
       let xx = M;
@@ -400,6 +401,6 @@ function layoutSheets(sheets: SheetData[], gridlines: boolean, notes: string[], 
       }
     }
   }
-  if (!pages.length) pages.push({ w: PW, h: PH, bg: "#ffffff", ops: [{ t: "text", x: M, y: M + 20, text: "(Lembar kosong)", style: defaultStyle({ size: 14, color: "#9ca3af" }), w: 120 }] });
+  if (!pages.length) pages.push({ w: PW, h: PH, bg: "#ffffff", ops: [{ t: "text", x: M, y: M + 20, text: tr("(Lembar kosong)"), style: defaultStyle({ size: 14, color: "#9ca3af" }), w: 120 }] });
   return pages;
 }

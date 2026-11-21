@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Konfigurasi Audio Visualizer — satu objek datar yang dipakai pratinjau DAN ekspor,
 // jadi apa yang terlihat di layar sama persis dengan yang masuk ke berkas .mov.
 
@@ -190,7 +191,7 @@ export const DEFAULT_CONFIG: VizConfig = {
   logoBorderColor: "#ffffff",
   title: "",
   subtitle: "",
-  textFont: "Alan Sans",
+  textFont: tr("Alan Sans"),
   textSize: 54,
   textColor: "#ffffff",
   textX: 0.5,
@@ -211,42 +212,42 @@ export interface VizPreset {
 }
 
 export const VIZ_PRESETS: VizPreset[] = [
-  { id: "klasik", label: "Klasik", desc: "Batang tegak gradien cyan → ungu", patch: { style: "bars", bars: 64, colorMode: "gradient", color1: "#22d3ee", color2: "#a855f7", useColor3: false, barRadius: 0.5, glow: 0, reflection: 0, peaks: false, areaW: 0.8, areaH: 0.45, posY: 0.55 } },
-  { id: "neon", label: "Neon Cermin", desc: "Batang simetris dengan cahaya neon", patch: { style: "bars-mirror", bars: 48, colorMode: "gradient", color1: "#22d3ee", color2: "#ec4899", useColor3: false, gradAngle: 0, barRadius: 1, glow: 18, areaW: 0.82, areaH: 0.5, posY: 0.5, reflection: 0 } },
-  { id: "cincin", label: "Cincin Pelangi", desc: "Spoke melingkar warna pelangi berputar", patch: { style: "circle-bars", bars: 56, colorMode: "rainbow", hueShift: 40, radius: 0.42, barWidth: 0.6, barRadius: 1, spin: 8, glow: 8, areaW: 0.6, areaH: 0.9, posY: 0.5, circleSymmetric: true } },
-  { id: "gelombang", label: "Gelombang", desc: "Gelombang suara real-time (garis bercahaya)", patch: { style: "wave", colorMode: "gradient", color1: "#38bdf8", color2: "#f472b6", useColor3: false, gradAngle: 0, lineWidth: 5, glow: 14, areaW: 0.86, areaH: 0.4, posY: 0.5 } },
-  { id: "blob", label: "Blob Organik", desc: "Bentuk cair mengikuti spektrum", patch: { style: "circle-blob", bars: 40, colorMode: "gradient", color1: "#f97316", color2: "#ec4899", useColor3: false, gradAngle: 45, radius: 0.5, lineWidth: 3, glow: 10, areaW: 0.6, areaH: 0.9, opacity: 0.92, circleSymmetric: true } },
-  { id: "led", label: "Titik LED", desc: "Matriks titik LED level", patch: { style: "dots", bars: 32, segments: 14, colorMode: "level", color1: "#22c55e", color2: "#eab308", color3: "#ef4444", useColor3: true, dotSize: 8, segGap: 0.2, areaW: 0.7, areaH: 0.5, glow: 6 } },
-  { id: "pulsa", label: "Pulsa Logo", desc: "Cakram berdenyut + cincin gema mengikuti bass", patch: { style: "pulse", colorMode: "gradient", color1: "#6366f1", color2: "#ec4899", useColor3: false, radius: 0.5, lineWidth: 4, glow: 16, areaW: 0.7, areaH: 0.9, logoOn: false } },
-  { id: "area", label: "Gunung Spektrum", desc: "Area terisi halus dengan pantulan", patch: { style: "area", bars: 80, colorMode: "gradient", color1: "#34d399", color2: "#3b82f6", useColor3: false, gradAngle: 90, lineWidth: 3, reflection: 0.35, reflectionLen: 0.5, areaW: 0.9, areaH: 0.35, posY: 0.45, opacity: 0.95 } },
-  { id: "lissajous", label: "Osiloskop XY", desc: "Goniometer stereo (kiri vs kanan)", patch: { style: "lissajous", colorMode: "solid", color1: "#4ade80", lineWidth: 2, glow: 12, areaW: 0.5, areaH: 0.8, gainDb: 12 } },
+  { id: "klasik", label: tr("Klasik"), desc: tr("Batang tegak gradien cyan → ungu"), patch: { style: "bars", bars: 64, colorMode: "gradient", color1: "#22d3ee", color2: "#a855f7", useColor3: false, barRadius: 0.5, glow: 0, reflection: 0, peaks: false, areaW: 0.8, areaH: 0.45, posY: 0.55 } },
+  { id: "neon", label: tr("Neon Cermin"), desc: tr("Batang simetris dengan cahaya neon"), patch: { style: "bars-mirror", bars: 48, colorMode: "gradient", color1: "#22d3ee", color2: "#ec4899", useColor3: false, gradAngle: 0, barRadius: 1, glow: 18, areaW: 0.82, areaH: 0.5, posY: 0.5, reflection: 0 } },
+  { id: "cincin", label: tr("Cincin Pelangi"), desc: tr("Spoke melingkar warna pelangi berputar"), patch: { style: "circle-bars", bars: 56, colorMode: "rainbow", hueShift: 40, radius: 0.42, barWidth: 0.6, barRadius: 1, spin: 8, glow: 8, areaW: 0.6, areaH: 0.9, posY: 0.5, circleSymmetric: true } },
+  { id: "gelombang", label: tr("Gelombang"), desc: tr("Gelombang suara real-time (garis bercahaya)"), patch: { style: "wave", colorMode: "gradient", color1: "#38bdf8", color2: "#f472b6", useColor3: false, gradAngle: 0, lineWidth: 5, glow: 14, areaW: 0.86, areaH: 0.4, posY: 0.5 } },
+  { id: "blob", label: tr("Blob Organik"), desc: tr("Bentuk cair mengikuti spektrum"), patch: { style: "circle-blob", bars: 40, colorMode: "gradient", color1: "#f97316", color2: "#ec4899", useColor3: false, gradAngle: 45, radius: 0.5, lineWidth: 3, glow: 10, areaW: 0.6, areaH: 0.9, opacity: 0.92, circleSymmetric: true } },
+  { id: "led", label: tr("Titik LED"), desc: tr("Matriks titik LED level"), patch: { style: "dots", bars: 32, segments: 14, colorMode: "level", color1: "#22c55e", color2: "#eab308", color3: "#ef4444", useColor3: true, dotSize: 8, segGap: 0.2, areaW: 0.7, areaH: 0.5, glow: 6 } },
+  { id: "pulsa", label: tr("Pulsa Logo"), desc: tr("Cakram berdenyut + cincin gema mengikuti bass"), patch: { style: "pulse", colorMode: "gradient", color1: "#6366f1", color2: "#ec4899", useColor3: false, radius: 0.5, lineWidth: 4, glow: 16, areaW: 0.7, areaH: 0.9, logoOn: false } },
+  { id: "area", label: tr("Gunung Spektrum"), desc: tr("Area terisi halus dengan pantulan"), patch: { style: "area", bars: 80, colorMode: "gradient", color1: "#34d399", color2: "#3b82f6", useColor3: false, gradAngle: 90, lineWidth: 3, reflection: 0.35, reflectionLen: 0.5, areaW: 0.9, areaH: 0.35, posY: 0.45, opacity: 0.95 } },
+  { id: "lissajous", label: tr("Osiloskop XY"), desc: tr("Goniometer stereo (kiri vs kanan)"), patch: { style: "lissajous", colorMode: "solid", color1: "#4ade80", lineWidth: 2, glow: 12, areaW: 0.5, areaH: 0.8, gainDb: 12 } },
 ];
 
 export const CANVAS_PRESETS: { id: string; label: string; w: number; h: number }[] = [
-  { id: "hd", label: "Full HD 1920×1080 (16:9)", w: 1920, h: 1080 },
-  { id: "720", label: "HD 1280×720 (16:9)", w: 1280, h: 720 },
-  { id: "4k", label: "4K 3840×2160 (16:9) — berat", w: 3840, h: 2160 },
-  { id: "sq", label: "Persegi 1080×1080 (1:1)", w: 1080, h: 1080 },
-  { id: "story", label: "Vertikal 1080×1920 (9:16)", w: 1080, h: 1920 },
-  { id: "port", label: "Potret 1080×1350 (4:5)", w: 1080, h: 1350 },
-  { id: "wide", label: "Ultra lebar 2560×1080 (21:9)", w: 2560, h: 1080 },
-  { id: "banner", label: "Banner 1920×400", w: 1920, h: 400 },
+  { id: "hd", label: tr("Full HD 1920×1080 (16:9)"), w: 1920, h: 1080 },
+  { id: "720", label: tr("HD 1280×720 (16:9)"), w: 1280, h: 720 },
+  { id: "4k", label: tr("4K 3840×2160 (16:9) — berat"), w: 3840, h: 2160 },
+  { id: "sq", label: tr("Persegi 1080×1080 (1:1)"), w: 1080, h: 1080 },
+  { id: "story", label: tr("Vertikal 1080×1920 (9:16)"), w: 1080, h: 1920 },
+  { id: "port", label: tr("Potret 1080×1350 (4:5)"), w: 1080, h: 1350 },
+  { id: "wide", label: tr("Ultra lebar 2560×1080 (21:9)"), w: 2560, h: 1080 },
+  { id: "banner", label: tr("Banner 1920×400"), w: 1920, h: 400 },
 ];
 
 export const STYLE_LIST: { id: VizStyle; label: string }[] = [
-  { id: "bars", label: "Batang" },
-  { id: "bars-mirror", label: "Batang Simetris" },
-  { id: "blocks", label: "Blok LED" },
-  { id: "dots", label: "Titik LED" },
-  { id: "line", label: "Garis Spektrum" },
-  { id: "area", label: "Area Spektrum" },
-  { id: "wave", label: "Gelombang" },
-  { id: "lissajous", label: "Osiloskop XY" },
-  { id: "circle-bars", label: "Lingkaran Batang" },
-  { id: "circle-dots", label: "Lingkaran Titik" },
-  { id: "circle-wave", label: "Lingkaran Gelombang" },
-  { id: "circle-blob", label: "Blob Melingkar" },
-  { id: "pulse", label: "Pulsa" },
+  { id: "bars", label: tr("Batang") },
+  { id: "bars-mirror", label: tr("Batang Simetris") },
+  { id: "blocks", label: tr("Blok LED") },
+  { id: "dots", label: tr("Titik LED") },
+  { id: "line", label: tr("Garis Spektrum") },
+  { id: "area", label: tr("Area Spektrum") },
+  { id: "wave", label: tr("Gelombang") },
+  { id: "lissajous", label: tr("Osiloskop XY") },
+  { id: "circle-bars", label: tr("Lingkaran Batang") },
+  { id: "circle-dots", label: tr("Lingkaran Titik") },
+  { id: "circle-wave", label: tr("Lingkaran Gelombang") },
+  { id: "circle-blob", label: tr("Blob Melingkar") },
+  { id: "pulse", label: tr("Pulsa") },
 ];
 
 export const isCircleStyle = (s: VizStyle) => s.startsWith("circle-") || s === "pulse";

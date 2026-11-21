@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Pustaka koordinat murni (tanpa dependensi): format DD/DMS/DDM, UTM, MGRS, Plus Code (OLC),
 // Geohash, Maidenhead, Web Mercator & ubin XYZ — plus parser fleksibel untuk semua format itu.
 // Semua dihitung offline di browser dan diverifikasi terhadap pustaka referensi (pyproj, openlocationcode, …).
@@ -81,7 +82,7 @@ export function utmZoneOf(lat: number, lng: number): number {
 }
 
 export function toUTM(p: LatLng, forceZone?: number): UTM {
-  if (p.lat < -80 || p.lat > 84) throw new Error("UTM hanya berlaku untuk lintang −80° s/d 84° (gunakan UPS di kutub).");
+  if (p.lat < -80 || p.lat > 84) throw new Error(tr("UTM hanya berlaku untuk lintang −80° s/d 84° (gunakan UPS di kutub)."));
   const zone = forceZone ?? utmZoneOf(p.lat, p.lng);
   const lam0 = rad((zone - 1) * 6 - 180 + 3);
   const phi = rad(p.lat);

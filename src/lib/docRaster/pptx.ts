@@ -8,6 +8,7 @@ import {
   layoutParagraph, loadImageFromBytes, mimeForExt, paraHeight, parseXml, tintShadeLinear,
   type Img, type Inline, type Op, type ParaFmt, type RasterDoc, type RasterPage, type RunStyle,
 } from "./core";
+import { tr } from "@/i18n";
 
 type Xf = { sx: number; sy: number; tx: number; ty: number };
 const ID: Xf = { sx: 1, sy: 1, tx: 0, ty: 0 };
@@ -22,7 +23,7 @@ interface PartCtx {
 export async function renderPptx(file: File): Promise<RasterDoc> {
   const zip = await JSZip.loadAsync(file);
   const presXml = await zip.file("ppt/presentation.xml")?.async("text");
-  if (!presXml) throw new Error("Bukan file .pptx yang valid (ppt/presentation.xml tidak ditemukan).");
+  if (!presXml) throw new Error(tr("Bukan file .pptx yang valid (ppt/presentation.xml tidak ditemukan)."));
   const pres = parseXml(presXml);
   const notes: string[] = [];
   const sz = descendants(pres, "sldSz")[0];
@@ -35,7 +36,7 @@ export async function renderPptx(file: File): Promise<RasterDoc> {
     const out = new Map<string, string>();
     const xml = await zip.file(relPath)?.async("text");
     if (!xml) return out;
-    for (const r of descendants(parseXml(xml), "Relationship")) {
+    for (const r of descendants(parseXml(xml), tr("Relationship"))) {
       let t = r.getAttribute("Target") || "";
       if (r.getAttribute("TargetMode") === "External") continue;
       if (t.startsWith("/")) t = t.slice(1);
@@ -59,7 +60,7 @@ export async function renderPptx(file: File): Promise<RasterDoc> {
 
   // ── tema ──
   const themeColors = new Map<string, string>();
-  let majorFont = "Calibri Light", minorFont = "Calibri";
+  let majorFont = tr("Calibri Light"), minorFont = tr("Calibri");
   const themePath = zip.file(/^ppt\/theme\/theme1\.xml$/)[0]?.name;
   if (themePath) {
     const th = parseXml(await zip.file(themePath)!.async("text"));
@@ -226,7 +227,7 @@ export async function renderPptx(file: File): Promise<RasterDoc> {
         } else await renderTree(el, ctx, ops, xf);
       } else if (ln === "graphicFrame") await renderFrame(el, ctx, ops, xf);
       else if (ln === "AlternateContent") {
-        const choice = child(el, "Choice") ?? child(el, "Fallback");
+        const choice = child(el, tr("Choice")) ?? child(el, tr("Fallback"));
         if (choice) await renderTree(choice, ctx, ops, xf);
       }
     }
@@ -355,7 +356,7 @@ export async function renderPptx(file: File): Promise<RasterDoc> {
     const bf = child(pic, "blipFill");
     const rid = attr(child(bf, "blip"), "embed");
     const img = rid ? await getImage(ctx.part.rels.get(rid)) : null;
-    if (!img) { notes.push("Beberapa gambar (format EMF/WMF/tertaut) tidak bisa dirender dan dilewati."); return; }
+    if (!img) { notes.push(tr("Beberapa gambar (format EMF/WMF/tertaut) tidak bisa dirender dan dilewati.")); return; }
     const iw = (img as any).width as number, ih = (img as any).height as number;
     const sr = child(bf, "srcRect");
     const l = n(attr(sr, "l")) / 100000, t = n(attr(sr, "t")) / 100000, r = n(attr(sr, "r")) / 100000, bt = n(attr(sr, "b")) / 100000;
@@ -371,9 +372,9 @@ export async function renderPptx(file: File): Promise<RasterDoc> {
     const tbl = descendants(fr, "tbl")[0];
     if (tbl) { await renderTable(tbl, b, ctx, ops); return; }
     const isChart = descendants(fr, "chart").length > 0;
-    notes.push(isChart ? "Grafik (chart) tidak bisa dirender dan diganti kotak keterangan." : "Objek khusus (SmartArt/OLE) tidak bisa dirender dan diganti kotak keterangan.");
+    notes.push(isChart ? tr("Grafik (chart) tidak bisa dirender dan diganti kotak keterangan.") : tr("Objek khusus (SmartArt/OLE) tidak bisa dirender dan diganti kotak keterangan."));
     ops.push({ t: "rect", x: b.x, y: b.y, w: b.w, h: b.h, fill: "#f3f4f6", stroke: "#d1d5db", lw: 1 });
-    ops.push({ t: "text", x: b.x + 10, y: b.y + b.h / 2, text: isChart ? "[Grafik]" : "[Objek]", style: defaultStyle({ size: 14, color: "#6b7280" }), w: 60 });
+    ops.push({ t: "text", x: b.x + 10, y: b.y + b.h / 2, text: isChart ? tr("[Grafik]") : tr("[Objek]"), style: defaultStyle({ size: 14, color: "#6b7280" }), w: 60 });
   }
 
   async function renderTable(tbl: Element, b: { x: number; y: number; w: number; h: number }, ctx: Ctx, ops: Op[]) {
@@ -618,7 +619,7 @@ export async function renderPptx(file: File): Promise<RasterDoc> {
     if (p) slidePaths.push(p);
   }
   if (!slidePaths.length) slidePaths.push(...zip.file(/^ppt\/slides\/slide\d+\.xml$/).map((f) => f.name).sort((a, b) => n(a.match(/(\d+)\.xml/)?.[1]) - n(b.match(/(\d+)\.xml/)?.[1])));
-  if (!slidePaths.length) throw new Error("Tidak ada slide pada file .pptx ini.");
+  if (!slidePaths.length) throw new Error(tr("Tidak ada slide pada file .pptx ini."));
 
   const pages: RasterPage[] = [];
   for (const sp of slidePaths) {

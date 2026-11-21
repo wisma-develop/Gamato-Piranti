@@ -5,6 +5,7 @@ import {
   cssFamily, defaultParaFmt, defaultStyle, emitLine, layoutParagraph, paraHeight,
   type Inline, type Op, type ParaLayout, type RasterDoc, type RasterPage, type RunStyle,
 } from "./core";
+import { tr } from "@/i18n";
 
 const PW = 595.28, PH = 841.89, M = 56;
 const W = PW - M * 2;
@@ -66,7 +67,7 @@ function paginate(items: Item[], bg = "#ffffff"): RasterPage[] {
 }
 
 function plainItems(text: string, mono: boolean): Item[] {
-  const style = defaultStyle({ size: mono ? 9.5 : 11, font: cssFamily(mono ? "Consolas" : "Calibri"), color: "#111827" });
+  const style = defaultStyle({ size: mono ? 9.5 : 11, font: cssFamily(mono ? "Consolas" : tr("Calibri")), color: "#111827" });
   const fmt = defaultParaFmt({ spaceAfter: mono ? 0 : 6, lineMult: mono ? 1.25 : 1.35 });
   const items: Item[] = [];
   for (const raw of text.replace(/\t/g, "    ").split(/\r?\n/)) {
@@ -78,7 +79,7 @@ function plainItems(text: string, mono: boolean): Item[] {
 }
 
 function markdownItems(text: string): Item[] {
-  const sans = defaultStyle({ size: 11, font: cssFamily("Calibri"), color: "#1f2937" });
+  const sans = defaultStyle({ size: 11, font: cssFamily(tr("Calibri")), color: "#1f2937" });
   const mono = defaultStyle({ size: 9.5, font: cssFamily("Consolas"), color: "#1f2937" });
   const items: Item[] = [];
   const lines = text.replace(/\t/g, "    ").split(/\r?\n/);
@@ -173,18 +174,18 @@ export async function renderTextDocument(file: File): Promise<RasterDoc> {
   let items: Item[];
   if (kind === "rtf") {
     items = plainItems(await readRtfText(file), false);
-    notes.push("RTF dibaca sebagai teks polos (gaya huruf/tabel RTF tidak dipertahankan).");
+    notes.push(tr("RTF dibaca sebagai teks polos (gaya huruf/tabel RTF tidak dipertahankan)."));
   } else {
     let text = await file.text();
     if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
-    if (!text.trim()) throw new Error("File teks kosong.");
+    if (!text.trim()) throw new Error(tr("File teks kosong."));
     if (/\.json$/i.test(file.name)) {
       try { text = JSON.stringify(JSON.parse(text), null, 2); } catch { /* biarkan apa adanya */ }
     }
     items = kind === "md" ? markdownItems(text) : plainItems(text, kind === "code");
   }
   const pages = paginate(items);
-  if (pages.length > 400) throw new Error("Dokumen terlalu panjang (>400 halaman) untuk dirender di browser.");
+  if (pages.length > 400) throw new Error(tr("Dokumen terlalu panjang (>400 halaman) untuk dirender di browser."));
   return { pages, notes };
 }
 

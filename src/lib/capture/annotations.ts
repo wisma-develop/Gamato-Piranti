@@ -2,6 +2,7 @@
 // (resolusi asli tangkapan), sehingga overlay layar dan ekspor akhir memakai fungsi gambar yang sama.
 
 import { fontStack } from "@/lib/fontPresets";
+import { tr } from "@/i18n";
 
 export type ToolId = "select" | "pen" | "marker" | "line" | "arrow" | "rect" | "ellipse" | "text" | "step" | "blur" | "image" | "eraser";
 
@@ -187,7 +188,7 @@ export function drawObjects(ctx: CanvasRenderingContext2D, objs: AnnObj[], base:
         ctx.strokeStyle = "#ffffff";
         ctx.stroke();
         ctx.fillStyle = "#ffffff";
-        ctx.font = `700 ${o.size * 0.55}px ${fontStack("Alan Sans")}`;
+        ctx.font = `700 ${o.size * 0.55}px ${fontStack(tr("Alan Sans"))}`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(String(o.n), o.x, o.y + o.size * 0.03);

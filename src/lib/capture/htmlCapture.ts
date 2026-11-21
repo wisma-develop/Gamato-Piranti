@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Tangkapan halaman penuh dari HTML (tempel kode / berkas .html) — deterministik, tanpa izin layar.
 // Cara kerja: HTML dimuat di iframe tersembunyi bersandbox (tanpa skrip) lebar perangkat pilihan,
 // tinggi dokumen diukur, stylesheet & gambar eksternal di-inline bila CORS mengizinkan, lalu dokumen
@@ -92,7 +93,7 @@ async function loadSvgImage(svg: string): Promise<HTMLImageElement> {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Browser gagal merender HTML ini ke gambar (mungkin ada markup yang tidak valid)."));
+    img.onerror = () => reject(new Error(tr("Browser gagal merender HTML ini ke gambar (mungkin ada markup yang tidak valid).")));
     img.src = url;
   });
 }
@@ -105,7 +106,7 @@ export async function captureHtml(html: string, o: HtmlCaptureOptions): Promise<
   try {
     if (o.signal?.cancelled) throw new Error("Dibatalkan.");
     const doc = frame.contentDocument;
-    if (!doc || !doc.documentElement) throw new Error("Dokumen HTML tidak bisa dibaca.");
+    if (!doc || !doc.documentElement) throw new Error(tr("Dokumen HTML tidak bisa dibaca."));
     const pageH = measureFrameHeight(frame);
     // Tinggi frame disamakan dengan tinggi dokumen agar satuan % / flex mengikuti tampilan penuh
     frame.style.height = `${pageH}px`;
@@ -144,8 +145,8 @@ export async function captureHtml(html: string, o: HtmlCaptureOptions): Promise<
       else imgFail++;
       if (o.signal?.cancelled) throw new Error("Dibatalkan.");
     }
-    if (cssFail) notes.push(`${cssFail} stylesheet eksternal tidak bisa dimuat (CORS/URL relatif) — tampilan bisa berbeda dari pratinjau.`);
-    if (imgFail) notes.push(`${imgFail} gambar eksternal tidak bisa dimuat (CORS) — tampil kosong. Tempel gambar sebagai data URL / unggah berkas lengkap agar ikut tertangkap.`);
+    if (cssFail) notes.push(tr("{0} stylesheet eksternal tidak bisa dimuat (CORS/URL relatif) — tampilan bisa berbeda dari pratinjau.", cssFail));
+    if (imgFail) notes.push(tr("{0} gambar eksternal tidak bisa dimuat (CORS) — tampil kosong. Tempel gambar sebagai data URL / unggah berkas lengkap agar ikut tertangkap.", imgFail));
     void cssOk; void imgOk;
 
     // Latar: ambil dari body/html bila ada
@@ -177,7 +178,7 @@ export async function captureHtml(html: string, o: HtmlCaptureOptions): Promise<
       canvases.push(c);
       await wait(0);
     }
-    if (canvases.length > 1) notes.push(`Halaman sangat tinggi (${H}px) — dipotong menjadi ${canvases.length} bagian agar aman untuk browser.`);
+    if (canvases.length > 1) notes.push(tr("Halaman sangat tinggi ({0}px) — dipotong menjadi {1} bagian agar aman untuk browser.", H, canvases.length));
     return { canvases, pageHeight: H, notes };
   } finally {
     frame.remove();

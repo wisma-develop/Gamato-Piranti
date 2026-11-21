@@ -8,6 +8,7 @@ import {
   layoutParagraph, loadImageFromBytes, mimeForExt, paraHeight, parseXml,
   type Img, type Inline, type Op, type ParaFmt, type ParaLayout, type RasterDoc, type RasterPage, type RunStyle,
 } from "./core";
+import { tr } from "@/i18n";
 
 interface PProps {
   jc?: string; before?: number; after?: number; line?: number; lineRule?: string; left?: number; right?: number;
@@ -133,14 +134,14 @@ function bulletGlyph(t: string, level: number): string {
 export async function renderDocx(file: File): Promise<RasterDoc> {
   const zip = await JSZip.loadAsync(file);
   const docXml = await zip.file("word/document.xml")?.async("text");
-  if (!docXml) throw new Error("Bukan file .docx yang valid (word/document.xml tidak ditemukan).");
+  if (!docXml) throw new Error(tr("Bukan file .docx yang valid (word/document.xml tidak ditemukan)."));
   const notes: string[] = [];
   const doc = parseXml(docXml);
   const body = descendants(doc, "body")[0];
-  if (!body) throw new Error("Isi dokumen tidak ditemukan.");
+  if (!body) throw new Error(tr("Isi dokumen tidak ditemukan."));
 
   // ── tema (font & warna) ──
-  let majorFont = "Calibri Light", minorFont = "Calibri";
+  let majorFont = tr("Calibri Light"), minorFont = tr("Calibri");
   const themeXml = await zip.file("word/theme/theme1.xml")?.async("text");
   if (themeXml) {
     const th = parseXml(themeXml);
@@ -221,7 +222,7 @@ export async function renderDocx(file: File): Promise<RasterDoc> {
   // ── relasi & gambar ──
   const rels = new Map<string, string>();
   const relXml = await zip.file("word/_rels/document.xml.rels")?.async("text");
-  if (relXml) for (const r of descendants(parseXml(relXml), "Relationship")) rels.set(r.getAttribute("Id") || "", r.getAttribute("Target") || "");
+  if (relXml) for (const r of descendants(parseXml(relXml), tr("Relationship"))) rels.set(r.getAttribute("Id") || "", r.getAttribute("Target") || "");
   const images = new Map<string, Img | null>();
   const blips = Array.from(new Set(descendants(body, "blip").map((b) => attr(b, "embed")).filter((x): x is string => !!x)));
   for (const id of blips) {
@@ -288,14 +289,14 @@ export async function renderDocx(file: File): Promise<RasterDoc> {
         const ext = descendants(rc, "extent")[0];
         const id = attr(descendants(rc, "blip")[0] ?? null, "embed");
         const img = id ? images.get(id) : null;
-        if (!img || !ext) { if (descendants(rc, "txbx").length || descendants(rc, "chart").length) notes.push("Kotak teks/grafik di dalam dokumen tidak ikut dirender."); else skippedImages++; break; }
+        if (!img || !ext) { if (descendants(rc, "txbx").length || descendants(rc, "chart").length) notes.push(tr("Kotak teks/grafik di dalam dokumen tidak ikut dirender.")); else skippedImages++; break; }
         let w = (num(attr(ext, "cx")) ?? 0) * EMU_PT, h = (num(attr(ext, "cy")) ?? 0) * EMU_PT;
         if (w > contentW) { h = (h * contentW) / w; w = contentW; }
         if (w > 1 && h > 1) out.push({ kind: "img", img, w, h });
         break;
       }
       case "AlternateContent": {
-        const choice = child(rc, "Choice");
+        const choice = child(rc, tr("Choice"));
         if (choice) for (const cc of Array.from(choice.children)) emitRunChild(cc, style, caps, out);
         break;
       }
@@ -554,9 +555,9 @@ export async function renderDocx(file: File): Promise<RasterDoc> {
   // buang halaman terakhir yang kosong akibat page-break di akhir
   while (pages.length > 1 && pages[pages.length - 1].ops.length === 0) pages.pop();
 
-  if (descendants(doc, "txbxContent").length) notes.push("Kotak teks (text box) di dokumen tidak ikut dirender.");
-  if (zip.file(/word\/(header|footer)\d*\.xml/).length) notes.push("Header, footer, dan nomor halaman tidak ikut dirender.");
-  if (skippedImages) notes.push(`${skippedImages} gambar tidak bisa dirender (format EMF/WMF/latar) dan dilewati.`);
-  if (descendants(body, "sectPr").length > 1 && descendants(body, "cols").some((c) => (num(attr(c, "num")) ?? 1) > 1)) notes.push("Tata letak multi-kolom ditampilkan sebagai satu kolom.");
+  if (descendants(doc, "txbxContent").length) notes.push(tr("Kotak teks (text box) di dokumen tidak ikut dirender."));
+  if (zip.file(/word\/(header|footer)\d*\.xml/).length) notes.push(tr("Header, footer, dan nomor halaman tidak ikut dirender."));
+  if (skippedImages) notes.push(tr("{0} gambar tidak bisa dirender (format EMF/WMF/latar) dan dilewati.", skippedImages));
+  if (descendants(body, "sectPr").length > 1 && descendants(body, "cols").some((c) => (num(attr(c, "num")) ?? 1) > 1)) notes.push(tr("Tata letak multi-kolom ditampilkan sebagai satu kolom."));
   return { pages, notes: Array.from(new Set(notes)) };
 }

@@ -10,6 +10,7 @@ import { encodeWavPcm, resamplePcm, type PCM } from "@/lib/audioEditEngine";
 import { BufferSource, VizAnalyzer } from "./analysis";
 import { renderViz, type VizAssets } from "./renderer";
 import type { VizConfig } from "./config";
+import { tr } from "@/i18n";
 
 export type ExportFormat = "mov-png" | "mov-rle" | "mov-jpeg" | "png-zip";
 
@@ -39,12 +40,12 @@ export interface ExportResult {
 
 export class ExportCancelled extends Error {
   constructor() {
-    super("Ekspor dibatalkan.");
+    super(tr("Ekspor dibatalkan."));
   }
 }
 
 const canvasBlob = (c: HTMLCanvasElement, mime = "image/png", q?: number) =>
-  new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("Gagal membuat frame."))), mime, q));
+  new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error(tr("Gagal membuat frame.")))), mime, q));
 
 export function frameCountFor(start: number, end: number, fps: number) {
   return Math.max(1, Math.floor((end - start) * fps + 1e-6));
@@ -79,7 +80,7 @@ function makeCanvas(cfg: VizConfig, readback: boolean) {
   canvas.width = cfg.width;
   canvas.height = cfg.height;
   const ctx = canvas.getContext("2d", { willReadFrequently: readback, alpha: true });
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
   return { canvas, ctx };
 }
 
@@ -92,10 +93,10 @@ export async function exportViz(o: ExportOptions): Promise<ExportResult> {
   const fps = cfg.fps;
   const start = Math.max(0, o.start);
   const end = Math.min(src.duration, o.end);
-  if (!(end > start)) throw new Error("Rentang waktu tidak valid.");
+  if (!(end > start)) throw new Error(tr("Rentang waktu tidak valid."));
   const frames = frameCountFor(start, end, fps);
   const hasAlpha = cfg.bgMode === "transparent" && format !== "mov-jpeg";
-  if (format === "mov-jpeg" && cfg.bgMode === "transparent") throw new Error("Format JPEG tidak mendukung transparansi — aktifkan latar (Warna/Gradien/Gambar) atau pilih format PNG/RLE.");
+  if (format === "mov-jpeg" && cfg.bgMode === "transparent") throw new Error(tr("Format JPEG tidak mendukung transparansi — aktifkan latar (Warna/Gradien/Gambar) atau pilih format PNG/RLE."));
   const jq = Math.min(1, Math.max(0.3, o.jpegQuality ?? 0.9));
   const { canvas, ctx } = makeCanvas(cfg, format === "mov-rle");
   const analyzer = new VizAnalyzer(cfg, src.sampleRate);
@@ -125,7 +126,7 @@ export async function exportViz(o: ExportOptions): Promise<ExportResult> {
       const blob = format === "mov-jpeg" ? await canvasBlob(canvas, "image/jpeg", jq) : await canvasBlob(canvas);
       bytes += blob.size;
       if (mov) mov.addVideoFrame(blob);
-      else zip!.file(`frame_${String(i + 1).padStart(5, "0")}.png`, blob, { compression: "STORE" });
+      else zip!.file(tr("frame_{0}.png", String(i + 1).padStart(5, "0")), blob, { compression: "STORE" });
     }
     if (i % 2 === 1 || format !== "mov-rle") {
       const elapsed = (performance.now() - t0) / 1000;
@@ -135,7 +136,7 @@ export async function exportViz(o: ExportOptions): Promise<ExportResult> {
     }
   }
 
-  o.onProgress?.(1, { frame: frames, total: frames, bytes, etaSec: 0, message: "Menyusun berkas…" });
+  o.onProgress?.(1, { frame: frames, total: frames, bytes, etaSec: 0, message: tr("Menyusun berkas…") });
   await new Promise((r) => setTimeout(r, 0));
   const base = (o.fileBase || "gamato-visualizer").replace(/[\\/:*?"<>|]+/g, "_").slice(0, 80) || "gamato-visualizer";
   let blob: Blob;
@@ -153,7 +154,7 @@ export async function exportViz(o: ExportOptions): Promise<ExportResult> {
       }
       zip!.file("audio.wav", encodeWavPcm({ sampleRate: audio.sampleRate, channels: chans }, 16, false), { compression: "STORE" });
     }
-    zip!.file("README.txt", `Urutan PNG Audio Visualizer\nResolusi: ${cfg.width}x${cfg.height}\nFPS: ${fps}\nFrame: ${frames}\nTransparan: ${hasAlpha ? "ya" : "tidak"}\nImpor sebagai "Image Sequence" di editor video pada ${fps} fps${audio ? ", lalu tambahkan audio.wav." : "."}\n`);
+    zip!.file("README.txt", tr("Urutan PNG Audio Visualizer\nResolusi: {0}x{1}\nFPS: {2}\nFrame: {3}\nTransparan: {4}\nImpor sebagai \"Image Sequence\" di editor video pada {5} fps{6}\n", cfg.width, cfg.height, fps, frames, hasAlpha ? "ya" : "tidak", fps, audio ? tr(", lalu tambahkan audio.wav.") : "."));
     blob = await zip!.generateAsync({ type: "blob", compression: "STORE" });
     name = `${base}-png-seq.zip`;
   }

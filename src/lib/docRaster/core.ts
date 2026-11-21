@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Mesin render dokumen → kanvas (dipakai "Dokumen ke Gambar": Word, PowerPoint, Excel, teks/Markdown/RTF).
 //
 // Prinsip: setiap format di-parse menjadi daftar halaman berisi "operasi gambar" (Op) dalam satuan poin (1 pt = 1/72 inci).
@@ -45,28 +46,28 @@ export interface RasterDoc {
 // ── Font & warna ──────────────────────────────────────────────────────────
 
 const FONT_MAP: [RegExp, string][] = [
-  [/^(calibri|carlito)/i, "Calibri, Carlito, 'Segoe UI', Roboto, Arial, sans-serif"],
-  [/^(cambria|caladea)/i, "Cambria, Caladea, Georgia, 'Times New Roman', serif"],
+  [/^(calibri|carlito)/i, tr("Calibri, Carlito, 'Segoe UI', Roboto, Arial, sans-serif")],
+  [/^(cambria|caladea)/i, tr("Cambria, Caladea, Georgia, 'Times New Roman', serif")],
   [/^(times|liberation serif|tinos)/i, "'Times New Roman', 'Liberation Serif', Tinos, Times, serif"],
-  [/^(arial|helvetica|liberation sans|arimo)/i, "Arial, 'Liberation Sans', Arimo, Helvetica, sans-serif"],
+  [/^(arial|helvetica|liberation sans|arimo)/i, tr("Arial, 'Liberation Sans', Arimo, Helvetica, sans-serif")],
   [/^(courier|consolas|lucida console|monaco|menlo)/i, "'Courier New', Consolas, 'Liberation Mono', Menlo, monospace"],
-  [/^(georgia)/i, "Georgia, 'Times New Roman', serif"],
-  [/^(verdana|tahoma|segoe)/i, "Verdana, Tahoma, 'Segoe UI', Arial, sans-serif"],
-  [/^(garamond|palatino|book antiqua)/i, "Garamond, 'Palatino Linotype', Georgia, serif"],
+  [/^(georgia)/i, tr("Georgia, 'Times New Roman', serif")],
+  [/^(verdana|tahoma|segoe)/i, tr("Verdana, Tahoma, 'Segoe UI', Arial, sans-serif")],
+  [/^(garamond|palatino|book antiqua)/i, tr("Garamond, 'Palatino Linotype', Georgia, serif")],
   [/^(comic)/i, "'Comic Sans MS', 'Comic Neue', cursive, sans-serif"],
-  [/^(impact)/i, "Impact, 'Arial Black', sans-serif"],
+  [/^(impact)/i, tr("Impact, 'Arial Black', sans-serif")],
 ];
 
 export function cssFamily(name?: string | null): string {
   const n = (name || "").trim();
-  if (!n) return "Calibri, Carlito, 'Segoe UI', Roboto, Arial, sans-serif";
+  if (!n) return tr("Calibri, Carlito, 'Segoe UI', Roboto, Arial, sans-serif");
   for (const [re, fam] of FONT_MAP) if (re.test(n)) return fam;
   const safe = n.replace(/["'\\]/g, "");
   return `'${safe}', Calibri, Carlito, 'Segoe UI', Arial, sans-serif`;
 }
 
 export function defaultStyle(over: Partial<RunStyle> = {}): RunStyle {
-  return { size: 11, bold: false, italic: false, underline: false, strike: false, color: "#000000", font: cssFamily("Calibri"), ...over };
+  return { size: 11, bold: false, italic: false, underline: false, strike: false, color: "#000000", font: cssFamily(tr("Calibri")), ...over };
 }
 
 export const fontString = (s: RunStyle, sizeOverride?: number) =>

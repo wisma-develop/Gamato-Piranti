@@ -7,6 +7,7 @@ import { renderDocx } from "./docx";
 import { renderPptx } from "./pptx";
 import { renderCsv, renderXlsx } from "./xlsx";
 import { renderTextDocument } from "./text";
+import { tr } from "@/i18n";
 
 export type DocKind = "pdf" | "word" | "ppt" | "excel" | "teks";
 export type DocKindOrAuto = DocKind | "auto";
@@ -19,7 +20,7 @@ export const KIND_EXTS: Record<DocKind, string[]> = {
   teks: ["txt", "md", "markdown", "rtf", "json", "log", "xml", "yml", "yaml", "ini", "html", "htm", "js", "ts", "css", "py", "java", "c", "cpp", "sql", "sh", "php"],
 };
 
-export const KIND_LABEL: Record<DocKind, string> = { pdf: "PDF", word: "Word (.docx)", ppt: "PowerPoint (.pptx)", excel: "Excel / CSV", teks: "Teks / Markdown / RTF" };
+export const KIND_LABEL: Record<DocKind, string> = { pdf: "PDF", word: tr("Word (.docx)"), ppt: tr("PowerPoint (.pptx)"), excel: tr("Excel / CSV"), teks: tr("Teks / Markdown / RTF") };
 
 export function detectKind(file: File): DocKind | null {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -55,14 +56,14 @@ function fromRaster(kind: DocKind, doc: RasterDoc): DocSession {
 
 export async function openDocument(file: File, kindIn: DocKindOrAuto, opts: { gridlines?: boolean } = {}): Promise<DocSession> {
   const kind = kindIn === "auto" ? detectKind(file) : kindIn;
-  if (!kind) throw new Error("Jenis file tidak dikenali. Gunakan PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx/.csv), atau teks/Markdown/RTF.");
+  if (!kind) throw new Error(tr("Jenis file tidak dikenali. Gunakan PDF, Word (.docx), PowerPoint (.pptx), Excel (.xlsx/.csv), atau teks/Markdown/RTF."));
   if (kind === "pdf") {
     let pdf: any;
     try {
       pdf = await loadPdfDocument(await file.arrayBuffer());
     } catch (err: any) {
-      if (err?.name === "PasswordException") throw new Error("PDF ini dilindungi kata sandi. Buka kuncinya dulu (menu PDF → Unlock PDF).");
-      throw new Error("File PDF tidak dapat dibaca. Pastikan file tidak rusak.");
+      if (err?.name === "PasswordException") throw new Error(tr("PDF ini dilindungi kata sandi. Buka kuncinya dulu (menu PDF → Unlock PDF)."));
+      throw new Error(tr("File PDF tidak dapat dibaca. Pastikan file tidak rusak."));
     }
     const sizes: { w: number; h: number }[] = [];
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -88,7 +89,7 @@ export async function openDocument(file: File, kindIn: DocKindOrAuto, opts: { gr
     return fromRaster(kind, await renderTextDocument(file));
   } catch (err: any) {
     const msg = err?.message || "";
-    if (/zip|central directory|end of central/i.test(msg)) throw new Error(`File tampak rusak atau bukan format ${KIND_LABEL[kind]} yang valid (file .doc/.ppt/.xls lama belum didukung — simpan ulang sebagai .docx/.pptx/.xlsx).`);
+    if (/zip|central directory|end of central/i.test(msg)) throw new Error(tr("File tampak rusak atau bukan format {0} yang valid (file .doc/.ppt/.xls lama belum didukung — simpan ulang sebagai .docx/.pptx/.xlsx).", KIND_LABEL[kind]));
     throw err;
   }
 }

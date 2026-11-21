@@ -3,6 +3,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { drawObjects, type AnnObj } from "./annotations";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
+import { tr } from "@/i18n";
 
 export interface CaptureItem {
   id: string;
@@ -32,7 +33,7 @@ export function renderItem(item: CaptureItem, opaque = false): HTMLCanvasElement
 }
 
 const toBlob = (c: HTMLCanvasElement, mime: string, q?: number) =>
-  new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("Gagal membuat gambar (kanvas terlalu besar?)."))), mime, q));
+  new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error(tr("Gagal membuat gambar (kanvas terlalu besar?).")))), mime, q));
 
 const MIME: Record<ImgFormat, string> = { png: "image/png", jpeg: "image/jpeg", webp: "image/webp" };
 const EXT: Record<ImgFormat, string> = { png: "png", jpeg: "jpg", webp: "webp" };
@@ -140,7 +141,7 @@ export interface PdfResult {
 
 export async function exportPdf(items: CaptureItem[], o: PdfOptions): Promise<PdfResult> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle(o.title || "Capture Website");
+  pdf.setTitle(o.title || tr("Capture Website"));
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const margin = Math.max(0, o.marginMm) * MM;
   const footer = o.pageSize === "auto" ? 0 : Math.max(o.numbering ? 16 : 0, 26); // ruang bawah untuk nomor & identitas

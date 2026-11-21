@@ -2,6 +2,7 @@
 // luas poligon & titik acak memakai model bola (cukup untuk keperluan umum).
 
 import { clamp, deg, normLng, rad, type LatLng } from "./coords";
+import { tr } from "@/i18n";
 
 const A = 6378137, F = 1 / 298.257223563, B = (1 - F) * A;
 export const R_MEAN = 6371008.8;
@@ -150,7 +151,7 @@ export function bboxOf(pts: LatLng[]): BBox | null {
 
 export type DistUnit = "m" | "km" | "mi" | "nmi" | "ft";
 export const DIST_UNITS: { id: DistUnit; label: string; perM: number }[] = [
-  { id: "m", label: "meter", perM: 1 }, { id: "km", label: "kilometer", perM: 1e-3 }, { id: "mi", label: "mil", perM: 1 / 1609.344 }, { id: "nmi", label: "mil laut", perM: 1 / 1852 }, { id: "ft", label: "kaki", perM: 1 / 0.3048 },
+  { id: "m", label: "meter", perM: 1 }, { id: "km", label: "kilometer", perM: 1e-3 }, { id: "mi", label: "mil", perM: 1 / 1609.344 }, { id: "nmi", label: tr("mil laut"), perM: 1 / 1852 }, { id: "ft", label: "kaki", perM: 1 / 0.3048 },
 ];
 export const toUnit = (m: number, u: DistUnit) => m * DIST_UNITS.find((x) => x.id === u)!.perM;
 export const fromUnit = (v: number, u: DistUnit) => v / DIST_UNITS.find((x) => x.id === u)!.perM;
