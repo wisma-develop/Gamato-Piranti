@@ -15,6 +15,12 @@
 
 ## Informasi
 
-- [Tentang Kami](https://gamatopiranti.zone.id/about)
-- [Kebijakan Privasi](https://gamatopiranti.zone.id/privacy)
-- [Ketentuan Layanan](https://gamatopiranti.zone.id/terms)
+- [Tentang Kami / About](https://gamatopiranti.zone.id/about)
+- [FAQ](https://gamatopiranti.zone.id/faq)
+- [Kebijakan Privasi / Privacy Policy](https://gamatopiranti.zone.id/privacy)
+- [Ketentuan Layanan / Terms of Service](https://gamatopiranti.zone.id/terms)
+
+## Bahasa / Languages
+
+Situs tersedia dalam Bahasa Indonesia (bawaan) dan English. Pilih lewat pemilih ID | EN di bilah atas, atau tambahkan `?lang=en` / `?lang=id` pada URL.
+The site is available in Indonesian (default) and English. Use the ID | EN switch in the top bar, or append `?lang=en` / `?lang=id` to any URL.

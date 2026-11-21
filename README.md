@@ -1,84 +1,283 @@
-# Gamato Piranti
+<div align="center">
 
-**Suite alat digital modern — cepat, gratis, dan privasi terjaga.**
+<img src="docs/assets/banner.svg" alt="Gamato Piranti — suite alat digital berbasis browser" width="100%" />
 
-Gamato Piranti menghadirkan berbagai alat digital harian dalam satu tempat. Semua proses berjalan langsung di perangkat pengguna — tidak ada file yang diunggah ke server mana pun.
+<br />
 
----
+**🇮🇩 Bahasa Indonesia** · [🇬🇧 English](README.en.md)
 
-## ✨ Fitur
+<br />
 
-| Alat | Deskripsi |
-|------|-----------|
-| **QR & Barcode Studio** | QR code multi-template (URL, WiFi, email, telepon) dengan bentuk & warna full custom (bukan QR generik) plus logo tengah; barcode berbagai format dengan cetak massal langsung ke PDF rapi; QR Code Scanner (unggah gambar atau kamera langsung) |
-| **Cetak File & Dokumen** | Pratinjau + pengaturan setara dialog cetak: kertas, margin, skala, N-up, buklet, salinan, warna, header/footer, watermark; PDF/gambar/DOCX/XLSX/PPTX/teks |
-| **Kompres Dokumen** | Satu alat untuk memperkecil PDF (gambar JPEG / mode agresif), DOCX/XLSX/PPTX/ODT/EPUB/ZIP (gambar di dalam dokumen + ZIP ulang), gambar, dan berkas teks; batch + ZIP; hasil tak pernah lebih besar dari asli |
-| **Kompres Video** | Preset / kustom / target ukuran file, uji 5 detik |
-| **Kompres Audio** | Opus (WebCodecs + muxer Ogg), preset, bitrate kustom, target ukuran, batch + ZIP |
-| **Kolase Gambar** | 46 template + grid otomatis + mode bebas/scrapbook, bentuk sel, bingkai, bayangan, latar, teks & stiker; ekspor PNG/JPG/WEBP/PDF |
-| **Edit Audio** | Editor waveform lengkap: pangkas/potong/tempel, fade, tempo & pitch, EQ, kompresor, limiter, echo, reverb, noise gate, marker; ekspor WAV/Opus/ZIP per marker |
-| **Transkrip Audio** | Whisper di browser → transkrip berformat (waktu, pembicara, paragraf, ringkasan); ekspor DOCX/PDF/TXT/MD/SRT/VTT/JSON/CSV |
-| **Audio Visualizer** | 13 gaya visual, kustom penuh (warna, glow, pantulan, logo, teks, latar), pratinjau real-time + mikrofon; ekspor `.mov` transparan otomatis (alpha) atau berlatar — PNG / Animation(RLE) / JPEG + audio PCM; ZIP urutan PNG |
-| **PDF Lab – Suite** | 9 mode: kompres, gabung, pecah, ekstrak, hapus halaman, putar, atur ulang, gambar→PDF, teks→PDF, plus Sensor/Redaksi PDF (hitamkan info sensitif secara permanen) |
-| **Doc Studio** | Editor dokumen dengan Find & Replace, template cepat, snapshot, ekspor .docx / .pdf / .txt |
-| **Image Lab** | Kompres, resize, konversi format (JPG/PNG/WEBP), putar — batch processing, plus Color Picker & Palette Extractor |
-| **Rak Utilitas** | Kalkulator serba-guna (standar, pajak, bunga, investasi, cicilan/hutang, rumus, HPP/COGS, konversi satuan), Kamus Dunia (terjemahan puluhan bahasa), HTML Preview, Diagram & Rumus Studio (flowchart/struktur/chart + LaTeX), Pengukur Kekuatan Suara, JSON formatter, Base64, bulk teks/data, statistik, password & token generator, dan lainnya |
-| **Capture Website** | Screenshot panjang: bagikan layar/tab (jahit otomatis saat scroll) atau HTML/kode (halaman penuh instan), anotasi live (pena, stabilo, garis, panah, bentuk, teks, nomor, sensor, gambar), tumpukan hasil → gambar / ZIP otomatis / PDF rapi |
-| **Koordinat** | Cari tempat & pilih titik di peta dunia (Leaflet; peta vektor offline bawaan + OSM/Topo/Satelit/Gelap), semua format koordinat (DD, DMS, DDM, UTM, MGRS, Plus Code, Geohash, Maidenhead, Web Mercator, ubin XYZ) + parser fleksibel, jarak/arah elipsoid, titik tujuan, luas, daftar titik, generate (acak/grid/lingkaran/garis), impor/ekspor CSV·GeoJSON·KML·GPX, negara offline, matahari terbit/terbenam |
-| **Office** | Doc Studio, Sheet Studio, Slide Studio, dan **Diagram & Rumus Studio** (dipindah dari Utilitas; URL lama `/utility/diagram-rumus` otomatis dialihkan) |
-| **Video Studio** | Potong/cut video, crop & resize (rasio 1:1/9:16/16:9/dst), teks & subtitle (CC — ekspor .SRT/.VTT atau bakar ke video), gabung klip dengan transisi cut/crossfade, kecepatan & filter warna, ekstrak audio & thumbnail — semua ringan, native browser (video+canvas+MediaRecorder), tanpa upload ke server |
-| **Spesial** | Kwitansi, Invoice, Struk/Nota, dan Kartu Nama profesional (**mode Massal/Bulk dari Excel·CSV·XLSX: ZIP PNG, PDF, atau lembar cetak dengan crop marks & susunan bolak-balik, plus ekspor vCard**; logo custom, ekspor PNG & PDF, cetak langsung ke printer USB/Bluetooth), generator sertifikat & piagam massal full custom, **Kupon/Voucher/Tiket generator (12 template, kode unik QR/barcode, massal hingga 1.000 lembar, ZIP/PDF/lembar cetak)**, **Pembuat Surat (17 template, kop & nomor otomatis, tanda tangan/materai, surat massal, ekspor PDF & Word)**, WA link |
+[![Versi](https://img.shields.io/badge/versi-2.16.0-6366f1?style=for-the-badge)](CHANGELOG.md)
+[![98 alat](https://img.shields.io/badge/alat-98-8b5cf6?style=for-the-badge)](#-katalog-alat)
+[![Bahasa](https://img.shields.io/badge/bahasa-ID%20%7C%20EN-ec4899?style=for-the-badge)](#-dua-bahasa-id--en)
+[![Privasi](https://img.shields.io/badge/upload-0%20byte-10b981?style=for-the-badge)](#-privasi-by-design)
 
-Mendukung mode terang & gelap yang mengikuti preferensi sistem atau bisa diatur manual, dan tersimpan otomatis untuk kunjungan berikutnya.
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![Tailwind](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Lighthouse](https://img.shields.io/badge/Lighthouse-A11y%20%C2%B7%20Best%20Practices%20%C2%B7%20SEO%20%3D%20100-0cce6b?logo=lighthouse&logoColor=white)](#-performa--lighthouse)
 
----
+### Satu tempat untuk semua alat digital — diproses di perangkatmu, bukan di server.
 
-## 🔒 Privasi & Keamanan
+[**🚀 Buka situs**](https://gamatopiranti.zone.id) &nbsp;·&nbsp; [**❓ FAQ**](https://gamatopiranti.zone.id/faq) &nbsp;·&nbsp; [**🔒 Privasi**](https://gamatopiranti.zone.id/privacy) &nbsp;·&nbsp; [**🐞 Laporkan bug**](https://github.com/wisma-develop/Gamato-Piranti/issues)
 
-- Semua pemrosesan file terjadi di browser pengguna (client-side), tidak ada file yang dikirim atau disimpan di server.
-- Tidak ada akun, tidak ada pelacakan pihak ketiga, tidak ada iklan.
-- Input pengguna disanitasi sebelum digunakan untuk mencegah penyalahgunaan (XSS, tautan berbahaya, dsb).
-- Satu-satunya pengecualian: **Kamus Dunia** memanggil layanan terjemahan pihak ketiga (MyMemory) langsung dari browser karena kamus dunia offline penuh membutuhkan dataset raksasa — teks yang diterjemahkan tidak pernah singgah di server Gamato Piranti (karena memang tidak ada server pemrosesan).
+</div>
 
-## 🚀 Menjalankan Secara Lokal
+<img src="docs/assets/divider.svg" alt="" width="100%" />
+
+## 📑 Daftar isi
+
+<table>
+<tr>
+<td valign="top">
+
+- [✨ Sekilas](#-sekilas)
+- [🧭 Katalog alat](#-katalog-alat)
+- [🔒 Privasi by design](#-privasi-by-design)
+- [🌐 Dua bahasa (ID · EN)](#-dua-bahasa-id--en)
+
+</td>
+<td valign="top">
+
+- [⚡ Performa & Lighthouse](#-performa--lighthouse)
+- [🚀 Mulai cepat](#-mulai-cepat)
+- [🏗️ Arsitektur](#️-arsitektur)
+- [🗂️ Struktur proyek](#️-struktur-proyek)
+
+</td>
+<td valign="top">
+
+- [🧩 Menambah alat baru](#-menambah-alat-baru)
+- [🌍 Menambah / mengubah terjemahan](#-menambah--mengubah-terjemahan)
+- [☁️ Deploy](#️-deploy)
+- [🤝 Berkontribusi](#-berkontribusi)
+
+</td>
+</tr>
+</table>
+
+## ✨ Sekilas
+
+| | |
+|---|---|
+| 🧰 **98 alat, 8 kategori** | Kode, Dokumen (PDF), Office, Gambar, Video, Audio, Utilitas, dan Spesial (dokumen bisnis) |
+| 🔒 **0 byte diunggah** | Berkas diproses langsung di browser lewat Web API modern — tanpa server pemroses |
+| 🧑‍💻 **Tanpa akun** | Tidak ada login, iklan, analitik, atau cookie pelacak |
+| 🌐 **Dua bahasa utuh** | Antarmuka, template dokumen, pesan galat, token, bulan/hari, hingga "terbilang" — ID dan EN |
+| 🌓 **Mode terang/gelap** | Bawaan terang; pilihan diingat |
+| ⚡ **Ringan** | Setiap alat dimuat sesuai kebutuhan (lazy-load) — halaman awal tetap cepat |
+| ♿ **Dapat diakses** | Navigasi keyboard, fokus terlihat, label ARIA, kontras terjaga, `prefers-reduced-motion` dihormati |
+
+> 💡 **Tips:** tekan <kbd>Ctrl</kbd> + <kbd>K</kbd> (atau <kbd>⌘</kbd> + <kbd>K</kbd>) di mana saja untuk mencari alat — pencarian paham sinonim ID ⇄ EN (mis. "compress" = "kompres").
+
+## 🧭 Katalog alat
+
+<details open>
+<summary><b>📦 Ringkasan per kategori</b></summary>
+
+| Kategori | Alat | Sorotan |
+|---|:--:|---|
+| 🔳 **Kode** | 5 | QR kustom penuh (bentuk titik/sudut, warna, logo), barcode 6 format + cetak massal PDF, pemindai QR/barcode, input scanner HID, kode Morse |
+| 📄 **Dokumen** | 28 | Gabung/pecah/kompres/edit/tanda tangan/watermark/proteksi/sensor PDF, konversi Office ⇄ PDF, OCR, scan dokumen, pembaca dokumen |
+| 🗂️ **Office** | 4 | Doc, Sheet (rumus + .xlsx), Slide, serta Diagram & Rumus (Mermaid + LaTeX) |
+| 🖼️ **Gambar** | 21 | Photo Editor (30+ preset), kolase (46 template), cetak foto, hapus latar, watermark, meme, kompres/resize/konversi, foto RAW, dokumen → gambar |
+| 🎬 **Video** | 8 | Konversi, kompres (uji 5 dtk), potong, crop, subtitle, gabung + transisi, kecepatan & filter, thumbnail |
+| 🎧 **Audio** | 9 | Konversi, kompres Opus, editor waveform, visualizer (.mov transparan), transkrip Whisper, speech ⇄ text, pengukur suara |
+| 🧮 **Utilitas** | 13 | Kalkulator (pajak, bunga, investasi, cicilan, COGS), universal converter, kamus dunia, koordinat, capture website, cetak file, JSON/Base64, password & token |
+| 🎫 **Spesial** | 10 | Kwitansi, invoice, struk, kartu nama, nametag, kupon & tiket, surat (17 template), sertifikat, CV, WA link — banyak yang mendukung **mode massal** |
+
+</details>
+
+<details>
+<summary><b>🔳 Kode — QR, barcode, scanner</b></summary>
+
+- **QR Code** — template URL/teks/WiFi/email/telepon/SMS/WhatsApp/vCard/lokasi/event/crypto; bentuk titik, sudut luar/dalam, warna & gradien, logo tengah, bingkai "SCAN ME"; ekspor PNG/JPG/WEBP/SVG
+- **Barcode** — CODE128, EAN-13, EAN-8, UPC, CODE39, ITF-14 dengan validasi otomatis + cetak massal ke PDF
+- **Pemindai** — dari gambar atau kamera langsung · **Scanner HID** (USB/Bluetooth) · **Kode Morse** + audio `.wav`
+
+</details>
+
+<details>
+<summary><b>📄 Dokumen — PDF Lab</b></summary>
+
+- **Atur halaman:** gabung, pecah, ekstrak, hapus, putar, atur ulang, nomor halaman
+- **Konversi:** Word/Excel/PowerPoint → PDF · PDF → Word/Excel/gambar · gambar/teks/HTML → PDF
+- **Keamanan & anotasi:** edit, tanda tangan, watermark, kunci (flatten), buka proteksi izin, **sensor permanen**
+- **Baca & scan:** OCR (Tesseract), scan kamera → PDF, pembaca dokumen
+- **Kompres Dokumen:** PDF, DOCX/XLSX/PPTX/ODT/EPUB/ZIP, gambar, teks — batch + ZIP, hasil tak pernah lebih besar dari aslinya
+
+</details>
+
+<details>
+<summary><b>🖼️ Gambar · 🎬 Video · 🎧 Audio</b></summary>
+
+- **Gambar:** Photo Editor, Kolase (46 template + mode bebas), Cetak Foto (2×3, 3×4, 4R…), Hapus Latar, Watermark, Meme, Crop, Kompres, Resize, Konversi, Hapus Metadata, RAW → JPEG, Dokumen → Gambar (PDF/Word/PPT/Excel/teks)
+- **Video:** pipeline native browser (video + canvas + MediaRecorder / mediabunny) — tanpa upload
+- **Audio:** editor waveform (EQ, kompresor, reverb, marker), transkrip **Whisper** di browser (SRT/VTT/DOCX/PDF…), visualizer 13 gaya → `.mov` transparan
+
+</details>
+
+<details>
+<summary><b>🧮 Utilitas · 🎫 Spesial · 🗂️ Office</b></summary>
+
+- **Utilitas:** Kalkulator (8 mode), Universal Converter, Kamus Dunia, **Koordinat** (DD/DMS/UTM/MGRS/Plus Code/Geohash, impor/ekspor GeoJSON/KML/GPX), Capture Website, Cetak File & Dokumen, HTML Preview, JSON/Base64, bulk teks, statistik, password & token
+- **Spesial:** dokumen bisnis siap cetak — dengan logo, tanda tangan, PNG & PDF; **massal** dari CSV/XLSX untuk kartu nama, nametag, kupon, sertifikat, surat
+- **Office:** Doc Studio, Sheet Studio, Slide Studio, Diagram & Rumus Studio
+
+</details>
+
+## 🔒 Privasi by design
+
+```mermaid
+flowchart LR
+    A([📁 Berkasmu]) -->|dibaca langsung| B{{🌐 Browser}}
+    B --> C[⚙️ Web API\nCanvas · WebCodecs · WASM]
+    C --> D([⬇️ Unduhan hasil])
+    B -. tidak ada unggahan .-x E[(☁️ Server)]
+    B -. hanya bila kamu memakai fitur tertentu .-> F[🗺️ Peta · 📖 Terjemahan · 🤖 Unduh model]
+```
+
+- **Tidak ada backend pemroses.** Situs ini statis (SPA) — tidak ada endpoint yang menerima berkasmu.
+- **Penyimpanan lokal saja:** bahasa, tema, draf otomatis, dan cache model hidup di `localStorage`/cache browser.
+- **Permintaan keluar** hanya untuk: Google Fonts (font generator), peta/pencarian/elevasi di alat Koordinat, Kamus Dunia (MyMemory), dan unduhan model Whisper/OCR — semuanya dirinci di [Kebijakan Privasi](https://gamatopiranti.zone.id/privacy).
+- **Header keamanan** (CSP, HSTS, `nosniff`, Permissions-Policy) ada di [`public/_headers`](public/_headers).
+
+## 🌐 Dua bahasa (ID · EN)
+
+Seluruh situs tersedia dalam **Bahasa Indonesia** dan **English** — termasuk menu, template surat/CV/sertifikat, label isian, pesan galat, nama bulan & hari, dan *terbilang* pada kwitansi.
+
+| Cara memilih | Detail |
+|---|---|
+| **Pemilih ID \| EN** | di bilah atas (dan menu seluler); halaman dimuat ulang agar semua teks konsisten |
+| **Parameter URL** | `?lang=en` atau `?lang=id` (disimpan ke browser) |
+| **Bawaan** | Indonesia, sampai pengguna memilih lain |
+
+<details>
+<summary><b>Bagaimana cara kerjanya?</b></summary>
+
+```text
+src/i18n/index.ts   →  tr("teks Indonesia", ...args)   // mode ID: teks apa adanya · mode EN: kamus
+src/i18n/en.ts      →  { "teks Indonesia": "English text", "{0} file¦{0} files": … }
+src/i18n/tokens.ts  →  alias token {nama}⇄{name}, {{perihal}}⇄{{subject}}, …
+```
+
+- Sumber teks = Bahasa Indonesia; `tr()` mengembalikan terjemahan bila tersedia, jika tidak jatuh ke teks asli (tidak pernah kosong/galat).
+- Kamus EN dimuat **dinamis (top-level await) hanya saat bahasa = EN** → pengguna ID tidak membayar sebesar apa pun.
+- Placeholder `{0}`, `{1}`; bentuk jamak ditulis `tunggal¦jamak`.
+
+</details>
+
+## ⚡ Performa & Lighthouse
+
+| Halaman | Perangkat | Performance | Accessibility | Best Practices | SEO |
+|---|:--:|:--:|:--:|:--:|:--:|
+| Beranda | 🖥️ Desktop | 96 – 100 ¹ | **100** | **100** | **100** |
+| Beranda | 📱 Mobile | 72 – 88 ¹ | **100** | **100** | **100** |
+| Tentang · FAQ · Privasi · Ketentuan | 🖥️ Desktop | 99 – 100 ¹ | **100** | **100** | **100** |
+
+<sub>¹ Performance mobile mengikuti kecepatan CPU mesin penguji (throttling 4× simulasi); pada v2.15 maupun v2.16 hasilnya bergeser dalam rentang yang sama di lingkungan uji kami. Jalankan Lighthouse sendiri di perangkatmu untuk angka yang relevan.</sub>
+
+Strategi: kode dipecah per rute (`React.lazy`), font UI di-host sendiri & di-preload, **Google Fonts generator dimuat hanya saat sebuah alat dibuka**, kamus EN hanya dimuat pada mode EN, dan gambar/ikon di-ukur tetap untuk mencegah *layout shift*.
+
+> Diukur dengan Lighthouse 13 (Chromium headless) terhadap build produksi lokal.
+
+## 🚀 Mulai cepat
 
 ```bash
+# Prasyarat: Node.js ≥ 20.19 (atau ≥ 22.12) dan npm
 npm install
-npm run dev
+npm run dev        # server pengembangan → http://localhost:5173
 ```
 
-## 📦 Build untuk Produksi
+| Perintah | Fungsi |
+|---|---|
+| `npm run dev` | Server pengembangan Vite (HMR) |
+| `npm run build` | Build produksi ke `dist/` (otomatis membuat `sitemap.xml`) |
+| `npm run preview` | Menyajikan hasil build secara lokal |
+| `npx tsc --noEmit` | Pemeriksaan tipe |
 
-```bash
-npm run build
-npm run preview
+## 🏗️ Arsitektur
+
+```mermaid
+flowchart TD
+    M[main.tsx] --> APP[App.tsx · Router]
+    APP --> L[Layout · Header · Footer · SeoSync]
+    L --> R{{Rute — React.lazy}}
+    R --> P1[Halaman info\nAbout · FAQ · Privasi · Ketentuan]
+    R --> P2[Alat — src/features/*]
+    P2 --> LIB[src/lib/*\nmesin murni: PDF · docx · audio · video · canvas]
+    L --> I18N[src/i18n\ntr · LOCALE · tokens]
+    P2 --> I18N
 ```
 
-Proyek ini siap untuk di-deploy ke platform hosting statis modern (mis. Vercel) tanpa konfigurasi tambahan.
+- **SPA + `React.lazy`** — satu rute = satu potongan kode.
+- **Mesin murni di `src/lib`** (tanpa React) — mudah diuji dan dipakai ulang antar-alat.
+- **Satu sumber kebenaran menu:** `menuGroups` di `Header.tsx` → dipakai untuk navigasi, pencarian, halaman Tentang, dan `sitemap.xml`.
 
----
+## 🗂️ Struktur proyek
 
-## 🤝 Kontribusi
+```text
+.
+├─ docs/assets/            # banner & divider README (SVG animasi)
+├─ public/                 # _headers, robots.txt, sitemap.xml, llms.txt, fonts/, ikon
+├─ scripts/gen-sitemap.mjs # membuat sitemap dari rute di App.tsx
+├─ src/
+│  ├─ App.tsx              # definisi rute (lazy)
+│  ├─ components/          # layout/, ui/, search/, home/, …
+│  ├─ features/            # satu folder per kategori alat (pdf/, image/, audio/, video/, special/, …)
+│  ├─ hooks/               # useDocMeta, useDarkMode, useAutosave, …
+│  ├─ i18n/                # index.ts (tr), en.ts (kamus EN), tokens.ts (alias token)
+│  ├─ lib/                 # mesin & helper murni
+│  ├─ pages/               # Home, About, Faq, Privacy, Terms (+ content/faq.ts)
+│  └─ utils/               # cn, sanitize, …
+├─ index.html              # meta SEO, skrip tema & bahasa sebelum-paint
+├─ vercel.json             # rewrite SPA + header cache
+└─ vite.config.ts
+```
 
-Laporan bug dan saran fitur sangat diterima melalui Issues. Pastikan untuk tidak menyertakan data pribadi atau file sensitif pada laporan yang dibagikan.
+## 🧩 Menambah alat baru
 
----
+1. Buat komponen di `src/features/<kategori>/NamaAlat.tsx` (bungkus dengan `PageShell`).
+2. Daftarkan rute `lazy` di `src/App.tsx`.
+3. Tambahkan item ke `menuGroups` di `src/components/layout/Header.tsx` — otomatis muncul di menu, pencarian, halaman Tentang, dan sitemap.
+4. Bungkus semua teks tampilan dengan `tr("…")`, lalu tambahkan terjemahannya ke `src/i18n/en.ts`.
 
-© 2025 Gamato Piranti · Dikembangkan oleh **WisDev**
+## 🌍 Menambah / mengubah terjemahan
 
-## Domain & izin (v2.10)
+```ts
+import { tr } from "@/i18n";
 
-- Domain resmi: **https://gamatopiranti.zone.id** — konstanta di `src/lib/site.ts`. Host lama (`gamato-piranti.vercel.app`, `www.…`) dialihkan otomatis.
-- Pastikan di dashboard hosting: tambahkan `gamatopiranti.zone.id` sebagai domain utama (DNS CNAME/A sesuai petunjuk Vercel), dan `www` sebagai alias agar redirect berjalan.
-- Header keamanan & `Permissions-Policy` ada di `vercel.json` (dan `public/_headers`). Jangan menambah `geolocation=()` / `camera=()` — itu memblokir fitur.
-- Semua akses kamera/mikrofon/lokasi/clipboard/tangkap layar lewat `src/lib/permissions.ts`.
+<button>{tr("Unduh hasil")}</button>                        // JSX
+setInfo(tr("{0} berkas berhasil digabung.", files.length));  // placeholder
+// en.ts:  "{0} berkas berhasil digabung.": "{0} file merged.¦{0} files merged."   ← jamak
+```
 
-## Name Tag Studio (v2.11)
+- Teks yang belum ada di `en.ts` tetap tampil (Indonesia) — jadi tidak pernah menyebabkan layar kosong.
+- Debug cakupan: di konsol mode EN, `window.__gpMiss = new Set()` sebelum memuat halaman akan mengumpulkan kunci yang belum diterjemahkan.
+- Nilai tingkat-modul (menu, template) dihitung saat dimuat — itu sebabnya pergantian bahasa memuat ulang halaman.
 
-Menu Spesial → **Name Tag** (`/special/name-tag`): 11 template, editor depan/belakang, warna otomatis per peran, foto per orang, QR/barcode berisi data tiap orang, lubang tali, meja nama lipat, dan mode massal dari CSV/XLSX (ZIP PNG, PDF, lembar cetak). Kode: `src/lib/nametag{Types,Engine,Bulk}.ts`, `src/features/special/Nametag{Generator,Bulk}.tsx`.
+## ☁️ Deploy
 
-## Pencarian alat & popover (v2.12)
+| Platform | Catatan |
+|---|---|
+| **Vercel** | Impor repo → framework *Vite* → selesai. `vercel.json` sudah berisi rewrite SPA |
+| **Netlify / Cloudflare Pages** | Perintah build `npm run build`, direktori `dist`; `public/_redirects` + `_headers` sudah disiapkan |
+| **GitHub Pages / statis lain** | Sajikan `dist/` dengan fallback `index.html` untuk semua rute |
 
-- Tekan **Ctrl/⌘ + K** (atau `/`) di halaman mana pun untuk mencari alat. Indeks otomatis dibangun dari `menuGroups` di `components/layout/Header.tsx` — tambahkan alat baru di menu, ia langsung bisa dicari (sinonim tambahan opsional di `lib/toolIndex.ts`).
-- Popover baru **wajib** memakai `components/ui/AnchoredPortal.tsx` (portal + posisi fixed). Jangan membuat panel `absolute` di dalam kartu — terpotong `overflow-hidden` dan bisa tertutup kartu lain.
-- Gaya global yang harus ada di `@layer` (bukan unlayered): `min-width` reset & `svg{display:block}`; aturan unlayered mengalahkan semua utilitas Tailwind.
+## 🤝 Berkontribusi
+
+- 🐞 **Menemukan bug?** Buka [Issue](https://github.com/wisma-develop/Gamato-Piranti/issues) — sebutkan alat, browser, dan langkahnya.
+- 💡 **Ide fitur / koreksi terjemahan?** Issue atau Pull Request dipersilakan.
+- ✅ Sebelum PR: `npx tsc --noEmit` dan `npm run build` harus lolos, dan uji alat yang kamu ubah di **kedua bahasa**.
+
+<img src="docs/assets/divider.svg" alt="" width="100%" />
+
+<div align="center">
+
+Dibuat dengan ❤️ oleh **[WisDev](https://gamatopiranti.zone.id/about)** · © 2026 Gamato Piranti
+
+<sub>Berdiri di atas pundak proyek open source: React · Vite · Tailwind CSS · pdf-lib · PDF.js · docx · Tesseract.js · Whisper · mediabunny · Mermaid · KaTeX · Leaflet · JSZip</sub>
+
+</div>

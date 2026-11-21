@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" role="img" aria-labelledby="t d">
+  <title id="t">Gamato Piranti</title>
+  <desc id="d">Suite alat digital berbasis browser — QR, PDF, gambar, video, audio, dokumen. Digital tool suite that runs in your browser.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/><stop offset=".55" stop-color="#312e81"/><stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="txt" x1="0" x2="1"><stop offset="0" stop-color="#93c5fd"/><stop offset=".5" stop-color="#c4b5fd"/><stop offset="1" stop-color="#f0abfc"/></linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#818cf8" stop-opacity=".55"/><stop offset="1" stop-color="#818cf8" stop-opacity="0"/></radialGradient>
+    <clipPath id="reveal"><rect x="80" y="214" width="0" height="40"><animate attributeName="width" from="0" to="1040" dur="2.6s" begin="0.3s" fill="freeze" calcMode="spline" keySplines=".4 0 .2 1" keyTimes="0;1"/></rect></clipPath>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.2" fill="#fff" opacity=".12"/></pattern>
+  </defs>
+  <rect width="1200" height="340" rx="28" fill="url(#bg)"/>
+  <rect width="1200" height="340" rx="28" fill="url(#dots)"/>
+  <circle cx="1010" cy="70" r="170" fill="url(#glow)"><animate attributeName="r" values="150;190;150" dur="7s" repeatCount="indefinite"/></circle>
+  <circle cx="150" cy="300" r="150" fill="url(#glow)"><animate attributeName="r" values="170;130;170" dur="9s" repeatCount="indefinite"/></circle>
+
+  <!-- QR-ish logo mark -->
+  <g transform="translate(80 70)">
+    <rect width="96" height="96" rx="22" fill="#fff" opacity=".12"/>
+    <g fill="#fff">
+      <rect x="18" y="18" width="24" height="24" rx="5"/><rect x="54" y="18" width="24" height="24" rx="5" opacity=".7"/>
+      <rect x="18" y="54" width="24" height="24" rx="5" opacity=".7"/>
+      <rect x="54" y="54" width="10" height="10" rx="2"><animate attributeName="opacity" values="1;.2;1" dur="2.4s" repeatCount="indefinite"/></rect>
+      <rect x="68" y="68" width="10" height="10" rx="2"><animate attributeName="opacity" values=".2;1;.2" dur="2.4s" repeatCount="indefinite"/></rect>
+    </g>
+  </g>
+
+  <text x="204" y="128" font-family="'Segoe UI',Inter,system-ui,-apple-system,sans-serif" font-size="68" font-weight="800" fill="url(#txt)" letter-spacing="-1.5">Gamato Piranti</text>
+  <text x="206" y="168" font-family="'Segoe UI',Inter,system-ui,-apple-system,sans-serif" font-size="22" fill="#e0e7ff" opacity=".9">Browser-native digital tool suite · Suite alat digital berbasis browser</text>
+
+  <g clip-path="url(#reveal)" font-family="'Segoe UI',Inter,system-ui,sans-serif" font-size="25" font-weight="600" fill="#fff">
+    <text x="80" y="242">QR · PDF · Image · Video · Audio · Office · Business docs · 98 tools · 🇮🇩 / 🇬🇧</text>
+  </g>
+
+  <!-- floating chips -->
+  <g font-family="'Segoe UI',Inter,system-ui,sans-serif" font-size="15" font-weight="700" fill="#e0e7ff">
+    <g><rect x="80" y="278" width="190" height="34" rx="17" fill="#fff" opacity=".12"/><text x="102" y="300">🔒 0 bytes uploaded</text>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="4s" repeatCount="indefinite"/></g>
+    <g><rect x="286" y="278" width="170" height="34" rx="17" fill="#fff" opacity=".12"/><text x="308" y="300">⚡ Lazy-loaded</text>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="4.6s" repeatCount="indefinite"/></g>
+    <g><rect x="472" y="278" width="170" height="34" rx="17" fill="#fff" opacity=".12"/><text x="494" y="300">🆓 Free · no login</text>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="5.2s" repeatCount="indefinite"/></g>
+  </g>
+</svg>
