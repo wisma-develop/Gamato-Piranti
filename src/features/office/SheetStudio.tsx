@@ -25,6 +25,7 @@ import { sheetToXlsxBlob } from "./sheet/exportXlsx";
 import { sheetToPdfBlob } from "./sheet/exportPdf";
 import { SheetToolbar } from "./sheet/SheetToolbar";
 import { copyText, readClipboardText } from "@/lib/permissions";
+import { msgStarts, tr } from "@/i18n";
 
 const ROW_HEADER_WIDTH = 44;
 const DEFAULT_COL_WIDTH = 96;
@@ -64,7 +65,7 @@ const isValidSheets = (v: unknown): v is SheetData[] =>
 export const SheetStudio: React.FC = () => {
   const draft = useDraft<SheetData[]>(DRAFT_KEY);
   const restored = isValidSheets(draft?.data);
-  const history = useHistoryState<SheetData[]>(() => (isValidSheets(draft?.data) ? draft.data : [createEmptySheet("Sheet1")]));
+  const history = useHistoryState<SheetData[]>(() => (isValidSheets(draft?.data) ? draft.data : [createEmptySheet(tr("Sheet1"))]));
   const sheets = history.state;
   const autosave = useAutosave({ key: DRAFT_KEY, value: sheets, restored });
   const [activeIdx, setActiveIdx] = useState(0);
@@ -192,7 +193,7 @@ export const SheetStudio: React.FC = () => {
       }
       return { ...sheet, rowCount: sheet.rowCount + 1, cells: nextCells };
     });
-    setInfo("Baris baru ditambahkan. Referensi rumus lintas-baris tidak otomatis disesuaikan.");
+    setInfo(tr("Baris baru ditambahkan. Referensi rumus lintas-baris tidak otomatis disesuaikan."));
   }, [selection, mutateActiveSheet]);
 
   const insertCol = useCallback(() => {
@@ -207,7 +208,7 @@ export const SheetStudio: React.FC = () => {
       }
       return { ...sheet, colCount: sheet.colCount + 1, cells: nextCells };
     });
-    setInfo("Kolom baru ditambahkan. Referensi rumus lintas-kolom tidak otomatis disesuaikan.");
+    setInfo(tr("Kolom baru ditambahkan. Referensi rumus lintas-kolom tidak otomatis disesuaikan."));
   }, [selection, mutateActiveSheet]);
 
   const deleteRow = useCallback(() => {
@@ -246,7 +247,7 @@ export const SheetStudio: React.FC = () => {
 
   // ─── Sheet tabs ──────────────────────────────────────────────────────
   const addSheet = useCallback(() => {
-    history.set((prev) => [...prev, createEmptySheet(`Sheet${prev.length + 1}`)]);
+    history.set((prev) => [...prev, createEmptySheet(tr("Sheet{0}", prev.length + 1))]);
     setActiveIdx(sheets.length);
     setSelection({ anchor: { row: 0, col: 0 }, focus: { row: 0, col: 0 } });
   }, [history, sheets.length]);
@@ -262,7 +263,7 @@ export const SheetStudio: React.FC = () => {
 
   const renameSheet = useCallback(
     (idx: number, name: string) => {
-      const clean = name.trim() || `Sheet${idx + 1}`;
+      const clean = name.trim() || tr("Sheet{0}", idx + 1);
       history.set((prev) => prev.map((s, i) => (i === idx ? { ...s, name: clean } : s)));
     },
     [history]
@@ -281,11 +282,11 @@ export const SheetStudio: React.FC = () => {
           rows = parseCsv(text);
         }
       } catch (err: unknown) {
-        setInfo(`Gagal membaca file: ${err instanceof Error ? err.message : "format tidak dikenali"}.`);
+        setInfo(tr("Gagal membaca file: {0}.", err instanceof Error ? err.message : tr("format tidak dikenali")));
         return;
       }
       if (!rows.length) {
-        setInfo("File kosong atau tidak terbaca.");
+        setInfo(tr("File kosong atau tidak terbaca."));
         return;
       }
       const rowCount = Math.max(rows.length, 20);
@@ -297,7 +298,7 @@ export const SheetStudio: React.FC = () => {
         });
       });
       history.set((prev) => prev.map((s, i) => (i === activeIdx ? { ...s, rowCount, colCount, cells } : s)));
-      setInfo(`File berhasil diimpor: ${rows.length} baris.`);
+      setInfo(tr("File berhasil diimpor: {0} baris.", rows.length));
     },
     [activeIdx, history]
   );
@@ -306,7 +307,7 @@ export const SheetStudio: React.FC = () => {
   const exportCsv = useCallback(() => {
     const csv = sheetToCsv(activeSheet);
     downloadBlob(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }), `${sanitizeFileName(activeSheet.name || "sheet")}.csv`);
-    showToast("CSV berhasil diunduh.", "success");
+    showToast(tr("CSV berhasil diunduh."), "success");
   }, [activeSheet, showToast]);
 
   const exportXlsx = useCallback(async () => {
@@ -314,9 +315,9 @@ export const SheetStudio: React.FC = () => {
     try {
       const blob = await sheetToXlsxBlob(activeSheet);
       downloadBlob(blob, `${sanitizeFileName(activeSheet.name || "sheet")}.xlsx`);
-      showToast("Excel (.xlsx) berhasil diunduh.", "success");
+      showToast(tr("Excel (.xlsx) berhasil diunduh."), "success");
     } catch {
-      showToast("Gagal membuat file Excel.", "error");
+      showToast(tr("Gagal membuat file Excel."), "error");
     } finally {
       setIsExporting(false);
     }
@@ -327,9 +328,9 @@ export const SheetStudio: React.FC = () => {
     try {
       const blob = await sheetToPdfBlob(activeSheet);
       downloadBlob(blob, `${sanitizeFileName(activeSheet.name || "sheet")}.pdf`);
-      showToast("PDF berhasil diunduh.", "success");
+      showToast(tr("PDF berhasil diunduh."), "success");
     } catch {
-      showToast("Gagal membuat PDF.", "error");
+      showToast(tr("Gagal membuat PDF."), "error");
     } finally {
       setIsExporting(false);
     }
@@ -352,7 +353,7 @@ export const SheetStudio: React.FC = () => {
   const pasteAtSelection = useCallback(async () => {
     const { text, failure } = await readClipboardText();
     if (text === null) {
-      setInfo(failure ? `${failure.title}. ${failure.message}` : "Tidak bisa mengakses clipboard. Tempel manual dengan Ctrl+V.");
+      setInfo(failure ? `${failure.title}. ${failure.message}` : tr("Tidak bisa mengakses clipboard. Tempel manual dengan Ctrl+V."));
       return;
     }
     if (!text) return;
@@ -553,12 +554,12 @@ export const SheetStudio: React.FC = () => {
             }
             if (editingCell) commitEdit(activeAddr, editValue);
           }}
-          placeholder="Ketik nilai atau rumus, mis. =SUM(A1:A5)"
+          placeholder={tr("Ketik nilai atau rumus, mis. =SUM(A1:A5)")}
           className="flex-1 bg-transparent text-sm text-slate-800 dark:text-slate-100 focus:outline-none font-mono"
         />
       </div>
 
-      {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Tidak") ? "error" : "info"} />}
+      {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Tidak") ? "error" : "info"} />}
 
       {/* Grid */}
       <div
@@ -711,7 +712,7 @@ export const SheetStudio: React.FC = () => {
                 setRenamingSheet(i);
               }}
               className="opacity-0 group-hover:opacity-100 transition-opacity"
-              aria-label={`Ganti nama ${s.name}`}
+              aria-label={tr("Ganti nama {0}", s.name)}
             >
               <Pencil className="w-3 h-3" />
             </button>
@@ -736,11 +737,11 @@ export const SheetStudio: React.FC = () => {
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
-          Sheet
+          {tr("Sheet")}
         </button>
       </div>
 
-      {isExporting && <p className="text-xs text-slate-400 dark:text-slate-500">Menyiapkan file untuk diunduh…</p>}
+      {isExporting && <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Menyiapkan file untuk diunduh…")}</p>}
     </div>
   );
 };

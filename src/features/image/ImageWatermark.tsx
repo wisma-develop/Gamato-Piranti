@@ -15,6 +15,7 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { msgStarts, tr } from "@/i18n";
 
 type Position = "top-left" | "top-center" | "top-right" | "middle-left" | "center" | "middle-right" | "bottom-left" | "bottom-center" | "bottom-right" | "tile";
 
@@ -31,7 +32,7 @@ const POSITIONS: { id: Position; label: string }[] = [
   { id: "tile", label: "▦" },
 ];
 
-const FONT_FAMILIES = ["Alan Sans, sans-serif", "Arial, sans-serif", "Georgia, serif", "'Times New Roman', serif", "'Courier New', monospace"];
+const FONT_FAMILIES = [tr("Alan Sans, sans-serif"), tr("Arial, sans-serif"), tr("Georgia, serif"), "'Times New Roman', serif", "'Courier New', monospace"];
 
 function anchorCenter(pos: Position, cw: number, ch: number, boxW: number, boxH: number): [number, number] {
   const mx = 0.04 * cw;
@@ -259,9 +260,9 @@ export const ImageWatermark: React.FC = () => {
       const blob = await canvasToBlob(canvasRef.current, mime, mime === "image/jpeg" ? 0.92 : undefined);
       const base = (file?.name || "gambar").replace(/\.[^.]+$/, "");
       downloadBlob(blob, `${base}-watermark.${outputFormat === "png" ? "png" : "jpg"}`);
-      setInfo("Watermark berhasil ditambahkan.");
+      setInfo(tr("Watermark berhasil ditambahkan."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses gambar."));
+      setInfo("" + (err?.message || tr("Gagal memproses gambar.")));
     } finally {
       setIsWorking(false);
     }
@@ -269,15 +270,15 @@ export const ImageWatermark: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
-      <GamatoDesktopRecommended toolName="Watermark Gambar" className="lg:col-span-full" />
+      <GamatoDesktopRecommended toolName={tr("Watermark Gambar")} className="lg:col-span-full" />
       <div className="space-y-5">
         {!baseImg ? (
           <Dropzone
             onFiles={addFiles}
             accept="image/*"
             multiple={false}
-            label="Drop gambar di sini"
-            sublabel="JPG, PNG, WEBP"
+            label={tr("Drop gambar di sini")}
+            sublabel={tr("JPG, PNG, WEBP")}
             icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -295,7 +296,7 @@ export const ImageWatermark: React.FC = () => {
                 }}
                 className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
               >
-                Ganti File
+                {tr("Ganti File")}
               </button>
             </div>
             <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-950">
@@ -306,14 +307,14 @@ export const ImageWatermark: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between -mt-1 mb-1">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pengaturan Watermark</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pengaturan Watermark")}</p>
             <UndoRedoBar canUndo={wmHistory.canUndo} canRedo={wmHistory.canRedo} onUndo={wmHistory.undo} onRedo={wmHistory.redo} hideLabel />
           </div>
           <div className="grid grid-cols-3 gap-2" data-testid="wm-modes">
             {([
-              ["icon", "Ikon Gamato", <Layers key="g" className="w-4 h-4" />],
-              ["text", "Teks", <Type key="t" className="w-4 h-4" />],
-              ["logo", "Logo Sendiri", <ImageIcon key="i" className="w-4 h-4" />],
+              ["icon", tr("Ikon Gamato"), <Layers key="g" className="w-4 h-4" />],
+              ["text", tr("Teks"), <Type key="t" className="w-4 h-4" />],
+              ["logo", tr("Logo Sendiri"), <ImageIcon key="i" className="w-4 h-4" />],
             ] as const).map(([id, label, icon]) => (
               <button
                 key={id}
@@ -335,13 +336,13 @@ export const ImageWatermark: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
                 <img src="/gamato-piranti.png" alt="" className="w-10 h-10 object-contain" />
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">Memakai ikon asli Gamato Piranti — tajam di semua ukuran, tanpa perlu mengunggah apa pun.</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">{tr("Memakai ikon asli Gamato Piranti — tajam di semua ukuran, tanpa perlu mengunggah apa pun.")}</p>
               </div>
-              <GamatoCheckbox checked={iconLabel} onChange={setIconLabel} label={<span className="text-sm text-slate-700 dark:text-slate-300">Tampilkan teks di samping ikon</span>} testId="wm-icon-label" />
+              <GamatoCheckbox checked={iconLabel} onChange={setIconLabel} label={<span className="text-sm text-slate-700 dark:text-slate-300">{tr("Tampilkan teks di samping ikon")}</span>} testId="wm-icon-label" />
               {iconLabel && (
                 <>
-                  <Input label="Teks di samping ikon" value={text} onChange={(e) => setText(e.target.value)} placeholder={GAMATO_NAME} data-testid="wm-icon-text" />
-                  <Select label="Font" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
+                  <Input label={tr("Teks di samping ikon")} value={text} onChange={(e) => setText(e.target.value)} placeholder={GAMATO_NAME} data-testid="wm-icon-text" />
+                  <Select label={tr("Font")} value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
                     {FONT_FAMILIES.map((f) => (
                       <option key={f} value={f}>
                         {f.split(",")[0].replace(/'/g, "")}
@@ -349,7 +350,7 @@ export const ImageWatermark: React.FC = () => {
                     ))}
                   </Select>
                   <div className="flex items-center gap-3">
-                    <Label>Warna teks</Label>
+                    <Label>{tr("Warna teks")}</Label>
                     <GamatoColorPicker value={color} onChange={setColor} />
                   </div>
                 </>
@@ -358,8 +359,8 @@ export const ImageWatermark: React.FC = () => {
           )}
           {mode === "text" && (
             <>
-              <Textarea label="Teks Watermark" rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="Contoh: © Namamu 2026" />
-              <Select label="Font" value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
+              <Textarea label={tr("Teks Watermark")} rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder={tr("Contoh: © Namamu 2026")} />
+              <Select label={tr("Font")} value={fontFamily} onChange={(e) => setFontFamily(e.target.value)}>
                 {FONT_FAMILIES.map((f) => (
                   <option key={f} value={f}>
                     {f.split(",")[0].replace(/'/g, "")}
@@ -367,42 +368,42 @@ export const ImageWatermark: React.FC = () => {
                 ))}
               </Select>
               <div className="flex items-center gap-3">
-                <Label>Warna</Label>
+                <Label>{tr("Warna")}</Label>
                 <GamatoColorPicker value={color} onChange={setColor} />
               </div>
             </>
           )}
           {mode === "logo" && (
             <div>
-              <Label>Upload Logo (PNG transparan disarankan)</Label>
+              <Label>{tr("Upload Logo (PNG transparan disarankan)")}</Label>
               <input type="file" accept="image/*" onChange={(e) => addLogo(e.target.files)} className="mt-1.5 text-sm text-slate-600 dark:text-slate-300" />
             </div>
           )}
 
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Ukuran</Label>
+              <Label>{tr("Ukuran")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{sizePercent}%</span>
             </div>
-            <GamatoSlider min={2} max={30} value={sizePercent} onChange={setSizePercent} aria-label="Ukuran watermark" />
+            <GamatoSlider min={2} max={30} value={sizePercent} onChange={setSizePercent} aria-label={tr("Ukuran watermark")} />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Opacity</Label>
+              <Label>{tr("Opacity")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{opacity}%</span>
             </div>
             <GamatoSlider min={5} max={100} value={opacity} onChange={setOpacity} aria-label="Opasitas" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Rotasi</Label>
+              <Label>{tr("Rotasi")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{rotation}°</span>
             </div>
-            <GamatoSlider min={-45} max={45} value={rotation} onChange={setRotation} aria-label="Rotasi" />
+            <GamatoSlider min={-45} max={45} value={rotation} onChange={setRotation} aria-label={tr("Rotasi")} />
           </div>
 
           <div>
-            <Label>Posisi</Label>
+            <Label>{tr("Posisi")}</Label>
             <div className="grid grid-cols-5 gap-1.5 mt-1.5">
               {POSITIONS.map((p) => (
                 <button
@@ -424,31 +425,31 @@ export const ImageWatermark: React.FC = () => {
           {position === "tile" && (
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <Label>Jarak antar pola</Label>
+                <Label>{tr("Jarak antar pola")}</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{spacing}%</span>
               </div>
-              <GamatoSlider min={2} max={40} value={spacing} onChange={setSpacing} aria-label="Jarak pola" />
+              <GamatoSlider min={2} max={40} value={spacing} onChange={setSpacing} aria-label={tr("Jarak pola")} />
             </div>
           )}
 
-          <Select label="Format Output" value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)}>
-            <option value="png">PNG</option>
-            <option value="jpeg">JPEG</option>
+          <Select label={tr("Format Output")} value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)}>
+            <option value="png">{tr("PNG")}</option>
+            <option value="jpeg">{tr("JPEG")}</option>
           </Select>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleDownload} disabled={isWorking || !baseImg} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Unduh Gambar
+              {tr("Unduh Gambar")}
             </>
           )}
         </Btn>
@@ -456,11 +457,11 @@ export const ImageWatermark: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Layers className="w-5 h-5" />}
-        label="Watermark Gambar"
-        desc="Ikon Gamato, teks, atau logo"
+        label={tr("Watermark Gambar")}
+        desc={tr("Ikon Gamato, teks, atau logo")}
         points={[
-          "Watermark teks atau logo, bisa sekali tempel atau diulang (tile) ke seluruh gambar.",
-          "Atur ukuran, warna, opacity, rotasi, dan posisi secara real-time di preview.",
+          tr("Watermark teks atau logo, bisa sekali tempel atau diulang (tile) ke seluruh gambar."),
+          tr("Atur ukuran, warna, opacity, rotasi, dan posisi secara real-time di preview."),
         ]}
       />
     </div>

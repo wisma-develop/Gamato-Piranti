@@ -23,6 +23,7 @@ import {
   type PhotoAdjustmentValues,
 } from "@/lib/photoEditorEngine";
 import { PHOTO_PRESETS, PHOTO_PRESET_CATEGORIES, getPresetById, type PhotoPreset } from "@/lib/photoPresets";
+import { msgStarts, tr } from "@/i18n";
 
 type PhotoAdjustments = PhotoAdjustmentValues & { rotateDeg: number; flipH: boolean; flipV: boolean; outputFormat: "png" | "jpeg" };
 
@@ -37,11 +38,11 @@ const THUMB_WIDTH = 240;
 type TabId = "preset" | "dasar" | "warna" | "efek" | "putar";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "preset", label: "Preset Look", icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { id: "dasar", label: "Penyesuaian Dasar", icon: <SlidersHorizontal className="w-3.5 h-3.5" /> },
-  { id: "warna", label: "Warna & Mood", icon: <Palette className="w-3.5 h-3.5" /> },
-  { id: "efek", label: "Efek Gaya", icon: <Film className="w-3.5 h-3.5" /> },
-  { id: "putar", label: "Putar & Ekspor", icon: <RotateCw className="w-3.5 h-3.5" /> },
+  { id: "preset", label: tr("Preset Look"), icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { id: "dasar", label: tr("Penyesuaian Dasar"), icon: <SlidersHorizontal className="w-3.5 h-3.5" /> },
+  { id: "warna", label: tr("Warna & Mood"), icon: <Palette className="w-3.5 h-3.5" /> },
+  { id: "efek", label: tr("Efek Gaya"), icon: <Film className="w-3.5 h-3.5" /> },
+  { id: "putar", label: tr("Putar & Ekspor"), icon: <RotateCw className="w-3.5 h-3.5" /> },
 ];
 
 /**
@@ -206,29 +207,29 @@ export const PhotoEditor: React.FC = () => {
       const blob = await canvasToBlob(offscreen, mime, mime === "image/jpeg" ? 0.92 : undefined);
       const base = (file?.name || "gambar").replace(/\.[^.]+$/, "");
       downloadBlob(blob, `${base}-edited.${outputFormat === "png" ? "png" : "jpg"}`);
-      setInfo("Gambar hasil edit berhasil diunduh (resolusi penuh).");
+      setInfo(tr("Gambar hasil edit berhasil diunduh (resolusi penuh)."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses gambar."));
+      setInfo("" + (err?.message || tr("Gagal memproses gambar.")));
     } finally {
       setIsWorking(false);
     }
   };
 
   const basicSliders: { label: string; value: number; setValue: (v: number) => void; min: number; max: number; unit: string }[] = [
-    { label: "Kecerahan (Brightness)", value: adjustments.brightness, setValue: (v) => setGradeField("brightness", v), min: 0, max: 200, unit: "%" },
-    { label: "Kontras (Contrast)", value: adjustments.contrast, setValue: (v) => setGradeField("contrast", v), min: 0, max: 200, unit: "%" },
-    { label: "Saturasi (Saturation)", value: adjustments.saturation, setValue: (v) => setGradeField("saturation", v), min: 0, max: 200, unit: "%" },
-    { label: "Hue Rotate", value: adjustments.hue, setValue: (v) => setGradeField("hue", v), min: 0, max: 360, unit: "°" },
-    { label: "Blur", value: adjustments.blur, setValue: (v) => setGradeField("blur", v), min: 0, max: 20, unit: "px" },
+    { label: tr("Kecerahan (Brightness)"), value: adjustments.brightness, setValue: (v) => setGradeField("brightness", v), min: 0, max: 200, unit: "%" },
+    { label: tr("Kontras (Contrast)"), value: adjustments.contrast, setValue: (v) => setGradeField("contrast", v), min: 0, max: 200, unit: "%" },
+    { label: tr("Saturasi (Saturation)"), value: adjustments.saturation, setValue: (v) => setGradeField("saturation", v), min: 0, max: 200, unit: "%" },
+    { label: tr("Hue Rotate"), value: adjustments.hue, setValue: (v) => setGradeField("hue", v), min: 0, max: 360, unit: "°" },
+    { label: tr("Blur"), value: adjustments.blur, setValue: (v) => setGradeField("blur", v), min: 0, max: 20, unit: "px" },
   ];
 
   const styleSliders: { label: string; value: number; setValue: (v: number) => void; min: number; max: number; unit: string }[] = [
-    { label: "Vignette", value: adjustments.vignette, setValue: (v) => setGradeField("vignette", v), min: 0, max: 100, unit: "%" },
-    { label: "Butiran Film (Grain)", value: adjustments.grain, setValue: (v) => setGradeField("grain", v), min: 0, max: 100, unit: "%" },
-    { label: "Fade / Matte", value: adjustments.fade, setValue: (v) => setGradeField("fade", v), min: 0, max: 100, unit: "%" },
-    { label: "Hitam-Putih (Grayscale)", value: adjustments.grayscale, setValue: (v) => setGradeField("grayscale", v), min: 0, max: 100, unit: "%" },
-    { label: "Sephia", value: adjustments.sepia, setValue: (v) => setGradeField("sepia", v), min: 0, max: 100, unit: "%" },
-    { label: "Invert Warna", value: adjustments.invert, setValue: (v) => setGradeField("invert", v), min: 0, max: 100, unit: "%" },
+    { label: tr("Vignette"), value: adjustments.vignette, setValue: (v) => setGradeField("vignette", v), min: 0, max: 100, unit: "%" },
+    { label: tr("Butiran Film (Grain)"), value: adjustments.grain, setValue: (v) => setGradeField("grain", v), min: 0, max: 100, unit: "%" },
+    { label: tr("Fade / Matte"), value: adjustments.fade, setValue: (v) => setGradeField("fade", v), min: 0, max: 100, unit: "%" },
+    { label: tr("Hitam-Putih (Grayscale)"), value: adjustments.grayscale, setValue: (v) => setGradeField("grayscale", v), min: 0, max: 100, unit: "%" },
+    { label: tr("Sephia"), value: adjustments.sepia, setValue: (v) => setGradeField("sepia", v), min: 0, max: 100, unit: "%" },
+    { label: tr("Invert Warna"), value: adjustments.invert, setValue: (v) => setGradeField("invert", v), min: 0, max: 100, unit: "%" },
   ];
 
   return (
@@ -241,8 +242,8 @@ export const PhotoEditor: React.FC = () => {
             onFiles={addFiles}
             accept="image/*"
             multiple={false}
-            label="Drop gambar di sini"
-            sublabel="JPG, PNG, WEBP"
+            label={tr("Drop gambar di sini")}
+            sublabel={tr("JPG, PNG, WEBP")}
             icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -252,7 +253,7 @@ export const PhotoEditor: React.FC = () => {
         {img && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Foto</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Foto")}</span>
               <div className="flex items-center gap-2">
                 <UndoRedoBar
                   canUndo={adjHistory.canUndo}
@@ -268,7 +269,7 @@ export const PhotoEditor: React.FC = () => {
                   hideLabel
                 />
                 <button type="button" onClick={resetAdjustments} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 shrink-0">
-                  <RefreshCw className="w-3.5 h-3.5" /> Reset
+                  <RefreshCw className="w-3.5 h-3.5" /> {tr("Reset")}
                 </button>
               </div>
             </div>
@@ -276,7 +277,7 @@ export const PhotoEditor: React.FC = () => {
             <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
             {tab === "preset" && (
-              <PanelCard title="Preset Look" subtitle="Satu klik, langsung dapat mood foto yang pas — bisa disetel ulang di bawah">
+              <PanelCard title={tr("Preset Look")} subtitle={tr("Satu klik, langsung dapat mood foto yang pas — bisa disetel ulang di bawah")}>
                 <div className="flex flex-wrap gap-1.5">
                   {["Semua", ...PHOTO_PRESET_CATEGORIES].map((cat) => (
                     <button
@@ -290,7 +291,7 @@ export const PhotoEditor: React.FC = () => {
                           : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
                       )}
                     >
-                      {cat}
+                      {tr(cat)}
                     </button>
                   ))}
                 </div>
@@ -350,12 +351,12 @@ export const PhotoEditor: React.FC = () => {
                 {activePresetId && (
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                     <div className="flex justify-between items-center">
-                      <Label>Intensitas Preset</Label>
+                      <Label>{tr("Intensitas Preset")}</Label>
                       <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{presetIntensity}%</span>
                     </div>
-                    <GamatoSlider min={0} max={150} value={presetIntensity} onChange={changeIntensity} aria-label="Intensitas Preset" />
+                    <GamatoSlider min={0} max={150} value={presetIntensity} onChange={changeIntensity} aria-label={tr("Intensitas Preset")} />
                     <button type="button" onClick={clearPreset} className="text-xs font-semibold text-red-500 hover:text-red-700">
-                      Hapus Preset (kembali netral)
+                      {tr("Hapus Preset (kembali netral)")}
                     </button>
                   </div>
                 )}
@@ -364,7 +365,7 @@ export const PhotoEditor: React.FC = () => {
             )}
 
             {tab === "dasar" && (
-              <PanelCard title="Penyesuaian Dasar" subtitle="Kontrol inti seperti di aplikasi edit foto profesional">
+              <PanelCard title={tr("Penyesuaian Dasar")} subtitle={tr("Kontrol inti seperti di aplikasi edit foto profesional")}>
                 <div className="space-y-4">
                   {basicSliders.map((s) => (
                     <SliderRow key={s.label} {...s} />
@@ -375,17 +376,17 @@ export const PhotoEditor: React.FC = () => {
             )}
 
             {tab === "warna" && (
-              <PanelCard title="Warna & Mood" subtitle="Suhu warna, tint, dan split-tone dua warna ala color grading film">
+              <PanelCard title={tr("Warna & Mood")} subtitle={tr("Suhu warna, tint, dan split-tone dua warna ala color grading film")}>
                 <div className="space-y-4">
-                  <SliderRow label="Suhu Warna (Temperature)" value={adjustments.temperature} setValue={(v) => setGradeField("temperature", v)} min={-100} max={100} unit="" />
-                  <SliderRow label="Tint (Hijau ↔ Magenta)" value={adjustments.tint} setValue={(v) => setGradeField("tint", v)} min={-100} max={100} unit="" />
+                  <SliderRow label={tr("Suhu Warna (Temperature)")} value={adjustments.temperature} setValue={(v) => setGradeField("temperature", v)} min={-100} max={100} unit="" />
+                  <SliderRow label={tr("Tint (Hijau ↔ Magenta)")} value={adjustments.tint} setValue={(v) => setGradeField("tint", v)} min={-100} max={100} unit="" />
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                    <SliderRow label="Kekuatan Split-Tone" value={adjustments.splitTone} setValue={(v) => setGradeField("splitTone", v)} min={0} max={100} unit="%" />
+                    <SliderRow label={tr("Kekuatan Split-Tone")} value={adjustments.splitTone} setValue={(v) => setGradeField("splitTone", v)} min={0} max={100} unit="%" />
                     <div className="grid grid-cols-2 gap-3">
-                      <GamatoColorPicker label="Warna Bayangan" value={adjustments.shadowTint} onChange={(hex) => setGradeField("shadowTint", hex)} />
-                      <GamatoColorPicker label="Warna Highlight" value={adjustments.highlightTint} onChange={(hex) => setGradeField("highlightTint", hex)} />
+                      <GamatoColorPicker label={tr("Warna Bayangan")} value={adjustments.shadowTint} onChange={(hex) => setGradeField("shadowTint", hex)} />
+                      <GamatoColorPicker label={tr("Warna Highlight")} value={adjustments.highlightTint} onChange={(hex) => setGradeField("highlightTint", hex)} />
                     </div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">Naikkan "Kekuatan Split-Tone" dulu supaya kedua warna ini terlihat efeknya.</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Naikkan \"Kekuatan Split-Tone\" dulu supaya kedua warna ini terlihat efeknya.")}</p>
                   </div>
                 </div>
                 <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -393,7 +394,7 @@ export const PhotoEditor: React.FC = () => {
             )}
 
             {tab === "efek" && (
-              <PanelCard title="Efek Gaya" subtitle="Vignette, butiran film, fade, dan filter klasik">
+              <PanelCard title={tr("Efek Gaya")} subtitle={tr("Vignette, butiran film, fade, dan filter klasik")}>
                 <div className="space-y-4">
                   {styleSliders.map((s) => (
                     <SliderRow key={s.label} {...s} />
@@ -404,22 +405,22 @@ export const PhotoEditor: React.FC = () => {
             )}
 
             {tab === "putar" && (
-              <PanelCard title="Putar, Balik & Ekspor" subtitle="Orientasi gambar dan format file hasil unduhan">
+              <PanelCard title={tr("Putar, Balik & Ekspor")} subtitle={tr("Orientasi gambar dan format file hasil unduhan")}>
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
                     <Btn onClick={() => setRotateDeg((d) => (d + 90) % 360)} variant="secondary" className="text-xs gap-1.5">
-                      <RotateCw className="w-3.5 h-3.5" /> Putar 90°
+                      <RotateCw className="w-3.5 h-3.5" /> {tr("Putar 90°")}
                     </Btn>
                     <Btn onClick={() => setFlipH((v) => !v)} variant={flipH ? "primary" : "secondary"} className="text-xs">
-                      Balik Horizontal
+                      {tr("Balik Horizontal")}
                     </Btn>
                     <Btn onClick={() => setFlipV((v) => !v)} variant={flipV ? "primary" : "secondary"} className="text-xs">
-                      Balik Vertikal
+                      {tr("Balik Vertikal")}
                     </Btn>
                   </div>
-                  <Select label="Format Output" value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)}>
-                    <option value="png">PNG</option>
-                    <option value="jpeg">JPEG</option>
+                  <Select label={tr("Format Output")} value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)}>
+                    <option value="png">{tr("PNG")}</option>
+                    <option value="jpeg">{tr("JPEG")}</option>
                   </Select>
                 </div>
                 <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -446,7 +447,7 @@ export const PhotoEditor: React.FC = () => {
                 }}
                 className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
               >
-                Ganti File
+                {tr("Ganti File")}
               </button>
             </div>
             <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-950 relative">
@@ -458,43 +459,43 @@ export const PhotoEditor: React.FC = () => {
                 onPointerUp={() => setShowOriginal(false)}
                 onPointerLeave={() => setShowOriginal(false)}
                 className="absolute bottom-7 right-7 flex items-center gap-1.5 bg-slate-900/80 text-white text-xs font-semibold px-3 py-2 rounded-full backdrop-blur hover:bg-slate-900 select-none"
-                title="Tahan untuk lihat foto asli"
+                title={tr("Tahan untuk lihat foto asli")}
               >
-                <Eye className="w-3.5 h-3.5" /> Tahan: Lihat Asli
+                <Eye className="w-3.5 h-3.5" /> {tr("Tahan: Lihat Asli")}
               </button>
             </div>
           </div>
         ) : (
           <div className="hidden lg:flex items-center justify-center h-64 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-sm text-slate-400 dark:text-slate-500 text-center px-6">
-            Pratinjau akan tampil di sini setelah kamu mengunggah foto
+            {tr("Pratinjau akan tampil di sini setelah kamu mengunggah foto")}
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleDownload} disabled={isWorking || !img} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Unduh Hasil Edit
+              {tr("Unduh Hasil Edit")}
             </>
           )}
         </Btn>
 
         <ToolInfoPanel
           icon={<SlidersHorizontal className="w-5 h-5" />}
-          label="Photo Editor"
-          desc="30+ preset siap pakai + color grading manual"
+          label={tr("Photo Editor")}
+          desc={tr("30+ preset siap pakai + color grading manual")}
           points={[
-            "Preset Look mengatur warna, suhu, split-tone, vignette, grain & fade sekaligus — bukan cuma satu filter, jadi hasilnya benar-benar terasa beda tiap gaya.",
-            "Setelah pilih preset, tarik 'Intensitas Preset' untuk melemahkan/menguatkan efeknya, atau sesuaikan slider di tab lain — perubahan manual otomatis melepas ikatan preset.",
-            "Tahan tombol mata di pratinjau untuk membandingkan cepat dengan foto asli.",
-            "Pratinjau dirender di resolusi ringkas biar gesit; unduhan hasil akhir tetap resolusi penuh.",
+            tr("Preset Look mengatur warna, suhu, split-tone, vignette, grain & fade sekaligus — bukan cuma satu filter, jadi hasilnya benar-benar terasa beda tiap gaya."),
+            tr("Setelah pilih preset, tarik 'Intensitas Preset' untuk melemahkan/menguatkan efeknya, atau sesuaikan slider di tab lain — perubahan manual otomatis melepas ikatan preset."),
+            tr("Tahan tombol mata di pratinjau untuk membandingkan cepat dengan foto asli."),
+            tr("Pratinjau dirender di resolusi ringkas biar gesit; unduhan hasil akhir tetap resolusi penuh."),
           ]}
         />
       </div>

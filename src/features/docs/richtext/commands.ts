@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Rich text editor commands built directly on top of the browser's native
 // contentEditable + Selection/Range APIs (document.execCommand). No external
 // rich-text library is used, so this works fully offline with zero extra
@@ -292,13 +293,13 @@ function shapeSvgMarkup(kind: ShapeKind, w: number, h: number, stroke: string, f
   const strokeW = 4;
   switch (kind) {
     case "rectangle":
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="${strokeW}" y="${strokeW}" width="${w - strokeW * 2}" height="${h - strokeW * 2}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/></svg>`;
+      return tr("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{0}\" height=\"{1}\" viewBox=\"0 0 {2} {3}\"><rect x=\"{4}\" y=\"{5}\" width=\"{6}\" height=\"{7}\" rx=\"10\" fill=\"{8}\" stroke=\"{9}\" stroke-width=\"{10}\"/></svg>", w, h, w, h, strokeW, strokeW, w - strokeW * 2, h - strokeW * 2, fill, stroke, strokeW);
     case "circle":
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2 - strokeW}" ry="${h / 2 - strokeW}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}"/></svg>`;
+      return tr("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{0}\" height=\"{1}\" viewBox=\"0 0 {2} {3}\"><ellipse cx=\"{4}\" cy=\"{5}\" rx=\"{6}\" ry=\"{7}\" fill=\"{8}\" stroke=\"{9}\" stroke-width=\"{10}\"/></svg>", w, h, w, h, w / 2, h / 2, w / 2 - strokeW, h / 2 - strokeW, fill, stroke, strokeW);
     case "line":
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><line x1="${strokeW}" y1="${h / 2}" x2="${w - strokeW}" y2="${h / 2}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linecap="round"/></svg>`;
+      return tr("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{0}\" height=\"{1}\" viewBox=\"0 0 {2} {3}\"><line x1=\"{4}\" y1=\"{5}\" x2=\"{6}\" y2=\"{7}\" stroke=\"{8}\" stroke-width=\"{9}\" stroke-linecap=\"round\"/></svg>", w, h, w, h, strokeW, h / 2, w - strokeW, h / 2, stroke, strokeW);
     case "arrow":
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs><marker id="gp-arrowhead" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${stroke}"/></marker></defs><line x1="${strokeW}" y1="${h / 2}" x2="${w - 16}" y2="${h / 2}" stroke="${stroke}" stroke-width="${strokeW}" stroke-linecap="round" marker-end="url(#gp-arrowhead)"/></svg>`;
+      return tr("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{0}\" height=\"{1}\" viewBox=\"0 0 {2} {3}\"><defs><marker id=\"gp-arrowhead\" markerWidth=\"10\" markerHeight=\"10\" refX=\"7\" refY=\"5\" orient=\"auto\"><path d=\"M0,0 L10,5 L0,10 z\" fill=\"{4}\"/></marker></defs><line x1=\"{5}\" y1=\"{6}\" x2=\"{7}\" y2=\"{8}\" stroke=\"{9}\" stroke-width=\"{10}\" stroke-linecap=\"round\" marker-end=\"url(#gp-arrowhead)\"/></svg>", w, h, w, h, stroke, strokeW, h / 2, w - 16, h / 2, stroke, strokeW);
   }
 }
 
@@ -307,7 +308,7 @@ async function rasterizeSvg(svgMarkup: string, w: number, h: number): Promise<st
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image();
     el.onload = () => resolve(el);
-    el.onerror = () => reject(new Error("Gagal membuat bentuk."));
+    el.onerror = () => reject(new Error(tr("Gagal membuat bentuk.")));
     el.src = svgDataUrl;
   });
   const dpr = 2; // render at 2x so shape edges stay crisp when resized later
@@ -315,7 +316,7 @@ async function rasterizeSvg(svgMarkup: string, w: number, h: number): Promise<st
   canvas.width = w * dpr;
   canvas.height = h * dpr;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context tidak tersedia.");
+  if (!ctx) throw new Error(tr("Canvas 2D context tidak tersedia."));
   ctx.scale(dpr, dpr);
   ctx.drawImage(img, 0, 0, w, h);
   return canvas.toDataURL("image/png");

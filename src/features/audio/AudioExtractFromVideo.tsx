@@ -12,6 +12,7 @@ import { useVideoFile } from "@/hooks/useVideoFile";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, extractAudioFromVideo, getBestAudioFormat, type ExportFormat } from "@/lib/videoEngine";
+import { tr } from "@/i18n";
 
 export function AudioExtractFromVideo() {
   const { meta, error: loadError, isLoading, load, reset } = useVideoFile();
@@ -54,7 +55,7 @@ export function AudioExtractFromVideo() {
       if (outChoice.format === "mp3") {
         try {
           blob = await extractAudioToMp3(meta.file, { kbps: outChoice.kbps, start: trimStart, end: trimEnd, onProgress: setAudioProgress });
-          setAudioFormat({ mimeType: "audio/mpeg", ext: "mp3", label: "MP3" });
+          setAudioFormat({ mimeType: "audio/mpeg", ext: "mp3", label: tr("MP3") });
           setMp3Done(true);
         } catch {
           // Cadangan: browser tak bisa mendekode audio video ini → rekam real-time lalu simpan sebagai format asli.
@@ -69,7 +70,7 @@ export function AudioExtractFromVideo() {
       }
       setAudioResultUrl(URL.createObjectURL(blob));
     } catch (err: any) {
-      setAudioError(err?.message || "Gagal mengekstrak audio.");
+      setAudioError(err?.message || tr("Gagal mengekstrak audio."));
     } finally {
       setIsExtractingAudio(false);
     }
@@ -90,8 +91,8 @@ export function AudioExtractFromVideo() {
             onFiles={handleFiles}
             accept="video/*"
             multiple={false}
-            label={isLoading ? "Memuat video…" : "Drop video di sini"}
-            sublabel="MP4, WebM, MOV — diproses langsung di browser"
+            label={isLoading ? tr("Memuat video…") : tr("Drop video di sini")}
+            sublabel={tr("MP4, WebM, MOV — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -99,29 +100,29 @@ export function AudioExtractFromVideo() {
             <GamatoPlayer src={meta.url} label={meta.file.name} onTimeUpdate={setPlayhead} />
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Ekstrak Audio</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Ekstrak Audio")}</p>
               <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(s, e) => { setTrimStart(s); setTrimEnd(e); }} playhead={playhead} />
               {isExtractingAudio && (
                 <div className="space-y-1.5">
                   <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(audioProgress * 100)}%` }} />
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(audioProgress * 100)}%</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Memproses… {0}%", Math.round(audioProgress * 100))}</p>
                 </div>
               )}
               <AudioFormatPicker value={outChoice} onChange={setOutChoice} disabled={isExtractingAudio} nativeLabel={bestAudioFormat?.label} />
-              {outChoice.format === "mp3" && audioResultUrl && !mp3Done && <p className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser tidak bisa mendekode audio video ini untuk MP3, jadi hasil disimpan dalam format asli ({audioFormat?.label}).</p>}
+              {outChoice.format === "mp3" && audioResultUrl && !mp3Done && <p className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{tr("Browser tidak bisa mendekode audio video ini untuk MP3, jadi hasil disimpan dalam format asli (")}{audioFormat?.label}).</p>}
               <Btn onClick={runExtractAudio} disabled={isExtractingAudio || (outChoice.format === "asli" && !bestAudioFormat)} className="w-full gap-2">
                 {isExtractingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <AudioLines className="w-4 h-4" />}
-                {isExtractingAudio ? "Memproses…" : "Ekstrak Audio"}
+                {isExtractingAudio ? tr("Memproses…") : tr("Ekstrak Audio")}
               </Btn>
               {audioError && <p className="text-sm text-red-600 dark:text-red-400">{audioError}</p>}
               {audioResultUrl && (
                 <div className="space-y-2 pt-1">
-                  <GamatoAudioPlayer src={audioResultUrl} label="Hasil ekstraksi audio" />
+                  <GamatoAudioPlayer src={audioResultUrl} label={tr("Hasil ekstraksi audio")} />
                   <Btn onClick={downloadAudio} variant="secondary" className="w-full gap-2 text-sm">
                     <Download className="w-4 h-4" />
-                    Unduh Audio ({audioFormat?.label})
+                    {tr("Unduh Audio (")}{audioFormat?.label})
                   </Btn>
                 </div>
               )}
@@ -136,23 +137,21 @@ export function AudioExtractFromVideo() {
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{meta.file.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {meta.width}×{meta.height} · {formatTime(meta.duration)}
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr("{0}×{1} · {2}", meta.width, meta.height, formatTime(meta.duration))}</p>
             <button type="button" onClick={reset} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Video
+              {tr("Ganti Video")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<AudioLines className="w-5 h-5" />}
-          label="Ekstrak Audio dari Video"
-          desc="Ambil track suara dari file video"
+          label={tr("Ekstrak Audio dari Video")}
+          desc={tr("Ambil track suara dari file video")}
           points={[
-            "Audio diekstrak apa adanya dari track suara video — cocok untuk menyimpan rekaman suara atau musik latar.",
-            "Bisa dipangkas dulu (trim) sebelum diekstrak, tidak perlu seluruh durasi video.",
-            bestAudioFormat ? `Format audio terbaik di browser ini: ${bestAudioFormat.label}.` : "Browser ini tampaknya tidak mendukung ekstraksi audio.",
+            tr("Audio diekstrak apa adanya dari track suara video — cocok untuk menyimpan rekaman suara atau musik latar."),
+            tr("Bisa dipangkas dulu (trim) sebelum diekstrak, tidak perlu seluruh durasi video."),
+            bestAudioFormat ? tr("Format audio terbaik di browser ini: {0}.", bestAudioFormat.label) : tr("Browser ini tampaknya tidak mendukung ekstraksi audio."),
           ]}
         />
       </div>

@@ -10,11 +10,12 @@ import JSZip from "jszip";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { canvasToBlob } from "@/lib/canvas";
 import { preloadDeckImages, renderSlideToCanvas, SLIDE_HEIGHT, SLIDE_WIDTH, type Deck } from "./slideModel";
+import { tr } from "@/i18n";
 
 export async function deckToPdfBlob(deck: Deck): Promise<Blob> {
   const imageCache = await preloadDeckImages(deck);
   const pdfDoc = await PDFDocument.create();
-  pdfDoc.setTitle(deck.title || "Presentasi");
+  pdfDoc.setTitle(deck.title || tr("Presentasi"));
 
   for (const slide of deck.slides) {
     const canvas = await renderSlideToCanvas(slide, imageCache, 2);
@@ -36,7 +37,7 @@ export async function deckToImagesZipBlob(deck: Deck): Promise<Blob> {
   for (const slide of deck.slides) {
     const canvas = await renderSlideToCanvas(slide, imageCache, 2);
     const blob = await canvasToBlob(canvas, "image/png");
-    zip.file(`slide-${String(i).padStart(2, "0")}.png`, blob);
+    zip.file(tr("slide-{0}.png", String(i).padStart(2, "0")), blob);
     i++;
   }
   return zip.generateAsync({ type: "blob" });

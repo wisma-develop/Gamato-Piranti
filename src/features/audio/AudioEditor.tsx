@@ -27,21 +27,22 @@ import {
 } from "@/lib/audioEditEngine";
 import { decodeFileToPcm } from "@/lib/audioDecode";
 import { runOperation, DEFAULT_PARAMS, WHOLE_FILE_OPS, OP_LABELS, type OpKind, type OpParams } from "@/lib/audioEditOps";
+import { tr } from "@/i18n";
 
 /* ───────────────────────────── constants ───────────────────────────── */
 
 type TabId = "edit" | "volume" | "waktu" | "eq" | "efek" | "bersih" | "kanal" | "tambah" | "marker" | "ekspor";
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "edit", label: "Edit", icon: <Scissors className="w-4 h-4" /> },
-  { id: "volume", label: "Volume & Fade", icon: <Volume2 className="w-4 h-4" /> },
-  { id: "waktu", label: "Kecepatan & Pitch", icon: <Timer className="w-4 h-4" /> },
-  { id: "eq", label: "Equalizer", icon: <SlidersHorizontal className="w-4 h-4" /> },
-  { id: "efek", label: "Efek", icon: <Wand2 className="w-4 h-4" /> },
-  { id: "bersih", label: "Bersihkan", icon: <Eraser className="w-4 h-4" /> },
-  { id: "kanal", label: "Kanal", icon: <Headphones className="w-4 h-4" /> },
-  { id: "tambah", label: "Tambah & Rekam", icon: <Layers className="w-4 h-4" /> },
-  { id: "marker", label: "Marker", icon: <Flag className="w-4 h-4" /> },
-  { id: "ekspor", label: "Ekspor", icon: <Download className="w-4 h-4" /> },
+  { id: "edit", label: tr("Edit"), icon: <Scissors className="w-4 h-4" /> },
+  { id: "volume", label: tr("Volume & Fade"), icon: <Volume2 className="w-4 h-4" /> },
+  { id: "waktu", label: tr("Kecepatan & Pitch"), icon: <Timer className="w-4 h-4" /> },
+  { id: "eq", label: tr("Equalizer"), icon: <SlidersHorizontal className="w-4 h-4" /> },
+  { id: "efek", label: tr("Efek"), icon: <Wand2 className="w-4 h-4" /> },
+  { id: "bersih", label: tr("Bersihkan"), icon: <Eraser className="w-4 h-4" /> },
+  { id: "kanal", label: tr("Kanal"), icon: <Headphones className="w-4 h-4" /> },
+  { id: "tambah", label: tr("Tambah & Rekam"), icon: <Layers className="w-4 h-4" /> },
+  { id: "marker", label: tr("Marker"), icon: <Flag className="w-4 h-4" /> },
+  { id: "ekspor", label: tr("Ekspor"), icon: <Download className="w-4 h-4" /> },
 ];
 
 const WAVE_H = 260;
@@ -70,7 +71,7 @@ const Slider: React.FC<{ label: string; value: number; min: number; max: number;
 const card = "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4";
 
 /** One effect card: params + preview + apply. */
-const OpCard: React.FC<{ title: string; desc?: string; kind: OpKind; testId?: string; disabled: boolean; onApply: (k: OpKind) => void; onPreview: (k: OpKind) => void; children?: React.ReactNode; applyLabel?: string; noPreview?: boolean }> = ({ title, desc, kind, testId, disabled, onApply, onPreview, children, applyLabel = "Terapkan", noPreview }) => (
+const OpCard: React.FC<{ title: string; desc?: string; kind: OpKind; testId?: string; disabled: boolean; onApply: (k: OpKind) => void; onPreview: (k: OpKind) => void; children?: React.ReactNode; applyLabel?: string; noPreview?: boolean }> = ({ title, desc, kind, testId, disabled, onApply, onPreview, children, applyLabel = tr("Terapkan"), noPreview }) => (
   <div className={card} data-testid={testId ?? `op-${kind}`}>
     <div>
       <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{title}</h4>
@@ -78,7 +79,7 @@ const OpCard: React.FC<{ title: string; desc?: string; kind: OpKind; testId?: st
     </div>
     {children}
     <div className="flex gap-2">
-      {!noPreview && <Btn variant="secondary" className="flex-1 text-xs py-2" disabled={disabled} onClick={() => onPreview(kind)} data-testid={`preview-${kind}`}><Headphones className="w-3.5 h-3.5" /> Pratinjau</Btn>}
+      {!noPreview && <Btn variant="secondary" className="flex-1 text-xs py-2" disabled={disabled} onClick={() => onPreview(kind)} data-testid={`preview-${kind}`}><Headphones className="w-3.5 h-3.5" /> {tr("Pratinjau")}</Btn>}
       <Btn className="flex-1 text-xs py-2" disabled={disabled} onClick={() => onApply(kind)} data-testid={`apply-${kind}`}><Check className="w-3.5 h-3.5" /> {applyLabel}</Btn>
     </div>
   </div>
@@ -191,7 +192,7 @@ export const AudioEditor: React.FC = () => {
     setHist(nh);
     setSel(null);
     setStats(null);
-    toast(`Dibatalkan: ${h.list[h.idx].label}`, "info");
+    toast(tr("Dibatalkan: {0}", h.list[h.idx].label), "info");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const redo = useCallback(() => {
@@ -203,7 +204,7 @@ export const AudioEditor: React.FC = () => {
     setHist(nh);
     setSel(null);
     setStats(null);
-    toast(`Diulang: ${h.list[h.idx + 1].label}`, "info");
+    toast(tr("Diulang: {0}", h.list[h.idx + 1].label), "info");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const jumpTo = (idx: number) => {
@@ -649,14 +650,14 @@ export const AudioEditor: React.FC = () => {
 
   const loadProject = async (file: File) => {
     stopAll();
-    setBusy({ label: "Membaca & mendekode audio…", progress: null });
+    setBusy({ label: tr("Membaca & mendekode audio…"), progress: null });
     setInfo(null);
     try {
       const p = await decodeFileToPcm(file);
-      if (pcmBytes(p) > MAX_PROJECT_BYTES) throw new Error("File terlalu besar untuk diedit di browser (batas ≈ 1,4 GB PCM, sekitar 2 jam stereo).");
+      if (pcmBytes(p) > MAX_PROJECT_BYTES) throw new Error(tr("File terlalu besar untuk diedit di browser (batas ≈ 1,4 GB PCM, sekitar 2 jam stereo)."));
       firstLoadRef.current = null;
       pyrRef.current = null;
-      const h = { list: [{ pcm: p, markers: [], label: "Buka file" }], idx: 0 };
+      const h = { list: [{ pcm: p, markers: [], label: tr("Buka file") }], idx: 0 };
       histRef.current = h;
       setHist(h);
       setSel(null);
@@ -664,9 +665,9 @@ export const AudioEditor: React.FC = () => {
       setStats(null);
       setFileName(file.name.replace(/\.[^.]+$/, ""));
       setExpName(`${file.name.replace(/\.[^.]+$/, "")}-edit`);
-      toast(`${file.name} dimuat — ${formatClock(pcmDuration(p), false)} · ${p.sampleRate} Hz · ${p.channels.length === 1 ? "mono" : "stereo"}.`, "success");
+      toast(tr("{0} dimuat — {1} · {2} Hz · {3}.", file.name, formatClock(pcmDuration(p), false), p.sampleRate, p.channels.length === 1 ? "mono" : "stereo"), "success");
     } catch (e: any) {
-      toast(e?.message ?? "Gagal membuka file.", "error");
+      toast(e?.message ?? tr("Gagal membuka file."), "error");
     } finally {
       setBusy(null);
     }
@@ -675,7 +676,7 @@ export const AudioEditor: React.FC = () => {
   const onFiles = (files: File[]) => {
     const f = files.find((x) => x.type.startsWith("audio/") || x.type.startsWith("video/") || /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|webm|mp4|mov|mkv)$/i.test(x.name));
     if (!f) {
-      toast("Pilih file audio (MP3, WAV, OGG, M4A, FLAC) atau video.", "error");
+      toast(tr("Pilih file audio (MP3, WAV, OGG, M4A, FLAC) atau video."), "error");
       return;
     }
     loadProject(f);
@@ -713,10 +714,10 @@ export const AudioEditor: React.FC = () => {
 
   const doTrim = () => {
     const r = range();
-    if (!pcm || !r) return toast("Pilih bagian yang ingin dipertahankan dulu (seret di waveform).", "warning");
+    if (!pcm || !r) return toast(tr("Pilih bagian yang ingin dipertahankan dulu (seret di waveform)."), "warning");
     stopAll();
     const ms = markers.filter((m) => m.frame >= r[0] && m.frame <= r[1]).map((m) => ({ ...m, frame: m.frame - r[0] }));
-    commit(slicePcm(pcm, r[0], r[1]), "Pangkas ke seleksi", ms);
+    commit(slicePcm(pcm, r[0], r[1]), tr("Pangkas ke seleksi"), ms);
     setSel(null);
     setCursor(0);
     fitView(r[1] - r[0]);
@@ -724,37 +725,37 @@ export const AudioEditor: React.FC = () => {
 
   const doDelete = () => {
     const r = range();
-    if (!pcm || !r) return toast("Pilih bagian yang ingin dihapus dulu.", "warning");
+    if (!pcm || !r) return toast(tr("Pilih bagian yang ingin dihapus dulu."), "warning");
     stopAll();
-    commit(deleteRange(pcm, r[0], r[1]), "Hapus seleksi", shiftMarkers(markers, r[0], r[1], r[0]));
+    commit(deleteRange(pcm, r[0], r[1]), tr("Hapus seleksi"), shiftMarkers(markers, r[0], r[1], r[0]));
     setSel(null);
     setCursor(r[0]);
   };
 
   const doCopy = (silent = false) => {
     const r = range();
-    if (!pcm || !r) return silent ? undefined : toast("Pilih bagian yang ingin disalin dulu.", "warning");
+    if (!pcm || !r) return silent ? undefined : toast(tr("Pilih bagian yang ingin disalin dulu."), "warning");
     setClip(slicePcm(pcm, r[0], r[1]));
-    if (!silent) toast(`${formatClock((r[1] - r[0]) / sr)} disalin ke papan klip editor.`, "success");
+    if (!silent) toast(tr("{0} disalin ke papan klip editor.", formatClock((r[1] - r[0]) / sr)), "success");
   };
 
   const doCut = () => {
     const r = range();
-    if (!pcm || !r) return toast("Pilih bagian yang ingin dipotong dulu.", "warning");
+    if (!pcm || !r) return toast(tr("Pilih bagian yang ingin dipotong dulu."), "warning");
     setClip(slicePcm(pcm, r[0], r[1]));
     doDelete();
   };
 
   const doPaste = () => {
-    if (!pcm || !clip) return toast("Papan klip kosong — salin atau potong dulu.", "warning");
+    if (!pcm || !clip) return toast(tr("Papan klip kosong — salin atau potong dulu."), "warning");
     stopAll();
     const r = range();
     const len = pcmFrames(matchClipLength(clip, pcm));
     if (r) {
-      commit(replaceRange(pcm, r[0], r[1], clip), "Tempel (ganti seleksi)", shiftMarkers(markers, r[0], r[1], r[0] + len));
+      commit(replaceRange(pcm, r[0], r[1], clip), tr("Tempel (ganti seleksi)"), shiftMarkers(markers, r[0], r[1], r[0] + len));
       setSel([r[0], r[0] + len]);
     } else {
-      commit(insertPcm(pcm, cursor, clip), "Tempel", markers.map((m) => (m.frame >= cursor ? { ...m, frame: m.frame + len } : m)));
+      commit(insertPcm(pcm, cursor, clip), tr("Tempel"), markers.map((m) => (m.frame >= cursor ? { ...m, frame: m.frame + len } : m)));
       setSel([cursor, cursor + len]);
       setCursor(cursor + len);
     }
@@ -776,7 +777,7 @@ export const AudioEditor: React.FC = () => {
     if (!pcm) return;
     stopAll();
     const [s, e] = effRange(kind);
-    if (kind === "repeat" && !range()) return toast("Pilih bagian yang ingin diulang dulu.", "warning");
+    if (kind === "repeat" && !range()) return toast(tr("Pilih bagian yang ingin diulang dulu."), "warning");
     const heavy = kind === "tempo" || kind === "pitch";
     setBusy({ label: `${OP_LABELS[kind]}…`, progress: heavy ? 0 : null });
     setInfo(null);
@@ -791,15 +792,15 @@ export const AudioEditor: React.FC = () => {
         setSel(null);
         firstLoadRef.current = null;
       }
-      commit(res.pcm, res.label + (range() && !WHOLE_FILE_OPS.includes(kind) ? " (seleksi)" : ""), ms);
+      commit(res.pcm, res.label + (range() && !WHOLE_FILE_OPS.includes(kind) ? tr(" (seleksi)") : ""), ms);
       if (res.sel) setSel(res.sel);
       const newN = pcmFrames(res.pcm);
       if (newN !== n && !res.sel) {
         setCursor((c) => Math.min(c, newN));
       }
-      toast(`${res.label} diterapkan${range() && !WHOLE_FILE_OPS.includes(kind) ? " pada seleksi" : ""}.`, "success");
+      toast(tr("{0} diterapkan{1}.", res.label, range() && !WHOLE_FILE_OPS.includes(kind) ? tr(" pada seleksi") : ""), "success");
     } catch (e: any) {
-      toast(`Gagal: ${e?.message ?? "terjadi kesalahan."}`, "error");
+      toast(tr("Gagal: {0}", e?.message ?? tr("terjadi kesalahan.")), "error");
     } finally {
       setBusy(null);
     }
@@ -812,7 +813,7 @@ export const AudioEditor: React.FC = () => {
     const a = r ? r[0] : clamp(cursor, 0, Math.max(0, n - 1));
     const b = Math.min(r ? r[1] : n, a + Math.round(MAX_PREVIEW_SEC * sr));
     const slice = slicePcm(pcm, a, b);
-    setBusy({ label: "Menyiapkan pratinjau…", progress: null });
+    setBusy({ label: tr("Menyiapkan pratinjau…"), progress: null });
     try {
       await new Promise((rr) => setTimeout(rr, 10));
       const res = await runOperation(kind, slice, kind === "insertSilence" ? 0 : 0, pcmFrames(slice), { ...P, extendTail: true }, undefined, true);
@@ -820,7 +821,7 @@ export const AudioEditor: React.FC = () => {
       await playPcm(res.pcm, 0, pcmFrames(res.pcm), false, "preview");
     } catch (e: any) {
       setBusy(null);
-      toast(`Pratinjau gagal: ${e?.message ?? ""}`, "error");
+      toast(tr("Pratinjau gagal: {0}", e?.message ?? ""), "error");
     }
   };
 
@@ -833,25 +834,25 @@ export const AudioEditor: React.FC = () => {
   const onMixFile = async (file: File | undefined) => {
     if (!file || !pcm) return;
     stopAll();
-    setBusy({ label: "Membaca audio tambahan…", progress: null });
+    setBusy({ label: tr("Membaca audio tambahan…"), progress: null });
     try {
       const other = await decodeFileToPcm(file);
       const mode = mixModeRef.current;
       if (mode === "append") {
         const prepared = other.sampleRate === sr ? other : resamplePcm(other, sr);
-        commit(concatPcm([pcm, prepared]), "Gabung di akhir");
-        toast(`"${file.name}" digabung di akhir.`, "success");
+        commit(concatPcm([pcm, prepared]), tr("Gabung di akhir"));
+        toast(tr("\"{0}\" digabung di akhir.", file.name), "success");
       } else if (mode === "insert") {
         const len = pcmFrames(matchClipLength(other, pcm));
-        commit(insertPcm(pcm, cursor, other), "Sisipkan audio", markers.map((m) => (m.frame >= cursor ? { ...m, frame: m.frame + len } : m)));
+        commit(insertPcm(pcm, cursor, other), tr("Sisipkan audio"), markers.map((m) => (m.frame >= cursor ? { ...m, frame: m.frame + len } : m)));
         setSel([cursor, cursor + len]);
-        toast(`"${file.name}" disisipkan di ${formatClock(cursor / sr)}.`, "success");
+        toast(tr("\"{0}\" disisipkan di {1}.", file.name, formatClock(cursor / sr)), "success");
       } else {
-        commit(mixInto(pcm, cursor, other, 0.8), "Campur (overlay) audio");
-        toast(`"${file.name}" dicampur mulai ${formatClock(cursor / sr)}.`, "success");
+        commit(mixInto(pcm, cursor, other, 0.8), tr("Campur (overlay) audio"));
+        toast(tr("\"{0}\" dicampur mulai {1}.", file.name, formatClock(cursor / sr)), "success");
       }
     } catch (e: any) {
-      toast(e?.message ?? "Gagal menambah audio.", "error");
+      toast(e?.message ?? tr("Gagal menambah audio."), "error");
     } finally {
       setBusy(null);
     }
@@ -859,7 +860,7 @@ export const AudioEditor: React.FC = () => {
 
   /* ── recording ── */
   const startRecording = async () => {
-    if (typeof MediaRecorder === "undefined") return toast("Browser ini tidak mendukung perekaman audio.", "error");
+    if (typeof MediaRecorder === "undefined") return toast(tr("Browser ini tidak mendukung perekaman audio."), "error");
     setMicFail(null);
     let stream: MediaStream | null = null;
     try {
@@ -878,14 +879,14 @@ export const AudioEditor: React.FC = () => {
         recRef.current = null;
         setRecording(null);
         const blob = new Blob(chunks, { type: mr.mimeType || "audio/webm" });
-        setBusy({ label: "Memproses rekaman…", progress: null });
+        setBusy({ label: tr("Memproses rekaman…"), progress: null });
         try {
           const rec = await decodeFileToPcm(new File([blob], "rekaman.webm", { type: blob.type }));
           const cur = histRef.current;
           if (cur.idx < 0) {
             firstLoadRef.current = null;
             pyrRef.current = null;
-            const h = { list: [{ pcm: rec, markers: [], label: "Rekaman" }], idx: 0 };
+            const h = { list: [{ pcm: rec, markers: [], label: tr("Rekaman") }], idx: 0 };
             histRef.current = h;
             setHist(h);
             setFileName("rekaman");
@@ -894,12 +895,12 @@ export const AudioEditor: React.FC = () => {
             const base = cur.list[cur.idx].pcm;
             const len = pcmFrames(rec.sampleRate === base.sampleRate ? rec : resamplePcm(rec, base.sampleRate));
             const at = live.current.cursor;
-            commit(insertPcm(base, at, rec), "Sisipkan rekaman", cur.list[cur.idx].markers.map((m) => (m.frame >= at ? { ...m, frame: m.frame + len } : m)));
+            commit(insertPcm(base, at, rec), tr("Sisipkan rekaman"), cur.list[cur.idx].markers.map((m) => (m.frame >= at ? { ...m, frame: m.frame + len } : m)));
             setSel([at, at + len]);
           }
-          toast("Rekaman selesai.", "success");
+          toast(tr("Rekaman selesai."), "success");
         } catch (e: any) {
-          toast(e?.message ?? "Rekaman gagal diproses.", "error");
+          toast(e?.message ?? tr("Rekaman gagal diproses."), "error");
         } finally {
           setBusy(null);
         }
@@ -910,7 +911,7 @@ export const AudioEditor: React.FC = () => {
     } catch (e: any) {
       stopStream(stream);
       if (e instanceof PermissionError) setMicFail(e.failure);
-      else toast(`Tidak bisa merekam: ${e?.message ?? e}`, "error");
+      else toast(tr("Tidak bisa merekam: {0}", e?.message ?? e), "error");
     }
   };
 
@@ -923,17 +924,17 @@ export const AudioEditor: React.FC = () => {
   const addMarker = (frame = cursor) => {
     if (!pcm) return;
     const label = `M${markers.length + 1}`;
-    commit(pcm, "Tambah marker", [...markers, { id: uid(), frame: Math.round(frame), label }].sort((a, b) => a.frame - b.frame));
+    commit(pcm, tr("Tambah marker"), [...markers, { id: uid(), frame: Math.round(frame), label }].sort((a, b) => a.frame - b.frame));
   };
-  const removeMarker = (id: string) => pcm && commit(pcm, "Hapus marker", markers.filter((m) => m.id !== id));
-  const renameMarker = (id: string, label: string) => pcm && commit(pcm, "Ubah nama marker", markers.map((m) => (m.id === id ? { ...m, label } : m)));
+  const removeMarker = (id: string) => pcm && commit(pcm, tr("Hapus marker"), markers.filter((m) => m.id !== id));
+  const renameMarker = (id: string, label: string) => pcm && commit(pcm, tr("Ubah nama marker"), markers.map((m) => (m.id === id ? { ...m, label } : m)));
   const markersFromSilence = () => {
     if (!pcm) return;
     const spans = findSilences(pcm, P.silThr, P.silMin);
-    const ms: Marker[] = spans.filter((s) => s.end < n).map((s, i) => ({ id: uid(), frame: s.end, label: `Bagian ${i + 2}` }));
-    if (!ms.length) return toast("Tidak ditemukan jeda hening dengan pengaturan ini.", "warning");
-    commit(pcm, "Marker dari hening", [...markers, ...ms].sort((a, b) => a.frame - b.frame));
-    toast(`${ms.length} marker dibuat di akhir tiap jeda hening.`, "success");
+    const ms: Marker[] = spans.filter((s) => s.end < n).map((s, i) => ({ id: uid(), frame: s.end, label: tr("Bagian {0}", i + 2) }));
+    if (!ms.length) return toast(tr("Tidak ditemukan jeda hening dengan pengaturan ini."), "warning");
+    commit(pcm, tr("Marker dari hening"), [...markers, ...ms].sort((a, b) => a.frame - b.frame));
+    toast(tr("{0} marker dibuat di akhir tiap jeda hening.", ms.length), "success");
   };
 
   /* ───────────────────────────── export ───────────────────────────── */
@@ -950,7 +951,7 @@ export const AudioEditor: React.FC = () => {
   const encodeFor = async (p: PCM, fmt: typeof expFormat, onProgress?: (f: number) => void): Promise<{ blob: Blob; ext: string }> => {
     if (fmt === "opus") {
       const format = getBestCompressedAudioFormat();
-      if (!format) throw new Error("Browser ini tidak mendukung ekspor Opus. Gunakan WAV.");
+      if (!format) throw new Error(tr("Browser ini tidak mendukung ekspor Opus. Gunakan WAV."));
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       const tmp: AudioContext = new AC();
       try {
@@ -975,15 +976,15 @@ export const AudioEditor: React.FC = () => {
     const p = buildExportPcm(expScope);
     if (!p) return;
     stopAll();
-    setBusy({ label: expFormat === "opus" ? "Mengkodekan Opus (real-time)…" : expFormat === "mp3" ? "Mengkodekan MP3…" : "Menulis file…", progress: expFormat === "opus" || expFormat === "mp3" ? 0 : null });
+    setBusy({ label: expFormat === "opus" ? tr("Mengkodekan Opus (real-time)…") : expFormat === "mp3" ? tr("Mengkodekan MP3…") : tr("Menulis file…"), progress: expFormat === "opus" || expFormat === "mp3" ? 0 : null });
     setInfo(null);
     try {
       await new Promise((r) => setTimeout(r, 20));
       const { blob, ext } = await encodeFor(p, expFormat, (f) => setBusy((b) => (b ? { ...b, progress: f } : b)));
       downloadBlob(blob, `${safeName()}.${ext}`);
-      toast(`Berhasil diekspor: ${safeName()}.${ext} (${(blob.size / 1024 / 1024).toFixed(2)} MB, ${formatClock(pcmDuration(p), false)}).`, "success");
+      toast(tr("Berhasil diekspor: {0}.{1} ({2} MB, {3}).", safeName(), ext, (blob.size / 1024 / 1024).toFixed(2), formatClock(pcmDuration(p), false)), "success");
     } catch (e: any) {
-      toast(`Ekspor gagal: ${e?.message ?? "terjadi kesalahan."}`, "error");
+      toast(tr("Ekspor gagal: {0}", e?.message ?? tr("terjadi kesalahan.")), "error");
     } finally {
       setBusy(null);
     }
@@ -991,15 +992,15 @@ export const AudioEditor: React.FC = () => {
 
   const doExportMarkers = async () => {
     if (!pcm) return;
-    if (!markers.length) return toast("Belum ada marker. Tambahkan marker (tombol M) di titik pemisah.", "warning");
+    if (!markers.length) return toast(tr("Belum ada marker. Tambahkan marker (tombol M) di titik pemisah."), "warning");
     const fmt = expFormat === "opus" ? "wav16" : expFormat;
-    setBusy({ label: "Membuat ZIP…", progress: 0 });
+    setBusy({ label: tr("Membuat ZIP…"), progress: 0 });
     setInfo(null);
     try {
       const { default: JSZip } = await import("jszip");
       const zip = new JSZip();
       const cuts = [0, ...markers.map((m) => m.frame), n].filter((v, i, a) => i === 0 || v > a[i - 1]);
-      const labels = ["Awal", ...markers.map((m) => m.label)];
+      const labels = [tr("Awal"), ...markers.map((m) => m.label)];
       for (let i = 0; i < cuts.length - 1; i++) {
         let seg = slicePcm(pcm, cuts[i], cuts[i + 1]);
         if (expRate > 0 && expRate !== seg.sampleRate) seg = resamplePcm(seg, expRate);
@@ -1008,14 +1009,14 @@ export const AudioEditor: React.FC = () => {
         const { blob, ext } = await encodeFor(seg, fmt);
         const label = (labels[i] ?? `bagian-${i + 1}`).replace(/[\\/:*?"<>|]+/g, "_");
         zip.file(`${String(i + 1).padStart(2, "0")}-${label}.${ext}`, await blob.arrayBuffer());
-        setBusy({ label: "Membuat ZIP…", progress: (i + 1) / (cuts.length - 1) });
+        setBusy({ label: tr("Membuat ZIP…"), progress: (i + 1) / (cuts.length - 1) });
         await new Promise((r) => setTimeout(r, 0));
       }
       const out = await zip.generateAsync({ type: "blob" });
       downloadBlob(out, `${safeName()}-bagian.zip`);
-      toast(`${cuts.length - 1} bagian diekspor dalam ZIP.`, "success");
+      toast(tr("{0} bagian diekspor dalam ZIP.", cuts.length - 1), "success");
     } catch (e: any) {
-      toast(`Ekspor ZIP gagal: ${e?.message ?? ""}`, "error");
+      toast(tr("Ekspor ZIP gagal: {0}", e?.message ?? ""), "error");
     } finally {
       setBusy(null);
     }
@@ -1125,7 +1126,7 @@ export const AudioEditor: React.FC = () => {
       // commit the moved marker as one history step
       const h = histRef.current;
       const cur = h.list[h.idx];
-      commit(cur.pcm, "Pindah marker", [...cur.markers].sort((a, b) => a.frame - b.frame));
+      commit(cur.pcm, tr("Pindah marker"), [...cur.markers].sort((a, b) => a.frame - b.frame));
     }
   };
 
@@ -1228,7 +1229,7 @@ export const AudioEditor: React.FC = () => {
   const commitSelFields = () => {
     const a = parseClock(selStartText);
     const b = parseClock(selEndText);
-    if (a == null || b == null) return toast("Format waktu tidak valid. Contoh: 1:23.5 atau 83.5", "warning");
+    if (a == null || b == null) return toast(tr("Format waktu tidak valid. Contoh: 1:23.5 atau 83.5"), "warning");
     const s = clamp(Math.round(Math.min(a, b) * sr), 0, n);
     const e = clamp(Math.round(Math.max(a, b) * sr), 0, n);
     if (e > s) { setSel([s, e]); setCursor(s); } else { setSel(null); setCursor(s); }
@@ -1238,7 +1239,7 @@ export const AudioEditor: React.FC = () => {
 
   const curTime = formatClock((playing === "main" ? playheadFrame() : cursor) / sr);
   const disabled = !pcm || !!busy;
-  const regionLabel = hasSel ? `seleksi ${formatClock((sel![1] - sel![0]) / sr)}` : "seluruh audio";
+  const regionLabel = hasSel ? `seleksi ${formatClock((sel![1] - sel![0]) / sr)}` : tr("seluruh audio");
   const canUndo = hist.idx > 0;
   const canRedo = hist.idx < hist.list.length - 1;
   const histBytes = useMemo(() => hist.list.reduce((a, s) => a + pcmBytes(s.pcm), 0), [hist.list]);
@@ -1252,27 +1253,27 @@ export const AudioEditor: React.FC = () => {
       <div className="space-y-5 max-w-3xl mx-auto" data-testid="audio-editor-empty">
         <GamatoDesktopRecommended toolName="Editor Audio" />
         <input ref={openFileRef} type="file" className="hidden" accept="audio/*,video/*" data-testid="editor-file" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFiles([f]); }} />
-        <Dropzone onFiles={onFiles} accept="audio/*,video/*" multiple={false} isDragging={isDragging} setIsDragging={setIsDragging} label="Buka audio untuk diedit" sublabel="MP3, WAV, OGG, M4A, FLAC — atau video, audionya akan diambil" icon={<AudioWaveform className="w-8 h-8" />} />
+        <Dropzone onFiles={onFiles} accept="audio/*,video/*" multiple={false} isDragging={isDragging} setIsDragging={setIsDragging} label={tr("Buka audio untuk diedit")} sublabel={tr("MP3, WAV, OGG, M4A, FLAC — atau video, audionya akan diambil")} icon={<AudioWaveform className="w-8 h-8" />} />
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <span className="text-sm text-slate-400">atau</span>
+          <span className="text-sm text-slate-400">{tr("atau")}</span>
           {recording ? (
-            <Btn variant="danger" onClick={stopRecording} data-testid="rec-stop"><Square className="w-4 h-4" /> Berhenti ({recording.sec.toFixed(1)}s)</Btn>
+            <Btn variant="danger" onClick={stopRecording} data-testid="rec-stop"><Square className="w-4 h-4" />{" "}{tr("Berhenti ({0}s)", recording.sec.toFixed(1))}</Btn>
           ) : (
-            <Btn variant="secondary" onClick={startRecording} data-testid="rec-start"><Mic className="w-4 h-4" /> Rekam dari mikrofon</Btn>
+            <Btn variant="secondary" onClick={startRecording} data-testid="rec-start"><Mic className="w-4 h-4" /> {tr("Rekam dari mikrofon")}</Btn>
           )}
         </div>
-        {mics.length > 1 && !recording && <div className="max-w-xs mx-auto"><MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>}
+        {mics.length > 1 && !recording && <div className="max-w-xs mx-auto"><MediaDevicePicker label={tr("Mikrofon")} devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>}
         <GamatoPermissionNotice failure={micFail} onRetry={startRecording} onDismiss={() => setMicFail(null)} className="max-w-xl mx-auto" />
         {busy && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300"><Loader2 className="w-4 h-4 animate-spin" />{busy.label}</div>}
         {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
         <ToolInfoPanel
           icon={<AudioWaveform className="w-5 h-5" />}
-          label="Edit Audio"
-          desc="Editor waveform penuh — semua di browser"
+          label={tr("Edit Audio")}
+          desc={tr("Editor waveform penuh — semua di browser")}
           points={[
-            "Pangkas, potong, salin, tempel, hapus, ulangi, sisipkan hening — dengan undo/redo tak terbatas (dibatasi memori).",
-            "Volume, normalisasi, fade, kecepatan, tempo (tanpa ubah nada), pitch, equalizer 5-band, kompresor, limiter, echo, reverb, noise gate.",
-            "Marker + ekspor per bagian (ZIP), ekspor WAV 16/24/32-bit atau Opus. File tidak pernah diunggah.",
+            tr("Pangkas, potong, salin, tempel, hapus, ulangi, sisipkan hening — dengan undo/redo tak terbatas (dibatasi memori)."),
+            tr("Volume, normalisasi, fade, kecepatan, tempo (tanpa ubah nada), pitch, equalizer 5-band, kompresor, limiter, echo, reverb, noise gate."),
+            tr("Marker + ekspor per bagian (ZIP), ekspor WAV 16/24/32-bit atau Opus. File tidak pernah diunggah."),
           ]}
         />
       </div>
@@ -1293,31 +1294,31 @@ export const AudioEditor: React.FC = () => {
           <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 p-2 rounded-xl shrink-0"><AudioWaveform className="w-5 h-5" /></div>
           <div className="min-w-0">
             <p className="font-bold text-slate-900 dark:text-slate-100 text-sm truncate" data-testid="project-name">{fileName}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="project-meta">{formatClock(pcmDuration(pcm), false)} · {sr} Hz · {pcm.channels.length === 1 ? "mono" : `${pcm.channels.length} kanal`} · {(pcmBytes(pcm) / 1024 / 1024).toFixed(1)} MB</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="project-meta">{formatClock(pcmDuration(pcm), false)}{" "}{tr("· {0} Hz ·", sr)}{" "}{pcm.channels.length === 1 ? "mono" : `${pcm.channels.length} kanal`}{" "}{tr("· {0} MB", (pcmBytes(pcm) / 1024 / 1024).toFixed(1))}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Btn variant="secondary" className="text-xs py-1.5" onClick={undo} disabled={!canUndo || !!busy} data-testid="btn-undo" title="Urungkan (Ctrl+Z)"><Undo2 className="w-3.5 h-3.5" /> Urungkan</Btn>
-          <Btn variant="secondary" className="text-xs py-1.5" onClick={redo} disabled={!canRedo || !!busy} data-testid="btn-redo" title="Ulangi (Ctrl+Y)"><Redo2 className="w-3.5 h-3.5" /> Ulangi</Btn>
-          <Btn variant="ghost" className="text-xs py-1.5" onClick={() => openFileRef.current?.click()}><FolderOpen className="w-3.5 h-3.5" /> Buka lain</Btn>
+          <Btn variant="secondary" className="text-xs py-1.5" onClick={undo} disabled={!canUndo || !!busy} data-testid="btn-undo" title={tr("Urungkan (Ctrl+Z)")}><Undo2 className="w-3.5 h-3.5" /> {tr("Urungkan")}</Btn>
+          <Btn variant="secondary" className="text-xs py-1.5" onClick={redo} disabled={!canRedo || !!busy} data-testid="btn-redo" title={tr("Ulangi (Ctrl+Y)")}><Redo2 className="w-3.5 h-3.5" /> {tr("Ulangi")}</Btn>
+          <Btn variant="ghost" className="text-xs py-1.5" onClick={() => openFileRef.current?.click()}><FolderOpen className="w-3.5 h-3.5" /> {tr("Buka lain")}</Btn>
         </div>
       </div>
 
       {/* transport */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm flex flex-wrap items-center gap-2">
-        <Btn onClick={togglePlay} disabled={!!busy} className="px-5" data-testid="btn-play">{playing !== "none" ? <><Pause className="w-4 h-4" /> Jeda</> : <><Play className="w-4 h-4" /> Putar</>}</Btn>
-        <Btn variant="secondary" onClick={stopAndRewind} disabled={!!busy} className="px-3" data-testid="btn-stop" title="Stop"><Square className="w-4 h-4" /></Btn>
-        <Btn variant="secondary" onClick={() => { setCursor(0); setView((v) => clampView(0, v.fpp)); if (playing === "main") playPcm(pcm, 0, n, loop, "main"); }} className="px-3" title="Ke awal (Home)"><SkipBack className="w-4 h-4" /></Btn>
-        <Btn variant="secondary" onClick={() => { stopAll(); setCursor(n); setView((v) => clampView(n - v.fpp * wavW, v.fpp)); }} className="px-3" title="Ke akhir (End)"><SkipForward className="w-4 h-4" /></Btn>
-        <Btn variant={loop ? "primary" : "secondary"} onClick={() => setLoop((v) => !v)} className="px-3" title="Ulangi seleksi (L)" data-testid="btn-loop"><Repeat className="w-4 h-4" /></Btn>
+        <Btn onClick={togglePlay} disabled={!!busy} className="px-5" data-testid="btn-play">{playing !== "none" ? <><Pause className="w-4 h-4" /> {tr("Jeda")}</> : <><Play className="w-4 h-4" /> {tr("Putar")}</>}</Btn>
+        <Btn variant="secondary" onClick={stopAndRewind} disabled={!!busy} className="px-3" data-testid="btn-stop" title={tr("Stop")}><Square className="w-4 h-4" /></Btn>
+        <Btn variant="secondary" onClick={() => { setCursor(0); setView((v) => clampView(0, v.fpp)); if (playing === "main") playPcm(pcm, 0, n, loop, "main"); }} className="px-3" title={tr("Ke awal (Home)")}><SkipBack className="w-4 h-4" /></Btn>
+        <Btn variant="secondary" onClick={() => { stopAll(); setCursor(n); setView((v) => clampView(n - v.fpp * wavW, v.fpp)); }} className="px-3" title={tr("Ke akhir (End)")}><SkipForward className="w-4 h-4" /></Btn>
+        <Btn variant={loop ? "primary" : "secondary"} onClick={() => setLoop((v) => !v)} className="px-3" title={tr("Ulangi seleksi (L)")} data-testid="btn-loop"><Repeat className="w-4 h-4" /></Btn>
         <div className="font-mono text-lg font-bold text-slate-900 dark:text-slate-100 tabular-nums px-2" data-testid="time-display"><span ref={timeRef}>{curTime}</span><span className="text-xs text-slate-400 font-normal"> / {formatClock(pcmDuration(pcm), false)}</span></div>
-        {playing === "preview" && <span className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full">Pratinjau efek…</span>}
+        {playing === "preview" && <span className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-full">{tr("Pratinjau efek…")}</span>}
         <div className="flex-1" />
-        <div className="hidden sm:flex items-center gap-2 w-40" title="Level">
+        <div className="hidden sm:flex items-center gap-2 w-40" title={tr("Level")}>
           <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden"><div ref={meterL} className="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500" style={{ width: "0%" }} /></div>
           <div className="hidden"><div ref={meterR} /></div>
         </div>
-        <div className="flex items-center gap-2 w-36" style={{ minWidth: 110 }}><Volume2 className="w-4 h-4 text-slate-400 shrink-0" /><GamatoSlider min={0} max={1.5} step={0.01} value={volume} onChange={setVolume} aria-label="Volume monitor" /></div>
+        <div className="flex items-center gap-2 w-36" style={{ minWidth: 110 }}><Volume2 className="w-4 h-4 text-slate-400 shrink-0" /><GamatoSlider min={0} max={1.5} step={0.01} value={volume} onChange={setVolume} aria-label={tr("Volume monitor")} /></div>
       </div>
 
       {/* waveform */}
@@ -1341,20 +1342,20 @@ export const AudioEditor: React.FC = () => {
       {/* view / selection controls */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex items-center gap-1.5">
-          <Btn variant="secondary" className="px-2.5 py-2" onClick={() => zoomAround(0.6)} title="Perbesar (+)" data-testid="zoom-in"><ZoomIn className="w-4 h-4" /></Btn>
-          <Btn variant="secondary" className="px-2.5 py-2" onClick={() => zoomAround(1.6)} title="Perkecil (−)" data-testid="zoom-out"><ZoomOut className="w-4 h-4" /></Btn>
-          <Btn variant="secondary" className="px-2.5 py-2" onClick={() => fitView()} title="Pas layar" data-testid="zoom-fit"><Maximize2 className="w-4 h-4" /></Btn>
-          <Btn variant="secondary" className="px-2.5 py-2 text-xs" disabled={!hasSel} onClick={() => { if (sel) { const f = Math.max(0.05, (sel[1] - sel[0]) / wavW); setView(clampView(sel[0], f)); } }} data-testid="zoom-sel">Zoom seleksi</Btn>
+          <Btn variant="secondary" className="px-2.5 py-2" onClick={() => zoomAround(0.6)} title={tr("Perbesar (+)")} data-testid="zoom-in"><ZoomIn className="w-4 h-4" /></Btn>
+          <Btn variant="secondary" className="px-2.5 py-2" onClick={() => zoomAround(1.6)} title={tr("Perkecil (−)")} data-testid="zoom-out"><ZoomOut className="w-4 h-4" /></Btn>
+          <Btn variant="secondary" className="px-2.5 py-2" onClick={() => fitView()} title={tr("Pas layar")} data-testid="zoom-fit"><Maximize2 className="w-4 h-4" /></Btn>
+          <Btn variant="secondary" className="px-2.5 py-2 text-xs" disabled={!hasSel} onClick={() => { if (sel) { const f = Math.max(0.05, (sel[1] - sel[0]) / wavW); setView(clampView(sel[0], f)); } }} data-testid="zoom-sel">{tr("Zoom seleksi")}</Btn>
         </div>
-        <div className="w-36" style={{ minWidth: 130 }}><Slider label="Tinggi gelombang" value={ampZoom} min={1} max={8} step={0.1} suffix="×" onChange={setAmpZoom} /></div>
+        <div className="w-36" style={{ minWidth: 130 }}><Slider label={tr("Tinggi gelombang")} value={ampZoom} min={1} max={8} step={0.1} suffix={tr("×")} onChange={setAmpZoom} /></div>
         <div className="flex items-end gap-2 flex-wrap">
-          <div className="w-28"><Input label="Mulai" value={selStartText} onChange={(e) => setSelStartText(e.target.value)} onBlur={commitSelFields} onKeyDown={(e) => { if (e.key === "Enter") commitSelFields(); }} data-testid="sel-start" className="py-2 font-mono text-xs" /></div>
-          <div className="w-28"><Input label="Akhir" value={selEndText} onChange={(e) => setSelEndText(e.target.value)} onBlur={commitSelFields} onKeyDown={(e) => { if (e.key === "Enter") commitSelFields(); }} data-testid="sel-end" className="py-2 font-mono text-xs" /></div>
-          <div className="pb-2.5 text-xs text-slate-500 dark:text-slate-400" data-testid="sel-length">{hasSel ? `Durasi: ${formatClock((sel![1] - sel![0]) / sr)}` : "Tidak ada seleksi"}</div>
+          <div className="w-28"><Input label={tr("Mulai")} value={selStartText} onChange={(e) => setSelStartText(e.target.value)} onBlur={commitSelFields} onKeyDown={(e) => { if (e.key === "Enter") commitSelFields(); }} data-testid="sel-start" className="py-2 font-mono text-xs" /></div>
+          <div className="w-28"><Input label={tr("Akhir")} value={selEndText} onChange={(e) => setSelEndText(e.target.value)} onBlur={commitSelFields} onKeyDown={(e) => { if (e.key === "Enter") commitSelFields(); }} data-testid="sel-end" className="py-2 font-mono text-xs" /></div>
+          <div className="pb-2.5 text-xs text-slate-500 dark:text-slate-400" data-testid="sel-length">{hasSel ? tr("Durasi: {0}", formatClock((sel![1] - sel![0]) / sr)) : tr("Tidak ada seleksi")}</div>
         </div>
         <div className="flex gap-4 pb-2">
-          <GamatoCheckbox checked={snapZero} onChange={setSnapZero} label="Tempel ke zero-crossing" testId="snap-zero" />
-          <GamatoCheckbox checked={followPlay} onChange={setFollowPlay} label="Ikuti pemutaran" />
+          <GamatoCheckbox checked={snapZero} onChange={setSnapZero} label={tr("Tempel ke zero-crossing")} testId="snap-zero" />
+          <GamatoCheckbox checked={followPlay} onChange={setFollowPlay} label={tr("Ikuti pemutaran")} />
         </div>
       </div>
 
@@ -1369,31 +1370,31 @@ export const AudioEditor: React.FC = () => {
 
       {/* tools */}
       <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
-      <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="region-hint">Efek diterapkan pada: <b>{regionLabel}</b>{!hasSel && " (seret di waveform untuk memilih bagian)"}.</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="region-hint">{tr("Efek diterapkan pada:")} <b>{regionLabel}</b>{!hasSel && tr(" (seret di waveform untuk memilih bagian)")}.</p>
 
       <div className="grid md:grid-cols-2 gap-4 items-start">
         {tab === "edit" && (
           <>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Seleksi</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Edit Seleksi")}</p>
               <div className="grid grid-cols-2 gap-2">
-                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={doTrim} data-testid="btn-trim"><Crop className="w-4 h-4" /> Pangkas</Btn>
-                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={doDelete} data-testid="btn-delete"><Trash2 className="w-4 h-4" /> Hapus</Btn>
-                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={doCut} data-testid="btn-cut"><Scissors className="w-4 h-4" /> Potong</Btn>
-                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={() => doCopy()} data-testid="btn-copy"><Copy className="w-4 h-4" /> Salin</Btn>
-                <Btn variant="secondary" disabled={disabled || !clip} onClick={doPaste} className="col-span-2" data-testid="btn-paste"><ClipboardPaste className="w-4 h-4" /> Tempel {clip ? `(${formatClock(pcmDuration(clip), false)})` : ""}</Btn>
-                <Btn variant="secondary" disabled={disabled} onClick={selectAll} data-testid="btn-select-all">Pilih semua</Btn>
-                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={() => setSel(null)}>Batal pilih</Btn>
+                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={doTrim} data-testid="btn-trim"><Crop className="w-4 h-4" /> {tr("Pangkas")}</Btn>
+                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={doDelete} data-testid="btn-delete"><Trash2 className="w-4 h-4" /> {tr("Hapus")}</Btn>
+                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={doCut} data-testid="btn-cut"><Scissors className="w-4 h-4" /> {tr("Potong")}</Btn>
+                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={() => doCopy()} data-testid="btn-copy"><Copy className="w-4 h-4" /> {tr("Salin")}</Btn>
+                <Btn variant="secondary" disabled={disabled || !clip} onClick={doPaste} className="col-span-2" data-testid="btn-paste"><ClipboardPaste className="w-4 h-4" /> {tr("Tempel")} {clip ? `(${formatClock(pcmDuration(clip), false)})` : ""}</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={selectAll} data-testid="btn-select-all">{tr("Pilih semua")}</Btn>
+                <Btn variant="secondary" disabled={disabled || !hasSel} onClick={() => setSel(null)}>{tr("Batal pilih")}</Btn>
               </div>
-              <p className="text-[11px] text-slate-400">Pangkas = simpan hanya seleksi · Tempel mengganti seleksi, atau menyisipkan di kursor.</p>
+              <p className="text-[11px] text-slate-400">{tr("Pangkas = simpan hanya seleksi · Tempel mengganti seleksi, atau menyisipkan di kursor.")}</p>
             </div>
-            <OpCard {...cardProps} kind="silence" title="Bisukan seleksi" desc="Ganti bagian terpilih dengan keheningan (panjang tetap)." noPreview />
-            <OpCard {...cardProps} kind="reverse" title="Balik (reverse)" desc="Putar terbalik bagian terpilih / seluruh audio." />
-            <OpCard {...cardProps} kind="repeat" title="Ulangi seleksi" desc="Gandakan seleksi tepat setelahnya." noPreview>
-              <Slider label="Jumlah ulangan" value={P.repeatTimes} min={1} max={20} onChange={(v) => setP({ repeatTimes: v })} />
+            <OpCard {...cardProps} kind="silence" title={tr("Bisukan seleksi")} desc={tr("Ganti bagian terpilih dengan keheningan (panjang tetap).")} noPreview />
+            <OpCard {...cardProps} kind="reverse" title={tr("Balik (reverse)")} desc={tr("Putar terbalik bagian terpilih / seluruh audio.")} />
+            <OpCard {...cardProps} kind="repeat" title={tr("Ulangi seleksi")} desc={tr("Gandakan seleksi tepat setelahnya.")} noPreview>
+              <Slider label={tr("Jumlah ulangan")} value={P.repeatTimes} min={1} max={20} onChange={(v) => setP({ repeatTimes: v })} />
             </OpCard>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Riwayat ({hist.list.length})</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Riwayat ({0})", hist.list.length)}</p>
               <div className="space-y-1 max-h-48 overflow-y-auto" data-testid="history-list">
                 {hist.list.map((h, i) => (
                   <button key={i} type="button" onClick={() => jumpTo(i)} className={cn("w-full flex items-center justify-between text-left text-xs rounded-lg px-3 py-1.5 border", i === hist.idx ? "border-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-bold" : i > hist.idx ? "border-transparent text-slate-300 dark:text-slate-600" : "border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300")}>
@@ -1401,72 +1402,72 @@ export const AudioEditor: React.FC = () => {
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] text-slate-400">Memori riwayat: {(histBytes / 1024 / 1024).toFixed(0)} MB (batas {Math.round(HISTORY_BUDGET / 1024 / 1024)} MB; langkah tertua dibuang otomatis).</p>
+              <p className="text-[11px] text-slate-400">{tr("Memori riwayat: {0} MB (batas {1} MB; langkah tertua dibuang otomatis).", (histBytes / 1024 / 1024).toFixed(0), Math.round(HISTORY_BUDGET / 1024 / 1024))}</p>
             </div>
             <div className={card}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Analisis Level</p>
-                <Btn variant="secondary" className="text-xs py-1.5" onClick={doAnalyze} disabled={disabled} data-testid="btn-analyze">Analisis {hasSel ? "seleksi" : "semua"}</Btn>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Analisis Level")}</p>
+                <Btn variant="secondary" className="text-xs py-1.5" onClick={doAnalyze} disabled={disabled} data-testid="btn-analyze">{tr("Analisis")} {hasSel ? "seleksi" : "semua"}</Btn>
               </div>
               {stats ? (
                 <div className="grid grid-cols-2 gap-2 text-sm" data-testid="stats">
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">Puncak</div><div className="font-bold">{stats.peakDb.toFixed(1)} dBFS</div></div>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">RMS rata-rata</div><div className="font-bold">{stats.rmsDb.toFixed(1)} dBFS</div></div>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">Sampel clipping</div><div className={cn("font-bold", stats.clipped > 0 && "text-red-500")}>{stats.clipped}</div></div>
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">DC offset</div><div className="font-bold">{stats.dcOffset.toFixed(4)}</div></div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">{tr("Puncak")}</div><div className="font-bold">{tr("{0} dBFS", stats.peakDb.toFixed(1))}</div></div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">{tr("RMS rata-rata")}</div><div className="font-bold">{tr("{0} dBFS", stats.rmsDb.toFixed(1))}</div></div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">{tr("Sampel clipping")}</div><div className={cn("font-bold", stats.clipped > 0 && "text-red-500")}>{stats.clipped}</div></div>
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">{tr("DC offset")}</div><div className="font-bold">{stats.dcOffset.toFixed(4)}</div></div>
                 </div>
-              ) : <p className="text-xs text-slate-400">Klik analisis untuk melihat puncak, RMS, dan clipping.</p>}
+              ) : <p className="text-xs text-slate-400">{tr("Klik analisis untuk melihat puncak, RMS, dan clipping.")}</p>}
             </div>
           </>
         )}
 
         {tab === "volume" && (
           <>
-            <OpCard {...cardProps} kind="gain" title="Volume (gain)" desc="Naik/turunkan volume dalam dB. +6 dB ≈ dua kali lipat.">
-              <Slider label="Penguatan" value={P.gainDb} min={-30} max={30} step={0.5} suffix=" dB" onChange={(v) => setP({ gainDb: v })} testId="gain-slider" />
+            <OpCard {...cardProps} kind="gain" title={tr("Volume (gain)")} desc={tr("Naik/turunkan volume dalam dB. +6 dB ≈ dua kali lipat.")}>
+              <Slider label={tr("Penguatan")} value={P.gainDb} min={-30} max={30} step={0.5} suffix={tr(" dB")} onChange={(v) => setP({ gainDb: v })} testId="gain-slider" />
             </OpCard>
-            <OpCard {...cardProps} kind="normalize" title="Normalisasi" desc="Samakan level ke target — puncak atau rata-rata (RMS, tidak akan clipping).">
+            <OpCard {...cardProps} kind="normalize" title={tr("Normalisasi")} desc={tr("Samakan level ke target — puncak atau rata-rata (RMS, tidak akan clipping).")}>
               <div className="grid grid-cols-2 gap-2">
                 {(["peak", "rms"] as const).map((m) => (
-                  <button key={m} type="button" onClick={() => setP({ normMode: m })} className={cn("rounded-xl border-2 py-2 text-xs font-semibold", P.normMode === m ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>{m === "peak" ? "Puncak (peak)" : "Rata-rata (RMS)"}</button>
+                  <button key={m} type="button" onClick={() => setP({ normMode: m })} className={cn("rounded-xl border-2 py-2 text-xs font-semibold", P.normMode === m ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>{m === "peak" ? tr("Puncak (peak)") : tr("Rata-rata (RMS)")}</button>
                 ))}
               </div>
-              {P.normMode === "peak" ? <Slider label="Puncak target" value={P.normPeakDb} min={-12} max={0} step={0.1} suffix=" dB" onChange={(v) => setP({ normPeakDb: v })} /> : <Slider label="RMS target" value={P.normRmsDb} min={-30} max={-6} step={0.5} suffix=" dB" onChange={(v) => setP({ normRmsDb: v })} />}
+              {P.normMode === "peak" ? <Slider label={tr("Puncak target")} value={P.normPeakDb} min={-12} max={0} step={0.1} suffix={tr(" dB")} onChange={(v) => setP({ normPeakDb: v })} /> : <Slider label={tr("RMS target")} value={P.normRmsDb} min={-30} max={-6} step={0.5} suffix={tr(" dB")} onChange={(v) => setP({ normRmsDb: v })} />}
             </OpCard>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Fade in / Fade out</p>
-              <Select label="Kurva" value={P.fadeCurve} onChange={(e) => setP({ fadeCurve: e.target.value as OpParams["fadeCurve"] })}>
-                <option value="linear">Linear</option>
-                <option value="exp">Eksponensial (lambat → cepat)</option>
-                <option value="log">Logaritmik (cepat → lambat)</option>
-                <option value="scurve">S-curve (halus)</option>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Fade in / Fade out")}</p>
+              <Select label={tr("Kurva")} value={P.fadeCurve} onChange={(e) => setP({ fadeCurve: e.target.value as OpParams["fadeCurve"] })}>
+                <option value="linear">{tr("Linear")}</option>
+                <option value="exp">{tr("Eksponensial (lambat → cepat)")}</option>
+                <option value="log">{tr("Logaritmik (cepat → lambat)")}</option>
+                <option value="scurve">{tr("S-curve (halus)")}</option>
               </Select>
-              <p className="text-xs text-slate-500">Fade berlaku di sepanjang bagian terpilih (atau seluruh audio jika tak ada seleksi).</p>
+              <p className="text-xs text-slate-500">{tr("Fade berlaku di sepanjang bagian terpilih (atau seluruh audio jika tak ada seleksi).")}</p>
               <div className="grid grid-cols-2 gap-2">
-                <Btn variant="secondary" disabled={disabled} onClick={() => previewOp("fadeIn")}><Headphones className="w-3.5 h-3.5" /> Pratinjau in</Btn>
-                <Btn variant="secondary" disabled={disabled} onClick={() => previewOp("fadeOut")}><Headphones className="w-3.5 h-3.5" /> Pratinjau out</Btn>
-                <Btn disabled={disabled} onClick={() => applyOp("fadeIn")} data-testid="apply-fadeIn">Fade in</Btn>
-                <Btn disabled={disabled} onClick={() => applyOp("fadeOut")} data-testid="apply-fadeOut">Fade out</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={() => previewOp("fadeIn")}><Headphones className="w-3.5 h-3.5" /> {tr("Pratinjau in")}</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={() => previewOp("fadeOut")}><Headphones className="w-3.5 h-3.5" /> {tr("Pratinjau out")}</Btn>
+                <Btn disabled={disabled} onClick={() => applyOp("fadeIn")} data-testid="apply-fadeIn">{tr("Fade in")}</Btn>
+                <Btn disabled={disabled} onClick={() => applyOp("fadeOut")} data-testid="apply-fadeOut">{tr("Fade out")}</Btn>
               </div>
             </div>
-            <OpCard {...cardProps} kind="invert" title="Balik fase" desc="Membalik polaritas gelombang (berguna untuk mengoreksi fase)." />
+            <OpCard {...cardProps} kind="invert" title={tr("Balik fase")} desc={tr("Membalik polaritas gelombang (berguna untuk mengoreksi fase).")} />
           </>
         )}
 
         {tab === "waktu" && (
           <>
-            <OpCard {...cardProps} kind="speed" title="Kecepatan (nada ikut berubah)" desc="Seperti mempercepat/memperlambat kaset: durasi dan nada berubah bersama.">
-              <Slider label="Faktor" value={P.speed} min={0.25} max={4} step={0.05} suffix="×" onChange={(v) => setP({ speed: v })} testId="speed-slider" />
+            <OpCard {...cardProps} kind="speed" title={tr("Kecepatan (nada ikut berubah)")} desc={tr("Seperti mempercepat/memperlambat kaset: durasi dan nada berubah bersama.")}>
+              <Slider label={tr("Faktor")} value={P.speed} min={0.25} max={4} step={0.05} suffix={tr("×")} onChange={(v) => setP({ speed: v })} testId="speed-slider" />
             </OpCard>
-            <OpCard {...cardProps} kind="tempo" title="Tempo (nada tetap)" desc="Ubah durasi tanpa mengubah nada (WSOLA)." applyLabel="Terapkan tempo">
-              <Slider label="Faktor tempo" value={P.tempo} min={0.5} max={2} step={0.05} suffix="×" onChange={(v) => setP({ tempo: v })} testId="tempo-slider" />
+            <OpCard {...cardProps} kind="tempo" title={tr("Tempo (nada tetap)")} desc={tr("Ubah durasi tanpa mengubah nada (WSOLA).")} applyLabel={tr("Terapkan tempo")}>
+              <Slider label={tr("Faktor tempo")} value={P.tempo} min={0.5} max={2} step={0.05} suffix={tr("×")} onChange={(v) => setP({ tempo: v })} testId="tempo-slider" />
             </OpCard>
-            <OpCard {...cardProps} kind="pitch" title="Pitch (durasi tetap)" desc="Naikkan/turunkan nada dalam semiton tanpa mengubah durasi.">
-              <Slider label="Semiton" value={P.pitch} min={-12} max={12} step={1} onChange={(v) => setP({ pitch: v })} testId="pitch-slider" />
+            <OpCard {...cardProps} kind="pitch" title={tr("Pitch (durasi tetap)")} desc={tr("Naikkan/turunkan nada dalam semiton tanpa mengubah durasi.")}>
+              <Slider label={tr("Semiton")} value={P.pitch} min={-12} max={12} step={1} onChange={(v) => setP({ pitch: v })} testId="pitch-slider" />
             </OpCard>
-            <OpCard {...cardProps} kind="resample" title="Ubah sample rate" desc="Konversi seluruh audio ke sample rate lain (durasi tetap)." noPreview>
-              <Select label="Sample rate" value={String(P.sampleRate)} onChange={(e) => setP({ sampleRate: parseInt(e.target.value) })}>
-                {[8000, 11025, 16000, 22050, 32000, 44100, 48000, 96000].map((r) => <option key={r} value={r}>{r} Hz</option>)}
+            <OpCard {...cardProps} kind="resample" title={tr("Ubah sample rate")} desc={tr("Konversi seluruh audio ke sample rate lain (durasi tetap).")} noPreview>
+              <Select label={tr("Sample rate")} value={String(P.sampleRate)} onChange={(e) => setP({ sampleRate: parseInt(e.target.value) })}>
+                {[8000, 11025, 16000, 22050, 32000, 44100, 48000, 96000].map((r) => <option key={r} value={r}>{tr("{0} Hz", r)}</option>)}
               </Select>
             </OpCard>
           </>
@@ -1475,114 +1476,114 @@ export const AudioEditor: React.FC = () => {
         {tab === "eq" && (
           <div className={cn(card, "md:col-span-2")} data-testid="op-eq">
             <div>
-              <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Equalizer 5-band + filter</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Atur frekuensi rendah → tinggi, plus High-pass / Low-pass untuk memotong gemuruh atau desis.</p>
+              <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{tr("Equalizer 5-band + filter")}</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tr("Atur frekuensi rendah → tinggi, plus High-pass / Low-pass untuk memotong gemuruh atau desis.")}</p>
             </div>
             <div className="grid grid-cols-5 gap-3">
               {P.eqBands.map((g, i) => (
-                <Slider key={i} label={eqLabels[i]} value={g} min={-15} max={15} step={0.5} suffix=" dB" onChange={(v) => setP({ eqBands: P.eqBands.map((x, j) => (j === i ? v : x)) })} testId={`eq-${EQ_FREQS[i]}`} />
+                <Slider key={i} label={eqLabels[i]} value={g} min={-15} max={15} step={0.5} suffix={tr(" dB")} onChange={(v) => setP({ eqBands: P.eqBands.map((x, j) => (j === i ? v : x)) })} testId={`eq-${EQ_FREQS[i]}`} />
               ))}
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Slider label="High-pass (0 = mati)" value={P.eqHp} min={0} max={500} step={5} suffix=" Hz" onChange={(v) => setP({ eqHp: v })} />
-              <Slider label="Low-pass (0 = mati)" value={P.eqLp} min={0} max={20000} step={100} suffix=" Hz" onChange={(v) => setP({ eqLp: v })} />
+              <Slider label={tr("High-pass (0 = mati)")} value={P.eqHp} min={0} max={500} step={5} suffix={tr(" Hz")} onChange={(v) => setP({ eqHp: v })} />
+              <Slider label={tr("Low-pass (0 = mati)")} value={P.eqLp} min={0} max={20000} step={100} suffix={tr(" Hz")} onChange={(v) => setP({ eqLp: v })} />
             </div>
             <div className="flex flex-wrap gap-2">
               {([
-                ["Suara jernih", [-3, 0, 1, 3, 1], 80, 0],
-                ["Bass boost", [8, 4, 0, 0, 0], 0, 0],
-                ["Treble boost", [0, 0, 0, 4, 8], 0, 0],
-                ["Telepon", [-12, -4, 6, 4, -12], 300, 3400],
-                ["Radio hangat", [3, 2, 0, -2, -5], 0, 8000],
-                ["Rata", [0, 0, 0, 0, 0], 0, 0],
+                [tr("Suara jernih"), [-3, 0, 1, 3, 1], 80, 0],
+                [tr("Bass boost"), [8, 4, 0, 0, 0], 0, 0],
+                [tr("Treble boost"), [0, 0, 0, 4, 8], 0, 0],
+                [tr("Telepon"), [-12, -4, 6, 4, -12], 300, 3400],
+                [tr("Radio hangat"), [3, 2, 0, -2, -5], 0, 8000],
+                [tr("Rata"), [0, 0, 0, 0, 0], 0, 0],
               ] as [string, number[], number, number][]).map(([l, b, hp, lp]) => (
                 <Btn key={l} variant="secondary" className="text-xs py-1.5" onClick={() => setP({ eqBands: b, eqHp: hp, eqLp: lp })}>{l}</Btn>
               ))}
             </div>
             <div className="flex gap-2">
-              <Btn variant="secondary" className="flex-1" disabled={disabled} onClick={() => previewOp("eq")} data-testid="preview-eq"><Headphones className="w-4 h-4" /> Pratinjau</Btn>
-              <Btn className="flex-1" disabled={disabled} onClick={() => applyOp("eq")} data-testid="apply-eq"><Check className="w-4 h-4" /> Terapkan EQ</Btn>
+              <Btn variant="secondary" className="flex-1" disabled={disabled} onClick={() => previewOp("eq")} data-testid="preview-eq"><Headphones className="w-4 h-4" /> {tr("Pratinjau")}</Btn>
+              <Btn className="flex-1" disabled={disabled} onClick={() => applyOp("eq")} data-testid="apply-eq"><Check className="w-4 h-4" /> {tr("Terapkan EQ")}</Btn>
             </div>
           </div>
         )}
 
         {tab === "efek" && (
           <>
-            <OpCard {...cardProps} kind="compress" title="Kompresor" desc="Meratakan suara keras & pelan — cocok untuk suara/vokal.">
-              <Slider label="Ambang (threshold)" value={P.compThr} min={-60} max={0} suffix=" dB" onChange={(v) => setP({ compThr: v })} />
-              <Slider label="Rasio" value={P.compRatio} min={1} max={20} step={0.5} suffix=":1" onChange={(v) => setP({ compRatio: v })} />
+            <OpCard {...cardProps} kind="compress" title={tr("Kompresor")} desc={tr("Meratakan suara keras & pelan — cocok untuk suara/vokal.")}>
+              <Slider label={tr("Ambang (threshold)")} value={P.compThr} min={-60} max={0} suffix={tr(" dB")} onChange={(v) => setP({ compThr: v })} />
+              <Slider label={tr("Rasio")} value={P.compRatio} min={1} max={20} step={0.5} suffix=":1" onChange={(v) => setP({ compRatio: v })} />
               <div className="grid grid-cols-2 gap-3">
-                <Slider label="Attack" value={P.compAtk} min={1} max={100} suffix=" ms" onChange={(v) => setP({ compAtk: v })} />
-                <Slider label="Release" value={P.compRel} min={20} max={1000} step={10} suffix=" ms" onChange={(v) => setP({ compRel: v })} />
+                <Slider label={tr("Attack")} value={P.compAtk} min={1} max={100} suffix={tr(" ms")} onChange={(v) => setP({ compAtk: v })} />
+                <Slider label={tr("Release")} value={P.compRel} min={20} max={1000} step={10} suffix={tr(" ms")} onChange={(v) => setP({ compRel: v })} />
               </div>
-              <Slider label="Penguatan akhir" value={P.compMakeup} min={0} max={24} step={0.5} suffix=" dB" onChange={(v) => setP({ compMakeup: v })} />
+              <Slider label={tr("Penguatan akhir")} value={P.compMakeup} min={0} max={24} step={0.5} suffix={tr(" dB")} onChange={(v) => setP({ compMakeup: v })} />
             </OpCard>
-            <OpCard {...cardProps} kind="limit" title="Limiter" desc="Menjaga puncak tidak melewati batas (anti-clipping), look-ahead 5 ms.">
-              <Slider label="Batas puncak" value={P.limitCeil} min={-12} max={0} step={0.1} suffix=" dB" onChange={(v) => setP({ limitCeil: v })} />
-              <Slider label="Release" value={P.limitRel} min={10} max={500} step={10} suffix=" ms" onChange={(v) => setP({ limitRel: v })} />
+            <OpCard {...cardProps} kind="limit" title={tr("Limiter")} desc={tr("Menjaga puncak tidak melewati batas (anti-clipping), look-ahead 5 ms.")}>
+              <Slider label={tr("Batas puncak")} value={P.limitCeil} min={-12} max={0} step={0.1} suffix={tr(" dB")} onChange={(v) => setP({ limitCeil: v })} />
+              <Slider label={tr("Release")} value={P.limitRel} min={10} max={500} step={10} suffix={tr(" ms")} onChange={(v) => setP({ limitRel: v })} />
             </OpCard>
-            <OpCard {...cardProps} kind="echo" title="Echo / Delay" desc="Gema berulang dengan umpan balik.">
-              <Slider label="Jeda" value={P.echoDelay} min={30} max={1500} step={10} suffix=" ms" onChange={(v) => setP({ echoDelay: v })} />
-              <Slider label="Umpan balik" value={Math.round(P.echoFb * 100)} min={0} max={90} suffix="%" onChange={(v) => setP({ echoFb: v / 100 })} />
-              <Slider label="Campuran" value={Math.round(P.echoMix * 100)} min={5} max={100} suffix="%" onChange={(v) => setP({ echoMix: v / 100 })} />
-              <GamatoCheckbox checked={P.extendTail} onChange={(v) => setP({ extendTail: v })} label="Perpanjang ekor di akhir audio" />
-              {P.extendTail && <Slider label="Panjang ekor" value={P.echoTail} min={0.2} max={6} step={0.1} suffix=" s" onChange={(v) => setP({ echoTail: v })} />}
+            <OpCard {...cardProps} kind="echo" title={tr("Echo / Delay")} desc={tr("Gema berulang dengan umpan balik.")}>
+              <Slider label={tr("Jeda")} value={P.echoDelay} min={30} max={1500} step={10} suffix={tr(" ms")} onChange={(v) => setP({ echoDelay: v })} />
+              <Slider label={tr("Umpan balik")} value={Math.round(P.echoFb * 100)} min={0} max={90} suffix="%" onChange={(v) => setP({ echoFb: v / 100 })} />
+              <Slider label={tr("Campuran")} value={Math.round(P.echoMix * 100)} min={5} max={100} suffix="%" onChange={(v) => setP({ echoMix: v / 100 })} />
+              <GamatoCheckbox checked={P.extendTail} onChange={(v) => setP({ extendTail: v })} label={tr("Perpanjang ekor di akhir audio")} />
+              {P.extendTail && <Slider label={tr("Panjang ekor")} value={P.echoTail} min={0.2} max={6} step={0.1} suffix={tr(" s")} onChange={(v) => setP({ echoTail: v })} />}
             </OpCard>
-            <OpCard {...cardProps} kind="reverb" title="Reverb" desc="Gema ruangan (Freeverb): ruang kecil → aula besar.">
-              <Slider label="Ukuran ruang" value={Math.round(P.revRoom * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revRoom: v / 100 })} />
-              <Slider label="Peredam (damping)" value={Math.round(P.revDamp * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revDamp: v / 100 })} />
-              <Slider label="Basah (wet)" value={Math.round(P.revWet * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revWet: v / 100 })} />
+            <OpCard {...cardProps} kind="reverb" title={tr("Reverb")} desc={tr("Gema ruangan (Freeverb): ruang kecil → aula besar.")}>
+              <Slider label={tr("Ukuran ruang")} value={Math.round(P.revRoom * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revRoom: v / 100 })} />
+              <Slider label={tr("Peredam (damping)")} value={Math.round(P.revDamp * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revDamp: v / 100 })} />
+              <Slider label={tr("Basah (wet)")} value={Math.round(P.revWet * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revWet: v / 100 })} />
               <div className="grid grid-cols-2 gap-3">
-                <Slider label="Pre-delay" value={P.revPre} min={0} max={100} suffix=" ms" onChange={(v) => setP({ revPre: v })} />
-                <Slider label="Lebar stereo" value={Math.round(P.revWidth * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revWidth: v / 100 })} />
+                <Slider label={tr("Pre-delay")} value={P.revPre} min={0} max={100} suffix={tr(" ms")} onChange={(v) => setP({ revPre: v })} />
+                <Slider label={tr("Lebar stereo")} value={Math.round(P.revWidth * 100)} min={0} max={100} suffix="%" onChange={(v) => setP({ revWidth: v / 100 })} />
               </div>
-              <GamatoCheckbox checked={P.extendTail} onChange={(v) => setP({ extendTail: v })} label="Perpanjang ekor di akhir audio" />
-              {P.extendTail && <Slider label="Panjang ekor" value={P.revTail} min={0.5} max={8} step={0.1} suffix=" s" onChange={(v) => setP({ revTail: v })} />}
+              <GamatoCheckbox checked={P.extendTail} onChange={(v) => setP({ extendTail: v })} label={tr("Perpanjang ekor di akhir audio")} />
+              {P.extendTail && <Slider label={tr("Panjang ekor")} value={P.revTail} min={0.5} max={8} step={0.1} suffix={tr(" s")} onChange={(v) => setP({ revTail: v })} />}
             </OpCard>
           </>
         )}
 
         {tab === "bersih" && (
           <>
-            <OpCard {...cardProps} kind="gate" title="Noise gate" desc="Menekan desis/noise latar saat tidak ada suara.">
-              <Slider label="Ambang" value={P.gateThr} min={-80} max={-10} suffix=" dB" onChange={(v) => setP({ gateThr: v })} />
-              <Slider label="Peredaman" value={P.gateRed} min={6} max={90} suffix=" dB" onChange={(v) => setP({ gateRed: v })} />
+            <OpCard {...cardProps} kind="gate" title={tr("Noise gate")} desc={tr("Menekan desis/noise latar saat tidak ada suara.")}>
+              <Slider label={tr("Ambang")} value={P.gateThr} min={-80} max={-10} suffix={tr(" dB")} onChange={(v) => setP({ gateThr: v })} />
+              <Slider label={tr("Peredaman")} value={P.gateRed} min={6} max={90} suffix={tr(" dB")} onChange={(v) => setP({ gateRed: v })} />
               <div className="grid grid-cols-2 gap-3">
-                <Slider label="Attack" value={P.gateAtk} min={1} max={50} suffix=" ms" onChange={(v) => setP({ gateAtk: v })} />
-                <Slider label="Release" value={P.gateRel} min={20} max={800} step={10} suffix=" ms" onChange={(v) => setP({ gateRel: v })} />
+                <Slider label={tr("Attack")} value={P.gateAtk} min={1} max={50} suffix={tr(" ms")} onChange={(v) => setP({ gateAtk: v })} />
+                <Slider label={tr("Release")} value={P.gateRel} min={20} max={800} step={10} suffix={tr(" ms")} onChange={(v) => setP({ gateRel: v })} />
               </div>
             </OpCard>
             <div className={card} data-testid="op-silence">
               <div>
-                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Hapus / pangkas hening</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cocok untuk merapikan rekaman bicara.</p>
+                <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{tr("Hapus / pangkas hening")}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tr("Cocok untuk merapikan rekaman bicara.")}</p>
               </div>
-              <Slider label="Dianggap hening di bawah" value={P.silThr} min={-80} max={-20} suffix=" dB" onChange={(v) => setP({ silThr: v })} testId="sil-thr" />
-              <Slider label="Minimal durasi hening" value={P.silMin} min={100} max={3000} step={50} suffix=" ms" onChange={(v) => setP({ silMin: v })} />
-              <Slider label="Sisakan jeda" value={P.silKeep} min={0} max={1000} step={25} suffix=" ms" onChange={(v) => setP({ silKeep: v })} />
+              <Slider label={tr("Dianggap hening di bawah")} value={P.silThr} min={-80} max={-20} suffix={tr(" dB")} onChange={(v) => setP({ silThr: v })} testId="sil-thr" />
+              <Slider label={tr("Minimal durasi hening")} value={P.silMin} min={100} max={3000} step={50} suffix={tr(" ms")} onChange={(v) => setP({ silMin: v })} />
+              <Slider label={tr("Sisakan jeda")} value={P.silKeep} min={0} max={1000} step={25} suffix={tr(" ms")} onChange={(v) => setP({ silKeep: v })} />
               <div className="grid grid-cols-2 gap-2">
-                <Btn variant="secondary" disabled={disabled} onClick={() => applyOp("trimSilence")} data-testid="apply-trimSilence">Pangkas hening di tepi</Btn>
-                <Btn disabled={disabled} onClick={() => applyOp("removeSilence")} data-testid="apply-removeSilence">Persingkat semua hening</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={() => applyOp("trimSilence")} data-testid="apply-trimSilence">{tr("Pangkas hening di tepi")}</Btn>
+                <Btn disabled={disabled} onClick={() => applyOp("removeSilence")} data-testid="apply-removeSilence">{tr("Persingkat semua hening")}</Btn>
               </div>
-              <Btn variant="secondary" className="w-full text-xs" disabled={disabled} onClick={() => previewOp("removeSilence")}><Headphones className="w-3.5 h-3.5" /> Pratinjau</Btn>
+              <Btn variant="secondary" className="w-full text-xs" disabled={disabled} onClick={() => previewOp("removeSilence")}><Headphones className="w-3.5 h-3.5" /> {tr("Pratinjau")}</Btn>
             </div>
-            <OpCard {...cardProps} kind="dc" title="Hapus DC offset" desc="Memusatkan gelombang di nol (menghilangkan 'klik' & offset)." noPreview />
+            <OpCard {...cardProps} kind="dc" title={tr("Hapus DC offset")} desc={tr("Memusatkan gelombang di nol (menghilangkan 'klik' & offset).")} noPreview />
           </>
         )}
 
         {tab === "kanal" && (
           <>
-            <OpCard {...cardProps} kind="mono" title="Jadikan mono" desc="Gabungkan semua kanal jadi satu (file lebih kecil)." noPreview />
-            <OpCard {...cardProps} kind="stereo" title="Jadikan stereo" desc="Gandakan mono ke dua kanal." noPreview />
-            <OpCard {...cardProps} kind="swap" title="Tukar kiri ↔ kanan" noPreview />
-            <OpCard {...cardProps} kind="pan" title="Pan / balance" desc="Geser suara ke kiri atau kanan (daya konstan).">
-              <Slider label="Pan (−100 kiri … +100 kanan)" value={Math.round(P.pan * 100)} min={-100} max={100} onChange={(v) => setP({ pan: v / 100 })} />
+            <OpCard {...cardProps} kind="mono" title={tr("Jadikan mono")} desc={tr("Gabungkan semua kanal jadi satu (file lebih kecil).")} noPreview />
+            <OpCard {...cardProps} kind="stereo" title={tr("Jadikan stereo")} desc={tr("Gandakan mono ke dua kanal.")} noPreview />
+            <OpCard {...cardProps} kind="swap" title={tr("Tukar kiri ↔ kanan")} noPreview />
+            <OpCard {...cardProps} kind="pan" title={tr("Pan / balance")} desc={tr("Geser suara ke kiri atau kanan (daya konstan).")}>
+              <Slider label={tr("Pan (−100 kiri … +100 kanan)")} value={Math.round(P.pan * 100)} min={-100} max={100} onChange={(v) => setP({ pan: v / 100 })} />
             </OpCard>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Pakai satu kanal saja</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">{tr("Pakai satu kanal saja")}</p>
               <div className="grid grid-cols-2 gap-2">
-                <Btn variant="secondary" disabled={disabled || pcm.channels.length < 2} onClick={() => applyOp("keepL")}>Hanya kiri</Btn>
-                <Btn variant="secondary" disabled={disabled || pcm.channels.length < 2} onClick={() => applyOp("keepR")}>Hanya kanan</Btn>
+                <Btn variant="secondary" disabled={disabled || pcm.channels.length < 2} onClick={() => applyOp("keepL")}>{tr("Hanya kiri")}</Btn>
+                <Btn variant="secondary" disabled={disabled || pcm.channels.length < 2} onClick={() => applyOp("keepR")}>{tr("Hanya kanan")}</Btn>
               </div>
             </div>
           </>
@@ -1591,28 +1592,28 @@ export const AudioEditor: React.FC = () => {
         {tab === "tambah" && (
           <>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Tambah Audio Lain</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Tambah Audio Lain")}</p>
               <div className="grid grid-cols-1 gap-2">
-                <Btn variant="secondary" disabled={disabled} onClick={() => askFile("insert")} data-testid="btn-insert-file"><Upload className="w-4 h-4" /> Sisipkan di kursor ({formatClock(cursor / sr)})</Btn>
-                <Btn variant="secondary" disabled={disabled} onClick={() => askFile("append")} data-testid="btn-append-file"><Plus className="w-4 h-4" /> Gabung di akhir</Btn>
-                <Btn variant="secondary" disabled={disabled} onClick={() => askFile("mix")} data-testid="btn-mix-file"><Layers className="w-4 h-4" /> Campur (overlay) mulai kursor</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={() => askFile("insert")} data-testid="btn-insert-file"><Upload className="w-4 h-4" />{" "}{tr("Sisipkan di kursor ({0})", formatClock(cursor / sr))}</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={() => askFile("append")} data-testid="btn-append-file"><Plus className="w-4 h-4" /> {tr("Gabung di akhir")}</Btn>
+                <Btn variant="secondary" disabled={disabled} onClick={() => askFile("mix")} data-testid="btn-mix-file"><Layers className="w-4 h-4" /> {tr("Campur (overlay) mulai kursor")}</Btn>
               </div>
             </div>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Sisipkan Hening</p>
-              <Slider label="Durasi" value={P.insertSilenceSec} min={0.1} max={30} step={0.1} suffix=" s" onChange={(v) => setP({ insertSilenceSec: v })} />
-              <Btn className="w-full" disabled={disabled} onClick={() => applyOp("insertSilence")} data-testid="apply-insertSilence"><Plus className="w-4 h-4" /> Sisipkan di kursor</Btn>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Sisipkan Hening")}</p>
+              <Slider label={tr("Durasi")} value={P.insertSilenceSec} min={0.1} max={30} step={0.1} suffix={tr(" s")} onChange={(v) => setP({ insertSilenceSec: v })} />
+              <Btn className="w-full" disabled={disabled} onClick={() => applyOp("insertSilence")} data-testid="apply-insertSilence"><Plus className="w-4 h-4" /> {tr("Sisipkan di kursor")}</Btn>
             </div>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Rekam dari Mikrofon</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Rekam dari Mikrofon")}</p>
               {recording ? (
-                <Btn variant="danger" className="w-full" onClick={stopRecording} data-testid="rec-stop"><Square className="w-4 h-4" /> Berhenti & sisipkan ({recording.sec.toFixed(1)}s)</Btn>
+                <Btn variant="danger" className="w-full" onClick={stopRecording} data-testid="rec-stop"><Square className="w-4 h-4" />{" "}{tr("Berhenti & sisipkan ({0}s)", recording.sec.toFixed(1))}</Btn>
               ) : (
-                <Btn variant="secondary" className="w-full" disabled={disabled} onClick={startRecording} data-testid="rec-start"><Mic className="w-4 h-4" /> Mulai rekam (disisipkan di kursor)</Btn>
+                <Btn variant="secondary" className="w-full" disabled={disabled} onClick={startRecording} data-testid="rec-start"><Mic className="w-4 h-4" /> {tr("Mulai rekam (disisipkan di kursor)")}</Btn>
               )}
-              {mics.length > 1 && !recording && <MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker-panel" />}
+              {mics.length > 1 && !recording && <MediaDevicePicker label={tr("Mikrofon")} devices={mics} value={micId} onChange={setMicId} testId="mic-picker-panel" />}
               <GamatoPermissionNotice failure={micFail} onRetry={startRecording} onDismiss={() => setMicFail(null)} />
-              <p className="text-[11px] text-slate-400">Butuh izin mikrofon. Rekaman diproses di perangkatmu.</p>
+              <p className="text-[11px] text-slate-400">{tr("Butuh izin mikrofon. Rekaman diproses di perangkatmu.")}</p>
             </div>
           </>
         )}
@@ -1621,25 +1622,25 @@ export const AudioEditor: React.FC = () => {
           <>
             <div className={card}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Marker ({markers.length})</p>
-                <Btn variant="secondary" className="text-xs py-1.5" disabled={disabled} onClick={() => addMarker()} data-testid="btn-add-marker"><Flag className="w-3.5 h-3.5" /> Tambah di kursor (M)</Btn>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Marker ({0})", markers.length)}</p>
+                <Btn variant="secondary" className="text-xs py-1.5" disabled={disabled} onClick={() => addMarker()} data-testid="btn-add-marker"><Flag className="w-3.5 h-3.5" /> {tr("Tambah di kursor (M)")}</Btn>
               </div>
               <div className="space-y-2 max-h-72 overflow-y-auto" data-testid="marker-list">
-                {markers.length === 0 && <p className="text-xs text-slate-400">Belum ada marker. Tekan M saat memutar atau di posisi kursor.</p>}
+                {markers.length === 0 && <p className="text-xs text-slate-400">{tr("Belum ada marker. Tekan M saat memutar atau di posisi kursor.")}</p>}
                 {markers.map((m) => (
                   <div key={m.id} className="flex items-center gap-2">
                     <button type="button" className="font-mono text-xs text-indigo-600 dark:text-indigo-300 w-24 text-left" onClick={() => { setCursor(m.frame); setView((v) => clampView(m.frame - (v.fpp * wavW) / 2, v.fpp)); }}>{formatClock(m.frame / sr)}</button>
-                    <input defaultValue={m.label} key={m.id + m.label} onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== m.label) renameMarker(m.id, v); }} className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs" aria-label="Nama marker" />
-                    <button type="button" onClick={() => removeMarker(m.id)} className="p-1.5 text-slate-400 hover:text-red-500" aria-label="Hapus marker"><X className="w-4 h-4" /></button>
+                    <input defaultValue={m.label} key={m.id + m.label} onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== m.label) renameMarker(m.id, v); }} className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs" aria-label={tr("Nama marker")} />
+                    <button type="button" onClick={() => removeMarker(m.id)} className="p-1.5 text-slate-400 hover:text-red-500" aria-label={tr("Hapus marker")}><X className="w-4 h-4" /></button>
                   </div>
                 ))}
               </div>
             </div>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Marker Otomatis dari Hening</p>
-              <Slider label="Hening di bawah" value={P.silThr} min={-80} max={-20} suffix=" dB" onChange={(v) => setP({ silThr: v })} />
-              <Slider label="Minimal durasi" value={P.silMin} min={100} max={3000} step={50} suffix=" ms" onChange={(v) => setP({ silMin: v })} />
-              <Btn variant="secondary" className="w-full" disabled={disabled} onClick={markersFromSilence} data-testid="btn-markers-silence">Buat marker di akhir tiap hening</Btn>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Marker Otomatis dari Hening")}</p>
+              <Slider label={tr("Hening di bawah")} value={P.silThr} min={-80} max={-20} suffix={tr(" dB")} onChange={(v) => setP({ silThr: v })} />
+              <Slider label={tr("Minimal durasi")} value={P.silMin} min={100} max={3000} step={50} suffix={tr(" ms")} onChange={(v) => setP({ silMin: v })} />
+              <Btn variant="secondary" className="w-full" disabled={disabled} onClick={markersFromSilence} data-testid="btn-markers-silence">{tr("Buat marker di akhir tiap hening")}</Btn>
             </div>
           </>
         )}
@@ -1647,43 +1648,43 @@ export const AudioEditor: React.FC = () => {
         {tab === "ekspor" && (
           <>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Ekspor Audio</p>
-              <Input label="Nama file" value={expName} onChange={(e) => setExpName(e.target.value)} data-testid="exp-name" />
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Ekspor Audio")}</p>
+              <Input label={tr("Nama file")} value={expName} onChange={(e) => setExpName(e.target.value)} data-testid="exp-name" />
               <div className="grid grid-cols-2 gap-3">
-                <Select label="Format" value={expFormat} onChange={(e) => setExpFormat(e.target.value as typeof expFormat)} data-testid="exp-format">
-                  <option value="wav16">WAV 16-bit (umum)</option>
-                  <option value="wav24">WAV 24-bit (studio)</option>
-                  <option value="wav32">WAV 32-bit float</option>
-                  <option value="mp3">MP3 (universal, kecil)</option>
-                  <option value="opus" disabled={!getBestCompressedAudioFormat()}>Opus (kecil, real-time)</option>
+                <Select label={tr("Format")} value={expFormat} onChange={(e) => setExpFormat(e.target.value as typeof expFormat)} data-testid="exp-format">
+                  <option value="wav16">{tr("WAV 16-bit (umum)")}</option>
+                  <option value="wav24">{tr("WAV 24-bit (studio)")}</option>
+                  <option value="wav32">{tr("WAV 32-bit float")}</option>
+                  <option value="mp3">{tr("MP3 (universal, kecil)")}</option>
+                  <option value="opus" disabled={!getBestCompressedAudioFormat()}>{tr("Opus (kecil, real-time)")}</option>
                 </Select>
-                <Select label="Bagian" value={expScope} onChange={(e) => setExpScope(e.target.value as "all" | "sel")} data-testid="exp-scope">
-                  <option value="all">Seluruh audio</option>
-                  <option value="sel" disabled={!hasSel}>Seleksi saja</option>
+                <Select label={tr("Bagian")} value={expScope} onChange={(e) => setExpScope(e.target.value as "all" | "sel")} data-testid="exp-scope">
+                  <option value="all">{tr("Seluruh audio")}</option>
+                  <option value="sel" disabled={!hasSel}>{tr("Seleksi saja")}</option>
                 </Select>
-                <Select label="Sample rate" value={String(expRate)} onChange={(e) => setExpRate(parseInt(e.target.value))} data-testid="exp-rate">
-                  <option value="0">Asli ({sr} Hz)</option>
-                  {[8000, 16000, 22050, 32000, 44100, 48000].map((r) => <option key={r} value={r}>{r} Hz</option>)}
+                <Select label={tr("Sample rate")} value={String(expRate)} onChange={(e) => setExpRate(parseInt(e.target.value))} data-testid="exp-rate">
+                  <option value="0">{tr("Asli ({0} Hz)", sr)}</option>
+                  {[8000, 16000, 22050, 32000, 44100, 48000].map((r) => <option key={r} value={r}>{tr("{0} Hz", r)}</option>)}
                 </Select>
                 <div className="pt-6 space-y-2">
-                  <GamatoCheckbox checked={expMono} onChange={setExpMono} label="Jadikan mono" testId="exp-mono" />
-                  <GamatoCheckbox checked={expNorm} onChange={setExpNorm} label="Normalisasi −1 dB" testId="exp-norm" />
+                  <GamatoCheckbox checked={expMono} onChange={setExpMono} label={tr("Jadikan mono")} testId="exp-mono" />
+                  <GamatoCheckbox checked={expNorm} onChange={setExpNorm} label={tr("Normalisasi −1 dB")} testId="exp-norm" />
                 </div>
               </div>
               {expFormat === "mp3" && (
-                <Select label="Kualitas MP3 (bitrate)" value={String(expKbps)} onChange={(e) => setExpKbps(parseInt(e.target.value))} data-testid="exp-kbps">
-                  {MP3_BITRATES.map((k) => <option key={k} value={k}>{k} kbps{k === 192 ? " (seimbang)" : k === 320 ? " (maksimum)" : k === 128 ? " (standar)" : ""}</option>)}
+                <Select label={tr("Kualitas MP3 (bitrate)")} value={String(expKbps)} onChange={(e) => setExpKbps(parseInt(e.target.value))} data-testid="exp-kbps">
+                  {MP3_BITRATES.map((k) => <option key={k} value={k}>{tr("{0} kbps", k)}{k === 192 ? tr(" (seimbang)") : k === 320 ? tr(" (maksimum)") : k === 128 ? tr(" (standar)") : ""}</option>)}
                 </Select>
               )}
-              {expFormat !== "wav32" && expFormat !== "opus" && expFormat !== "mp3" && <GamatoCheckbox checked={expDither} onChange={setExpDither} label="Dither (TPDF) — kualitas lebih halus saat dikurangi bit-nya" />}
-              <Btn className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" disabled={disabled} onClick={doExport} data-testid="btn-export"><Download className="w-4 h-4" /> Unduh audio</Btn>
-              {expFormat === "opus" && <p className="text-[11px] text-amber-600">Opus diproses real-time: durasi proses ≈ durasi audio.</p>}
+              {expFormat !== "wav32" && expFormat !== "opus" && expFormat !== "mp3" && <GamatoCheckbox checked={expDither} onChange={setExpDither} label={tr("Dither (TPDF) — kualitas lebih halus saat dikurangi bit-nya")} />}
+              <Btn className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" disabled={disabled} onClick={doExport} data-testid="btn-export"><Download className="w-4 h-4" /> {tr("Unduh audio")}</Btn>
+              {expFormat === "opus" && <p className="text-[11px] text-amber-600">{tr("Opus diproses real-time: durasi proses ≈ durasi audio.")}</p>}
             </div>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Ekspor per Marker</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Potong audio di setiap marker menjadi file WAV terpisah, lalu unduh sebagai ZIP. Pakai pengaturan sample rate / mono / normalisasi di kiri.</p>
-              <Btn variant="secondary" className="w-full" disabled={disabled || markers.length === 0} onClick={doExportMarkers} data-testid="btn-export-markers"><Download className="w-4 h-4" /> Unduh ZIP ({markers.length + 1} bagian)</Btn>
-              {markers.length === 0 && <p className="text-[11px] text-slate-400">Tambahkan marker di tab Marker dulu.</p>}
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Ekspor per Marker")}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{tr("Potong audio di setiap marker menjadi file WAV terpisah, lalu unduh sebagai ZIP. Pakai pengaturan sample rate / mono / normalisasi di kiri.")}</p>
+              <Btn variant="secondary" className="w-full" disabled={disabled || markers.length === 0} onClick={doExportMarkers} data-testid="btn-export-markers"><Download className="w-4 h-4" />{" "}{tr("Unduh ZIP ({0} bagian)", markers.length + 1)}</Btn>
+              {markers.length === 0 && <p className="text-[11px] text-slate-400">{tr("Tambahkan marker di tab Marker dulu.")}</p>}
             </div>
           </>
         )}
@@ -1692,18 +1693,18 @@ export const AudioEditor: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <ToolInfoPanel
           icon={<Info className="w-5 h-5" />}
-          label="Pintasan Keyboard"
-          desc="Klik waveform dulu agar pintasan aktif"
-          points={["Spasi: putar/jeda · L: ulangi · M: marker · Home/End: awal/akhir · ←/→: geser kursor (Shift = 1 dtk)", "Ctrl+A pilih semua · Ctrl+X/C/V potong/salin/tempel · Delete hapus · Ctrl+Z / Ctrl+Y undo/redo", "+/− zoom · Ctrl+scroll zoom di posisi mouse · scroll = geser · klik dua kali = pilih semua"]}
+          label={tr("Pintasan Keyboard")}
+          desc={tr("Klik waveform dulu agar pintasan aktif")}
+          points={[tr("Spasi: putar/jeda · L: ulangi · M: marker · Home/End: awal/akhir · ←/→: geser kursor (Shift = 1 dtk)"), tr("Ctrl+A pilih semua · Ctrl+X/C/V potong/salin/tempel · Delete hapus · Ctrl+Z / Ctrl+Y undo/redo"), tr("+/− zoom · Ctrl+scroll zoom di posisi mouse · scroll = geser · klik dua kali = pilih semua")]}
         />
         <ToolInfoPanel
           icon={<Sliders className="w-5 h-5" />}
-          label="Catatan Teknis"
-          desc="Cara kerja & batasan"
+          label={tr("Catatan Teknis")}
+          desc={tr("Cara kerja & batasan")}
           points={[
-            "Semua pemrosesan di browser; audio tidak diunggah. Kualitas internal 32-bit float.",
-            "Sample rate file WAV/MP3 dipertahankan; format lain dibaca di sample rate browser lalu bisa diubah lewat tab Kecepatan.",
-            "Efek diterapkan ke seleksi dengan crossfade 4 ms di tepi sehingga tidak ada bunyi klik.",
+            tr("Semua pemrosesan di browser; audio tidak diunggah. Kualitas internal 32-bit float."),
+            tr("Sample rate file WAV/MP3 dipertahankan; format lain dibaca di sample rate browser lalu bisa diubah lewat tab Kecepatan."),
+            tr("Efek diterapkan ke seleksi dengan crossfade 4 ms di tepi sehingga tidak ada bunyi klik."),
           ]}
         />
       </div>

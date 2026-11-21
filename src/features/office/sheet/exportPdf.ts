@@ -4,6 +4,7 @@
 // with the rest of the app and gets the Gamato branding stamp for free.
 import { gridToPdfBlob } from "@/lib/pdfTable";
 import { cellKey, computeSheet, formatCellValue, type SheetData } from "./sheetModel";
+import { tr } from "@/i18n";
 
 export async function sheetToPdfBlob(sheet: SheetData): Promise<Blob> {
   const values = computeSheet(sheet);
@@ -34,5 +35,5 @@ export async function sheetToPdfBlob(sheet: SheetData): Promise<Blob> {
     grid.push(row);
   }
 
-  return gridToPdfBlob(grid, sheet.name || "Sheet Studio");
+  return gridToPdfBlob(grid, sheet.name || tr("Sheet Studio"));
 }

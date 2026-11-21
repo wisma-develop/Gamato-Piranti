@@ -9,6 +9,7 @@
 import JSZip from "jszip";
 import { isErrorValue, type CellAddr, type EvalResult } from "./formulaEngine";
 import { cellKey, computeSheet, type CellFormat, type SheetData } from "./sheetModel";
+import { tr } from "@/i18n";
 
 function escapeXml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
@@ -69,12 +70,12 @@ function collectStyles(sheet: SheetData): { keyToIndex: Map<string, number>; ent
 function buildStylesXml(entries: StyleEntry[]): string {
   // Fonts: index 0 = default. One font per distinct bold/italic/underline/color combo.
   const fontKeyToIndex = new Map<string, number>();
-  const fonts: string[] = [`<font><sz val="10"/><name val="Calibri"/></font>`];
+  const fonts: string[] = [tr("<font><sz val=\"10\"/><name val=\"Calibri\"/></font>")];
   fontKeyToIndex.set("__default__", 0);
 
   // Fills: index 0 and 1 are reserved by the OOXML spec (none, gray125).
   const fillKeyToIndex = new Map<string, number>();
-  const fills: string[] = [`<fill><patternFill patternType="none"/></fill>`, `<fill><patternFill patternType="gray125"/></fill>`];
+  const fills: string[] = [tr("<fill><patternFill patternType=\"none\"/></fill>"), tr("<fill><patternFill patternType=\"gray125\"/></fill>")];
 
   const cellXfs: string[] = [`<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>`]; // index 0 = default
 
@@ -84,7 +85,7 @@ function buildStylesXml(entries: StyleEntry[]): string {
     let fontId = fontKeyToIndex.get(fontKey);
     if (fontId === undefined) {
       const argb = hexToArgb(fmt.color);
-      const parts = [`<sz val="10"/>`, `<name val="Calibri"/>`];
+      const parts = [`<sz val="10"/>`, tr("<name val=\"Calibri\"/>")];
       if (fmt.bold) parts.push(`<b/>`);
       if (fmt.italic) parts.push(`<i/>`);
       if (fmt.underline) parts.push(`<u/>`);
@@ -103,29 +104,20 @@ function buildStylesXml(entries: StyleEntry[]): string {
         fillId = existing;
       } else {
         fillId = fills.length;
-        fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="${bgArgb}"/><bgColor indexed="64"/></patternFill></fill>`);
+        fills.push(tr("<fill><patternFill patternType=\"solid\"><fgColor rgb=\"{0}\"/><bgColor indexed=\"64\"/></patternFill></fill>", bgArgb));
         fillKeyToIndex.set(fillKey, fillId);
       }
     }
 
     const numFmtId = fmt.numberFormat ? NUMFMT_ID[fmt.numberFormat] : 0;
     const align = fmt.align && fmt.align !== "left" ? ` applyAlignment="1"` : "";
-    const alignTag = fmt.align && fmt.align !== "left" ? `<alignment horizontal="${fmt.align}"/>` : "";
+    const alignTag = fmt.align && fmt.align !== "left" ? tr("<alignment horizontal=\"{0}\"/>", fmt.align) : "";
     cellXfs.push(
       `<xf numFmtId="${numFmtId}" fontId="${fontId}" fillId="${fillId}" borderId="0" xfId="0" applyFont="1" applyFill="1" applyNumberFormat="1"${align}>${alignTag}</xf>`
     );
   }
 
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<numFmts count="1"><numFmt numFmtId="164" formatCode="&quot;Rp&quot;#,##0"/></numFmts>
-<fonts count="${fonts.length}">${fonts.join("")}</fonts>
-<fills count="${fills.length}">${fills.join("")}</fills>
-<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
-<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="${cellXfs.length}">${cellXfs.join("")}</cellXfs>
-<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
-</styleSheet>`;
+  return tr("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">\n<numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"&quot;Rp&quot;#,##0\"/></numFmts>\n<fonts count=\"{0}\">{1}</fonts>\n<fills count=\"{2}\">{3}</fills>\n<borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders>\n<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>\n<cellXfs count=\"{4}\">{5}</cellXfs>\n<cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles>\n</styleSheet>", fonts.length, fonts.join(""), fills.length, fills.join(""), cellXfs.length, cellXfs.join(""));
 }
 
 export async function sheetToXlsxBlob(sheet: SheetData): Promise<Blob> {
@@ -187,40 +179,22 @@ export async function sheetToXlsxBlob(sheet: SheetData): Promise<Blob> {
 
   zip.file(
     "[Content_Types].xml",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-<Default Extension="xml" ContentType="application/xml"/>
-<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
-</Types>`
+    tr("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">\n<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>\n<Default Extension=\"xml\" ContentType=\"application/xml\"/>\n<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>\n<Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>\n<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>\n</Types>")
   );
 
   zip.file(
     "_rels/.rels",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>`
+    tr("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/>\n</Relationships>")
   );
 
   zip.file(
     "xl/workbook.xml",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets><sheet name="${escapeXml(sheet.name || "Sheet1")}" sheetId="1" r:id="rId1"/></sheets>
-<calcPr fullCalcOnLoad="1"/>
-</workbook>`
+    tr("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">\n<sheets><sheet name=\"{0}\" sheetId=\"1\" r:id=\"rId1\"/></sheets>\n<calcPr fullCalcOnLoad=\"1\"/>\n</workbook>", escapeXml(sheet.name || tr("Sheet1")))
   );
 
   zip.file(
     "xl/_rels/workbook.xml.rels",
-    `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-</Relationships>`
+    tr("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">\n<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/>\n<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>\n</Relationships>")
   );
 
   zip.file("xl/styles.xml", buildStylesXml(entries));

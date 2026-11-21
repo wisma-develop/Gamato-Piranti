@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // ─── Slide Studio — Data Model & Canvas Renderer ───────────────────────────
 // Pure data-layer module. The editor renders slides as absolutely-positioned
 // DOM elements (for easy click/drag/resize interaction); this module renders
@@ -99,7 +100,7 @@ export function createTitleSlide(title: string, subtitle?: string): Slide {
 }
 
 export function createEmptyDeck(): Deck {
-  return { title: "Presentasi Baru", slides: [createTitleSlide("Judul Presentasi", "Subjudul atau nama penulis")] };
+  return { title: tr("Presentasi Baru"), slides: [createTitleSlide(tr("Judul Presentasi"), tr("Subjudul atau nama penulis"))] };
 }
 
 // ─── Canvas rendering (shared by live thumbnail preview + export) ────────

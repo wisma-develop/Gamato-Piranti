@@ -9,6 +9,7 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import type { SlideElement, TextAlign } from "./slideModel";
 import { AnchoredPortal, useOutsideClose } from "@/components/ui/AnchoredPortal";
+import { tr } from "@/i18n";
 
 const ToolBtn: React.FC<{ active?: boolean; onClick: () => void; title: string; children: React.ReactNode; disabled?: boolean }> = ({
   active,
@@ -89,26 +90,26 @@ export const SlideToolbar: React.FC<{
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-sm">
-      <ToolBtn title="Urungkan (Ctrl+Z)" onClick={onUndo} disabled={!canUndo}>
+      <ToolBtn title={tr("Urungkan (Ctrl+Z)")} onClick={onUndo} disabled={!canUndo}>
         <Undo2 className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Ulangi (Ctrl+Y)" onClick={onRedo} disabled={!canRedo}>
+      <ToolBtn title={tr("Ulangi (Ctrl+Y)")} onClick={onRedo} disabled={!canRedo}>
         <Redo2 className="w-4 h-4" />
       </ToolBtn>
       <Sep />
-      <ToolBtn title="Tambah Kotak Teks" onClick={onAddText}>
+      <ToolBtn title={tr("Tambah Kotak Teks")} onClick={onAddText}>
         <Type className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Tambah Persegi" onClick={() => onAddShape("rect")}>
+      <ToolBtn title={tr("Tambah Persegi")} onClick={() => onAddShape("rect")}>
         <Square className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Tambah Lingkaran" onClick={() => onAddShape("ellipse")}>
+      <ToolBtn title={tr("Tambah Lingkaran")} onClick={() => onAddShape("ellipse")}>
         <Circle className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Tambah Garis" onClick={() => onAddShape("line")}>
+      <ToolBtn title={tr("Tambah Garis")} onClick={() => onAddShape("line")}>
         <Minus className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Tambah Gambar" onClick={() => imageInputRef.current?.click()}>
+      <ToolBtn title={tr("Tambah Gambar")} onClick={() => imageInputRef.current?.click()}>
         <ImagePlus className="w-4 h-4" />
       </ToolBtn>
       <input
@@ -124,26 +125,26 @@ export const SlideToolbar: React.FC<{
       />
       <Sep />
       <div className="flex items-center gap-1">
-        <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 hidden sm:inline">Latar</span>
-        <GamatoColorPicker compact label="Warna latar slide" value={background} onChange={onSetBackground} />
+        <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 hidden sm:inline">{tr("Latar")}</span>
+        <GamatoColorPicker compact label={tr("Warna latar slide")} value={background} onChange={onSetBackground} />
       </div>
 
       {textEl && (
         <>
           <Sep />
-          <ToolBtn title="Tebal" active={!!textEl.bold} onClick={() => onUpdateText({ bold: !textEl.bold })}>
+          <ToolBtn title={tr("Tebal")} active={!!textEl.bold} onClick={() => onUpdateText({ bold: !textEl.bold })}>
             <Bold className="w-4 h-4" />
           </ToolBtn>
-          <ToolBtn title="Miring" active={!!textEl.italic} onClick={() => onUpdateText({ italic: !textEl.italic })}>
+          <ToolBtn title={tr("Miring")} active={!!textEl.italic} onClick={() => onUpdateText({ italic: !textEl.italic })}>
             <Italic className="w-4 h-4" />
           </ToolBtn>
-          <ToolBtn title="Rata Kiri" active={(textEl.align ?? "left") === "left"} onClick={() => onUpdateText({ align: "left" })}>
+          <ToolBtn title={tr("Rata Kiri")} active={(textEl.align ?? "left") === "left"} onClick={() => onUpdateText({ align: "left" })}>
             <AlignLeft className="w-4 h-4" />
           </ToolBtn>
-          <ToolBtn title="Rata Tengah" active={textEl.align === "center"} onClick={() => onUpdateText({ align: "center" })}>
+          <ToolBtn title={tr("Rata Tengah")} active={textEl.align === "center"} onClick={() => onUpdateText({ align: "center" })}>
             <AlignCenter className="w-4 h-4" />
           </ToolBtn>
-          <ToolBtn title="Rata Kanan" active={textEl.align === "right"} onClick={() => onUpdateText({ align: "right" })}>
+          <ToolBtn title={tr("Rata Kanan")} active={textEl.align === "right"} onClick={() => onUpdateText({ align: "right" })}>
             <AlignRight className="w-4 h-4" />
           </ToolBtn>
           <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 rounded-lg px-1.5 h-8">
@@ -155,27 +156,27 @@ export const SlideToolbar: React.FC<{
               +
             </button>
           </div>
-          <GamatoColorPicker compact label="Warna teks" value={textEl.color} onChange={(hex) => onUpdateText({ color: hex })} />
+          <GamatoColorPicker compact label={tr("Warna teks")} value={textEl.color} onChange={(hex) => onUpdateText({ color: hex })} />
         </>
       )}
 
       {selected && (
         <>
           <Sep />
-          <ToolBtn title="Ke Depan" onClick={onBringToFront}>
+          <ToolBtn title={tr("Ke Depan")} onClick={onBringToFront}>
             <BringToFront className="w-4 h-4" />
           </ToolBtn>
-          <ToolBtn title="Ke Belakang" onClick={onSendToBack}>
+          <ToolBtn title={tr("Ke Belakang")} onClick={onSendToBack}>
             <SendToBack className="w-4 h-4" />
           </ToolBtn>
-          <ToolBtn title="Hapus Elemen" onClick={onDeleteSelected}>
+          <ToolBtn title={tr("Hapus Elemen")} onClick={onDeleteSelected}>
             <Trash2 className="w-4 h-4" />
           </ToolBtn>
         </>
       )}
 
       <div className="ml-auto flex items-center gap-1.5">
-        <ToolBtn title="Impor .pptx" onClick={() => pptxInputRef.current?.click()}>
+        <ToolBtn title={tr("Impor .pptx")} onClick={() => pptxInputRef.current?.click()}>
           <Upload className="w-4 h-4" />
         </ToolBtn>
         <input
@@ -195,7 +196,7 @@ export const SlideToolbar: React.FC<{
           className="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white text-xs font-semibold transition-colors"
         >
           <Play className="w-3.5 h-3.5" />
-          Tampilkan
+          {tr("Tampilkan")}
         </button>
         <div className="relative" ref={exportRef}>
           <button
@@ -204,13 +205,13 @@ export const SlideToolbar: React.FC<{
             className="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
-            Ekspor
+            {tr("Ekspor")}
             <ChevronDown className={cn("w-3 h-3 transition-transform", exportOpen && "rotate-180")} />
           </button>
-          <AnchoredPortal anchorRef={exportRef} open={exportOpen} align="end" offset={6} panelRef={exportPopRef} role="menu" aria-label="Ekspor" className="w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
+          <AnchoredPortal anchorRef={exportRef} open={exportOpen} align="end" offset={6} panelRef={exportPopRef} role="menu" aria-label={tr("Ekspor")} className="w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
               {[
-                { label: "PDF (.pdf)", fn: onExportPdf },
-                { label: "Gambar (.zip)", fn: onExportImages },
+                { label: tr("PDF (.pdf)"), fn: onExportPdf },
+                { label: tr("Gambar (.zip)"), fn: onExportImages },
               ].map((opt) => (
                 <button
                   key={opt.label}

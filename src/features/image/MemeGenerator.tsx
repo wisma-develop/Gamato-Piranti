@@ -13,6 +13,7 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { msgStarts, tr } from "@/i18n";
 
 interface MemeLayer {
   id: string;
@@ -29,8 +30,8 @@ interface MemeLayer {
 const makeId = () => Math.random().toString(36).slice(2, 9);
 
 const defaultLayers = (): MemeLayer[] => [
-  { id: makeId(), text: "TOP TEXT", x: 0.5, y: 0.1, size: 9, color: "#ffffff", stroke: "#000000", strokeWidth: 14, uppercase: true },
-  { id: makeId(), text: "BOTTOM TEXT", x: 0.5, y: 0.9, size: 9, color: "#ffffff", stroke: "#000000", strokeWidth: 14, uppercase: true },
+  { id: makeId(), text: tr("TOP TEXT"), x: 0.5, y: 0.1, size: 9, color: "#ffffff", stroke: "#000000", strokeWidth: 14, uppercase: true },
+  { id: makeId(), text: tr("BOTTOM TEXT"), x: 0.5, y: 0.9, size: 9, color: "#ffffff", stroke: "#000000", strokeWidth: 14, uppercase: true },
 ];
 
 export const MemeGenerator: React.FC = () => {
@@ -72,7 +73,7 @@ export const MemeGenerator: React.FC = () => {
   };
 
   const addLayer = () => {
-    const layer: MemeLayer = { id: makeId(), text: "Teks baru", x: 0.5, y: 0.5, size: 7, color: "#ffffff", stroke: "#000000", strokeWidth: 12, uppercase: false };
+    const layer: MemeLayer = { id: makeId(), text: tr("Teks baru"), x: 0.5, y: 0.5, size: 7, color: "#ffffff", stroke: "#000000", strokeWidth: 12, uppercase: false };
     setLayers((prev) => [...prev, layer]);
     setSelectedId(layer.id);
   };
@@ -142,9 +143,9 @@ export const MemeGenerator: React.FC = () => {
       const blob = await canvasToBlob(canvas, "image/png");
       const base = (file?.name || "meme").replace(/\.[^.]+$/, "");
       downloadBlob(blob, `${base}-meme.png`);
-      setInfo("Meme berhasil dibuat!");
+      setInfo(tr("Meme berhasil dibuat!"));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal membuat meme."));
+      setInfo("" + (err?.message || tr("Gagal membuat meme.")));
     } finally {
       setIsWorking(false);
     }
@@ -159,8 +160,8 @@ export const MemeGenerator: React.FC = () => {
             onFiles={addFiles}
             accept="image/*"
             multiple={false}
-            label="Drop gambar dasar meme di sini"
-            sublabel="JPG, PNG, WEBP"
+            label={tr("Drop gambar dasar meme di sini")}
+            sublabel={tr("JPG, PNG, WEBP")}
             icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -182,7 +183,7 @@ export const MemeGenerator: React.FC = () => {
                 }}
                 className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
               >
-                Ganti File
+                {tr("Ganti File")}
               </button>
             </div>
             <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-950">
@@ -211,18 +212,18 @@ export const MemeGenerator: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleExport} disabled={isWorking || !previewUrl || !layers.length} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Buat &amp; Unduh Meme
+              {tr("Buat & Unduh Meme")}
             </>
           )}
         </Btn>
@@ -231,11 +232,11 @@ export const MemeGenerator: React.FC = () => {
       <div className="space-y-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Lapisan Teks</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Lapisan Teks")}</p>
             <div className="flex items-center gap-2">
               <UndoRedoBar canUndo={layersHistory.canUndo} canRedo={layersHistory.canRedo} onUndo={layersHistory.undo} onRedo={layersHistory.redo} hideLabel />
               <button type="button" onClick={addLayer} disabled={!previewUrl} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40 shrink-0">
-                <Plus className="w-3.5 h-3.5" /> Tambah
+                <Plus className="w-3.5 h-3.5" /> {tr("Tambah")}
               </button>
             </div>
           </div>
@@ -247,7 +248,7 @@ export const MemeGenerator: React.FC = () => {
                 onClick={() => setSelectedId(l.id)}
                 className={cn("w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left", selectedId === l.id ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300")}
               >
-                <span className="truncate flex-1">{l.text || "(kosong)"}</span>
+                <span className="truncate flex-1">{l.text || tr("(kosong)")}</span>
                 <Trash2
                   className="w-3.5 h-3.5 text-slate-400 hover:text-red-500 shrink-0 ml-2"
                   onClick={(e) => {
@@ -262,30 +263,30 @@ export const MemeGenerator: React.FC = () => {
 
         {selected && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Teks Terpilih</p>
-            <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
-            <GamatoCheckbox checked={selected.uppercase} onChange={(v) => updateSelected({ uppercase: v })} label="HURUF BESAR otomatis" />
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Edit Teks Terpilih")}</p>
+            <Textarea label={tr("Isi Teks")} rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
+            <GamatoCheckbox checked={selected.uppercase} onChange={(v) => updateSelected({ uppercase: v })} label={tr("HURUF BESAR otomatis")} />
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <Label>Ukuran</Label>
+                <Label>{tr("Ukuran")}</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.size}%</span>
               </div>
-              <GamatoSlider min={2} max={20} value={selected.size} onChange={(v) => updateSelected({ size: v }, { continuous: true })} aria-label="Ukuran teks" />
+              <GamatoSlider min={2} max={20} value={selected.size} onChange={(v) => updateSelected({ size: v }, { continuous: true })} aria-label={tr("Ukuran teks")} />
             </div>
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <Label>Ketebalan Outline</Label>
+                <Label>{tr("Ketebalan Outline")}</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.strokeWidth}%</span>
               </div>
-              <GamatoSlider min={0} max={30} value={selected.strokeWidth} onChange={(v) => updateSelected({ strokeWidth: v }, { continuous: true })} aria-label="Ketebalan outline" />
+              <GamatoSlider min={0} max={30} value={selected.strokeWidth} onChange={(v) => updateSelected({ strokeWidth: v }, { continuous: true })} aria-label={tr("Ketebalan outline")} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Warna Teks</Label>
+                <Label>{tr("Warna Teks")}</Label>
                 <GamatoColorPicker value={selected.color} onChange={(hex) => updateSelected({ color: hex }, { continuous: true })} className="mt-1.5" />
               </div>
               <div>
-                <Label>Warna Outline</Label>
+                <Label>{tr("Warna Outline")}</Label>
                 <GamatoColorPicker value={selected.stroke} onChange={(hex) => updateSelected({ stroke: hex }, { continuous: true })} className="mt-1.5" />
               </div>
             </div>
@@ -294,9 +295,9 @@ export const MemeGenerator: React.FC = () => {
 
         <ToolInfoPanel
           icon={<Smile className="w-5 h-5" />}
-          label="Meme Generator"
-          desc="Teks bebas geser"
-          points={["Tarik teks langsung di atas gambar untuk mengatur posisi.", "Tambah lapisan teks sebanyak yang kamu mau."]}
+          label={tr("Meme Generator")}
+          desc={tr("Teks bebas geser")}
+          points={[tr("Tarik teks langsung di atas gambar untuk mengatur posisi."), tr("Tambah lapisan teks sebanyak yang kamu mau.")]}
         />
       </div>
     </div>

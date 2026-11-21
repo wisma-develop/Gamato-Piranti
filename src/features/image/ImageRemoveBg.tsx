@@ -9,6 +9,7 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 type RGB = [number, number, number];
 
@@ -127,9 +128,9 @@ export const ImageRemoveBg: React.FC = () => {
       const blob = await canvasToBlob(canvasRef.current, "image/png");
       const base = (file?.name || "gambar").replace(/\.[^.]+$/, "");
       downloadBlob(blob, `${base}-no-bg.png`);
-      setInfo("Background berhasil dihapus, diunduh sebagai PNG transparan.");
+      setInfo(tr("Background berhasil dihapus, diunduh sebagai PNG transparan."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses gambar."));
+      setInfo("" + (err?.message || tr("Gagal memproses gambar.")));
     } finally {
       setIsWorking(false);
     }
@@ -143,8 +144,8 @@ export const ImageRemoveBg: React.FC = () => {
             onFiles={addFiles}
             accept="image/*"
             multiple={false}
-            label="Drop gambar di sini"
-            sublabel="Paling cocok untuk foto berlatar polos (produk, KTP, dsb.)"
+            label={tr("Drop gambar di sini")}
+            sublabel={tr("Paling cocok untuk foto berlatar polos (produk, KTP, dsb.)")}
             icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -161,7 +162,7 @@ export const ImageRemoveBg: React.FC = () => {
             <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
               <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">
                 {file?.name}
-                {dims && <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">{dims.w}×{dims.h}px</span>}
+                {dims && <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">{tr("{0}×{1}px", dims.w, dims.h)}</span>}
               </p>
               <button
                 type="button"
@@ -173,7 +174,7 @@ export const ImageRemoveBg: React.FC = () => {
                 }}
                 className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
               >
-                Ganti File
+                {tr("Ganti File")}
               </button>
             </div>
             <div
@@ -190,9 +191,9 @@ export const ImageRemoveBg: React.FC = () => {
           </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pengaturan</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pengaturan")}</p>
           <div className="flex items-center gap-3">
-            <Label>Warna background</Label>
+            <Label>{tr("Warna background")}</Label>
             <GamatoColorPicker
               value={rgbToHex(bgColor)}
               onChange={(hex) => {
@@ -200,36 +201,36 @@ export const ImageRemoveBg: React.FC = () => {
                 setBgColor([parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]);
               }}
             />
-            <span className="text-xs text-slate-400 dark:text-slate-500">atau klik langsung pada gambar untuk mengambil warna</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">{tr("atau klik langsung pada gambar untuk mengambil warna")}</span>
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Toleransi warna</Label>
+              <Label>{tr("Toleransi warna")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tolerance}%</span>
             </div>
-            <GamatoSlider min={0} max={100} value={tolerance} onChange={setTolerance} disabled={!file} aria-label="Toleransi warna" />
+            <GamatoSlider min={0} max={100} value={tolerance} onChange={setTolerance} disabled={!file} aria-label={tr("Toleransi warna")} />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Kehalusan tepi (feather)</Label>
+              <Label>{tr("Kehalusan tepi (feather)")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{feather}%</span>
             </div>
-            <GamatoSlider min={0} max={60} value={feather} onChange={setFeather} disabled={!file} aria-label="Kehalusan tepi" />
+            <GamatoSlider min={0} max={60} value={feather} onChange={setFeather} disabled={!file} aria-label={tr("Kehalusan tepi")} />
           </div>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleDownload} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Unduh PNG Transparan
+              {tr("Unduh PNG Transparan")}
             </>
           )}
         </Btn>
@@ -237,12 +238,12 @@ export const ImageRemoveBg: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Eraser className="w-5 h-5" />}
-        label="Hapus Background"
-        desc="Chroma-key, warna solid"
+        label={tr("Hapus Background")}
+        desc={tr("Chroma-key, warna solid")}
         points={[
-          "Bekerja dengan mendeteksi & menghapus satu warna latar (mirip green screen).",
-          "Cocok untuk background polos: produk, dokumen, pas foto.",
-          "Untuk foto latar rumit/alami, hasil mungkin kurang presisi — gunakan toleransi & feather untuk menghaluskan.",
+          tr("Bekerja dengan mendeteksi & menghapus satu warna latar (mirip green screen)."),
+          tr("Cocok untuk background polos: produk, dokumen, pas foto."),
+          tr("Untuk foto latar rumit/alami, hasil mungkin kurang presisi — gunakan toleransi & feather untuk menghaluskan."),
         ]}
       />
     </div>

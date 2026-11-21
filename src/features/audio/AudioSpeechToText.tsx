@@ -7,11 +7,12 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { copyText as gamatoCopyText, describePermissionError, queryPermission, type PermFailure } from "@/lib/permissions";
 import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
+import { tr } from "@/i18n";
 
 const LANGUAGES = [
-  { id: "id-ID", label: "Bahasa Indonesia" },
-  { id: "en-US", label: "English (US)" },
-  { id: "en-GB", label: "English (UK)" },
+  { id: "id-ID", label: tr("Bahasa Indonesia") },
+  { id: "en-US", label: tr("English (US)") },
+  { id: "en-GB", label: tr("English (UK)") },
   { id: "ja-JP", label: "日本語" },
   { id: "ko-KR", label: "한국어" },
   { id: "zh-CN", label: "中文 (简体)" },
@@ -65,11 +66,11 @@ export const AudioSpeechToText: React.FC = () => {
       } else if (code === "audio-capture") {
         setPermFail(describePermissionError("microphone", { name: "NotFoundError" }));
       } else if (code === "no-speech") {
-        setInfo("Tidak ada suara terdeteksi. Bicaralah lebih dekat ke mikrofon, lalu coba lagi.");
+        setInfo(tr("Tidak ada suara terdeteksi. Bicaralah lebih dekat ke mikrofon, lalu coba lagi."));
       } else if (code === "network") {
-        setInfo("Pengenalan suara memakai layanan bawaan browser dan butuh koneksi internet. Periksa koneksi lalu coba lagi.");
+        setInfo(tr("Pengenalan suara memakai layanan bawaan browser dan butuh koneksi internet. Periksa koneksi lalu coba lagi."));
       } else {
-        setInfo(`Terjadi kendala: ${code || "tidak diketahui"}. Coba lagi.`);
+        setInfo(tr("Terjadi kendala: {0}. Coba lagi.", code || tr("tidak diketahui")));
       }
     };
     recognition.onend = () => {
@@ -80,7 +81,7 @@ export const AudioSpeechToText: React.FC = () => {
     try {
       recognition.start();
     } catch {
-      setInfo("Pengenalan suara tidak bisa dimulai. Tunggu sebentar lalu coba lagi.");
+      setInfo(tr("Pengenalan suara tidak bisa dimulai. Tunggu sebentar lalu coba lagi."));
       return;
     }
     recognitionRef.current = recognition;
@@ -95,9 +96,9 @@ export const AudioSpeechToText: React.FC = () => {
   const copyText = async () => {
     try {
       if (!(await gamatoCopyText(transcript))) throw new Error("clipboard");
-      setInfo("Teks disalin ke clipboard.");
+      setInfo(tr("Teks disalin ke clipboard."));
     } catch {
-      setInfo("Gagal menyalin teks.");
+      setInfo(tr("Gagal menyalin teks."));
     }
   };
 
@@ -110,8 +111,8 @@ export const AudioSpeechToText: React.FC = () => {
     return (
       <div className="max-w-xl mx-auto bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-6 text-center space-y-2">
         <MicOff className="w-8 h-8 mx-auto text-amber-500" />
-        <p className="font-bold text-amber-700 dark:text-amber-400">Browser ini belum mendukung Speech to Text</p>
-        <p className="text-sm text-amber-600 dark:text-amber-400">Fitur ini menggunakan Web Speech API bawaan browser. Coba buka dengan Google Chrome atau Microsoft Edge terbaru.</p>
+        <p className="font-bold text-amber-700 dark:text-amber-400">{tr("Browser ini belum mendukung Speech to Text")}</p>
+        <p className="text-sm text-amber-600 dark:text-amber-400">{tr("Fitur ini menggunakan Web Speech API bawaan browser. Coba buka dengan Google Chrome atau Microsoft Edge terbaru.")}</p>
       </div>
     );
   }
@@ -123,7 +124,7 @@ export const AudioSpeechToText: React.FC = () => {
           <button
             type="button"
             onClick={isListening ? stop : start}
-            aria-label={isListening ? "Hentikan perekaman" : "Mulai merekam"}
+            aria-label={isListening ? tr("Hentikan perekaman") : tr("Mulai merekam")}
             aria-pressed={isListening}
             className={cn(
               "w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-lg",
@@ -132,9 +133,9 @@ export const AudioSpeechToText: React.FC = () => {
           >
             {isListening ? <MicOff className="w-9 h-9 text-white" /> : <Mic className="w-9 h-9 text-white" />}
           </button>
-          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{isListening ? "Mendengarkan… klik untuk berhenti" : "Klik mikrofon untuk mulai bicara"}</p>
+          <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{isListening ? tr("Mendengarkan… klik untuk berhenti") : tr("Klik mikrofon untuk mulai bicara")}</p>
           <div className="w-full max-w-xs">
-            <Select label="Bahasa" value={lang} onChange={(e) => setLang(e.target.value)} disabled={isListening}>
+            <Select label={tr("Bahasa")} value={lang} onChange={(e) => setLang(e.target.value)} disabled={isListening}>
               {LANGUAGES.map((l) => (
                 <option key={l.id} value={l.id}>
                   {l.label}
@@ -146,18 +147,18 @@ export const AudioSpeechToText: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Hasil Transkrip</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Hasil Transkrip")}</p>
             <button type="button" onClick={() => setTranscript("")} className="text-xs text-red-600 font-semibold flex items-center gap-1">
-              <RefreshCw className="w-3.5 h-3.5" /> Bersihkan
+              <RefreshCw className="w-3.5 h-3.5" /> {tr("Bersihkan")}
             </button>
           </div>
-          <Textarea rows={10} value={transcript + (interim ? (transcript ? " " : "") + interim : "")} onChange={(e) => setTranscript(e.target.value)} placeholder="Teks hasil ucapan akan muncul di sini…" />
+          <Textarea rows={10} value={transcript + (interim ? (transcript ? " " : "") + interim : "")} onChange={(e) => setTranscript(e.target.value)} placeholder={tr("Teks hasil ucapan akan muncul di sini…")} />
           <div className="flex gap-2">
             <Btn onClick={copyText} disabled={!transcript} variant="secondary" className="flex-1 gap-2 text-sm">
-              <Copy className="w-4 h-4" /> Salin
+              <Copy className="w-4 h-4" /> {tr("Salin")}
             </Btn>
             <Btn onClick={downloadTxt} disabled={!transcript} variant="secondary" className="flex-1 gap-2 text-sm">
-              <Download className="w-4 h-4" /> Unduh .txt
+              <Download className="w-4 h-4" /> {tr("Unduh .txt")}
             </Btn>
           </div>
         </div>
@@ -168,9 +169,9 @@ export const AudioSpeechToText: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Mic className="w-5 h-5" />}
-        label="Speech to Text"
-        desc="Ucapan menjadi teks"
-        points={["Butuh izin mikrofon dari browser saat pertama kali dipakai.", "Bekerja paling baik di ruangan yang tidak berisik.", "Teks hasil transkrip bisa langsung diedit sebelum disalin/diunduh.", "Catatan: pengenalan suara ini memakai layanan bawaan browser (di Chrome/Edge audio diproses oleh penyedia browser, bukan oleh Gamato). Untuk transkrip yang 100% di perangkat, pakai alat Transkrip Audio."]}
+        label={tr("Speech to Text")}
+        desc={tr("Ucapan menjadi teks")}
+        points={[tr("Butuh izin mikrofon dari browser saat pertama kali dipakai."), tr("Bekerja paling baik di ruangan yang tidak berisik."), tr("Teks hasil transkrip bisa langsung diedit sebelum disalin/diunduh."), tr("Catatan: pengenalan suara ini memakai layanan bawaan browser (di Chrome/Edge audio diproses oleh penyedia browser, bukan oleh Gamato). Untuk transkrip yang 100% di perangkat, pakai alat Transkrip Audio.")]}
       />
     </div>
   );

@@ -35,9 +35,10 @@ import {
 } from "@/lib/photoPrintEngine";
 import { PAPER_SIZES, PHOTO_SIZES, getPaperSize, getPhotoSize } from "@/lib/photoPrintPresets";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
+import { msgStarts, tr } from "@/i18n";
 
 let itemCounter = 0;
-const newItemId = () => `print-item-${Date.now()}-${itemCounter++}`;
+const newItemId = () => tr("print-item-{0}-{1}", Date.now(), itemCounter++);
 
 type PrintState = {
   paperId: string;
@@ -72,20 +73,20 @@ const DEFAULT_STATE: PrintState = {
 type TabId = "foto" | "ukuran" | "tataletak";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "foto", label: "Foto & Jumlah", icon: <Images className="w-3.5 h-3.5" /> },
-  { id: "ukuran", label: "Ukuran Foto & Kertas", icon: <Ruler className="w-3.5 h-3.5" /> },
-  { id: "tataletak", label: "Tata Letak", icon: <LayoutGrid className="w-3.5 h-3.5" /> },
+  { id: "foto", label: tr("Foto & Jumlah"), icon: <Images className="w-3.5 h-3.5" /> },
+  { id: "ukuran", label: tr("Ukuran Foto & Kertas"), icon: <Ruler className="w-3.5 h-3.5" /> },
+  { id: "tataletak", label: tr("Tata Letak"), icon: <LayoutGrid className="w-3.5 h-3.5" /> },
 ];
 
 const FOCUS_X_OPTIONS: { id: FocusX; label: string }[] = [
-  { id: "left", label: "Kiri" },
-  { id: "center", label: "Tengah" },
-  { id: "right", label: "Kanan" },
+  { id: "left", label: tr("Kiri") },
+  { id: "center", label: tr("Tengah") },
+  { id: "right", label: tr("Kanan") },
 ];
 const FOCUS_Y_OPTIONS: { id: FocusY; label: string }[] = [
-  { id: "top", label: "Atas" },
-  { id: "center", label: "Tengah" },
-  { id: "bottom", label: "Bawah" },
+  { id: "top", label: tr("Atas") },
+  { id: "center", label: tr("Tengah") },
+  { id: "bottom", label: tr("Bawah") },
 ];
 
 export const PhotoPrintLayout: React.FC = () => {
@@ -214,9 +215,9 @@ export const PhotoPrintLayout: React.FC = () => {
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), "cetak-foto-gamato-piranti.pdf");
-      setInfo(`${canvases.length} halaman siap cetak berhasil diunduh sebagai PDF (ukuran fisik akurat — cetak di "Ukuran Asli / 100%", jangan "Fit to Page").`);
+      setInfo(tr("{0} halaman siap cetak berhasil diunduh sebagai PDF (ukuran fisik akurat — cetak di \"Ukuran Asli / 100%\", jangan \"Fit to Page\").", canvases.length));
     } catch (err: any) {
-      setInfo("Gagal: " + (err?.message || "Tidak dapat membuat PDF."));
+      setInfo(tr("Gagal: ") + (err?.message || tr("Tidak dapat membuat PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -229,10 +230,10 @@ export const PhotoPrintLayout: React.FC = () => {
     setInfo(null);
     try {
       const blob = await canvasToBlob(canvas);
-      downloadBlob(blob, `cetak-foto-halaman-${sheetIndex + 1}.png`);
-      setInfo("Halaman ini berhasil diunduh sebagai PNG.");
+      downloadBlob(blob, tr("cetak-foto-halaman-{0}.png", sheetIndex + 1));
+      setInfo(tr("Halaman ini berhasil diunduh sebagai PNG."));
     } catch (err: any) {
-      setInfo("Gagal: " + (err?.message || "Tidak dapat membuat PNG."));
+      setInfo(tr("Gagal: ") + (err?.message || tr("Tidak dapat membuat PNG.")));
     } finally {
       setIsWorking(false);
     }
@@ -244,38 +245,38 @@ export const PhotoPrintLayout: React.FC = () => {
     setIsWorking(true);
     try {
       const canvases = await renderAllSheets(state.items, grid, settings, imageCacheRef.current);
-      printCanvasPages(canvases, { title: "Cetak Foto — Gamato Piranti", pageSizeMm: { w: grid.paperUsedWMm, h: grid.paperUsedHMm } });
-      setInfo('Dialog cetak dibuka. Pilih "Ukuran Asli / 100% / Actual Size" pada printer agar ukuran fisik foto tetap akurat.');
+      printCanvasPages(canvases, { title: tr("Cetak Foto — Gamato Piranti"), pageSizeMm: { w: grid.paperUsedWMm, h: grid.paperUsedHMm } });
+      setInfo(tr("Dialog cetak dibuka. Pilih \"Ukuran Asli / 100% / Actual Size\" pada printer agar ukuran fisik foto tetap akurat."));
     } catch (err: any) {
-      setInfo("Gagal: " + (err?.message || "Tidak dapat membuka dialog cetak."));
+      setInfo(tr("Gagal: ") + (err?.message || tr("Tidak dapat membuka dialog cetak.")));
     } finally {
       setIsWorking(false);
     }
   };
 
-  const currentSheetLabel = sheets.length ? `Halaman ${sheetIndex + 1} dari ${sheets.length}` : "Belum ada halaman";
-  const paperOrientationLabel = grid.paperRotated ? "Lanskap" : "Potret";
+  const currentSheetLabel = sheets.length ? tr("Halaman {0} dari {1}", sheetIndex + 1, sheets.length) : tr("Belum ada halaman");
+  const paperOrientationLabel = grid.paperRotated ? tr("Lanskap") : tr("Potret");
 
   return (
     <div className="grid lg:grid-cols-[400px_1fr] gap-6 items-start">
-      <GamatoDesktopRecommended toolName="Tata Letak Cetak Foto" className="lg:col-span-full" />
+      <GamatoDesktopRecommended toolName={tr("Tata Letak Cetak Foto")} className="lg:col-span-full" />
       {/* LEFT: settings */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Cetak Foto</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Cetak Foto")}</span>
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} hideLabel />
         </div>
 
         <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
         {tab === "foto" && (
-          <PanelCard title="Foto & Jumlah Salinan" subtitle="Unggah satu atau beberapa foto, atur berapa lembar tiap foto">
+          <PanelCard title={tr("Foto & Jumlah Salinan")} subtitle={tr("Unggah satu atau beberapa foto, atur berapa lembar tiap foto")}>
             <Dropzone
               onFiles={addFiles}
               accept="image/*"
               multiple
-              label="Drop foto di sini"
-              sublabel="Bisa unggah beberapa foto sekaligus"
+              label={tr("Drop foto di sini")}
+              sublabel={tr("Bisa unggah beberapa foto sekaligus")}
               icon={<Images className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
               isDragging={isDragging}
               setIsDragging={setIsDragging}
@@ -294,7 +295,7 @@ export const PhotoPrintLayout: React.FC = () => {
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">Jumlah:</span>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">{tr("Jumlah:")}</span>
                         <button
                           type="button"
                           onClick={() => updateItem(item.id, { copies: Math.max(1, item.copies - 1) })}
@@ -317,14 +318,14 @@ export const PhotoPrintLayout: React.FC = () => {
                         >
                           <Plus className="w-3 h-3" />
                         </button>
-                        <span className="text-[11px] text-slate-400 dark:text-slate-500">lembar</span>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500">{tr("lembar")}</span>
                       </div>
                       {state.fitMode === "cover" && (
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">Fokus potong:</span>
+                          <span className="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">{tr("Fokus potong:")}</span>
                           <GamatoSelect
                             compact
-                            aria-label="Fokus potong horizontal"
+                            aria-label={tr("Fokus potong horizontal")}
                             value={item.focusX}
                             onChange={(e) => updateItem(item.id, { focusX: e.target.value as FocusX })}
                           >
@@ -334,7 +335,7 @@ export const PhotoPrintLayout: React.FC = () => {
                           </GamatoSelect>
                           <GamatoSelect
                             compact
-                            aria-label="Fokus potong vertikal"
+                            aria-label={tr("Fokus potong vertikal")}
                             value={item.focusY}
                             onChange={(e) => updateItem(item.id, { focusY: e.target.value as FocusY })}
                           >
@@ -354,12 +355,12 @@ export const PhotoPrintLayout: React.FC = () => {
         )}
 
         {tab === "ukuran" && (
-          <PanelCard title="Ukuran Foto & Kertas" subtitle="Pilih ukuran pas foto/cetak dan kertas yang dipakai">
+          <PanelCard title={tr("Ukuran Foto & Kertas")} subtitle={tr("Pilih ukuran pas foto/cetak dan kertas yang dipakai")}>
             <div className="space-y-4">
               <div>
-                <Select label="Ukuran Foto" value={state.photoId} onChange={(e) => updateField("photoId", e.target.value)}>
-                  {["Pas Foto", "Cetak Foto", "Lainnya"].map((group) => (
-                    <optgroup key={group} label={group}>
+                <Select label={tr("Ukuran Foto")} value={state.photoId} onChange={(e) => updateField("photoId", e.target.value)}>
+                  {(["Pas Foto", "Cetak Foto", "Lainnya"] as const).map((group) => (
+                    <optgroup key={group} label={tr(group)}>
                       {PHOTO_SIZES.filter((p) => p.group === group).map((p) => (
                         <option key={p.id} value={p.id}>{p.label}</option>
                       ))}
@@ -368,22 +369,22 @@ export const PhotoPrintLayout: React.FC = () => {
                 </Select>
                 {state.photoId === "custom" && (
                   <div className="grid grid-cols-2 gap-3 mt-2">
-                    <Input label="Lebar Foto (mm)" type="number" min={5} max={500} value={state.customPhotoWMm} onChange={(e) => updateField("customPhotoWMm", Number(e.target.value) || 1, { continuous: true })} />
-                    <Input label="Tinggi Foto (mm)" type="number" min={5} max={500} value={state.customPhotoHMm} onChange={(e) => updateField("customPhotoHMm", Number(e.target.value) || 1, { continuous: true })} />
+                    <Input label={tr("Lebar Foto (mm)")} type="number" min={5} max={500} value={state.customPhotoWMm} onChange={(e) => updateField("customPhotoWMm", Number(e.target.value) || 1, { continuous: true })} />
+                    <Input label={tr("Tinggi Foto (mm)")} type="number" min={5} max={500} value={state.customPhotoHMm} onChange={(e) => updateField("customPhotoHMm", Number(e.target.value) || 1, { continuous: true })} />
                   </div>
                 )}
               </div>
 
               <div>
-                <Select label="Ukuran Kertas" value={state.paperId} onChange={(e) => updateField("paperId", e.target.value)}>
+                <Select label={tr("Ukuran Kertas")} value={state.paperId} onChange={(e) => updateField("paperId", e.target.value)}>
                   {PAPER_SIZES.map((p) => (
                     <option key={p.id} value={p.id}>{p.label}</option>
                   ))}
                 </Select>
                 {state.paperId === "custom" && (
                   <div className="grid grid-cols-2 gap-3 mt-2">
-                    <Input label="Lebar Kertas (mm)" type="number" min={20} max={2000} value={state.customPaperWMm} onChange={(e) => updateField("customPaperWMm", Number(e.target.value) || 1, { continuous: true })} />
-                    <Input label="Tinggi Kertas (mm)" type="number" min={20} max={2000} value={state.customPaperHMm} onChange={(e) => updateField("customPaperHMm", Number(e.target.value) || 1, { continuous: true })} />
+                    <Input label={tr("Lebar Kertas (mm)")} type="number" min={20} max={2000} value={state.customPaperWMm} onChange={(e) => updateField("customPaperWMm", Number(e.target.value) || 1, { continuous: true })} />
+                    <Input label={tr("Tinggi Kertas (mm)")} type="number" min={20} max={2000} value={state.customPaperHMm} onChange={(e) => updateField("customPaperHMm", Number(e.target.value) || 1, { continuous: true })} />
                   </div>
                 )}
               </div>
@@ -393,52 +394,52 @@ export const PhotoPrintLayout: React.FC = () => {
         )}
 
         {tab === "tataletak" && (
-          <PanelCard title="Tata Letak" subtitle="Orientasi kertas, jarak antar foto, dan garis potong">
+          <PanelCard title={tr("Tata Letak")} subtitle={tr("Orientasi kertas, jarak antar foto, dan garis potong")}>
             <div className="space-y-4">
-              <Select label="Orientasi Kertas" value={state.orientation} onChange={(e) => updateField("orientation", e.target.value as PrintState["orientation"])}>
-                <option value="auto">Otomatis (muat sebanyak mungkin)</option>
-                <option value="portrait">Potret</option>
-                <option value="landscape">Lanskap</option>
+              <Select label={tr("Orientasi Kertas")} value={state.orientation} onChange={(e) => updateField("orientation", e.target.value as PrintState["orientation"])}>
+                <option value="auto">{tr("Otomatis (muat sebanyak mungkin)")}</option>
+                <option value="portrait">{tr("Potret")}</option>
+                <option value="landscape">{tr("Lanskap")}</option>
               </Select>
 
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <Label>Margin Kertas</Label>
-                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{state.marginMm} mm</span>
+                  <Label>{tr("Margin Kertas")}</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tr("{0} mm", state.marginMm)}</span>
                 </div>
-                <GamatoSlider min={0} max={30} value={state.marginMm} onChange={(v) => updateField("marginMm", v, { continuous: true })} aria-label="Margin Kertas" />
+                <GamatoSlider min={0} max={30} value={state.marginMm} onChange={(v) => updateField("marginMm", v, { continuous: true })} aria-label={tr("Margin Kertas")} />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <Label>Jarak Antar Foto (Gutter)</Label>
-                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{state.gutterMm} mm</span>
+                  <Label>{tr("Jarak Antar Foto (Gutter)")}</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tr("{0} mm", state.gutterMm)}</span>
                 </div>
-                <GamatoSlider min={0} max={20} value={state.gutterMm} onChange={(v) => updateField("gutterMm", v, { continuous: true })} aria-label="Jarak Antar Foto" />
+                <GamatoSlider min={0} max={20} value={state.gutterMm} onChange={(v) => updateField("gutterMm", v, { continuous: true })} aria-label={tr("Jarak Antar Foto")} />
               </div>
 
-              <GamatoCheckbox checked={state.showCutGuides} onChange={(v) => updateField("showCutGuides", v)} label={<span className="flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5" /> Tampilkan garis potong</span>} />
+              <GamatoCheckbox checked={state.showCutGuides} onChange={(v) => updateField("showCutGuides", v)} label={<span className="flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5" /> {tr("Tampilkan garis potong")}</span>} />
 
               <div>
-                <Label>Mode Penyesuaian Foto</Label>
+                <Label>{tr("Mode Penyesuaian Foto")}</Label>
                 <div className="grid grid-cols-2 gap-2 mt-1.5">
                   <button
                     type="button"
                     onClick={() => updateField("fitMode", "cover")}
                     className={cn("py-2.5 rounded-xl text-xs font-semibold border-2 transition-all", state.fitMode === "cover" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}
                   >
-                    Penuhi & Potong
+                    {tr("Penuhi & Potong")}
                   </button>
                   <button
                     type="button"
                     onClick={() => updateField("fitMode", "contain")}
                     className={cn("py-2.5 rounded-xl text-xs font-semibold border-2 transition-all", state.fitMode === "contain" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}
                   >
-                    Utuh (Tanpa Potong)
+                    {tr("Utuh (Tanpa Potong)")}
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
-                  {state.fitMode === "cover" ? "Foto dipotong rapi mengisi penuh ukuran cetak (paling umum untuk pas foto)." : "Seluruh foto ditampilkan utuh, bisa ada sedikit ruang putih bila rasio tidak sama persis."}
+                  {state.fitMode === "cover" ? tr("Foto dipotong rapi mengisi penuh ukuran cetak (paling umum untuk pas foto).") : tr("Seluruh foto ditampilkan utuh, bisa ada sedikit ruang putih bila rasio tidak sama persis.")}
                 </p>
               </div>
             </div>
@@ -450,7 +451,7 @@ export const PhotoPrintLayout: React.FC = () => {
       {/* RIGHT: live preview + export */}
       <div className="space-y-4 lg:sticky lg:top-24">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Lembar Cetak</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Lembar Cetak")}</p>
           {sheets.length > 1 && (
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => setSheetIndex((i) => Math.max(0, i - 1))} disabled={sheetIndex === 0} className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 disabled:opacity-30">
@@ -468,7 +469,7 @@ export const PhotoPrintLayout: React.FC = () => {
           {!totalPhotos ? (
             <div className="flex flex-col items-center justify-center gap-2 h-64 text-slate-600 dark:text-slate-400 text-sm text-center px-6">
               <ImageOff className="w-8 h-8" />
-              Unggah foto dulu di panel kiri untuk melihat pratinjau lembar cetak
+              {tr("Unggah foto dulu di panel kiri untuk melihat pratinjau lembar cetak")}
             </div>
           ) : (
             <canvas ref={previewCanvasRef} className="max-w-full max-h-[560px] rounded-lg shadow bg-white" />
@@ -478,10 +479,9 @@ export const PhotoPrintLayout: React.FC = () => {
         {totalPhotos > 0 && (
           <div className="bg-slate-900 dark:bg-slate-950 rounded-xl px-4 py-3 text-xs text-slate-300 space-y-1">
             <p>
-              <span className="text-slate-500">Muat per lembar:</span> <span className="font-bold text-white">{grid.perSheet}</span> foto ({grid.cols} kolom × {grid.rows} baris) · Kertas {paperOrientationLabel}
-            </p>
+              <span className="text-slate-500">{tr("Muat per lembar:")}</span> <span className="font-bold text-white">{grid.perSheet}</span>{" "}{tr("foto ({0} kolom × {1} baris) · Kertas {2}", grid.cols, grid.rows, paperOrientationLabel)}</p>
             <p>
-              <span className="text-slate-500">Total dibutuhkan:</span> <span className="font-bold text-white">{totalCopies} salinan</span> dari {totalPhotos} foto → <span className="font-bold text-white">{sheets.length} lembar</span>
+              <span className="text-slate-500">{tr("Total dibutuhkan:")}</span> <span className="font-bold text-white">{tr("{0} salinan", totalCopies)}</span>{" "}{tr("dari {0} foto →", totalPhotos)}{" "}<span className="font-bold text-white">{tr("{0} lembar", sheets.length)}</span>
             </p>
           </div>
         )}
@@ -489,40 +489,40 @@ export const PhotoPrintLayout: React.FC = () => {
         {!fitsOnPaper && totalPhotos > 0 && (
           <GamatoInlineAlert
             tone="error"
-            message={`Ukuran foto (${photoWMm}×${photoHMm} mm) tidak muat di kertas yang dipilih (${paperWMm}×${paperHMm} mm) dengan margin saat ini. Kecilkan margin/ukuran foto, atau pilih kertas yang lebih besar.`}
+            message={tr("Ukuran foto ({0}×{1} mm) tidak muat di kertas yang dipilih ({2}×{3} mm) dengan margin saat ini. Kecilkan margin/ukuran foto, atau pilih kertas yang lebih besar.", photoWMm, photoHMm, paperWMm, paperHMm)}
           />
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Btn onClick={handleDownloadPdf} disabled={isWorking || !fitsOnPaper || !sheets.length} className="gap-2">
             {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-            Unduh PDF Siap Cetak
+            {tr("Unduh PDF Siap Cetak")}
           </Btn>
           <Btn onClick={handlePrintDirect} disabled={isWorking || !fitsOnPaper || !sheets.length} variant="secondary" className="gap-2">
             {isWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
-            Cetak Langsung
+            {tr("Cetak Langsung")}
           </Btn>
         </div>
         <Btn onClick={handleDownloadCurrentPng} disabled={isWorking || !fitsOnPaper || !sheets.length} variant="ghost" className="w-full gap-2 text-sm">
           <Download className="w-4 h-4" />
-          Unduh Halaman Ini sebagai PNG
+          {tr("Unduh Halaman Ini sebagai PNG")}
         </Btn>
 
         <div className="text-center">
-          <SectionBadge>Diproses langsung di perangkatmu — ukuran fisik akurat untuk cetak</SectionBadge>
+          <SectionBadge>{tr("Diproses langsung di perangkatmu — ukuran fisik akurat untuk cetak")}</SectionBadge>
         </div>
 
         <ToolInfoPanel
           icon={<Printer className="w-5 h-5" />}
-          label="Cetak Foto"
-          desc="Susun pas foto / foto cetak siap print dalam satu atau beberapa lembar"
+          label={tr("Cetak Foto")}
+          desc={tr("Susun pas foto / foto cetak siap print dalam satu atau beberapa lembar")}
           points={[
-            "Unggah beberapa foto sekaligus, atur jumlah salinan per foto — tool ini otomatis menyusun & memecah ke beberapa lembar bila tidak muat dalam satu halaman.",
-            "Ukuran kertas & foto dihitung dalam milimeter asli, bukan diperkirakan — jadi hasil PDF/cetak presisi secara fisik.",
-            "Saat mencetak PDF atau lewat dialog printer, pilih 'Ukuran Asli / 100% / Actual Size' — bukan 'Fit to Page' — supaya ukuran pas foto tidak melar/menyusut.",
-            "Mode 'Penuhi & Potong' memangkas foto rapi mengisi penuh bingkai; atur 'Fokus Potong' per foto bila wajah tidak tepat di tengah.",
+            tr("Unggah beberapa foto sekaligus, atur jumlah salinan per foto — tool ini otomatis menyusun & memecah ke beberapa lembar bila tidak muat dalam satu halaman."),
+            tr("Ukuran kertas & foto dihitung dalam milimeter asli, bukan diperkirakan — jadi hasil PDF/cetak presisi secara fisik."),
+            tr("Saat mencetak PDF atau lewat dialog printer, pilih 'Ukuran Asli / 100% / Actual Size' — bukan 'Fit to Page' — supaya ukuran pas foto tidak melar/menyusut."),
+            tr("Mode 'Penuhi & Potong' memangkas foto rapi mengisi penuh bingkai; atur 'Fokus Potong' per foto bila wajah tidak tepat di tengah."),
           ]}
         />
       </div>

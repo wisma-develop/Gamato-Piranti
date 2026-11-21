@@ -20,6 +20,7 @@ import {
   type AudioMeta,
   type CompressedAudioFormat,
 } from "@/lib/audioEngine";
+import { LOCALE, tr } from "@/i18n";
 
 type Mode = "mp3" | "wav" | "compressed";
 
@@ -37,9 +38,9 @@ function formatTime(t: number): string {
 }
 
 const MODES: { id: Mode; label: string; desc: string }[] = [
-  { id: "mp3", label: "MP3 (Universal)", desc: "Format audio paling universal — diputar di semua HP, mobil, pemutar musik, dan platform. Pilih bitrate sesuai kebutuhan." },
-  { id: "wav", label: "WAV (Lossless)", desc: "Kualitas penuh, tanpa kompresi — file lebih besar tapi tidak ada penurunan mutu sama sekali." },
-  { id: "compressed", label: "Terkompresi (Opus)", desc: "File jauh lebih kecil, cocok untuk berbagi — kualitas tetap jernih untuk suara/musik biasa." },
+  { id: "mp3", label: tr("MP3 (Universal)"), desc: tr("Format audio paling universal — diputar di semua HP, mobil, pemutar musik, dan platform. Pilih bitrate sesuai kebutuhan.") },
+  { id: "wav", label: tr("WAV (Lossless)"), desc: tr("Kualitas penuh, tanpa kompresi — file lebih besar tapi tidak ada penurunan mutu sama sekali.") },
+  { id: "compressed", label: tr("Terkompresi (Opus)"), desc: tr("File jauh lebih kecil, cocok untuk berbagi — kualitas tetap jernih untuk suara/musik biasa.") },
 ];
 
 export function AudioConvertHub() {
@@ -81,7 +82,7 @@ export function AudioConvertHub() {
       clearResult();
       setError(null);
     } catch (err: any) {
-      setLoadError(err?.message || "Gagal memuat file audio.");
+      setLoadError(err?.message || tr("Gagal memuat file audio."));
     } finally {
       setIsLoading(false);
     }
@@ -110,14 +111,14 @@ export function AudioConvertHub() {
     try {
       if (mode === "mp3") {
         const blob = await encodeMp3(audioBufferToPcm(meta.buffer), { kbps: mp3Kbps, start: trimStart, end: trimEnd, mono: mp3Mono, onProgress: setProgress });
-        setResult({ url: URL.createObjectURL(blob), ext: "mp3", label: "MP3", sizeBytes: blob.size });
+        setResult({ url: URL.createObjectURL(blob), ext: "mp3", label: tr("MP3"), sizeBytes: blob.size });
       } else if (mode === "wav") {
         setProgress(0.3);
         const blob = await audioFileToWav(meta.file);
         setProgress(1);
-        setResult({ url: URL.createObjectURL(blob), ext: "wav", label: "WAV", sizeBytes: blob.size });
+        setResult({ url: URL.createObjectURL(blob), ext: "wav", label: tr("WAV"), sizeBytes: blob.size });
       } else {
-        if (!compressedFormat) throw new Error("Browser ini tidak mendukung perekaman audio terkompresi. Coba Chrome, Edge, atau Firefox terbaru.");
+        if (!compressedFormat) throw new Error(tr("Browser ini tidak mendukung perekaman audio terkompresi. Coba Chrome, Edge, atau Firefox terbaru."));
         const blob = await encodeAudioBufferCompressed({
           buffer: meta.buffer,
           start: trimStart,
@@ -128,7 +129,7 @@ export function AudioConvertHub() {
         setResult({ url: URL.createObjectURL(blob), ext: compressedFormat.ext, label: compressedFormat.label, sizeBytes: blob.size });
       }
     } catch (err: any) {
-      setError(err?.message || "Gagal mengonversi audio.");
+      setError(err?.message || tr("Gagal mengonversi audio."));
     } finally {
       setIsProcessing(false);
     }
@@ -172,8 +173,8 @@ export function AudioConvertHub() {
             onFiles={handleFiles}
             accept="audio/*"
             multiple={false}
-            label={isLoading ? "Memuat audio…" : "Drop file audio di sini"}
-            sublabel="MP3, WAV, OGG, M4A, FLAC — diproses langsung di browser"
+            label={isLoading ? tr("Memuat audio…") : tr("Drop file audio di sini")}
+            sublabel={tr("MP3, WAV, OGG, M4A, FLAC — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -183,7 +184,7 @@ export function AudioConvertHub() {
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               {(mode === "compressed" || mode === "mp3") && (
                 <div>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Rentang yang Dikonversi</p>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">{tr("Rentang yang Dikonversi")}</p>
                   <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(s, e) => { setTrimStart(s); setTrimEnd(e); clearResult(); }} />
                 </div>
               )}
@@ -191,8 +192,8 @@ export function AudioConvertHub() {
               {mode === "mp3" && (
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Kualitas (Bitrate)</p>
-                    <div className="grid grid-cols-6 gap-1.5" role="radiogroup" aria-label="Bitrate MP3">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">{tr("Kualitas (Bitrate)")}</p>
+                    <div className="grid grid-cols-6 gap-1.5" role="radiogroup" aria-label={tr("Bitrate MP3")}>
                       {MP3_BITRATES.map((k) => (
                         <button
                           key={k}
@@ -209,15 +210,15 @@ export function AudioConvertHub() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">kbps — 128 cukup untuk suara/podcast, 192 seimbang, 320 kualitas maksimum.</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">{tr("kbps — 128 cukup untuk suara/podcast, 192 seimbang, 320 kualitas maksimum.")}</p>
                   </div>
-                  <GamatoCheckbox checked={mp3Mono} onChange={(v) => { setMp3Mono(v); clearResult(); }} label="Jadikan mono (file lebih kecil — cocok untuk suara/rekaman)" />
+                  <GamatoCheckbox checked={mp3Mono} onChange={(v) => { setMp3Mono(v); clearResult(); }} label={tr("Jadikan mono (file lebih kecil — cocok untuk suara/rekaman)")} />
                 </div>
               )}
 
               {mode === "compressed" && compressedFormats.length > 1 && (
                 <div>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Format Terkompresi</p>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">{tr("Format Terkompresi")}</p>
                   <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${compressedFormats.length}, minmax(0,1fr))` }}>
                     {compressedFormats.map((f) => (
                       <button
@@ -237,7 +238,7 @@ export function AudioConvertHub() {
               )}
 
               {mode === "compressed" && !compressedFormat && (
-                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung perekaman audio terkompresi. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{tr("Browser ini tidak mendukung perekaman audio terkompresi. Coba Chrome, Edge, atau Firefox versi terbaru.")}</p>
               )}
 
               {isProcessing && (
@@ -245,27 +246,25 @@ export function AudioConvertHub() {
                   <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(progress * 100)}%</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Memproses… {0}%", Math.round(progress * 100))}</p>
                 </div>
               )}
 
               <Btn onClick={runConvert} disabled={!canRun} className="w-full gap-2">
                 {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileAudio className="w-4 h-4" />}
-                {isProcessing ? "Memproses…" : `Konversi ke ${activeModeInfo.label}`}
+                {isProcessing ? tr("Memproses…") : tr("Konversi ke {0}", activeModeInfo.label)}
               </Btn>
               {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
               {result && (
                 <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                  <GamatoAudioPlayer src={result.url} label={`Hasil (${result.label})`} />
+                  <GamatoAudioPlayer src={result.url} label={tr("Hasil ({0})", result.label)} />
                   <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 px-1">
                     <span>{result.label}</span>
                     <span>{formatBytes(result.sizeBytes)}</span>
                   </div>
                   <Btn onClick={downloadResult} variant="secondary" className="w-full gap-2 text-sm">
-                    <Download className="w-4 h-4" />
-                    Unduh {result.label}
-                  </Btn>
+                    <Download className="w-4 h-4" />{tr("Unduh {0}", result.label)}</Btn>
                 </div>
               )}
             </div>
@@ -280,35 +279,34 @@ export function AudioConvertHub() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 truncate">{meta.file.name}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {meta.numberOfChannels === 1 ? "Mono" : meta.numberOfChannels === 2 ? "Stereo" : `${meta.numberOfChannels} channel`} · {meta.sampleRate.toLocaleString("id-ID")} Hz · {formatTime(meta.duration)}
-            </p>
+              {meta.numberOfChannels === 1 ? tr("Mono") : meta.numberOfChannels === 2 ? tr("Stereo") : `${meta.numberOfChannels} channel`}{" "}{tr("· {0} Hz · {1}", meta.sampleRate.toLocaleString(LOCALE), formatTime(meta.duration))}</p>
             <button type="button" onClick={resetFile} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Audio
+              {tr("Ganti Audio")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<FileAudio className="w-5 h-5" />}
-          label={`Konversi Audio — ${activeModeInfo.label}`}
+          label={tr("Konversi Audio — {0}", activeModeInfo.label)}
           desc={activeModeInfo.desc}
           points={
             mode === "mp3"
               ? [
-                  "Audio didekode lewat Web Audio API lalu di-encode ke MP3 (LAME) langsung di browser — bukan real-time, jadi cepat (file 5 menit biasanya hitungan detik).",
-                  "MP3 diputar di hampir semua perangkat, mobil, dan platform. Bitrate lebih tinggi = lebih jernih tetapi file lebih besar.",
-                  "File tidak pernah diunggah ke server mana pun.",
+                  tr("Audio didekode lewat Web Audio API lalu di-encode ke MP3 (LAME) langsung di browser — bukan real-time, jadi cepat (file 5 menit biasanya hitungan detik)."),
+                  tr("MP3 diputar di hampir semua perangkat, mobil, dan platform. Bitrate lebih tinggi = lebih jernih tetapi file lebih besar."),
+                  tr("File tidak pernah diunggah ke server mana pun."),
                 ]
               : mode === "wav"
               ? [
-                  "Audio didekode lewat Web Audio API lalu ditulis ulang sebagai WAV PCM 16-bit — cara paling universal dan pasti bisa dibuka di mana saja.",
-                  "Cocok untuk MP3, OGG, M4A/AAC, FLAC sebagai sumber (tergantung dukungan decoder browser).",
-                  "Karena tanpa kompresi, ukuran file WAV jauh lebih besar dari sumbernya — bukan untuk berbagi, tapi untuk kualitas maksimal atau diedit lebih lanjut.",
+                  tr("Audio didekode lewat Web Audio API lalu ditulis ulang sebagai WAV PCM 16-bit — cara paling universal dan pasti bisa dibuka di mana saja."),
+                  tr("Cocok untuk MP3, OGG, M4A/AAC, FLAC sebagai sumber (tergantung dukungan decoder browser)."),
+                  tr("Karena tanpa kompresi, ukuran file WAV jauh lebih besar dari sumbernya — bukan untuk berbagi, tapi untuk kualitas maksimal atau diedit lebih lanjut."),
                 ]
               : [
-                  "Audio diputar ulang secara real-time dan direkam lewat encoder Opus bawaan browser — bukan transcoding instan, jadi audio 1 menit ≈ 1 menit proses.",
-                  compressedFormat ? `Format yang dipakai: ${compressedFormat.label}.` : "Browser ini tampaknya tidak mendukung mode ini.",
-                  "Hasil jauh lebih kecil dari WAV, cocok untuk dikirim atau diunggah.",
+                  tr("Audio diputar ulang secara real-time dan direkam lewat encoder Opus bawaan browser — bukan transcoding instan, jadi audio 1 menit ≈ 1 menit proses."),
+                  compressedFormat ? tr("Format yang dipakai: {0}.", compressedFormat.label) : tr("Browser ini tampaknya tidak mendukung mode ini."),
+                  tr("Hasil jauh lebih kecil dari WAV, cocok untuk dikirim atau diunggah."),
                 ]
           }
         />

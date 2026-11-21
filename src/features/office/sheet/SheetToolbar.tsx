@@ -10,6 +10,7 @@ import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import type { CellFormat, NumberFormat } from "./sheetModel";
 import { AnchoredPortal, useOutsideClose } from "@/components/ui/AnchoredPortal";
+import { tr } from "@/i18n";
 
 const ToolBtn: React.FC<{ active?: boolean; onClick: () => void; title: string; children: React.ReactNode; disabled?: boolean }> = ({
   active,
@@ -65,30 +66,30 @@ export const SheetToolbar: React.FC<{
 
   return (
     <div className="flex flex-wrap items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 shadow-sm">
-      <ToolBtn title="Urungkan (Ctrl+Z)" onClick={onUndo} disabled={!canUndo}>
+      <ToolBtn title={tr("Urungkan (Ctrl+Z)")} onClick={onUndo} disabled={!canUndo}>
         <Undo2 className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Ulangi (Ctrl+Y)" onClick={onRedo} disabled={!canRedo}>
+      <ToolBtn title={tr("Ulangi (Ctrl+Y)")} onClick={onRedo} disabled={!canRedo}>
         <Redo2 className="w-4 h-4" />
       </ToolBtn>
       <Sep />
-      <ToolBtn title="Tebal" active={!!format.bold} onClick={() => onFormat({ bold: !format.bold })}>
+      <ToolBtn title={tr("Tebal")} active={!!format.bold} onClick={() => onFormat({ bold: !format.bold })}>
         <Bold className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Miring" active={!!format.italic} onClick={() => onFormat({ italic: !format.italic })}>
+      <ToolBtn title={tr("Miring")} active={!!format.italic} onClick={() => onFormat({ italic: !format.italic })}>
         <Italic className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Garis Bawah" active={!!format.underline} onClick={() => onFormat({ underline: !format.underline })}>
+      <ToolBtn title={tr("Garis Bawah")} active={!!format.underline} onClick={() => onFormat({ underline: !format.underline })}>
         <Underline className="w-4 h-4" />
       </ToolBtn>
       <Sep />
-      <ToolBtn title="Rata Kiri" active={(format.align ?? "left") === "left"} onClick={() => onFormat({ align: "left" })}>
+      <ToolBtn title={tr("Rata Kiri")} active={(format.align ?? "left") === "left"} onClick={() => onFormat({ align: "left" })}>
         <AlignLeft className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata Tengah" active={format.align === "center"} onClick={() => onFormat({ align: "center" })}>
+      <ToolBtn title={tr("Rata Tengah")} active={format.align === "center"} onClick={() => onFormat({ align: "center" })}>
         <AlignCenter className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata Kanan" active={format.align === "right"} onClick={() => onFormat({ align: "right" })}>
+      <ToolBtn title={tr("Rata Kanan")} active={format.align === "right"} onClick={() => onFormat({ align: "right" })}>
         <AlignRight className="w-4 h-4" />
       </ToolBtn>
       <Sep />
@@ -98,31 +99,31 @@ export const SheetToolbar: React.FC<{
           onChange={(e) => onFormat({ numberFormat: e.target.value as NumberFormat })}
           className="h-8 text-xs"
         >
-          <option value="general">Umum</option>
-          <option value="number">Angka (0.00)</option>
-          <option value="integer">Bulat</option>
-          <option value="percent">Persen (%)</option>
-          <option value="currency">Mata Uang (Rp)</option>
+          <option value="general">{tr("Umum")}</option>
+          <option value="number">{tr("Angka (0.00)")}</option>
+          <option value="integer">{tr("Bulat")}</option>
+          <option value="percent">{tr("Persen (%)")}</option>
+          <option value="currency">{tr("Mata Uang (Rp)")}</option>
         </GamatoSelect>
       </div>
       <Sep />
-      <GamatoColorPicker compact label="Warna isi sel" value={format.bg ?? "#ffffff"} onChange={(hex) => onFormat({ bg: hex })} />
-      <GamatoColorPicker compact label="Warna teks sel" value={format.color ?? "#0f172a"} onChange={(hex) => onFormat({ color: hex })} />
+      <GamatoColorPicker compact label={tr("Warna isi sel")} value={format.bg ?? "#ffffff"} onChange={(hex) => onFormat({ bg: hex })} />
+      <GamatoColorPicker compact label={tr("Warna teks sel")} value={format.color ?? "#0f172a"} onChange={(hex) => onFormat({ color: hex })} />
       <Sep />
-      <ToolBtn title="Sisipkan Baris di Bawah" onClick={onInsertRow}>
+      <ToolBtn title={tr("Sisipkan Baris di Bawah")} onClick={onInsertRow}>
         <Rows3 className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Sisipkan Kolom di Kanan" onClick={onInsertCol}>
+      <ToolBtn title={tr("Sisipkan Kolom di Kanan")} onClick={onInsertCol}>
         <Columns3 className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Hapus Baris Terpilih" onClick={onDeleteRow}>
+      <ToolBtn title={tr("Hapus Baris Terpilih")} onClick={onDeleteRow}>
         <Trash2 className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Hapus Kolom Terpilih" onClick={onDeleteCol}>
+      <ToolBtn title={tr("Hapus Kolom Terpilih")} onClick={onDeleteCol}>
         <Columns3 className="w-4 h-4 opacity-50" />
       </ToolBtn>
       <Sep />
-      <ToolBtn title="Impor CSV / Excel" onClick={() => importRef.current?.click()}>
+      <ToolBtn title={tr("Impor CSV / Excel")} onClick={() => importRef.current?.click()}>
         <Upload className="w-4 h-4" />
       </ToolBtn>
       <input
@@ -143,14 +144,14 @@ export const SheetToolbar: React.FC<{
           className="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
-          Ekspor
+          {tr("Ekspor")}
           <ChevronDown className={cn("w-3 h-3 transition-transform", exportOpen && "rotate-180")} />
         </button>
-        <AnchoredPortal anchorRef={exportRef} open={exportOpen} align="end" offset={6} panelRef={exportPopRef} role="menu" aria-label="Ekspor" className="w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
+        <AnchoredPortal anchorRef={exportRef} open={exportOpen} align="end" offset={6} panelRef={exportPopRef} role="menu" aria-label={tr("Ekspor")} className="w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden">
             {[
-              { label: "Excel (.xlsx)", fn: onExportXlsx },
-              { label: "CSV (.csv)", fn: onExportCsv },
-              { label: "PDF (.pdf)", fn: onExportPdf },
+              { label: tr("Excel (.xlsx)"), fn: onExportXlsx },
+              { label: tr("CSV (.csv)"), fn: onExportCsv },
+              { label: tr("PDF (.pdf)"), fn: onExportPdf },
             ].map((opt) => (
               <button
                 key={opt.label}

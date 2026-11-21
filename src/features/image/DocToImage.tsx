@@ -14,45 +14,46 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
 import { detectKind, KIND_EXTS, KIND_LABEL, openDocument, type DocKind, type DocKindOrAuto, type DocSession } from "@/lib/docRaster";
+import { tr } from "@/i18n";
 
 const KIND_UI: Record<DocKindOrAuto, { title: string; accept: string; label: string; sub: string; icon: React.ReactNode; points: string[] }> = {
   pdf: {
-    title: "PDF ke Gambar", accept: ".pdf,application/pdf", label: "Drop file PDF di sini", sub: "atau klik untuk browse", icon: <FileText className="w-8 h-8 text-slate-400" />,
-    points: ["Setiap halaman dirender penuh sebagai gambar — termasuk PDF hasil scan.", "Pilih halaman lewat pratinjau, atau gabungkan semuanya jadi satu gambar panjang."],
+    title: tr("PDF ke Gambar"), accept: ".pdf,application/pdf", label: tr("Drop file PDF di sini"), sub: tr("atau klik untuk browse"), icon: <FileText className="w-8 h-8 text-slate-400" />,
+    points: [tr("Setiap halaman dirender penuh sebagai gambar — termasuk PDF hasil scan."), tr("Pilih halaman lewat pratinjau, atau gabungkan semuanya jadi satu gambar panjang.")],
   },
   word: {
-    title: "Word ke Gambar", accept: ".docx", label: "Drop file Word (.docx) di sini", sub: "atau klik untuk browse", icon: <FileType2 className="w-8 h-8 text-slate-400" />,
-    points: ["Judul, gaya huruf, daftar, tabel, dan gambar dirender per halaman sesuai ukuran kertas dokumen.", "Header/footer, kotak teks, dan grafik tidak ikut dirender. Untuk hasil identik 100% dengan Word, ekspor dulu ke PDF dari Word lalu pakai PDF ke Gambar."],
+    title: tr("Word ke Gambar"), accept: ".docx", label: tr("Drop file Word (.docx) di sini"), sub: tr("atau klik untuk browse"), icon: <FileType2 className="w-8 h-8 text-slate-400" />,
+    points: [tr("Judul, gaya huruf, daftar, tabel, dan gambar dirender per halaman sesuai ukuran kertas dokumen."), tr("Header/footer, kotak teks, dan grafik tidak ikut dirender. Untuk hasil identik 100% dengan Word, ekspor dulu ke PDF dari Word lalu pakai PDF ke Gambar.")],
   },
   ppt: {
-    title: "PowerPoint ke Gambar", accept: ".pptx", label: "Drop file PowerPoint (.pptx) di sini", sub: "atau klik untuk browse", icon: <Presentation className="w-8 h-8 text-slate-400" />,
-    points: ["Setiap slide menjadi satu gambar: latar, tema warna, bentuk, teks, gambar, dan tabel.", "Grafik/SmartArt diganti kotak keterangan; animasi dan transisi tidak berlaku."],
+    title: tr("PowerPoint ke Gambar"), accept: ".pptx", label: tr("Drop file PowerPoint (.pptx) di sini"), sub: tr("atau klik untuk browse"), icon: <Presentation className="w-8 h-8 text-slate-400" />,
+    points: [tr("Setiap slide menjadi satu gambar: latar, tema warna, bentuk, teks, gambar, dan tabel."), tr("Grafik/SmartArt diganti kotak keterangan; animasi dan transisi tidak berlaku.")],
   },
   excel: {
-    title: "Excel & CSV ke Gambar", accept: ".xlsx,.xlsm,.csv,.tsv", label: "Drop file Excel (.xlsx) atau CSV di sini", sub: "atau klik untuk browse", icon: <Sheet className="w-8 h-8 text-slate-400" />,
-    points: ["Lebar kolom, warna sel, garis, perataan, sel gabungan, dan format angka/tanggal dipertahankan.", "Tabel lebar otomatis diperkecil agar muat satu halaman; semua lembar ikut dirender."],
+    title: tr("Excel & CSV ke Gambar"), accept: ".xlsx,.xlsm,.csv,.tsv", label: tr("Drop file Excel (.xlsx) atau CSV di sini"), sub: tr("atau klik untuk browse"), icon: <Sheet className="w-8 h-8 text-slate-400" />,
+    points: [tr("Lebar kolom, warna sel, garis, perataan, sel gabungan, dan format angka/tanggal dipertahankan."), tr("Tabel lebar otomatis diperkecil agar muat satu halaman; semua lembar ikut dirender.")],
   },
   teks: {
-    title: "Teks, Markdown & RTF ke Gambar", accept: ".txt,.md,.markdown,.rtf,.json,.log,.xml,.yml,.yaml,.ini,.html,.htm,.js,.ts,.css,.py,.java,.c,.cpp,.sql,.sh,.php,text/*", label: "Drop file teks / Markdown / RTF di sini", sub: "atau klik untuk browse", icon: <FileText className="w-8 h-8 text-slate-400" />,
-    points: ["Markdown dirender dengan judul, daftar, kutipan, dan blok kode; JSON dirapikan otomatis.", "Kode/log/CSV memakai font monospasi dengan indentasi terjaga. Semua aksara Unicode didukung."],
+    title: tr("Teks, Markdown & RTF ke Gambar"), accept: ".txt,.md,.markdown,.rtf,.json,.log,.xml,.yml,.yaml,.ini,.html,.htm,.js,.ts,.css,.py,.java,.c,.cpp,.sql,.sh,.php,text/*", label: tr("Drop file teks / Markdown / RTF di sini"), sub: tr("atau klik untuk browse"), icon: <FileText className="w-8 h-8 text-slate-400" />,
+    points: [tr("Markdown dirender dengan judul, daftar, kutipan, dan blok kode; JSON dirapikan otomatis."), tr("Kode/log/CSV memakai font monospasi dengan indentasi terjaga. Semua aksara Unicode didukung.")],
   },
   auto: {
-    title: "Dokumen ke Gambar", accept: ".pdf,.docx,.pptx,.xlsx,.xlsm,.csv,.tsv,.txt,.md,.markdown,.rtf,.json,.log,.xml,.yml,.yaml,.html,.htm", label: "Drop dokumen apa pun di sini", sub: "PDF · Word · PowerPoint · Excel/CSV · Teks/Markdown/RTF", icon: <Files className="w-8 h-8 text-slate-400" />,
-    points: ["Jenis file dikenali otomatis dari ekstensinya.", "Semua diproses di perangkatmu — dokumen tidak pernah diunggah ke server."],
+    title: tr("Dokumen ke Gambar"), accept: ".pdf,.docx,.pptx,.xlsx,.xlsm,.csv,.tsv,.txt,.md,.markdown,.rtf,.json,.log,.xml,.yml,.yaml,.html,.htm", label: tr("Drop dokumen apa pun di sini"), sub: tr("PDF · Word · PowerPoint · Excel/CSV · Teks/Markdown/RTF"), icon: <Files className="w-8 h-8 text-slate-400" />,
+    points: [tr("Jenis file dikenali otomatis dari ekstensinya."), tr("Semua diproses di perangkatmu — dokumen tidak pernah diunggah ke server.")],
   },
 };
 
 const DPI_OPTIONS = [
-  { dpi: 96, label: "96", sub: "Layar" },
-  { dpi: 150, label: "150", sub: "Standar" },
-  { dpi: 200, label: "200", sub: "Tajam" },
-  { dpi: 300, label: "300", sub: "Cetak" },
-  { dpi: 400, label: "400", sub: "Maks" },
+  { dpi: 96, label: "96", sub: tr("Layar") },
+  { dpi: 150, label: "150", sub: tr("Standar") },
+  { dpi: 200, label: "200", sub: tr("Tajam") },
+  { dpi: 300, label: "300", sub: tr("Cetak") },
+  { dpi: 400, label: "400", sub: tr("Maks") },
 ] as const;
 const FORMATS = [
-  { id: "png", label: "PNG", mime: "image/png", ext: "png", sub: "Tanpa kehilangan" },
-  { id: "jpeg", label: "JPG", mime: "image/jpeg", ext: "jpg", sub: "Ringan" },
-  { id: "webp", label: "WebP", mime: "image/webp", ext: "webp", sub: "Paling kecil" },
+  { id: "png", label: tr("PNG"), mime: "image/png", ext: "png", sub: tr("Tanpa kehilangan") },
+  { id: "jpeg", label: tr("JPG"), mime: "image/jpeg", ext: "jpg", sub: tr("Ringan") },
+  { id: "webp", label: tr("WebP"), mime: "image/webp", ext: "webp", sub: tr("Paling kecil") },
 ] as const;
 type FormatId = (typeof FORMATS)[number]["id"];
 
@@ -129,7 +130,7 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
           if (i % 4 === 3) await yieldUi();
         }
       } catch (err: any) {
-        if (loadSeq.current === seq) setError(err?.message || "Gagal membuka dokumen.");
+        if (loadSeq.current === seq) setError(err?.message || tr("Gagal membuka dokumen."));
       } finally {
         if (loadSeq.current === seq) setLoading(false);
       }
@@ -143,7 +144,7 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
     const k = detectKind(f);
     const allowed = kind === "auto" ? !!k : k === kind;
     if (!allowed) {
-      setError(kind === "auto" ? "Jenis file tidak didukung." : `File ini bukan ${KIND_LABEL[kind]}. Gunakan menu "Dokumen ke Gambar" untuk memilih jenis lain (${KIND_EXTS[kind].slice(0, 4).map((e) => "." + e).join(", ")} …).`);
+      setError(kind === "auto" ? tr("Jenis file tidak didukung.") : tr("File ini bukan {0}. Gunakan menu \"Dokumen ke Gambar\" untuk memilih jenis lain ({1} …).", KIND_LABEL[kind], KIND_EXTS[kind].slice(0, 4).map((e) => "." + e).join(", ")));
       return;
     }
     setFile(f);
@@ -179,14 +180,14 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
   const run = async () => {
     if (!session || !pickedIdx.length) return;
     setInfo(null);
-    setBusy({ done: 0, total: pickedIdx.length, label: "Merender halaman" });
+    setBusy({ done: 0, total: pickedIdx.length, label: tr("Merender halaman") });
     try {
       const q = fmt.id === "png" ? undefined : quality / 100;
       if (mode === "pages") {
         if (pickedIdx.length === 1) {
           const c = await session.render(pickedIdx[0], dpi);
           downloadBlob(await canvasToBlob(c, fmt.mime, q), `${base}-hal-${String(pickedIdx[0] + 1).padStart(2, "0")}.${fmt.ext}`);
-          setInfo({ tone: "success", text: `1 halaman diunduh (${c.width}×${c.height}px).` });
+          setInfo({ tone: "success", text: tr("1 halaman diunduh ({0}×{1}px).", c.width, c.height) });
         } else {
           const zip = new JSZip();
           let w0 = 0, h0 = 0;
@@ -196,12 +197,12 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
             if (!n) { w0 = c.width; h0 = c.height; }
             zip.file(`${base}-hal-${String(i + 1).padStart(2, "0")}.${fmt.ext}`, await canvasToBlob(c, fmt.mime, q));
             c.width = c.height = 1; // lepas memori bitmap
-            setBusy({ done: n + 1, total: pickedIdx.length, label: "Merender halaman" });
+            setBusy({ done: n + 1, total: pickedIdx.length, label: tr("Merender halaman") });
             await yieldUi();
           }
-          setBusy({ done: pickedIdx.length, total: pickedIdx.length, label: "Menyusun ZIP" });
+          setBusy({ done: pickedIdx.length, total: pickedIdx.length, label: tr("Menyusun ZIP") });
           downloadBlob(await zip.generateAsync({ type: "blob", compression: "STORE" }), `${base}-${fmt.ext}.zip`);
-          setInfo({ tone: "success", text: `${pickedIdx.length} halaman diunduh sebagai ZIP (halaman pertama ${w0}×${h0}px).` });
+          setInfo({ tone: "success", text: tr("{0} halaman diunduh sebagai ZIP (halaman pertama {1}×{2}px).", pickedIdx.length, w0, h0) });
         }
       } else {
         // satu gambar panjang
@@ -219,7 +220,7 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
         canvas.width = Math.round(Wpt * px);
         canvas.height = Math.round(Hpt * px);
         const ctx = canvas.getContext("2d");
-        if (!ctx) throw new Error("Canvas tidak tersedia di browser ini.");
+        if (!ctx) throw new Error(tr("Canvas tidak tersedia di browser ini."));
         ctx.fillStyle = gap ? "#e5e7eb" : "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         let y = 0;
@@ -228,17 +229,17 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
           ctx.drawImage(c, Math.round(((Wpt - sizes[n].w) / 2) * px), Math.round(y));
           y += sizes[n].h * px + gapPt * px;
           c.width = c.height = 1;
-          setBusy({ done: n + 1, total: pickedIdx.length, label: "Menggabungkan halaman" });
+          setBusy({ done: n + 1, total: pickedIdx.length, label: tr("Menggabungkan halaman") });
           await yieldUi();
         }
         downloadBlob(await canvasToBlob(canvas, fmt.mime, q), `${base}-gabungan.${fmt.ext}`);
         setInfo({
           tone: "success",
-          text: `Gambar panjang diunduh (${canvas.width}×${canvas.height}px)${eff < dpi ? ` — resolusi diturunkan otomatis ke ${eff} dpi karena batas ukuran kanvas browser` : ""}.`,
+          text: tr("Gambar panjang diunduh ({0}×{1}px){2}.", canvas.width, canvas.height, eff < dpi ? tr(" — resolusi diturunkan otomatis ke {0} dpi karena batas ukuran kanvas browser", eff) : ""),
         });
       }
     } catch (err: any) {
-      setInfo({ tone: "error", text: err?.message || "Gagal mengonversi dokumen." });
+      setInfo({ tone: "error", text: err?.message || tr("Gagal mengonversi dokumen.") });
     } finally {
       setBusy(null);
     }
@@ -248,7 +249,7 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
 
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start">
-      <PreviewJumpFab targetId="doc2img-settings" label="Opsi & Unduh" />
+      <PreviewJumpFab targetId="doc2img-settings" label={tr("Opsi & Unduh")} />
       <div className="space-y-5 min-w-0">
         {!file ? (
           <Dropzone onFiles={addFiles} accept={ui.accept} multiple={false} label={ui.label} sublabel={ui.sub} icon={ui.icon} isDragging={isDragging} setIsDragging={setIsDragging} />
@@ -257,20 +258,20 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
             <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">{effKind === "ppt" ? <Presentation className="w-5 h-5" /> : effKind === "excel" ? <Sheet className="w-5 h-5" /> : effKind === "word" ? <FileType2 className="w-5 h-5" /> : <FileText className="w-5 h-5" />}</div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-              <p className="text-xs text-slate-400">{effKind ? KIND_LABEL[effKind] : ""} · {(file.size / 1024 / 1024).toFixed(2)} MB{session ? ` · ${session.count} halaman` : ""}</p>
+              <p className="text-xs text-slate-400">{effKind ? KIND_LABEL[effKind] : ""}{" "}{tr("· {0} MB", (file.size / 1024 / 1024).toFixed(2))}{session ? tr(" · {0} halaman", session.count) : ""}</p>
             </div>
-            <button type="button" onClick={reset} aria-label="Ganti file" className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
+            <button type="button" onClick={reset} aria-label={tr("Ganti file")} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
           </div>
         )}
 
         {error && <GamatoInlineAlert message={error} tone="error" />}
         {loading && !session && (
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"><Loader2 className="w-4 h-4 animate-spin" /> Membaca dokumen…</div>
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"><Loader2 className="w-4 h-4 animate-spin" /> {tr("Membaca dokumen…")}</div>
         )}
 
         {showNotes && (
           <div className="rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-xs text-amber-800 dark:text-amber-300 space-y-1">
-            <p className="font-bold flex items-center gap-1.5"><Info className="w-3.5 h-3.5" /> Catatan hasil render</p>
+            <p className="font-bold flex items-center gap-1.5"><Info className="w-3.5 h-3.5" /> {tr("Catatan hasil render")}</p>
             <ul className="list-disc pl-5 space-y-0.5">{session!.notes.map((n) => <li key={n}>{n}</li>)}</ul>
           </div>
         )}
@@ -278,10 +279,10 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
         {session && (
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Pilih halaman <span className="font-normal text-slate-400">({pickedIdx.length}/{session.count} dipilih)</span></p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Pilih halaman")} <span className="font-normal text-slate-400">{tr("({0}/{1} dipilih)", pickedIdx.length, session.count)}</span></p>
               <div className="flex gap-3 text-xs font-semibold">
-                <button type="button" className="py-1.5 text-indigo-600 dark:text-indigo-400 hover:underline" onClick={() => setSelected(new Set(Array.from({ length: session.count }, (_, i) => i)))}>Pilih semua</button>
-                <button type="button" className="py-1.5 text-slate-500 hover:underline" onClick={() => setSelected(new Set())}>Kosongkan</button>
+                <button type="button" className="py-1.5 text-indigo-600 dark:text-indigo-400 hover:underline" onClick={() => setSelected(new Set(Array.from({ length: session.count }, (_, i) => i)))}>{tr("Pilih semua")}</button>
+                <button type="button" className="py-1.5 text-slate-500 hover:underline" onClick={() => setSelected(new Set())}>{tr("Kosongkan")}</button>
               </div>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[560px] overflow-y-auto pr-1">
@@ -294,7 +295,7 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
                     type="button"
                     onClick={() => toggle(i)}
                     aria-pressed={on}
-                    aria-label={`Halaman ${i + 1}`}
+                    aria-label={tr("Halaman {0}", i + 1)}
                     className={cn("relative rounded-lg border-2 p-1 text-left transition-all bg-slate-50 dark:bg-slate-800", on ? "border-indigo-500" : "border-transparent opacity-50 hover:opacity-80")}
                   >
                     <div className="w-full bg-white rounded overflow-hidden flex items-center justify-center" style={{ aspectRatio: `${sz.w} / ${sz.h}` }}>
@@ -306,52 +307,52 @@ export const DocToImage: React.FC<{ kind: DocKindOrAuto }> = ({ kind }) => {
                 );
               })}
             </div>
-            {session.count > 150 && <p className="text-[11px] text-slate-400">Pratinjau dibatasi 150 halaman pertama; semua halaman terpilih tetap ikut dikonversi.</p>}
+            {session.count > 150 && <p className="text-[11px] text-slate-400">{tr("Pratinjau dibatasi 150 halaman pertama; semua halaman terpilih tetap ikut dikonversi.")}</p>}
           </div>
         )}
       </div>
 
       <div id="doc2img-settings" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20">
-        <PanelCard title="Pengaturan Gambar" subtitle="Atur kualitas, format, dan bentuk hasil">
+        <PanelCard title={tr("Pengaturan Gambar")} subtitle={tr("Atur kualitas, format, dan bentuk hasil")}>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Resolusi (DPI)</p>
-              <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="Resolusi">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{tr("Resolusi (DPI)")}</p>
+              <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label={tr("Resolusi")}>
                 {DPI_OPTIONS.map((o) => <Seg key={o.dpi} active={dpi === o.dpi} onClick={() => setDpi(o.dpi)} sub={o.sub}>{o.label}</Seg>)}
               </div>
-              {estimate && <p className="text-[11px] text-slate-400 mt-1.5">≈ {estimate.w} × {estimate.h} px per halaman pertama</p>}
+              {estimate && <p className="text-[11px] text-slate-400 mt-1.5">{tr("≈ {0} × {1} px per halaman pertama", estimate.w, estimate.h)}</p>}
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Format</p>
-              <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="Format gambar">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{tr("Format")}</p>
+              <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={tr("Format gambar")}>
                 {FORMATS.map((f) => <Seg key={f.id} active={format === f.id} onClick={() => setFormat(f.id)} sub={f.sub}>{f.label}</Seg>)}
               </div>
             </div>
             {format !== "png" && (
               <div>
-                <div className="flex justify-between mb-1"><p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Kualitas</p><span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{quality}%</span></div>
-                <GamatoSlider min={50} max={100} value={quality} onChange={setQuality} aria-label="Kualitas gambar" />
+                <div className="flex justify-between mb-1"><p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tr("Kualitas")}</p><span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{quality}%</span></div>
+                <GamatoSlider min={50} max={100} value={quality} onChange={setQuality} aria-label={tr("Kualitas gambar")} />
               </div>
             )}
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Bentuk Hasil</p>
-              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Bentuk hasil">
-                <Seg active={mode === "pages"} onClick={() => setMode("pages")} sub="Satu file per halaman (ZIP)"><span className="inline-flex items-center gap-1"><Layers className="w-3 h-3" />Per Halaman</span></Seg>
-                <Seg active={mode === "stitch"} onClick={() => setMode("stitch")} sub="Disambung ke bawah"><span className="inline-flex items-center gap-1"><GalleryVertical className="w-3 h-3" />Satu Gambar Panjang</span></Seg>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{tr("Bentuk Hasil")}</p>
+              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={tr("Bentuk hasil")}>
+                <Seg active={mode === "pages"} onClick={() => setMode("pages")} sub={tr("Satu file per halaman (ZIP)")}><span className="inline-flex items-center gap-1"><Layers className="w-3 h-3" />{tr("Per Halaman")}</span></Seg>
+                <Seg active={mode === "stitch"} onClick={() => setMode("stitch")} sub={tr("Disambung ke bawah")}><span className="inline-flex items-center gap-1"><GalleryVertical className="w-3 h-3" />{tr("Satu Gambar Panjang")}</span></Seg>
               </div>
-              {mode === "stitch" && <div className="mt-2"><GamatoCheckbox checked={gap} onChange={setGap} label="Beri jarak abu-abu antar halaman" /></div>}
+              {mode === "stitch" && <div className="mt-2"><GamatoCheckbox checked={gap} onChange={setGap} label={tr("Beri jarak abu-abu antar halaman")} /></div>}
             </div>
-            {effKind === "excel" && <GamatoCheckbox checked={gridlines} onChange={setGridlines} label="Tampilkan garis kisi sel" />}
+            {effKind === "excel" && <GamatoCheckbox checked={gridlines} onChange={setGridlines} label={tr("Tampilkan garis kisi sel")} />}
           </div>
         </PanelCard>
 
         <Btn onClick={run} disabled={!session || !pickedIdx.length || !!busy} className="w-full py-3.5 text-base">
-          {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{busy.label} {busy.done}/{busy.total}…</> : <><Download className="w-4 h-4" />{mode === "stitch" ? "Unduh Gambar Panjang" : pickedIdx.length === 1 ? "Unduh Gambar" : `Unduh ${pickedIdx.length || ""} Gambar (ZIP)`}</>}
+          {busy ? <><Loader2 className="w-4 h-4 animate-spin" />{busy.label} {busy.done}/{busy.total}…</> : <><Download className="w-4 h-4" />{mode === "stitch" ? tr("Unduh Gambar Panjang") : pickedIdx.length === 1 ? tr("Unduh Gambar") : tr("Unduh {0} Gambar (ZIP)", pickedIdx.length || "")}</>}
         </Btn>
         {busy && <div className="h-2 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden"><div className="h-full bg-indigo-500 transition-all" style={{ width: `${(busy.done / busy.total) * 100}%` }} /></div>}
         {info && <GamatoInlineAlert message={info.text} tone={info.tone === "error" ? "error" : "success"} />}
 
-        <ToolInfoPanel icon={<FileImage className="w-5 h-5" />} label={ui.title} desc="Konversi dokumen jadi gambar" points={ui.points} />
+        <ToolInfoPanel icon={<FileImage className="w-5 h-5" />} label={ui.title} desc={tr("Konversi dokumen jadi gambar")} points={ui.points} />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // ─── Sheet Studio — Formula Engine ──────────────────────────────────────────
 // A small, dependency-free spreadsheet formula engine: tokenizer → recursive-
 // descent parser → AST evaluator. Supports cell references (A1), ranges
@@ -213,7 +214,7 @@ class Parser {
 
   parse(): Node {
     const node = this.parseComparison();
-    if (this.peek().type !== "eof") throw new ParseError("Unexpected trailing tokens");
+    if (this.peek().type !== "eof") throw new ParseError(tr("Unexpected trailing tokens"));
     return node;
   }
 
@@ -334,7 +335,7 @@ class Parser {
       // Bare identifier with no call — treat as a #NAME? error at eval time.
       return { kind: "call", name: `__NAME__${t.value}`, args: [] };
     }
-    throw new ParseError(`Unexpected token: ${t.type} ${t.value}`);
+    throw new ParseError(tr("Unexpected token: {0} {1}", t.type, t.value));
   }
 }
 

@@ -5,6 +5,7 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useImageFromFile } from "@/hooks/useImageFromFile";
 import { copyToClipboard } from "@/lib/utilityHelpers";
 import { rgbToHsl, extractPalette, type PaletteColor } from "@/lib/color";
+import { tr } from "@/i18n";
 
 type Picked = { hex: string; r: number; g: number; b: number };
 
@@ -73,20 +74,20 @@ export function ColorPicker() {
             onFiles={handleFiles}
             accept="image/*"
             multiple={false}
-            label="Drop gambar di sini"
-            sublabel="JPG, PNG, WEBP — klik di gambar untuk ambil warna"
+            label={tr("Drop gambar di sini")}
+            sublabel={tr("JPG, PNG, WEBP — klik di gambar untuk ambil warna")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm">
             <canvas ref={canvasRef} onClick={handleCanvasClick} className="w-full h-auto rounded-xl cursor-crosshair block" />
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 text-center">Klik di mana saja pada gambar untuk mengambil warnanya.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 text-center">{tr("Klik di mana saja pada gambar untuk mengambil warnanya.")}</p>
           </div>
         )}
 
         {palette.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Palet Warna Dominan</p>
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Palet Warna Dominan")}</p>
             <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
               {palette.map((c) => (
                 <button
@@ -110,9 +111,9 @@ export function ColorPicker() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
             <div className="w-full h-24 rounded-xl border border-slate-200 dark:border-slate-700 shadow-inner" style={{ backgroundColor: picked.hex }} />
             {[
-              { key: "hex", label: "HEX", value: picked.hex },
-              { key: "rgb", label: "RGB", value: `rgb(${picked.r}, ${picked.g}, ${picked.b})` },
-              { key: "hsl", label: "HSL", value: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)` },
+              { key: "hex", label: tr("HEX"), value: picked.hex },
+              { key: "rgb", label: tr("RGB"), value: `rgb(${picked.r}, ${picked.g}, ${picked.b})` },
+              { key: "hsl", label: tr("HSL"), value: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)` },
             ].map((row) => (
               <button
                 key={row.key}
@@ -130,24 +131,24 @@ export function ColorPicker() {
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm text-sm text-slate-400 dark:text-slate-500 text-center">
-            Belum ada warna dipilih.
+            {tr("Belum ada warna dipilih.")}
           </div>
         )}
 
         {file && (
           <button type="button" onClick={() => { setFile(null); setPicked(null); setPalette([]); }} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-            Ganti Gambar
+            {tr("Ganti Gambar")}
           </button>
         )}
 
         <ToolInfoPanel
           icon={<Pipette className="w-5 h-5" />}
-          label="Color Picker & Palette"
-          desc="Ambil warna & palet dominan dari gambar"
+          label={tr("Color Picker & Palette")}
+          desc={tr("Ambil warna & palet dominan dari gambar")}
           points={[
-            "Klik langsung di gambar untuk membaca warna piksel manapun.",
-            "Palet dominan dihitung otomatis dari seluruh gambar — klik salah satu untuk melihat detailnya.",
-            "Semua nilai HEX/RGB/HSL tinggal diklik untuk disalin.",
+            tr("Klik langsung di gambar untuk membaca warna piksel manapun."),
+            tr("Palet dominan dihitung otomatis dari seluruh gambar — klik salah satu untuk melihat detailnya."),
+            tr("Semua nilai HEX/RGB/HSL tinggal diklik untuk disalin."),
           ]}
         />
       </div>

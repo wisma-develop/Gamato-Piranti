@@ -30,28 +30,29 @@ import {
   templateCellCount, templateToFree, toLocal, MAX_PIXELS,
   type CellShape, type CellState, type CollageState, type PhotoRef, type Rect, type TextLayer, type LayoutNode,
 } from "@/lib/collageEngine";
+import { tr } from "@/i18n";
 
 /* ───────────────────────────── helpers ───────────────────────────── */
 
 type TabId = "foto" | "layout" | "gaya" | "latar" | "sel" | "teks" | "ekspor";
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "foto", label: "Foto", icon: <Images className="w-4 h-4" /> },
-  { id: "layout", label: "Tata Letak", icon: <LayoutGrid className="w-4 h-4" /> },
-  { id: "gaya", label: "Gaya", icon: <Frame className="w-4 h-4" /> },
-  { id: "latar", label: "Latar", icon: <Palette className="w-4 h-4" /> },
-  { id: "sel", label: "Sel Terpilih", icon: <MousePointer2 className="w-4 h-4" /> },
-  { id: "teks", label: "Teks & Stiker", icon: <Type className="w-4 h-4" /> },
-  { id: "ekspor", label: "Ekspor", icon: <Download className="w-4 h-4" /> },
+  { id: "foto", label: tr("Foto"), icon: <Images className="w-4 h-4" /> },
+  { id: "layout", label: tr("Tata Letak"), icon: <LayoutGrid className="w-4 h-4" /> },
+  { id: "gaya", label: tr("Gaya"), icon: <Frame className="w-4 h-4" /> },
+  { id: "latar", label: tr("Latar"), icon: <Palette className="w-4 h-4" /> },
+  { id: "sel", label: tr("Sel Terpilih"), icon: <MousePointer2 className="w-4 h-4" /> },
+  { id: "teks", label: tr("Teks & Stiker"), icon: <Type className="w-4 h-4" /> },
+  { id: "ekspor", label: tr("Ekspor"), icon: <Download className="w-4 h-4" /> },
 ];
 
 const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
 
 const SHAPES: { id: CellShape; label: string }[] = [
-  { id: "rect", label: "Persegi / Rounded" },
-  { id: "circle", label: "Lingkaran / Oval" },
-  { id: "hexagon", label: "Heksagon" },
-  { id: "diamond", label: "Berlian" },
-  { id: "heart", label: "Hati" },
+  { id: "rect", label: tr("Persegi / Rounded") },
+  { id: "circle", label: tr("Lingkaran / Oval") },
+  { id: "hexagon", label: tr("Heksagon") },
+  { id: "diamond", label: tr("Berlian") },
+  { id: "heart", label: tr("Hati") },
 ];
 
 const EMOJIS = ["❤️", "⭐", "✨", "🔥", "😍", "😂", "🎉", "🎂", "🌸", "🌈", "☀️", "🌙", "📸", "🎵", "👑", "💯", "🥳", "💖", "🍀", "🏆"];
@@ -65,7 +66,7 @@ function loadPhoto(file: File): Promise<PhotoRef> {
     img.onload = () => resolve({ id: uid(), name: file.name, img, w: img.naturalWidth, h: img.naturalHeight });
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error(`"${file.name}" bukan gambar yang bisa dibaca browser.`));
+      reject(new Error(tr("\"{0}\" bukan gambar yang bisa dibaca browser.", file.name)));
     };
     img.src = url;
   });
@@ -286,10 +287,10 @@ export const CollageMaker: React.FC = () => {
   const addFiles = async (files: File[]) => {
     const imgs = files.filter((f) => f.type.startsWith("image/"));
     if (!imgs.length) {
-      setInfo({ msg: "Tidak ada file gambar yang valid.", tone: "error" });
+      setInfo({ msg: tr("Tidak ada file gambar yang valid."), tone: "error" });
       return;
     }
-    setBusy("Memuat foto…");
+    setBusy(tr("Memuat foto…"));
     const loaded: PhotoRef[] = [];
     const failed: string[] = [];
     for (const f of imgs) {
@@ -326,7 +327,7 @@ export const CollageMaker: React.FC = () => {
       }
       return { ...next, cells, free };
     });
-    setInfo({ msg: `${loaded.length} foto ditambahkan.`, tone: "success" });
+    setInfo({ msg: tr("{0} foto ditambahkan.", loaded.length), tone: "success" });
   };
 
   /** Apply a template, keeping existing cell contents by index. */
@@ -373,7 +374,7 @@ export const CollageMaker: React.FC = () => {
     }
     const empty = state.cells.findIndex((c) => !c.photoId);
     if (empty >= 0) patchCell(empty, { photoId }, false);
-    else showToast("Pilih sel dulu di preview, lalu klik foto ini.", "info");
+    else showToast(tr("Pilih sel dulu di preview, lalu klik foto ini."), "info");
   };
 
   const autoFill = () => {
@@ -486,7 +487,7 @@ export const CollageMaker: React.FC = () => {
     });
 
   /* ── text layers ── */
-  const addText = (text = "Teks Baru", size = 8) => {
+  const addText = (text = tr("Teks Baru"), size = 8) => {
     const t = { ...defaultText(uid(), text), size };
     setNow((s) => ({ ...s, texts: [...s.texts, t] }));
     setSel({ kind: "text", id: t.id });
@@ -564,7 +565,7 @@ export const CollageMaker: React.FC = () => {
           setSwapSource(null);
           setSwapMode(false);
           setSel({ kind: "cell", index: ci });
-          showToast("Foto ditukar.", "success");
+          showToast(tr("Foto ditukar."), "success");
         }
         return;
       }
@@ -732,7 +733,7 @@ export const CollageMaker: React.FC = () => {
     c.width = out.w;
     c.height = out.h;
     const ctx = c.getContext("2d");
-    if (!ctx) throw new Error("Canvas 2D tidak tersedia.");
+    if (!ctx) throw new Error(tr("Canvas 2D tidak tersedia."));
     renderCollage(ctx, state, photoMap, out.w, out.h);
     return c;
   };
@@ -746,7 +747,7 @@ export const CollageMaker: React.FC = () => {
       await new Promise((r) => setTimeout(r, 30));
       await fn();
     } catch (e: any) {
-      setInfo({ msg: `Gagal: ${e?.message || "terjadi kesalahan."}`, tone: "error" });
+      setInfo({ msg: tr("Gagal: {0}", e?.message || tr("terjadi kesalahan.")), tone: "error" });
     } finally {
       setBusy(null);
     }
@@ -757,30 +758,30 @@ export const CollageMaker: React.FC = () => {
   const safeName = () => (fileName.trim().replace(/[\\/:*?"<>|]+/g, "_") || "kolase-gamato");
 
   const doDownload = () =>
-    run("Merender kolase…", async () => {
+    run(tr("Merender kolase…"), async () => {
       const c = await renderFull();
       const blob = await canvasToBlob(c, mimeOf(), expFormat === "png" ? undefined : expQuality / 100);
-      if (expFormat !== "png" && blob.type !== mimeOf()) throw new Error(`Browser ini tidak mendukung ekspor ${expFormat.toUpperCase()}.`);
+      if (expFormat !== "png" && blob.type !== mimeOf()) throw new Error(tr("Browser ini tidak mendukung ekspor {0}.", expFormat.toUpperCase()));
       downloadBlob(blob, `${safeName()}.${extOf()}`);
-      setInfo({ msg: `Kolase ${c.width}×${c.height}px berhasil diunduh (${(blob.size / 1024 / 1024).toFixed(2)} MB).`, tone: "success" });
+      setInfo({ msg: tr("Kolase {0}×{1}px berhasil diunduh ({2} MB).", c.width, c.height, (blob.size / 1024 / 1024).toFixed(2)), tone: "success" });
     });
 
   const doCopy = () =>
-    run("Menyalin…", async () => {
+    run(tr("Menyalin…"), async () => {
       const c = await renderFull();
       const blob = await canvasToBlob(c, "image/png");
       const CI = (window as any).ClipboardItem;
-      if (!navigator.clipboard?.write || !CI) throw new Error("Browser ini belum mendukung salin gambar ke clipboard.");
+      if (!navigator.clipboard?.write || !CI) throw new Error(tr("Browser ini belum mendukung salin gambar ke clipboard."));
       await navigator.clipboard.write([new CI({ "image/png": blob })]);
-      setInfo({ msg: "Kolase disalin ke clipboard — tinggal tempel (Ctrl+V).", tone: "success" });
+      setInfo({ msg: tr("Kolase disalin ke clipboard — tinggal tempel (Ctrl+V)."), tone: "success" });
     });
 
   const doPdf = () =>
-    run("Membuat PDF…", async () => {
+    run(tr("Membuat PDF…"), async () => {
       const c = await renderFull();
       const jpg = await canvasToBlob(c, "image/jpeg", 0.95);
       const pdf = await PDFDocument.create();
-      pdf.setTitle("Kolase — Gamato Piranti");
+      pdf.setTitle(tr("Kolase — Gamato Piranti"));
       const img = await pdf.embedJpg(new Uint8Array(await jpg.arrayBuffer()));
       const long = 841.89;
       const pw = c.width >= c.height ? long : (long * c.width) / c.height;
@@ -789,13 +790,13 @@ export const CollageMaker: React.FC = () => {
       page.drawImage(img, { x: 0, y: 0, width: pw, height: ph });
       await stampGamatoBranding(pdf);
       downloadBlob(new Blob([await pdf.save() as BlobPart], { type: "application/pdf" }), `${safeName()}.pdf`);
-      setInfo({ msg: "PDF kolase berhasil dibuat.", tone: "success" });
+      setInfo({ msg: tr("PDF kolase berhasil dibuat."), tone: "success" });
     });
 
   const doPrint = () =>
-    run("Menyiapkan cetak…", async () => {
+    run(tr("Menyiapkan cetak…"), async () => {
       const c = await renderFull();
-      printCanvasImage(c, { title: "Cetak Kolase — Gamato Piranti" });
+      printCanvasImage(c, { title: tr("Cetak Kolase — Gamato Piranti") });
     });
 
   /* ── derived ── */
@@ -821,9 +822,9 @@ export const CollageMaker: React.FC = () => {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={() => { history.undo(); }} onRedo={() => { history.redo(); }} />
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span className="font-semibold">{prev.w === prev.h ? "Persegi" : prev.w > prev.h ? "Lanskap" : "Potret"}</span>
+            <span className="font-semibold">{prev.w === prev.h ? tr("Persegi") : prev.w > prev.h ? tr("Lanskap") : tr("Potret")}</span>
             <span>·</span>
-            <span data-testid="export-dims">{out.w} × {out.h}px</span>
+            <span data-testid="export-dims">{tr("{0} × {1}px", out.w, out.h)}</span>
           </div>
         </div>
 
@@ -848,17 +849,15 @@ export const CollageMaker: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 justify-center text-[11px] text-slate-500 dark:text-slate-400">
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1"><MousePointer2 className="w-3 h-3" /> Klik sel untuk memilih</span>
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1"><Move className="w-3 h-3" /> {state.mode === "free" ? "Seret untuk memindah" : "Seret untuk menggeser foto"}</span>
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1">Scroll = zoom foto</span>
-          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1">Delete = hapus</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1"><MousePointer2 className="w-3 h-3" /> {tr("Klik sel untuk memilih")}</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1"><Move className="w-3 h-3" /> {state.mode === "free" ? tr("Seret untuk memindah") : tr("Seret untuk menggeser foto")}</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1">{tr("Scroll = zoom foto")}</span>
+          <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full px-2.5 py-1">{tr("Delete = hapus")}</span>
         </div>
 
         {sel?.kind === "cell" && tab !== "sel" && (
           <div className="flex justify-center">
-            <button type="button" data-testid="open-cell-settings" onClick={() => setTab("sel")} className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-full px-3 py-1.5">
-              Sel #{sel.index + 1} terpilih — buka pengaturan sel →
-            </button>
+            <button type="button" data-testid="open-cell-settings" onClick={() => setTab("sel")} className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-full px-3 py-1.5">{tr("Sel #{0} terpilih — buka pengaturan sel →", sel.index + 1)}</button>
           </div>
         )}
         {busy && (
@@ -867,9 +866,9 @@ export const CollageMaker: React.FC = () => {
           </div>
         )}
         {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
-        {!filterOk && <GamatoInlineAlert tone="warning" message="Browser ini belum mendukung filter kanvas — pengaturan kecerahan/kontras/saturasi tidak akan terlihat. Gunakan Chrome / Edge / Firefox terbaru." />}
+        {!filterOk && <GamatoInlineAlert tone="warning" message={tr("Browser ini belum mendukung filter kanvas — pengaturan kecerahan/kontras/saturasi tidak akan terlihat. Gunakan Chrome / Edge / Firefox terbaru.")} />}
         {emptyCells > 0 && photos.length > 0 && (
-          <GamatoInlineAlert tone="info" message={`${emptyCells} sel masih kosong. Klik sel lalu klik foto di tab “Foto”, atau tekan “Isi sel kosong otomatis”.`} />
+          <GamatoInlineAlert tone="info" message={tr("{0} sel masih kosong. Klik sel lalu klik foto di tab “Foto”, atau tekan “Isi sel kosong otomatis”.", emptyCells)} />
         )}
       </div>
 
@@ -880,31 +879,31 @@ export const CollageMaker: React.FC = () => {
         {/* ───────── FOTO ───────── */}
         {tab === "foto" && (
           <div className="space-y-4">
-            <Dropzone onFiles={addFiles} accept="image/*" multiple isDragging={isDragging} setIsDragging={setIsDragging} label="Tambah foto ke kolase" sublabel="JPG, PNG, WEBP, GIF — bisa banyak sekaligus" icon={<Images className="w-8 h-8" />} />
+            <Dropzone onFiles={addFiles} accept="image/*" multiple isDragging={isDragging} setIsDragging={setIsDragging} label={tr("Tambah foto ke kolase")} sublabel={tr("JPG, PNG, WEBP, GIF — bisa banyak sekaligus")} icon={<Images className="w-8 h-8" />} />
             {photos.length > 0 && (
               <div className={card}>
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{photos.length} foto</p>
-                  <button type="button" onClick={clearAllPhotos} className="text-xs font-semibold text-red-500 hover:text-red-700" data-testid="clear-photos">Hapus semua</button>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("{0} foto", photos.length)}</p>
+                  <button type="button" onClick={clearAllPhotos} className="text-xs font-semibold text-red-500 hover:text-red-700" data-testid="clear-photos">{tr("Hapus semua")}</button>
                 </div>
                 <div className="grid grid-cols-4 gap-2" data-testid="photo-list">
                   {photos.map((p) => (
                     <div key={p.id} className="relative group" draggable onDragStart={(e) => e.dataTransfer.setData("text/gp-photo-id", p.id)}>
-                      <button type="button" onClick={() => assignPhoto(p.id)} title={`${p.name} — klik untuk menaruh di sel terpilih`} data-testid="photo-thumb" className="block w-full aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
+                      <button type="button" onClick={() => assignPhoto(p.id)} title={tr("{0} — klik untuk menaruh di sel terpilih", p.name)} data-testid="photo-thumb" className="block w-full aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-400 transition-colors">
                         <img src={p.img.src} alt={p.name} className="w-full h-full object-cover" draggable={false} />
                       </button>
-                      {usage.get(p.id) ? <span className="absolute bottom-1 left-1 text-[10px] font-bold bg-indigo-600 text-white rounded-full px-1.5">{usage.get(p.id)}×</span> : null}
-                      <button type="button" onClick={() => removePhoto(p.id)} aria-label="Hapus foto" className="absolute -top-2 -right-2 w-7 h-7 sm:-top-1.5 sm:-right-1.5 sm:w-5 sm:h-5 bg-red-500 text-white rounded-full items-center justify-center hidden group-hover:flex"><X className="w-3 h-3" /></button>
+                      {usage.get(p.id) ? <span className="absolute bottom-1 left-1 text-[10px] font-bold bg-indigo-600 text-white rounded-full px-1.5">{usage.get(p.id)}{tr("×")}</span> : null}
+                      <button type="button" onClick={() => removePhoto(p.id)} aria-label={tr("Hapus foto")} className="absolute -top-2 -right-2 w-7 h-7 sm:-top-1.5 sm:-right-1.5 sm:w-5 sm:h-5 bg-red-500 text-white rounded-full items-center justify-center hidden group-hover:flex"><X className="w-3 h-3" /></button>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Klik foto untuk menaruhnya di sel terpilih, atau seret foto langsung ke sel di preview.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Klik foto untuk menaruhnya di sel terpilih, atau seret foto langsung ke sel di preview.")}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Btn variant="secondary" className="text-xs py-1.5" onClick={autoFill} data-testid="auto-fill"><Sparkles className="w-3.5 h-3.5" /> Isi sel kosong otomatis</Btn>
-                  <Btn variant="secondary" className="text-xs py-1.5" onClick={shuffleAssign}><Shuffle className="w-3.5 h-3.5" /> Acak posisi</Btn>
-                  <Btn variant="secondary" className="text-xs py-1.5" onClick={() => setNow((s) => ({ ...s, cells: s.cells.map((c) => ({ ...c, photoId: null })) }))}><Eraser className="w-3.5 h-3.5" /> Kosongkan sel</Btn>
+                  <Btn variant="secondary" className="text-xs py-1.5" onClick={autoFill} data-testid="auto-fill"><Sparkles className="w-3.5 h-3.5" /> {tr("Isi sel kosong otomatis")}</Btn>
+                  <Btn variant="secondary" className="text-xs py-1.5" onClick={shuffleAssign}><Shuffle className="w-3.5 h-3.5" /> {tr("Acak posisi")}</Btn>
+                  <Btn variant="secondary" className="text-xs py-1.5" onClick={() => setNow((s) => ({ ...s, cells: s.cells.map((c) => ({ ...c, photoId: null })) }))}><Eraser className="w-3.5 h-3.5" /> {tr("Kosongkan sel")}</Btn>
                   {state.mode === "free" && (
-                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => addFreeCell(photos[0]?.id ?? null)}><Plus className="w-3.5 h-3.5" /> Tambah bingkai</Btn>
+                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => addFreeCell(photos[0]?.id ?? null)}><Plus className="w-3.5 h-3.5" /> {tr("Tambah bingkai")}</Btn>
                   )}
                 </div>
               </div>
@@ -917,9 +916,9 @@ export const CollageMaker: React.FC = () => {
         {tab === "layout" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Mode</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Mode")}</p>
               <div className="grid grid-cols-2 gap-2">
-                {([["template", "Template Grid", "Rapi & otomatis"], ["free", "Bebas / Scrapbook", "Geser, ubah ukuran, putar"]] as const).map(([id, l, sub]) => (
+                {([["template", tr("Template Grid"), tr("Rapi & otomatis")], ["free", tr("Bebas / Scrapbook"), tr("Geser, ubah ukuran, putar")]] as const).map(([id, l, sub]) => (
                   <button key={id} type="button" data-testid={`mode-${id}`} onClick={() => setMode(id)} className={cn("rounded-xl border-2 p-3 text-left transition-all", state.mode === id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
                     <div className={cn("text-sm font-bold", state.mode === id ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-slate-100")}>{l}</div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400">{sub}</div>
@@ -929,38 +928,38 @@ export const CollageMaker: React.FC = () => {
             </div>
 
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Ukuran Kanvas</p>
-              <Select label="Rasio" value={state.canvasPreset} onChange={(e) => setNow((s) => ({ ...s, canvasPreset: e.target.value }))}>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Ukuran Kanvas")}</p>
+              <Select label={tr("Rasio")} value={state.canvasPreset} onChange={(e) => setNow((s) => ({ ...s, canvasPreset: e.target.value }))}>
                 {CANVAS_PRESETS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
               </Select>
               {state.canvasPreset === "custom" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Lebar (px)" type="number" min={64} value={state.customW} onChange={(e) => setLive((s) => ({ ...s, customW: clamp(parseInt(e.target.value) || 1, 1, 20000) }))} />
-                  <Input label="Tinggi (px)" type="number" min={64} value={state.customH} onChange={(e) => setLive((s) => ({ ...s, customH: clamp(parseInt(e.target.value) || 1, 1, 20000) }))} />
+                  <Input label={tr("Lebar (px)")} type="number" min={64} value={state.customW} onChange={(e) => setLive((s) => ({ ...s, customW: clamp(parseInt(e.target.value) || 1, 1, 20000) }))} />
+                  <Input label={tr("Tinggi (px)")} type="number" min={64} value={state.customH} onChange={(e) => setLive((s) => ({ ...s, customH: clamp(parseInt(e.target.value) || 1, 1, 20000) }))} />
                 </div>
               )}
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">Ukuran piksel akhir diatur di tab Ekspor. Rasio kustom memakai perbandingan lebar : tinggi.</p>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Ukuran piksel akhir diatur di tab Ekspor. Rasio kustom memakai perbandingan lebar : tinggi.")}</p>
             </div>
 
             <div className={card}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Template ({state.cells.length} sel)</p>
-                {state.mode === "free" && <span className="text-[10px] text-slate-400">Klik template = susun ulang bingkai</span>}
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Template ({0} sel)", state.cells.length)}</p>
+                {state.mode === "free" && <span className="text-[10px] text-slate-400">{tr("Klik template = susun ulang bingkai")}</span>}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {(["all", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const).map((f) => (
                   <button key={String(f)} type="button" onClick={() => setTplFilter(f)} className={cn("px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors", tplFilter === f ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}>
-                    {f === "all" ? "Semua" : f === 10 ? "10+" : `${f} foto`}
+                    {f === "all" ? tr("Semua") : f === 10 ? "10+" : `${f} foto`}
                   </button>
                 ))}
               </div>
               <div className="grid grid-cols-4 gap-2 max-h-72 overflow-y-auto pr-1" data-testid="template-grid">
-                <button type="button" onClick={() => applyTemplate(AUTO_TEMPLATE_ID)} data-testid="tpl-auto" title="Grid otomatis (jumlah bebas)" className={cn("aspect-square rounded-xl border-2 p-1.5 transition-all relative", state.templateId === AUTO_TEMPLATE_ID ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
+                <button type="button" onClick={() => applyTemplate(AUTO_TEMPLATE_ID)} data-testid="tpl-auto" title={tr("Grid otomatis (jumlah bebas)")} className={cn("aspect-square rounded-xl border-2 p-1.5 transition-all relative", state.templateId === AUTO_TEMPLATE_ID ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
                   <TemplateThumb tree={autoTree} active={state.templateId === AUTO_TEMPLATE_ID} />
-                  <span className="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-500">AUTO</span>
+                  <span className="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-500">{tr("AUTO")}</span>
                 </button>
                 {filteredTemplates.map((t) => (
-                  <button key={t.id} type="button" onClick={() => applyTemplate(t.id)} data-testid={`tpl-${t.id}`} title={`${t.name} (${t.count} foto)`} className={cn("aspect-square rounded-xl border-2 p-1.5 transition-all relative", state.templateId === t.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
+                  <button key={t.id} type="button" onClick={() => applyTemplate(t.id)} data-testid={`tpl-${t.id}`} title={tr("{0} ({1} foto)", t.name, t.count)} className={cn("aspect-square rounded-xl border-2 p-1.5 transition-all relative", state.templateId === t.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
                     <TemplateThumb tree={t.tree} active={state.templateId === t.id} />
                     <span className="absolute bottom-0.5 right-1 text-[9px] font-bold text-slate-500">{t.count}</span>
                   </button>
@@ -968,12 +967,12 @@ export const CollageMaker: React.FC = () => {
               </div>
               {state.templateId === AUTO_TEMPLATE_ID && (
                 <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <Slider label="Jumlah sel" value={state.autoCount} min={1} max={36} onChange={(v) => setNow((s) => applyTemplateTo({ ...s, autoCount: v }, AUTO_TEMPLATE_ID, outputSize(s, 1000)))} testId="auto-count" />
-                  <Slider label="Kolom (0 = otomatis)" value={state.autoCols} min={0} max={8} onChange={(v) => setNow((s) => applyTemplateTo({ ...s, autoCols: v }, AUTO_TEMPLATE_ID, outputSize(s, 1000)))} />
+                  <Slider label={tr("Jumlah sel")} value={state.autoCount} min={1} max={36} onChange={(v) => setNow((s) => applyTemplateTo({ ...s, autoCount: v }, AUTO_TEMPLATE_ID, outputSize(s, 1000)))} testId="auto-count" />
+                  <Slider label={tr("Kolom (0 = otomatis)")} value={state.autoCols} min={0} max={8} onChange={(v) => setNow((s) => applyTemplateTo({ ...s, autoCols: v }, AUTO_TEMPLATE_ID, outputSize(s, 1000)))} />
                 </div>
               )}
               {state.mode === "free" && (
-                <Btn variant="secondary" className="w-full text-xs" onClick={() => addFreeCell(null)}><Plus className="w-3.5 h-3.5" /> Tambah bingkai kosong</Btn>
+                <Btn variant="secondary" className="w-full text-xs" onClick={() => addFreeCell(null)}><Plus className="w-3.5 h-3.5" /> {tr("Tambah bingkai kosong")}</Btn>
               )}
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -984,34 +983,34 @@ export const CollageMaker: React.FC = () => {
         {tab === "gaya" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Bentuk & Jarak</p>
-              <Select label="Bentuk sel" value={state.shape} onChange={(e) => setNow((s) => ({ ...s, shape: e.target.value as CellShape }))}>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Bentuk & Jarak")}</p>
+              <Select label={tr("Bentuk sel")} value={state.shape} onChange={(e) => setNow((s) => ({ ...s, shape: e.target.value as CellShape }))}>
                 {SHAPES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
               </Select>
               {state.mode === "template" && (
                 <>
-                  <Slider label="Jarak antar foto" value={state.gap} min={0} max={10} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, gap: v }))} testId="gap" />
-                  <Slider label="Margin luar" value={state.padding} min={0} max={15} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, padding: v }))} testId="padding" />
+                  <Slider label={tr("Jarak antar foto")} value={state.gap} min={0} max={10} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, gap: v }))} testId="gap" />
+                  <Slider label={tr("Margin luar")} value={state.padding} min={0} max={15} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, padding: v }))} testId="padding" />
                 </>
               )}
-              <Slider label="Sudut membulat" value={state.radius} min={0} max={50} suffix="%" onChange={(v) => setLive((s) => ({ ...s, radius: v }))} testId="radius" />
-              {state.shape !== "rect" && <p className="text-[11px] text-slate-400">Sudut membulat hanya berlaku untuk bentuk “Persegi / Rounded”.</p>}
+              <Slider label={tr("Sudut membulat")} value={state.radius} min={0} max={50} suffix="%" onChange={(v) => setLive((s) => ({ ...s, radius: v }))} testId="radius" />
+              {state.shape !== "rect" && <p className="text-[11px] text-slate-400">{tr("Sudut membulat hanya berlaku untuk bentuk “Persegi / Rounded”.")}</p>}
             </div>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Bingkai</p>
-              <Slider label="Tebal bingkai" value={state.borderWidth} min={0} max={5} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, borderWidth: v }))} testId="border" />
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Bingkai")}</p>
+              <Slider label={tr("Tebal bingkai")} value={state.borderWidth} min={0} max={5} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, borderWidth: v }))} testId="border" />
               <div>
-                <Label>Warna bingkai</Label>
+                <Label>{tr("Warna bingkai")}</Label>
                 <GamatoColorPicker value={state.borderColor} onChange={(c) => setLive((s) => ({ ...s, borderColor: c }))} />
               </div>
             </div>
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Bayangan</p>
-              <GamatoCheckbox checked={state.shadowOn} onChange={(v) => setNow((s) => ({ ...s, shadowOn: v }))} label="Aktifkan bayangan lembut" testId="shadow-on" />
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Bayangan")}</p>
+              <GamatoCheckbox checked={state.shadowOn} onChange={(v) => setNow((s) => ({ ...s, shadowOn: v }))} label={tr("Aktifkan bayangan lembut")} testId="shadow-on" />
               {state.shadowOn && (
                 <>
-                  <Slider label="Blur bayangan" value={state.shadowBlur} min={0.2} max={6} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, shadowBlur: v }))} />
-                  <Slider label="Kepekatan" value={Math.round(state.shadowOpacity * 100)} min={5} max={90} suffix="%" onChange={(v) => setLive((s) => ({ ...s, shadowOpacity: v / 100 }))} />
+                  <Slider label={tr("Blur bayangan")} value={state.shadowBlur} min={0.2} max={6} step={0.1} suffix="%" onChange={(v) => setLive((s) => ({ ...s, shadowBlur: v }))} />
+                  <Slider label={tr("Kepekatan")} value={Math.round(state.shadowOpacity * 100)} min={5} max={90} suffix="%" onChange={(v) => setLive((s) => ({ ...s, shadowOpacity: v / 100 }))} />
                 </>
               )}
             </div>
@@ -1023,29 +1022,29 @@ export const CollageMaker: React.FC = () => {
         {tab === "latar" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Jenis Latar</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Jenis Latar")}</p>
               <div className="grid grid-cols-2 gap-2">
-                {([["solid", "Warna solid"], ["gradient", "Gradien"], ["photo-blur", "Foto buram"], ["image", "Gambar sendiri"]] as const).map(([id, l]) => (
+                {([["solid", tr("Warna solid")], ["gradient", tr("Gradien")], ["photo-blur", tr("Foto buram")], ["image", tr("Gambar sendiri")]] as const).map(([id, l]) => (
                   <button key={id} type="button" data-testid={`bg-${id}`} onClick={() => setNow((s) => ({ ...s, bg: { ...s.bg, type: id } }))} className={cn("rounded-xl border-2 py-2.5 text-sm font-semibold transition-all", state.bg.type === id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}>{l}</button>
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>{state.bg.type === "gradient" ? "Warna awal" : "Warna"}</Label>
+                  <Label>{state.bg.type === "gradient" ? tr("Warna awal") : tr("Warna")}</Label>
                   <GamatoColorPicker value={state.bg.color} onChange={(c) => setLive((s) => ({ ...s, bg: { ...s.bg, color: c } }))} testId="bg-color" />
                 </div>
                 {state.bg.type === "gradient" && (
                   <div>
-                    <Label>Warna akhir</Label>
+                    <Label>{tr("Warna akhir")}</Label>
                     <GamatoColorPicker value={state.bg.color2} onChange={(c) => setLive((s) => ({ ...s, bg: { ...s.bg, color2: c } }))} />
                   </div>
                 )}
               </div>
-              {state.bg.type === "gradient" && <Slider label="Arah gradien" value={state.bg.angle} min={0} max={360} suffix="°" onChange={(v) => setLive((s) => ({ ...s, bg: { ...s.bg, angle: v } }))} />}
+              {state.bg.type === "gradient" && <Slider label={tr("Arah gradien")} value={state.bg.angle} min={0} max={360} suffix="°" onChange={(v) => setLive((s) => ({ ...s, bg: { ...s.bg, angle: v } }))} />}
               {state.bg.type === "photo-blur" && (
                 <>
-                  <Slider label="Tingkat blur" value={state.bg.blur} min={0} max={120} onChange={(v) => setLive((s) => ({ ...s, bg: { ...s.bg, blur: v } }))} />
-                  <p className="text-[11px] text-slate-400">Memakai foto pertama yang terpasang sebagai latar buram.</p>
+                  <Slider label={tr("Tingkat blur")} value={state.bg.blur} min={0} max={120} onChange={(v) => setLive((s) => ({ ...s, bg: { ...s.bg, blur: v } }))} />
+                  <p className="text-[11px] text-slate-400">{tr("Memakai foto pertama yang terpasang sebagai latar buram.")}</p>
                 </>
               )}
               {state.bg.type === "image" && (
@@ -1059,10 +1058,10 @@ export const CollageMaker: React.FC = () => {
                       setPhotos((ps) => [...ps, p]);
                       setNow((s) => ({ ...s, bg: { ...s.bg, imageId: p.id, type: "image" } }));
                     } catch (err: any) {
-                      setInfo({ msg: err?.message ?? "Gagal memuat gambar latar.", tone: "error" });
+                      setInfo({ msg: err?.message ?? tr("Gagal memuat gambar latar."), tone: "error" });
                     }
                   }} />
-                  <Btn variant="secondary" className="w-full" onClick={() => bgFileRef.current?.click()}><Upload className="w-4 h-4" /> {state.bg.imageId ? "Ganti gambar latar" : "Pilih gambar latar"}</Btn>
+                  <Btn variant="secondary" className="w-full" onClick={() => bgFileRef.current?.click()}><Upload className="w-4 h-4" /> {state.bg.imageId ? tr("Ganti gambar latar") : tr("Pilih gambar latar")}</Btn>
                 </div>
               )}
             </div>
@@ -1075,74 +1074,74 @@ export const CollageMaker: React.FC = () => {
           <div className="space-y-4">
             {!selCell || sel?.kind !== "cell" ? (
               <div className={card}>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Klik salah satu sel di preview untuk mengatur zoom, posisi, putar, balik, dan filter foto di dalamnya.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{tr("Klik salah satu sel di preview untuk mengatur zoom, posisi, putar, balik, dan filter foto di dalamnya.")}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Btn variant={swapMode ? "primary" : "secondary"} className="text-xs py-1.5" onClick={() => { setSwapMode((v) => !v); setSwapSource(null); }} data-testid="swap-toggle"><Repeat className="w-3.5 h-3.5" /> {swapMode ? "Batal tukar" : "Tukar posisi foto"}</Btn>
+                  <Btn variant={swapMode ? "primary" : "secondary"} className="text-xs py-1.5" onClick={() => { setSwapMode((v) => !v); setSwapSource(null); }} data-testid="swap-toggle"><Repeat className="w-3.5 h-3.5" /> {swapMode ? tr("Batal tukar") : tr("Tukar posisi foto")}</Btn>
                 </div>
               </div>
             ) : (
               <>
                 <div className={card} data-testid="cell-panel">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Sel #{sel.index + 1}</p>
-                    <button type="button" onClick={() => patchCell(sel.index, { ...defaultCell(selCell.photoId) }, false)} className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">Reset sel</button>
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Sel #{0}", sel.index + 1)}</p>
+                    <button type="button" onClick={() => patchCell(sel.index, { ...defaultCell(selCell.photoId) }, false)} className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">{tr("Reset sel")}</button>
                   </div>
-                  {!selCell.photoId && <p className="text-xs text-amber-700 dark:text-amber-400">Sel ini kosong — klik foto di tab “Foto” untuk mengisinya.</p>}
-                  <Slider label="Zoom foto" value={selCell.zoom} min={1} max={6} step={0.05} suffix="×" onChange={(v) => patchCell(sel.index, { zoom: v })} testId="cell-zoom" />
+                  {!selCell.photoId && <p className="text-xs text-amber-700 dark:text-amber-400">{tr("Sel ini kosong — klik foto di tab “Foto” untuk mengisinya.")}</p>}
+                  <Slider label={tr("Zoom foto")} value={selCell.zoom} min={1} max={6} step={0.05} suffix={tr("×")} onChange={(v) => patchCell(sel.index, { zoom: v })} testId="cell-zoom" />
                   <div className="grid grid-cols-2 gap-4">
-                    <Slider label="Geser X" value={selCell.panX} min={-1} max={1} step={0.01} onChange={(v) => patchCell(sel.index, { panX: v })} />
-                    <Slider label="Geser Y" value={selCell.panY} min={-1} max={1} step={0.01} onChange={(v) => patchCell(sel.index, { panY: v })} />
+                    <Slider label={tr("Geser X")} value={selCell.panX} min={-1} max={1} step={0.01} onChange={(v) => patchCell(sel.index, { panX: v })} />
+                    <Slider label={tr("Geser Y")} value={selCell.panY} min={-1} max={1} step={0.01} onChange={(v) => patchCell(sel.index, { panY: v })} />
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { rot: ((selCell.rot + 270) % 360) as CellState["rot"] }, false)} data-testid="rot-left"><RotateCcw className="w-3.5 h-3.5" /> Putar kiri</Btn>
-                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { rot: ((selCell.rot + 90) % 360) as CellState["rot"] }, false)} data-testid="rot-right"><RotateCw className="w-3.5 h-3.5" /> Putar kanan</Btn>
-                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { flipH: !selCell.flipH }, false)} data-testid="flip-h"><FlipHorizontal className="w-3.5 h-3.5" /> Balik H</Btn>
-                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { flipV: !selCell.flipV }, false)}><FlipVertical className="w-3.5 h-3.5" /> Balik V</Btn>
+                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { rot: ((selCell.rot + 270) % 360) as CellState["rot"] }, false)} data-testid="rot-left"><RotateCcw className="w-3.5 h-3.5" /> {tr("Putar kiri")}</Btn>
+                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { rot: ((selCell.rot + 90) % 360) as CellState["rot"] }, false)} data-testid="rot-right"><RotateCw className="w-3.5 h-3.5" /> {tr("Putar kanan")}</Btn>
+                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { flipH: !selCell.flipH }, false)} data-testid="flip-h"><FlipHorizontal className="w-3.5 h-3.5" /> {tr("Balik H")}</Btn>
+                    <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { flipV: !selCell.flipV }, false)}><FlipVertical className="w-3.5 h-3.5" /> {tr("Balik V")}</Btn>
                   </div>
-                  <Select label="Penyesuaian foto" value={selCell.fit} onChange={(e) => patchCell(sel.index, { fit: e.target.value as CellState["fit"], panX: 0, panY: 0 }, false)}>
-                    <option value="cover">Penuhi sel (potong)</option>
-                    <option value="contain">Muat utuh (tanpa potong)</option>
+                  <Select label={tr("Penyesuaian foto")} value={selCell.fit} onChange={(e) => patchCell(sel.index, { fit: e.target.value as CellState["fit"], panX: 0, panY: 0 }, false)}>
+                    <option value="cover">{tr("Penuhi sel (potong)")}</option>
+                    <option value="contain">{tr("Muat utuh (tanpa potong)")}</option>
                   </Select>
                 </div>
 
                 <div className={card}>
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Filter Foto</p>
-                  <Slider label="Kecerahan" value={selCell.brightness} min={50} max={150} suffix="%" onChange={(v) => patchCell(sel.index, { brightness: v })} testId="cell-brightness" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Filter Foto")}</p>
+                  <Slider label={tr("Kecerahan")} value={selCell.brightness} min={50} max={150} suffix="%" onChange={(v) => patchCell(sel.index, { brightness: v })} testId="cell-brightness" />
                   <Slider label="Kontras" value={selCell.contrast} min={50} max={150} suffix="%" onChange={(v) => patchCell(sel.index, { contrast: v })} />
-                  <Slider label="Saturasi" value={selCell.saturate} min={0} max={200} suffix="%" onChange={(v) => patchCell(sel.index, { saturate: v })} />
-                  <Slider label="Blur" value={selCell.blur} min={0} max={10} step={0.1} onChange={(v) => patchCell(sel.index, { blur: v })} />
+                  <Slider label={tr("Saturasi")} value={selCell.saturate} min={0} max={200} suffix="%" onChange={(v) => patchCell(sel.index, { saturate: v })} />
+                  <Slider label={tr("Blur")} value={selCell.blur} min={0} max={10} step={0.1} onChange={(v) => patchCell(sel.index, { blur: v })} />
                   <div className="flex gap-5">
-                    <GamatoCheckbox checked={selCell.grayscale} onChange={(v) => patchCell(sel.index, { grayscale: v }, false)} label="Hitam putih" testId="cell-gray" />
-                    <GamatoCheckbox checked={selCell.sepia} onChange={(v) => patchCell(sel.index, { sepia: v }, false)} label="Sepia" />
+                    <GamatoCheckbox checked={selCell.grayscale} onChange={(v) => patchCell(sel.index, { grayscale: v }, false)} label={tr("Hitam putih")} testId="cell-gray" />
+                    <GamatoCheckbox checked={selCell.sepia} onChange={(v) => patchCell(sel.index, { sepia: v }, false)} label={tr("Sepia")} />
                   </div>
                   <Btn variant="secondary" className="w-full text-xs" onClick={() => {
                     const f = { brightness: selCell.brightness, contrast: selCell.contrast, saturate: selCell.saturate, blur: selCell.blur, grayscale: selCell.grayscale, sepia: selCell.sepia };
                     setNow((s) => ({ ...s, cells: s.cells.map((c) => ({ ...c, ...f })) }));
-                    showToast("Filter diterapkan ke semua sel.", "success");
-                  }}>Terapkan filter ini ke semua sel</Btn>
+                    showToast(tr("Filter diterapkan ke semua sel."), "success");
+                  }}>{tr("Terapkan filter ini ke semua sel")}</Btn>
                 </div>
 
                 <div className={card}>
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Aksi Sel</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Aksi Sel")}</p>
                   <div className="flex flex-wrap gap-2">
-                    <Btn variant={swapMode ? "primary" : "secondary"} className="text-xs py-1.5" onClick={() => { setSwapMode((v) => !v); setSwapSource(swapMode ? null : sel.index); }} data-testid="swap-toggle"><Repeat className="w-3.5 h-3.5" /> {swapMode ? "Batal tukar" : "Tukar dengan sel lain"}</Btn>
-                    {selCell.photoId && <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { photoId: null }, false)} data-testid="clear-cell"><Eraser className="w-3.5 h-3.5" /> Kosongkan</Btn>}
+                    <Btn variant={swapMode ? "primary" : "secondary"} className="text-xs py-1.5" onClick={() => { setSwapMode((v) => !v); setSwapSource(swapMode ? null : sel.index); }} data-testid="swap-toggle"><Repeat className="w-3.5 h-3.5" /> {swapMode ? tr("Batal tukar") : tr("Tukar dengan sel lain")}</Btn>
+                    {selCell.photoId && <Btn variant="secondary" className="text-xs py-1.5" onClick={() => patchCell(sel.index, { photoId: null }, false)} data-testid="clear-cell"><Eraser className="w-3.5 h-3.5" /> {tr("Kosongkan")}</Btn>}
                     {state.mode === "free" && (
                       <>
-                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => reorderCell(sel.index, "front")} data-testid="to-front"><ArrowUpToLine className="w-3.5 h-3.5" /> Ke depan</Btn>
-                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => reorderCell(sel.index, "back")}><ArrowDownToLine className="w-3.5 h-3.5" /> Ke belakang</Btn>
-                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => duplicateCell(sel.index)}><CopyPlus className="w-3.5 h-3.5" /> Duplikat</Btn>
-                        <Btn variant="danger" className="text-xs py-1.5" onClick={() => deleteCell(sel.index)} data-testid="delete-cell"><Trash2 className="w-3.5 h-3.5" /> Hapus bingkai</Btn>
+                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => reorderCell(sel.index, "front")} data-testid="to-front"><ArrowUpToLine className="w-3.5 h-3.5" /> {tr("Ke depan")}</Btn>
+                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => reorderCell(sel.index, "back")}><ArrowDownToLine className="w-3.5 h-3.5" /> {tr("Ke belakang")}</Btn>
+                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => duplicateCell(sel.index)}><CopyPlus className="w-3.5 h-3.5" /> {tr("Duplikat")}</Btn>
+                        <Btn variant="danger" className="text-xs py-1.5" onClick={() => deleteCell(sel.index)} data-testid="delete-cell"><Trash2 className="w-3.5 h-3.5" /> {tr("Hapus bingkai")}</Btn>
                       </>
                     )}
                   </div>
-                  {swapMode && <p className="text-[11px] text-amber-600 dark:text-amber-400">Klik sel tujuan di preview untuk menukar isi kedua sel.</p>}
+                  {swapMode && <p className="text-[11px] text-amber-600 dark:text-amber-400">{tr("Klik sel tujuan di preview untuk menukar isi kedua sel.")}</p>}
                   {selFree && (
                     <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800" data-testid="free-panel">
-                      <Slider label="Rotasi bingkai" value={selFree.rotate} min={-180} max={180} suffix="°" onChange={(v) => patchFree(sel.index, { rotate: v })} />
+                      <Slider label={tr("Rotasi bingkai")} value={selFree.rotate} min={-180} max={180} suffix="°" onChange={(v) => patchFree(sel.index, { rotate: v })} />
                       <div className="grid grid-cols-2 gap-4">
-                        <Slider label="Lebar" value={Math.round(selFree.w * 100)} min={5} max={120} suffix="%" onChange={(v) => patchFree(sel.index, { w: v / 100 })} />
-                        <Slider label="Tinggi" value={Math.round(selFree.h * 100)} min={5} max={120} suffix="%" onChange={(v) => patchFree(sel.index, { h: v / 100 })} />
+                        <Slider label={tr("Lebar")} value={Math.round(selFree.w * 100)} min={5} max={120} suffix="%" onChange={(v) => patchFree(sel.index, { w: v / 100 })} />
+                        <Slider label={tr("Tinggi")} value={Math.round(selFree.h * 100)} min={5} max={120} suffix="%" onChange={(v) => patchFree(sel.index, { h: v / 100 })} />
                       </div>
                     </div>
                   )}
@@ -1158,18 +1157,18 @@ export const CollageMaker: React.FC = () => {
           <div className="space-y-4">
             <div className={card}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Lapisan Teks ({state.texts.length})</p>
-                <Btn variant="secondary" className="text-xs py-1.5" onClick={() => addText()} data-testid="add-text"><Plus className="w-3.5 h-3.5" /> Tambah teks</Btn>
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Lapisan Teks ({0})", state.texts.length)}</p>
+                <Btn variant="secondary" className="text-xs py-1.5" onClick={() => addText()} data-testid="add-text"><Plus className="w-3.5 h-3.5" /> {tr("Tambah teks")}</Btn>
               </div>
               {state.texts.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {state.texts.map((t) => (
-                    <button key={t.id} type="button" onClick={() => setSel({ kind: "text", id: t.id })} className={cn("px-2.5 py-1 rounded-lg text-xs font-semibold border max-w-[140px] truncate", sel?.kind === "text" && sel.id === t.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>{t.text.split("\n")[0] || "(kosong)"}</button>
+                    <button key={t.id} type="button" onClick={() => setSel({ kind: "text", id: t.id })} className={cn("px-2.5 py-1 rounded-lg text-xs font-semibold border max-w-[140px] truncate", sel?.kind === "text" && sel.id === t.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>{t.text.split("\n")[0] || tr("(kosong)")}</button>
                   ))}
                 </div>
               )}
               <div>
-                <Label>Stiker emoji (klik untuk menambah)</Label>
+                <Label>{tr("Stiker emoji (klik untuk menambah)")}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {EMOJIS.map((em) => (
                     <button key={em} type="button" onClick={() => addText(em, 14)} className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 text-lg hover:bg-slate-50 dark:hover:bg-slate-800">{em}</button>
@@ -1180,33 +1179,33 @@ export const CollageMaker: React.FC = () => {
 
             {selText && sel?.kind === "text" && (
               <div className={card} data-testid="text-panel">
-                <Textarea label="Isi teks" rows={3} value={selText.text} onChange={(e) => patchText(selText.id, { text: e.target.value })} data-testid="text-input" />
-                <FontPicker label="Font" value={selText.font} onChange={(f) => patchText(selText.id, { font: f }, false)} customFonts={fonts.customFonts} isFontLoading={fonts.isFontLoading} fontError={fonts.fontError} onUpload={(f) => fonts.addCustomFont(f)} onRemoveCustomFont={(id) => fonts.removeCustomFont(id, (fb) => setNow((s) => ({ ...s, texts: s.texts.map((t) => (t.font === fonts.customFonts.find((c) => c.id === id)?.family ? { ...t, font: fb } : t)) })))} />
-                <Slider label="Ukuran" value={selText.size} min={1} max={40} step={0.5} suffix="%" onChange={(v) => patchText(selText.id, { size: v })} testId="text-size" />
+                <Textarea label={tr("Isi teks")} rows={3} value={selText.text} onChange={(e) => patchText(selText.id, { text: e.target.value })} data-testid="text-input" />
+                <FontPicker label={tr("Font")} value={selText.font} onChange={(f) => patchText(selText.id, { font: f }, false)} customFonts={fonts.customFonts} isFontLoading={fonts.isFontLoading} fontError={fonts.fontError} onUpload={(f) => fonts.addCustomFont(f)} onRemoveCustomFont={(id) => fonts.removeCustomFont(id, (fb) => setNow((s) => ({ ...s, texts: s.texts.map((t) => (t.font === fonts.customFonts.find((c) => c.id === id)?.family ? { ...t, font: fb } : t)) })))} />
+                <Slider label={tr("Ukuran")} value={selText.size} min={1} max={40} step={0.5} suffix="%" onChange={(v) => patchText(selText.id, { size: v })} testId="text-size" />
                 <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Warna teks</Label><GamatoColorPicker value={selText.color} onChange={(c) => patchText(selText.id, { color: c })} testId="text-color" /></div>
-                  <div><Label>Warna garis tepi</Label><GamatoColorPicker value={selText.strokeColor} onChange={(c) => patchText(selText.id, { strokeColor: c })} /></div>
+                  <div><Label>{tr("Warna teks")}</Label><GamatoColorPicker value={selText.color} onChange={(c) => patchText(selText.id, { color: c })} testId="text-color" /></div>
+                  <div><Label>{tr("Warna garis tepi")}</Label><GamatoColorPicker value={selText.strokeColor} onChange={(c) => patchText(selText.id, { strokeColor: c })} /></div>
                 </div>
-                <Slider label="Tebal garis tepi" value={selText.strokeWidth} min={0} max={30} suffix="%" onChange={(v) => patchText(selText.id, { strokeWidth: v })} />
+                <Slider label={tr("Tebal garis tepi")} value={selText.strokeWidth} min={0} max={30} suffix="%" onChange={(v) => patchText(selText.id, { strokeWidth: v })} />
                 <div className="flex flex-wrap gap-4">
-                  <GamatoCheckbox checked={selText.bold} onChange={(v) => patchText(selText.id, { bold: v }, false)} label="Tebal" />
-                  <GamatoCheckbox checked={selText.italic} onChange={(v) => patchText(selText.id, { italic: v }, false)} label="Miring" />
-                  <GamatoCheckbox checked={selText.shadow} onChange={(v) => patchText(selText.id, { shadow: v }, false)} label="Bayangan" />
+                  <GamatoCheckbox checked={selText.bold} onChange={(v) => patchText(selText.id, { bold: v }, false)} label={tr("Tebal")} />
+                  <GamatoCheckbox checked={selText.italic} onChange={(v) => patchText(selText.id, { italic: v }, false)} label={tr("Miring")} />
+                  <GamatoCheckbox checked={selText.shadow} onChange={(v) => patchText(selText.id, { shadow: v }, false)} label={tr("Bayangan")} />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {(["left", "center", "right"] as const).map((a) => (
-                    <button key={a} type="button" onClick={() => patchText(selText.id, { align: a }, false)} className={cn("rounded-xl border-2 py-1.5 text-xs font-semibold", selText.align === a ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>{a === "left" ? "Kiri" : a === "center" ? "Tengah" : "Kanan"}</button>
+                    <button key={a} type="button" onClick={() => patchText(selText.id, { align: a }, false)} className={cn("rounded-xl border-2 py-1.5 text-xs font-semibold", selText.align === a ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>{a === "left" ? tr("Kiri") : a === "center" ? tr("Tengah") : tr("Kanan")}</button>
                   ))}
                 </div>
-                <Slider label="Rotasi" value={selText.rotate} min={-180} max={180} suffix="°" onChange={(v) => patchText(selText.id, { rotate: v })} />
-                <Slider label="Transparansi" value={Math.round(selText.opacity * 100)} min={5} max={100} suffix="%" onChange={(v) => patchText(selText.id, { opacity: v / 100 })} />
+                <Slider label={tr("Rotasi")} value={selText.rotate} min={-180} max={180} suffix="°" onChange={(v) => patchText(selText.id, { rotate: v })} />
+                <Slider label={tr("Transparansi")} value={Math.round(selText.opacity * 100)} min={5} max={100} suffix="%" onChange={(v) => patchText(selText.id, { opacity: v / 100 })} />
                 <div className="grid grid-cols-2 gap-4 items-end">
-                  <div><Label>Warna latar teks</Label><GamatoColorPicker value={selText.bgColor} onChange={(c) => patchText(selText.id, { bgColor: c })} /></div>
-                  <Slider label="Kepekatan latar" value={Math.round(selText.bgOpacity * 100)} min={0} max={100} suffix="%" onChange={(v) => patchText(selText.id, { bgOpacity: v / 100 })} />
+                  <div><Label>{tr("Warna latar teks")}</Label><GamatoColorPicker value={selText.bgColor} onChange={(c) => patchText(selText.id, { bgColor: c })} /></div>
+                  <Slider label={tr("Kepekatan latar")} value={Math.round(selText.bgOpacity * 100)} min={0} max={100} suffix="%" onChange={(v) => patchText(selText.id, { bgOpacity: v / 100 })} />
                 </div>
                 <div className="flex gap-2">
-                  <Btn variant="secondary" className="flex-1 text-xs py-1.5" onClick={() => duplicateText(selText.id)}><CopyPlus className="w-3.5 h-3.5" /> Duplikat</Btn>
-                  <Btn variant="danger" className="flex-1 text-xs py-1.5" onClick={() => deleteText(selText.id)} data-testid="delete-text"><Trash2 className="w-3.5 h-3.5" /> Hapus</Btn>
+                  <Btn variant="secondary" className="flex-1 text-xs py-1.5" onClick={() => duplicateText(selText.id)}><CopyPlus className="w-3.5 h-3.5" /> {tr("Duplikat")}</Btn>
+                  <Btn variant="danger" className="flex-1 text-xs py-1.5" onClick={() => deleteText(selText.id)} data-testid="delete-text"><Trash2 className="w-3.5 h-3.5" /> {tr("Hapus")}</Btn>
                 </div>
               </div>
             )}
@@ -1218,35 +1217,35 @@ export const CollageMaker: React.FC = () => {
         {tab === "ekspor" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Hasil Akhir</p>
-              <Input label="Nama file" value={fileName} onChange={(e) => setFileName(e.target.value)} data-testid="file-name" />
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Hasil Akhir")}</p>
+              <Input label={tr("Nama file")} value={fileName} onChange={(e) => setFileName(e.target.value)} data-testid="file-name" />
               <div className="grid grid-cols-2 gap-3">
-                <Select label="Format" value={expFormat} onChange={(e) => setExpFormat(e.target.value as typeof expFormat)} data-testid="exp-format">
-                  <option value="png">PNG (lossless)</option>
-                  <option value="jpeg">JPG</option>
-                  <option value="webp">WEBP</option>
+                <Select label={tr("Format")} value={expFormat} onChange={(e) => setExpFormat(e.target.value as typeof expFormat)} data-testid="exp-format">
+                  <option value="png">{tr("PNG (lossless)")}</option>
+                  <option value="jpeg">{tr("JPG")}</option>
+                  <option value="webp">{tr("WEBP")}</option>
                 </Select>
-                <Select label="Sisi terpanjang" value={String(expSize)} onChange={(e) => setExpSize(parseInt(e.target.value))} data-testid="exp-size">
-                  {EXPORT_SIZES.map((s) => <option key={s} value={s}>{s}px</option>)}
+                <Select label={tr("Sisi terpanjang")} value={String(expSize)} onChange={(e) => setExpSize(parseInt(e.target.value))} data-testid="exp-size">
+                  {EXPORT_SIZES.map((s) => <option key={s} value={s}>{tr("{0}px", s)}</option>)}
                 </Select>
               </div>
-              {expFormat !== "png" && <Slider label="Kualitas" value={expQuality} min={40} max={100} suffix="%" onChange={setExpQuality} />}
-              <p className="text-xs text-slate-500 dark:text-slate-400">Ukuran file: <b>{out.w} × {out.h}px</b>{capped ? " (dibatasi batas memori browser)" : ""}.</p>
+              {expFormat !== "png" && <Slider label={tr("Kualitas")} value={expQuality} min={40} max={100} suffix="%" onChange={setExpQuality} />}
+              <p className="text-xs text-slate-500 dark:text-slate-400">{tr("Ukuran file:")} <b>{tr("{0} × {1}px", out.w, out.h)}</b>{capped ? tr(" (dibatasi batas memori browser)") : ""}.</p>
               <div className="grid grid-cols-2 gap-2">
-                <Btn onClick={doDownload} disabled={!!busy} className="col-span-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" data-testid="btn-download"><Download className="w-4 h-4" /> Unduh Kolase</Btn>
-                <Btn variant="secondary" onClick={doPdf} disabled={!!busy} data-testid="btn-pdf"><FileText className="w-4 h-4" /> PDF</Btn>
-                <Btn variant="secondary" onClick={doCopy} disabled={!!busy} data-testid="btn-copy"><Copy className="w-4 h-4" /> Salin</Btn>
-                <Btn variant="secondary" onClick={doPrint} disabled={!!busy} className="col-span-2" data-testid="btn-print"><Printer className="w-4 h-4" /> Cetak</Btn>
+                <Btn onClick={doDownload} disabled={!!busy} className="col-span-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" data-testid="btn-download"><Download className="w-4 h-4" /> {tr("Unduh Kolase")}</Btn>
+                <Btn variant="secondary" onClick={doPdf} disabled={!!busy} data-testid="btn-pdf"><FileText className="w-4 h-4" /> {tr("PDF")}</Btn>
+                <Btn variant="secondary" onClick={doCopy} disabled={!!busy} data-testid="btn-copy"><Copy className="w-4 h-4" /> {tr("Salin")}</Btn>
+                <Btn variant="secondary" onClick={doPrint} disabled={!!busy} className="col-span-2" data-testid="btn-print"><Printer className="w-4 h-4" /> {tr("Cetak")}</Btn>
               </div>
             </div>
             <ToolInfoPanel
               icon={<LayoutGrid className="w-5 h-5" />}
-              label="Kolase Gambar"
-              desc="Template, bebas, dan penuh kustom"
+              label={tr("Kolase Gambar")}
+              desc={tr("Template, bebas, dan penuh kustom")}
               points={[
-                "Gambar kolase persis seperti yang kamu lihat — preview dan ekspor memakai mesin render yang sama.",
-                "Foto tidak pernah diunggah ke server; semua dirender di perangkatmu.",
-                "Mode Bebas: seret, ubah ukuran dari sudut, dan putar dengan handle di atas bingkai (Shift = kunci rasio / snap 15°).",
+                tr("Gambar kolase persis seperti yang kamu lihat — preview dan ekspor memakai mesin render yang sama."),
+                tr("Foto tidak pernah diunggah ke server; semua dirender di perangkatmu."),
+                tr("Mode Bebas: seret, ubah ukuran dari sudut, dan putar dengan handle di atas bingkai (Shift = kunci rasio / snap 15°)."),
               ]}
             />
           </div>

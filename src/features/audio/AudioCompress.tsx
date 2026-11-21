@@ -14,6 +14,7 @@ import { COMPRESS_PRESETS, encodeOpusOgg, fmtBytes, isOpusEncoderSupported } fro
 import { encodeAudioBufferCompressed, getBestCompressedAudioFormat } from "@/lib/audioEngine";
 import { encodeMp3 } from "@/lib/mp3Encoder";
 import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
+import { tr } from "@/i18n";
 
 interface Item {
   id: string;
@@ -71,7 +72,7 @@ export const AudioCompress: React.FC = () => {
 
   const addFiles = async (files: File[]) => {
     const ok = files.filter((f) => f.type.startsWith("audio/") || f.type.startsWith("video/") || /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|webm|mp4|mov|mkv|wma)$/i.test(f.name));
-    if (!ok.length) return setInfo({ msg: "Pilih file audio (MP3, WAV, M4A, OGG, FLAC…) atau video.", tone: "error" });
+    if (!ok.length) return setInfo({ msg: tr("Pilih file audio (MP3, WAV, M4A, OGG, FLAC…) atau video."), tone: "error" });
     setInfo(null);
     const fresh: Item[] = ok.map((file) => ({ id: uid(), file, duration: null, status: "queued", progress: 0 }));
     setItems((is) => [...is, ...fresh]);
@@ -92,10 +93,10 @@ export const AudioCompress: React.FC = () => {
   };
 
   const processOne = async (it: Item) => {
-    patch(it.id, { status: "working", progress: 0.02, message: "Mendekode…" });
+    patch(it.id, { status: "working", progress: 0.02, message: tr("Mendekode…") });
     let pcm: PCM = await decodeFileToPcm(it.file);
     const dur = pcmDuration(pcm);
-    patch(it.id, { duration: dur, progress: 0.1, message: "Memproses…" });
+    patch(it.id, { duration: dur, progress: 0.1, message: tr("Memproses…") });
     if (trimSilence) pcm = removeSilences(pcm, -50, 1000, 400, false);
     if (normalize) pcm = normalizePeak(pcm, -1);
     const k = bitrateFor(dur);
@@ -109,11 +110,11 @@ export const AudioCompress: React.FC = () => {
       ext = "wav";
       usedKbps = Math.round((wavRate * 16 * p.channels.length) / 1000);
     } else if (format === "mp3") {
-      patch(it.id, { message: "Mengkodekan MP3…" });
+      patch(it.id, { message: tr("Mengkodekan MP3…") });
       blob = await encodeMp3(eff.mono ? toMono(pcm) : pcm, { kbps: k, mono: eff.mono, onProgress: (f) => patch(it.id, { progress: 0.1 + f * 0.88 }) });
       ext = "mp3";
     } else if (fast) {
-      patch(it.id, { message: "Mengkodekan Opus…" });
+      patch(it.id, { message: tr("Mengkodekan Opus…") });
       blob = await encodeOpusOgg(pcm, {
         bitrate: k * 1000,
         mono: eff.mono,
@@ -124,8 +125,8 @@ export const AudioCompress: React.FC = () => {
       ext = "opus";
     } else {
       const fmt = getBestCompressedAudioFormat();
-      if (!fmt) throw new Error("Browser ini tidak mendukung pengkodean Opus. Pilih format WAV ringan.");
-      patch(it.id, { message: "Mengkodekan (real-time)…" });
+      if (!fmt) throw new Error(tr("Browser ini tidak mendukung pengkodean Opus. Pilih format WAV ringan."));
+      patch(it.id, { message: tr("Mengkodekan (real-time)…") });
       const AC = window.AudioContext || (window as any).webkitAudioContext;
       const tmp: AudioContext = new AC();
       try {
@@ -154,11 +155,11 @@ export const AudioCompress: React.FC = () => {
       try {
         await processOne(it);
       } catch (e: any) {
-        patch(it.id, { status: "error", progress: 0, message: e?.message ?? "Gagal." });
+        patch(it.id, { status: "error", progress: 0, message: e?.message ?? tr("Gagal.") });
       }
     }
     setRunning(false);
-    if (cancelRef.current.cancelled) setInfo({ msg: "Dibatalkan.", tone: "warning" });
+    if (cancelRef.current.cancelled) setInfo({ msg: tr("Dibatalkan."), tone: "warning" });
   };
 
   const baseName = (n: string) => n.replace(/\.[^.]+$/, "");
@@ -191,14 +192,14 @@ export const AudioCompress: React.FC = () => {
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-6 items-start" data-testid="acomp-root">
       <div className="space-y-4 min-w-0">
-        <Dropzone onFiles={addFiles} accept="audio/*,video/*" multiple isDragging={isDragging} setIsDragging={setIsDragging} label="Tambah audio untuk dikompres" sublabel="Bisa banyak file sekaligus — MP3, WAV, M4A, OGG, FLAC, atau video" icon={<Shrink className="w-8 h-8" />} />
+        <Dropzone onFiles={addFiles} accept="audio/*,video/*" multiple isDragging={isDragging} setIsDragging={setIsDragging} label={tr("Tambah audio untuk dikompres")} sublabel={tr("Bisa banyak file sekaligus — MP3, WAV, M4A, OGG, FLAC, atau video")} icon={<Shrink className="w-8 h-8" />} />
         {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
 
         {items.length > 0 && (
           <div className={card} data-testid="acomp-list">
             <div className="flex items-center justify-between">
-              <p className={cap}>{items.length} file</p>
-              <button type="button" className="text-xs font-semibold text-red-500" onClick={() => { items.forEach((i) => i.result && URL.revokeObjectURL(i.result.url)); setItems([]); }} disabled={running}>Hapus semua</button>
+              <p className={cap}>{tr("{0} file", items.length)}</p>
+              <button type="button" className="text-xs font-semibold text-red-500" onClick={() => { items.forEach((i) => i.result && URL.revokeObjectURL(i.result.url)); setItems([]); }} disabled={running}>{tr("Hapus semua")}</button>
             </div>
             <div className="space-y-2.5">
               {items.map((it) => {
@@ -210,14 +211,14 @@ export const AudioCompress: React.FC = () => {
                         <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{it.file.name}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           {fmtBytes(it.file.size)}{it.duration ? ` · ${formatClock(it.duration, false)}` : ""}
-                          {it.status === "queued" && est && format !== "wav" ? ` · perkiraan hasil ≈ ${fmtBytes(est)}` : ""}
+                          {it.status === "queued" && est && format !== "wav" ? tr(" · perkiraan hasil ≈ {0}", fmtBytes(est)) : ""}
                         </p>
                       </div>
                       {it.status === "done" && it.result && (
                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1" data-testid="acomp-saved"><CheckCircle2 className="w-4 h-4" />{fmtBytes(it.result.blob.size)} · {Math.round((1 - it.result.blob.size / it.file.size) * 100)}%</span>
                       )}
-                      {it.status === "error" && <span className="text-xs font-semibold text-red-500 flex items-center gap-1" data-testid="acomp-error"><AlertTriangle className="w-4 h-4" />Gagal</span>}
-                      <button type="button" onClick={() => remove(it.id)} disabled={it.status === "working"} aria-label="Hapus" className="p-1 text-slate-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                      {it.status === "error" && <span className="text-xs font-semibold text-red-500 flex items-center gap-1" data-testid="acomp-error"><AlertTriangle className="w-4 h-4" />{tr("Gagal")}</span>}
+                      <button type="button" onClick={() => remove(it.id)} disabled={it.status === "working"} aria-label={tr("Hapus")} className="p-1 text-slate-400 hover:text-red-500"><X className="w-4 h-4" /></button>
                     </div>
                     {it.status === "working" && (
                       <div className="space-y-1">
@@ -229,7 +230,7 @@ export const AudioCompress: React.FC = () => {
                     {it.status === "done" && it.result && (
                       <div className="flex flex-wrap items-center gap-2">
                         <GamatoAudioPlayer src={it.result.url} label={outName(it)} className="flex-1 min-w-[220px]" />
-                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => downloadBlob(it.result!.blob, outName(it))} data-testid="acomp-download"><Download className="w-3.5 h-3.5" /> Unduh</Btn>
+                        <Btn variant="secondary" className="text-xs py-1.5" onClick={() => downloadBlob(it.result!.blob, outName(it))} data-testid="acomp-download"><Download className="w-3.5 h-3.5" /> {tr("Unduh")}</Btn>
                       </div>
                     )}
                   </div>
@@ -238,8 +239,8 @@ export const AudioCompress: React.FC = () => {
             </div>
             {totals.n > 0 && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-4 py-3" data-testid="acomp-total">
-                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Total: {fmtBytes(totals.before)} → {fmtBytes(totals.after)} (hemat {totals.saved}%)</span>
-                {totals.n > 1 && <Btn variant="secondary" className="text-xs py-1.5" onClick={downloadAll} data-testid="acomp-zip"><Package className="w-3.5 h-3.5" /> Unduh semua (ZIP)</Btn>}
+                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{tr("Total: {0} → {1} (hemat {2}%)", fmtBytes(totals.before), fmtBytes(totals.after), totals.saved)}</span>
+                {totals.n > 1 && <Btn variant="secondary" className="text-xs py-1.5" onClick={downloadAll} data-testid="acomp-zip"><Package className="w-3.5 h-3.5" /> {tr("Unduh semua (ZIP)")}</Btn>}
               </div>
             )}
           </div>
@@ -249,11 +250,11 @@ export const AudioCompress: React.FC = () => {
       <div className="space-y-4 min-w-0">
         <div className={card}>
           <div className="flex items-center justify-between">
-            <p className={cap}>Format Hasil</p>
-            {fast != null && <span className="text-[11px] text-slate-400 flex items-center gap-1"><Zap className="w-3 h-3" />{fast ? "Encoder cepat aktif" : "Mode real-time"}</span>}
+            <p className={cap}>{tr("Format Hasil")}</p>
+            {fast != null && <span className="text-[11px] text-slate-400 flex items-center gap-1"><Zap className="w-3 h-3" />{fast ? tr("Encoder cepat aktif") : tr("Mode real-time")}</span>}
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {([["opus", "Opus", "Paling kecil"], ["mp3", "MP3", "Universal — semua perangkat"], ["wav", "WAV ringan", "Kompatibel luas"]] as const).map(([id, l, s]) => (
+            {([["opus", "Opus", tr("Paling kecil")], ["mp3", "MP3", tr("Universal — semua perangkat")], ["wav", tr("WAV ringan"), tr("Kompatibel luas")]] as const).map(([id, l, s]) => (
               <button key={id} type="button" data-testid={`fmt-${id}`} onClick={() => setFormat(id)} className={cn("rounded-xl border-2 p-3 text-left", format === id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700")}>
                 <div className={cn("text-sm font-bold", format === id ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-slate-100")}>{l}</div>
                 <div className="text-[11px] text-slate-500">{s}</div>
@@ -264,7 +265,7 @@ export const AudioCompress: React.FC = () => {
 
         {format !== "wav" ? (
           <div className={card} data-testid="opus-settings">
-            <p className={cap}>Tingkat Kompresi</p>
+            <p className={cap}>{tr("Tingkat Kompresi")}</p>
             <div className="space-y-2">
               {COMPRESS_PRESETS.map((p) => (
                 <button key={p.id} type="button" data-testid={`preset-${p.id}`} onClick={() => { setPresetId(p.id); setCustom(false); }} className={cn("w-full text-left rounded-xl border-2 px-3 py-2", !custom && presetId === p.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
@@ -273,63 +274,63 @@ export const AudioCompress: React.FC = () => {
                 </button>
               ))}
               <button type="button" data-testid="preset-custom" onClick={() => { setCustom(true); }} className={cn("w-full text-left rounded-xl border-2 px-3 py-2", custom ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
-                <div className="text-sm font-bold text-slate-800 dark:text-slate-100">Kustom</div>
-                <div className="text-[11px] text-slate-500">Atur bitrate, kanal, dan mode sendiri</div>
+                <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{tr("Kustom")}</div>
+                <div className="text-[11px] text-slate-500">{tr("Atur bitrate, kanal, dan mode sendiri")}</div>
               </button>
             </div>
             {custom && (
               <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <Slider label="Bitrate" value={kbps} min={8} max={320} step={1} suffix=" kbps" onChange={setKbps} testId="kbps-slider" />
-                <GamatoCheckbox checked={mono} onChange={setMono} label="Jadikan mono (hemat ~50%)" testId="mono-chk" />
-                {format === "opus" && <Select label="Mode pengkodean" value={application} onChange={(e) => setApplication(e.target.value as typeof application)}>
-                  <option value="audio">Musik / umum</option>
-                  <option value="voip">Suara bicara (lebih jernih di bitrate rendah)</option>
+                <Slider label={tr("Bitrate")} value={kbps} min={8} max={320} step={1} suffix={tr(" kbps")} onChange={setKbps} testId="kbps-slider" />
+                <GamatoCheckbox checked={mono} onChange={setMono} label={tr("Jadikan mono (hemat ~50%)")} testId="mono-chk" />
+                {format === "opus" && <Select label={tr("Mode pengkodean")} value={application} onChange={(e) => setApplication(e.target.value as typeof application)}>
+                  <option value="audio">{tr("Musik / umum")}</option>
+                  <option value="voip">{tr("Suara bicara (lebih jernih di bitrate rendah)")}</option>
                 </Select>}
               </div>
             )}
             <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <GamatoCheckbox checked={targetMode} onChange={setTargetMode} label="Tentukan target ukuran file" testId="target-chk" />
+              <GamatoCheckbox checked={targetMode} onChange={setTargetMode} label={tr("Tentukan target ukuran file")} testId="target-chk" />
               {targetMode && (
                 <>
-                  <Input label="Ukuran maksimal per file (MB)" type="number" min={0.1} step={0.1} value={targetMb} onChange={(e) => setTargetMb(Math.max(0.1, parseFloat(e.target.value) || 1))} data-testid="target-mb" />
-                  <p className="text-[11px] text-slate-400">Bitrate dihitung otomatis dari durasi tiap file (batas 8–320 kbps) — nilai bitrate di atas diabaikan.</p>
+                  <Input label={tr("Ukuran maksimal per file (MB)")} type="number" min={0.1} step={0.1} value={targetMb} onChange={(e) => setTargetMb(Math.max(0.1, parseFloat(e.target.value) || 1))} data-testid="target-mb" />
+                  <p className="text-[11px] text-slate-400">{tr("Bitrate dihitung otomatis dari durasi tiap file (batas 8–320 kbps) — nilai bitrate di atas diabaikan.")}</p>
                 </>
               )}
             </div>
           </div>
         ) : (
           <div className={card} data-testid="wav-settings">
-            <p className={cap}>WAV Ringan</p>
-            <Select label="Sample rate" value={String(wavRate)} onChange={(e) => setWavRate(parseInt(e.target.value))}>
-              {[8000, 11025, 16000, 22050, 32000, 44100].map((r) => <option key={r} value={r}>{r} Hz</option>)}
+            <p className={cap}>{tr("WAV Ringan")}</p>
+            <Select label={tr("Sample rate")} value={String(wavRate)} onChange={(e) => setWavRate(parseInt(e.target.value))}>
+              {[8000, 11025, 16000, 22050, 32000, 44100].map((r) => <option key={r} value={r}>{tr("{0} Hz", r)}</option>)}
             </Select>
-            <GamatoCheckbox checked={wavMono} onChange={setWavMono} label="Jadikan mono" />
-            <p className="text-[11px] text-slate-400">WAV 16-bit tidak terkompresi — hanya mengecil lewat sample rate & mono. Cocok bila perangkat tujuan tidak mendukung Opus.</p>
+            <GamatoCheckbox checked={wavMono} onChange={setWavMono} label={tr("Jadikan mono")} />
+            <p className="text-[11px] text-slate-400">{tr("WAV 16-bit tidak terkompresi — hanya mengecil lewat sample rate & mono. Cocok bila perangkat tujuan tidak mendukung Opus.")}</p>
           </div>
         )}
 
         <div className={card}>
-          <p className={cap}>Pra-pemrosesan (opsional)</p>
-          <GamatoCheckbox checked={normalize} onChange={setNormalize} label="Normalisasi volume (puncak −1 dB)" testId="norm-chk" />
-          <GamatoCheckbox checked={trimSilence} onChange={setTrimSilence} label="Persingkat hening panjang (> 1 dtk)" testId="trim-chk" />
+          <p className={cap}>{tr("Pra-pemrosesan (opsional)")}</p>
+          <GamatoCheckbox checked={normalize} onChange={setNormalize} label={tr("Normalisasi volume (puncak −1 dB)")} testId="norm-chk" />
+          <GamatoCheckbox checked={trimSilence} onChange={setTrimSilence} label={tr("Persingkat hening panjang (> 1 dtk)")} testId="trim-chk" />
         </div>
 
         {running ? (
-          <Btn variant="danger" className="w-full py-3" onClick={() => { cancelRef.current.cancelled = true; }} data-testid="acomp-cancel"><X className="w-4 h-4" /> Batalkan</Btn>
+          <Btn variant="danger" className="w-full py-3" onClick={() => { cancelRef.current.cancelled = true; }} data-testid="acomp-cancel"><X className="w-4 h-4" /> {tr("Batalkan")}</Btn>
         ) : (
           <Btn className="w-full py-3.5 text-base bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" disabled={!items.length || fast === null} onClick={runAll} data-testid="acomp-run">
-            {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shrink className="w-4 h-4" />} Kompres {items.length > 1 ? `${items.length} file` : "audio"}
+            {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shrink className="w-4 h-4" />} {tr("Kompres")} {items.length > 1 ? `${items.length} file` : "audio"}
           </Btn>
         )}
 
         <ToolInfoPanel
           icon={<Info className="w-5 h-5" />}
-          label="Kompres Audio"
-          desc="Opus: ukuran jauh lebih kecil dari MP3"
+          label={tr("Kompres Audio")}
+          desc={tr("Opus: ukuran jauh lebih kecil dari MP3")}
           points={[
-            "Opus 24 kbps mono sudah jernih untuk suara bicara; 96–160 kbps stereo untuk musik.",
-            "Dengan encoder cepat, proses jauh lebih singkat dari durasi audio. Tanpa itu, browser memakai mode real-time (durasi proses ≈ durasi audio).",
-            "Format .opus didukung Chrome, Firefox, Edge, VLC & Android; Safari/iOS lama mungkin belum — gunakan WAV ringan atau Universal Converter.",
+            tr("Opus 24 kbps mono sudah jernih untuk suara bicara; 96–160 kbps stereo untuk musik."),
+            tr("Dengan encoder cepat, proses jauh lebih singkat dari durasi audio. Tanpa itu, browser memakai mode real-time (durasi proses ≈ durasi audio)."),
+            tr("Format .opus didukung Chrome, Firefox, Edge, VLC & Android; Safari/iOS lama mungkin belum — gunakan WAV ringan atau Universal Converter."),
           ]}
         />
       </div>

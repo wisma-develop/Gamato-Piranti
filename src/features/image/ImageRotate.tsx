@@ -5,6 +5,7 @@ import { Select, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const ImageRotate: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -59,9 +60,9 @@ export const ImageRotate: React.FC = () => {
         const ext = origType === "image/jpeg" ? "jpg" : origType === "image/webp" ? "webp" : "png";
         downloadBlob(blob, `${base}-gp-rotated.${ext}`);
       }
-      setInfo(`${files.length} gambar berhasil diproses.`);
+      setInfo(tr("{0} gambar berhasil diproses.", files.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal."));
+      setInfo("" + (err?.message || tr("Gagal.")));
     } finally {
       setIsWorking(false);
     }
@@ -71,12 +72,12 @@ export const ImageRotate: React.FC = () => {
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
       <div className="space-y-5">
         {files.length === 0 ? (
-          <Dropzone onFiles={addFiles} accept="image/*" multiple label="Drop gambar di sini" sublabel="JPG, PNG, WEBP — bisa beberapa file" icon={<ImageIcon className="w-8 h-8" />} isDragging={isDragging} setIsDragging={setIsDragging} />
+          <Dropzone onFiles={addFiles} accept="image/*" multiple label={tr("Drop gambar di sini")} sublabel={tr("JPG, PNG, WEBP — bisa beberapa file")} icon={<ImageIcon className="w-8 h-8" />} isDragging={isDragging} setIsDragging={setIsDragging} />
         ) : (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{files.length} gambar · {totalSizeMb} MB</p>
-              <button type="button" onClick={() => { setFiles([]); setPreviewUrls([]); setInfo(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700">Ganti File</button>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("{0} gambar · {1} MB", files.length, totalSizeMb)}</p>
+              <button type="button" onClick={() => { setFiles([]); setPreviewUrls([]); setInfo(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700">{tr("Ganti File")}</button>
             </div>
             <div className="p-4 flex flex-wrap gap-3">
               {previewUrls.map((url, i) => (
@@ -99,26 +100,26 @@ export const ImageRotate: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Opsi</p>
-          <Select label="Derajat Putar" value={rotateDeg} onChange={(e) => setRotateDeg(parseInt(e.target.value))}>
-            <option value={90}>90° searah jarum jam</option>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Opsi")}</p>
+          <Select label={tr("Derajat Putar")} value={rotateDeg} onChange={(e) => setRotateDeg(parseInt(e.target.value))}>
+            <option value={90}>{tr("90° searah jarum jam")}</option>
             <option value={180}>180°</option>
-            <option value={270}>270° (90° berlawanan)</option>
+            <option value={270}>{tr("270° (90° berlawanan)")}</option>
           </Select>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={processImages} disabled={isWorking || !files.length} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Wand2 className="w-4 h-4" />
-              Proses {files.length > 0 ? `${files.length} ` : ""}Gambar
+              {tr("Proses")} {files.length > 0 ? `${files.length} ` : ""}{tr("Gambar")}
             </>
           )}
         </Btn>
@@ -126,9 +127,9 @@ export const ImageRotate: React.FC = () => {
 
       <ToolInfoPanel
         icon={<RotateCw className="w-5 h-5" />}
-        label="Putar Gambar"
-        desc="Rotasi gambar"
-        points={["Putar foto yang miring atau terbalik.", "Diterapkan ke semua file yang dipilih."]}
+        label={tr("Putar Gambar")}
+        desc={tr("Rotasi gambar")}
+        points={[tr("Putar foto yang miring atau terbalik."), tr("Diterapkan ke semua file yang dipilih.")]}
       />
     </div>
   );

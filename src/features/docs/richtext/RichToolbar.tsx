@@ -12,14 +12,15 @@ import { cmdBold, cmdItalic, cmdUnderline, cmdStrikethrough, cmdSubscript, cmdSu
   cmdFontName, cmdFontSize, cmdChangeCaseSelection, cmdInsertLink, cmdInsertImage, cmdRemoveFormat,
   cmdSetLineHeight, cmdSetSpaceAfter, cmdInsertShape, type ShapeKind, type CaseMode,
 } from "./commands";
+import { tr } from "@/i18n";
 
 const FONT_FAMILIES = [
-  { id: "Alan Sans, sans-serif", label: "Alan Sans" },
-  { id: "Arial, sans-serif", label: "Arial" },
-  { id: "Georgia, serif", label: "Georgia" },
-  { id: "'Times New Roman', serif", label: "Times New Roman" },
-  { id: "'Courier New', monospace", label: "Courier New" },
-  { id: "'Playfair Display', serif", label: "Playfair Display" },
+  { id: "Alan Sans, sans-serif", label: tr("Alan Sans") },
+  { id: "Arial, sans-serif", label: tr("Arial") },
+  { id: "Georgia, serif", label: tr("Georgia") },
+  { id: "'Times New Roman', serif", label: tr("Times New Roman") },
+  { id: "'Courier New', monospace", label: tr("Courier New") },
+  { id: "'Playfair Display', serif", label: tr("Playfair Display") },
 ];
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
@@ -173,12 +174,12 @@ export const RichToolbar: React.FC<{
     // turning the user's selected words into a hyperlink.
     saveSelection();
     const values = await dialog.form({
-      title: "Sisipkan Tautan",
-      description: "Masukkan alamat URL. Jika ada teks yang sedang diblok, teks itu akan otomatis menjadi hyperlink ke alamat ini — persis seperti di Word.",
+      title: tr("Sisipkan Tautan"),
+      description: tr("Masukkan alamat URL. Jika ada teks yang sedang diblok, teks itu akan otomatis menjadi hyperlink ke alamat ini — persis seperti di Word."),
       icon: <Link2 className="w-5 h-5" />,
-      submitLabel: "Sisipkan",
+      submitLabel: tr("Sisipkan"),
       fields: [
-        { key: "url", label: "URL Tautan", placeholder: "https://example.com", required: true, type: "text" },
+        { key: "url", label: tr("URL Tautan"), placeholder: "https://example.com", required: true, type: "text" },
       ],
     });
     const url = values?.url?.trim();
@@ -197,10 +198,10 @@ export const RichToolbar: React.FC<{
   };
 
   const SHAPE_OPTIONS: { kind: ShapeKind; label: string; icon: React.ReactNode }[] = [
-    { kind: "rectangle", label: "Kotak", icon: <Square className="w-4 h-4" /> },
-    { kind: "circle", label: "Lingkaran", icon: <Circle className="w-4 h-4" /> },
-    { kind: "line", label: "Garis", icon: <Minus className="w-4 h-4" /> },
-    { kind: "arrow", label: "Panah", icon: <ArrowRight className="w-4 h-4" /> },
+    { kind: "rectangle", label: tr("Kotak"), icon: <Square className="w-4 h-4" /> },
+    { kind: "circle", label: tr("Lingkaran"), icon: <Circle className="w-4 h-4" /> },
+    { kind: "line", label: tr("Garis"), icon: <Minus className="w-4 h-4" /> },
+    { kind: "arrow", label: tr("Panah"), icon: <ArrowRight className="w-4 h-4" /> },
   ];
 
   const handleInsertShape = async (kind: ShapeKind) => {
@@ -216,13 +217,13 @@ export const RichToolbar: React.FC<{
   return (
     <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
       {/* Undo / redo — covers every edit (formatting, images, shapes, spacing, ...), not just typing */}
-      <ToolBtn title="Urungkan (Ctrl+Z)" onClick={onUndo} className={!canUndo ? "opacity-30 pointer-events-none" : undefined}>↺</ToolBtn>
-      <ToolBtn title="Ulangi (Ctrl+Y)" onClick={onRedo} className={!canRedo ? "opacity-30 pointer-events-none" : undefined}>↻</ToolBtn>
+      <ToolBtn title={tr("Urungkan (Ctrl+Z)")} onClick={onUndo} className={!canUndo ? "opacity-30 pointer-events-none" : undefined}>↺</ToolBtn>
+      <ToolBtn title={tr("Ulangi (Ctrl+Y)")} onClick={onRedo} className={!canRedo ? "opacity-30 pointer-events-none" : undefined}>↻</ToolBtn>
 
       <Sep />
 
       {/* Font family */}
-      <GamatoTooltip label="Jenis font">
+      <GamatoTooltip label={tr("Jenis font")}>
         <GamatoSelect
           onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
           onFocus={saveSelection}
@@ -231,7 +232,7 @@ export const RichToolbar: React.FC<{
           className="h-8 px-2 py-0 rounded-lg text-xs font-medium max-w-[8.5rem]"
         >
           <option value="" disabled>
-            Font
+            {tr("Font")}
           </option>
           {FONT_FAMILIES.map((f) => (
             <option key={f.id} value={f.id}>
@@ -244,7 +245,7 @@ export const RichToolbar: React.FC<{
       {/* Font size */}
       <div className="flex items-center gap-1">
         <Type className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-        <GamatoTooltip label="Ukuran font">
+        <GamatoTooltip label={tr("Ukuran font")}>
           <GamatoSelect
             value={fontSize}
             onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
@@ -257,9 +258,7 @@ export const RichToolbar: React.FC<{
             className="h-8 px-2 py-0 rounded-lg text-xs font-medium w-16"
           >
             {FONT_SIZES.map((s) => (
-              <option key={s} value={s}>
-                {s}px
-              </option>
+              <option key={s} value={s}>{tr("{0}px", s)}</option>
             ))}
           </GamatoSelect>
         </GamatoTooltip>
@@ -267,40 +266,40 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Tebal (Bold)" onClick={() => withFocus(cmdBold)} active={activeStates.bold}>
+      <ToolBtn title={tr("Tebal (Bold)")} onClick={() => withFocus(cmdBold)} active={activeStates.bold}>
         <Bold className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Miring (Italic)" onClick={() => withFocus(cmdItalic)} active={activeStates.italic}>
+      <ToolBtn title={tr("Miring (Italic)")} onClick={() => withFocus(cmdItalic)} active={activeStates.italic}>
         <Italic className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Garis bawah (Underline)" onClick={() => withFocus(cmdUnderline)} active={activeStates.underline} className="underline">
-        U
+      <ToolBtn title={tr("Garis bawah (Underline)")} onClick={() => withFocus(cmdUnderline)} active={activeStates.underline} className="underline">
+        {tr("U")}
       </ToolBtn>
-      <ToolBtn title="Coret (Strikethrough)" onClick={() => withFocus(cmdStrikethrough)} active={activeStates.strikethrough} className="line-through">
-        S
+      <ToolBtn title={tr("Coret (Strikethrough)")} onClick={() => withFocus(cmdStrikethrough)} active={activeStates.strikethrough} className="line-through">
+        {tr("S")}
       </ToolBtn>
 
       <Sep />
 
       {/* Case conversion — all operate on the currently selected/blocked text */}
-      <ToolBtn title="HURUF BESAR SEMUA (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("upper"))}>
-        AA
+      <ToolBtn title={tr("HURUF BESAR SEMUA (dari teks terpilih)")} onClick={() => withFocus(() => cmdChangeCaseSelection("upper"))}>
+        {tr("AA")}
       </ToolBtn>
-      <ToolBtn title="Huruf Besar Per Kata (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("title"))}>
-        Aa
+      <ToolBtn title={tr("Huruf Besar Per Kata (dari teks terpilih)")} onClick={() => withFocus(() => cmdChangeCaseSelection("title"))}>
+        {tr("Aa")}
       </ToolBtn>
-      <ToolBtn title="Kalimat Awal Kapital (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("sentence"))}>
-        A.a
+      <ToolBtn title={tr("Kalimat Awal Kapital (dari teks terpilih)")} onClick={() => withFocus(() => cmdChangeCaseSelection("sentence"))}>
+        {tr("A.a")}
       </ToolBtn>
-      <ToolBtn title="huruf kecil semua (dari teks terpilih)" onClick={() => withFocus(() => cmdChangeCaseSelection("lower"))}>
-        aa
+      <ToolBtn title={tr("huruf kecil semua (dari teks terpilih)")} onClick={() => withFocus(() => cmdChangeCaseSelection("lower"))}>
+        {tr("aa")}
       </ToolBtn>
 
       <Sep />
 
       {/* Text color */}
       <div className="relative">
-        <ToolBtn title="Warna teks" onClick={() => { saveSelection(); setTextColorOpen((v) => !v); }} active={textColorOpen}>
+        <ToolBtn title={tr("Warna teks")} onClick={() => { saveSelection(); setTextColorOpen((v) => !v); }} active={textColorOpen}>
           <Palette className="w-4 h-4" />
         </ToolBtn>
         {textColorOpen && (
@@ -315,14 +314,14 @@ export const RichToolbar: React.FC<{
 
       {/* Highlight color */}
       <div className="relative">
-        <ToolBtn title="Sorot teks (highlight)" onClick={() => { saveSelection(); setHighlightOpen((v) => !v); }} active={highlightOpen}>
+        <ToolBtn title={tr("Sorot teks (highlight)")} onClick={() => { saveSelection(); setHighlightOpen((v) => !v); }} active={highlightOpen}>
           <Highlighter className="w-4 h-4" />
         </ToolBtn>
         {highlightOpen && (
           <ColorSwatchPicker
             presets={HIGHLIGHT_COLOR_PRESETS}
             allowNone
-            noneLabel="Hapus sorotan"
+            noneLabel={tr("Hapus sorotan")}
             onCustomPickerOpen={saveSelection}
             onClose={() => setHighlightOpen(false)}
             onPick={(color) => withRestoredSelection(() => cmdHighlight(color))}
@@ -332,16 +331,16 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Rata kiri" onClick={() => withFocus(() => cmdAlign("left"))} active={activeStates.justifyLeft}>
+      <ToolBtn title={tr("Rata kiri")} onClick={() => withFocus(() => cmdAlign("left"))} active={activeStates.justifyLeft}>
         <AlignLeft className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata tengah" onClick={() => withFocus(() => cmdAlign("center"))} active={activeStates.justifyCenter}>
+      <ToolBtn title={tr("Rata tengah")} onClick={() => withFocus(() => cmdAlign("center"))} active={activeStates.justifyCenter}>
         <AlignCenter className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata kanan" onClick={() => withFocus(() => cmdAlign("right"))} active={activeStates.justifyRight}>
+      <ToolBtn title={tr("Rata kanan")} onClick={() => withFocus(() => cmdAlign("right"))} active={activeStates.justifyRight}>
         <AlignRight className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Rata kiri-kanan (justify)" onClick={() => withFocus(() => cmdAlign("justify"))} active={activeStates.justifyFull}>
+      <ToolBtn title={tr("Rata kiri-kanan (justify)")} onClick={() => withFocus(() => cmdAlign("justify"))} active={activeStates.justifyFull}>
         ≣
       </ToolBtn>
 
@@ -350,7 +349,7 @@ export const RichToolbar: React.FC<{
       {/* Line spacing */}
       <div className="flex items-center gap-1">
         <Rows3 className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-        <GamatoTooltip label="Spasi antar baris">
+        <GamatoTooltip label={tr("Spasi antar baris")}>
           <GamatoSelect
             defaultValue=""
             onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
@@ -362,7 +361,7 @@ export const RichToolbar: React.FC<{
             className="h-8 px-2 py-0 rounded-lg text-xs font-medium w-[4.5rem]"
           >
             <option value="" disabled>
-              Baris
+              {tr("Baris")}
             </option>
             <option value="1">1.0</option>
             <option value="1.15">1.15</option>
@@ -373,7 +372,7 @@ export const RichToolbar: React.FC<{
       </div>
 
       {/* Space after paragraph */}
-      <GamatoTooltip label="Spasi setelah paragraf">
+      <GamatoTooltip label={tr("Spasi setelah paragraf")}>
         <GamatoSelect
           defaultValue=""
           onMouseDown={(e) => { e.stopPropagation(); saveSelection(); }}
@@ -385,26 +384,26 @@ export const RichToolbar: React.FC<{
           className="h-8 px-2 py-0 rounded-lg text-xs font-medium w-[6.5rem]"
         >
           <option value="" disabled>
-            Sp. Paragraf
+            {tr("Sp. Paragraf")}
           </option>
-          <option value="0">Tanpa spasi</option>
-          <option value="8">Kecil</option>
-          <option value="16">Sedang</option>
-          <option value="28">Besar</option>
+          <option value="0">{tr("Tanpa spasi")}</option>
+          <option value="8">{tr("Kecil")}</option>
+          <option value="16">{tr("Sedang")}</option>
+          <option value="28">{tr("Besar")}</option>
         </GamatoSelect>
       </GamatoTooltip>
 
       <Sep />
 
       <ToolBtn
-        title="Daftar bullet"
+        title={tr("Daftar bullet")}
         onClick={() => { if (editorRef.current) withFocus(() => cmdToggleList("bullet", editorRef.current!)); }}
         active={activeStates.insertUnorderedList}
       >
         •≡
       </ToolBtn>
       <ToolBtn
-        title="Daftar bernomor"
+        title={tr("Daftar bernomor")}
         onClick={() => { if (editorRef.current) withFocus(() => cmdToggleList("number", editorRef.current!)); }}
         active={activeStates.insertOrderedList}
       >
@@ -413,37 +412,37 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Subscript (mis. H₂O)" onClick={() => withFocus(cmdSubscript)} active={activeStates.subscript}>
+      <ToolBtn title={tr("Subscript (mis. H₂O)")} onClick={() => withFocus(cmdSubscript)} active={activeStates.subscript}>
         <span>
-          X<sub>2</sub>
+          {tr("X")}<sub>2</sub>
         </span>
       </ToolBtn>
-      <ToolBtn title="Superscript (mis. x²)" onClick={() => withFocus(cmdSuperscript)} active={activeStates.superscript}>
+      <ToolBtn title={tr("Superscript (mis. x²)")} onClick={() => withFocus(cmdSuperscript)} active={activeStates.superscript}>
         <span>
-          X<sup>2</sup>
+          {tr("X")}<sup>2</sup>
         </span>
       </ToolBtn>
 
       <Sep />
 
-      <ToolBtn title="Sisipkan tautan" onClick={handleInsertLink}>
+      <ToolBtn title={tr("Sisipkan tautan")} onClick={handleInsertLink}>
         <Link2 className="w-4 h-4" />
       </ToolBtn>
-      <ToolBtn title="Sisipkan gambar" onClick={handleInsertImage}>
+      <ToolBtn title={tr("Sisipkan gambar")} onClick={handleInsertImage}>
         <ImageIcon className="w-4 h-4" />
       </ToolBtn>
       <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImageFile(e.target.files)} />
 
       {/* Shapes */}
       <div className="relative" ref={shapeAnchorRef}>
-        <ToolBtn title="Sisipkan bentuk" onClick={() => setShapeMenuOpen((v) => !v)} active={shapeMenuOpen}>
+        <ToolBtn title={tr("Sisipkan bentuk")} onClick={() => setShapeMenuOpen((v) => !v)} active={shapeMenuOpen}>
           <Shapes className="w-4 h-4" />
         </ToolBtn>
         {shapeMenuOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => { setShapeMenuOpen(false); setShapeColorOpen(null); }} />
-            <AnchoredPortal anchorRef={shapeAnchorRef} open role="dialog" aria-label="Sisipkan bentuk" offset={4} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2.5 w-64 max-w-[calc(100vw-1rem)]">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">Warna bentuk</p>
+            <AnchoredPortal anchorRef={shapeAnchorRef} open role="dialog" aria-label={tr("Sisipkan bentuk")} offset={4} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-2.5 w-64 max-w-[calc(100vw-1rem)]">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">{tr("Warna bentuk")}</p>
               <div className="flex items-center gap-2 mb-2.5">
                 <div className="relative flex-1">
                   <button
@@ -453,7 +452,7 @@ export const RichToolbar: React.FC<{
                     className="w-full h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300"
                   >
                     <span className="w-4 h-4 rounded-full border-2 shrink-0" style={{ borderColor: shapeStroke }} />
-                    Garis (stroke)
+                    {tr("Garis (stroke)")}
                   </button>
                   {shapeColorOpen === "stroke" && (
                     <ColorSwatchPicker presets={SHAPE_COLOR_PRESETS} onClose={() => setShapeColorOpen(null)} onPick={setShapeStroke} />
@@ -467,14 +466,14 @@ export const RichToolbar: React.FC<{
                     className="w-full h-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300"
                   >
                     <span className="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 shrink-0" style={{ backgroundColor: shapeFill === "transparent" ? undefined : shapeFill }} />
-                    Isi (fill)
+                    {tr("Isi (fill)")}
                   </button>
                   {shapeColorOpen === "fill" && (
-                    <ColorSwatchPicker presets={SHAPE_COLOR_PRESETS} allowNone noneLabel="Tanpa isi" onClose={() => setShapeColorOpen(null)} onPick={setShapeFill} />
+                    <ColorSwatchPicker presets={SHAPE_COLOR_PRESETS} allowNone noneLabel={tr("Tanpa isi")} onClose={() => setShapeColorOpen(null)} onPick={setShapeFill} />
                   )}
                 </div>
               </div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">Pilih bentuk</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1.5">{tr("Pilih bentuk")}</p>
               <div className="flex gap-1">
                 {SHAPE_OPTIONS.map((s) => (
                   <button
@@ -496,8 +495,8 @@ export const RichToolbar: React.FC<{
 
       <Sep />
 
-      <ToolBtn title="Hapus semua format" onClick={() => withFocus(cmdRemoveFormat)}>
-        Tx
+      <ToolBtn title={tr("Hapus semua format")} onClick={() => withFocus(cmdRemoveFormat)}>
+        {tr("Tx")}
       </ToolBtn>
     </div>
   );

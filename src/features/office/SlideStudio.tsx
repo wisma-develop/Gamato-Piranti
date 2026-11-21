@@ -23,6 +23,7 @@ import {
 import { deckToImagesZipBlob, deckToPdfBlob } from "./slide/exportPdf";
 import { SlideToolbar } from "./slide/SlideToolbar";
 import { SlideCanvas } from "./slide/SlideCanvas";
+import { tr } from "@/i18n";
 
 const DRAFT_KEY = "gamato.draft.slidestudio";
 const isValidDeck = (v: unknown): v is Deck => {
@@ -111,7 +112,7 @@ export const SlideStudio: React.FC = () => {
     const id = newId("el");
     mutateActiveSlide((slide) => ({
       ...slide,
-      elements: [...slide.elements, { id, kind: "text", x: 260, y: 220, width: 440, height: 100, text: "Teks baru", fontSize: 28, color: "#0f172a" }],
+      elements: [...slide.elements, { id, kind: "text", x: 260, y: 220, width: 440, height: 100, text: tr("Teks baru"), fontSize: 28, color: "#0f172a" }],
     }));
     setSelectedId(id);
   }, [mutateActiveSlide]);
@@ -249,15 +250,15 @@ export const SlideStudio: React.FC = () => {
           return slide;
         });
         if (!slides.length) {
-          showToast("Tidak ada slide yang bisa dibaca dari file .pptx ini.", "error");
+          showToast(tr("Tidak ada slide yang bisa dibaca dari file .pptx ini."), "error");
           return;
         }
         history.set((prev) => ({ ...prev, slides }));
         setActiveIdx(0);
         setSelectedId(null);
-        showToast(`${slides.length} slide berhasil diimpor dari .pptx.`, "success");
+        showToast(tr("{0} slide berhasil diimpor dari .pptx.", slides.length), "success");
       } catch (err: unknown) {
-        showToast(err instanceof Error ? err.message : "Gagal membaca file .pptx.", "error");
+        showToast(err instanceof Error ? err.message : tr("Gagal membaca file .pptx."), "error");
       }
     },
     [history, showToast]
@@ -269,9 +270,9 @@ export const SlideStudio: React.FC = () => {
     try {
       const blob = await deckToPdfBlob(deck);
       downloadBlob(blob, `${sanitizeFileName(deck.title || "presentasi")}.pdf`);
-      showToast("PDF berhasil diunduh.", "success");
+      showToast(tr("PDF berhasil diunduh."), "success");
     } catch {
-      showToast("Gagal membuat PDF.", "error");
+      showToast(tr("Gagal membuat PDF."), "error");
     } finally {
       setIsExporting(false);
     }
@@ -282,9 +283,9 @@ export const SlideStudio: React.FC = () => {
     try {
       const blob = await deckToImagesZipBlob(deck);
       downloadBlob(blob, `${sanitizeFileName(deck.title || "presentasi")}-gambar.zip`);
-      showToast("Gambar (.zip) berhasil diunduh.", "success");
+      showToast(tr("Gambar (.zip) berhasil diunduh."), "success");
     } catch {
-      showToast("Gagal membuat gambar.", "error");
+      showToast(tr("Gagal membuat gambar."), "error");
     } finally {
       setIsExporting(false);
     }
@@ -401,7 +402,7 @@ export const SlideStudio: React.FC = () => {
                     e.stopPropagation();
                     removeSlide(i);
                   }}
-                  aria-label={`Hapus slide ${i + 1}`}
+                  aria-label={tr("Hapus slide {0}", i + 1)}
                   className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 text-white rounded-full p-0.5"
                 >
                   <X className="w-3 h-3" />
@@ -415,14 +416,14 @@ export const SlideStudio: React.FC = () => {
               onClick={addSlide}
               className="flex-1 lg:w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" /> Slide
+              <Plus className="w-3.5 h-3.5" /> {tr("Slide")}
             </button>
             <button
               type="button"
               onClick={duplicateSlide}
               className="flex-1 lg:w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold transition-colors"
             >
-              <Copy className="w-3.5 h-3.5" /> Duplikat
+              <Copy className="w-3.5 h-3.5" /> {tr("Duplikat")}
             </button>
           </div>
         </div>
@@ -446,7 +447,7 @@ export const SlideStudio: React.FC = () => {
         </div>
       </div>
 
-      {isExporting && <p className="text-xs text-slate-400 dark:text-slate-500">Menyiapkan file untuk diunduh…</p>}
+      {isExporting && <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Menyiapkan file untuk diunduh…")}</p>}
 
       {/* Present mode overlay */}
       {presenting && (
@@ -471,7 +472,7 @@ export const SlideStudio: React.FC = () => {
               if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
               setPresenting(false);
             }}
-            aria-label="Tutup mode tampilkan"
+            aria-label={tr("Tutup mode tampilkan")}
             className="absolute top-4 right-4 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
@@ -480,7 +481,7 @@ export const SlideStudio: React.FC = () => {
             type="button"
             onClick={() => setPresentIdx((i) => Math.max(0, i - 1))}
             disabled={presentIdx === 0}
-            aria-label="Slide sebelumnya"
+            aria-label={tr("Slide sebelumnya")}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors disabled:opacity-30"
           >
             <ChevronLeft className="w-6 h-6" />
@@ -489,7 +490,7 @@ export const SlideStudio: React.FC = () => {
             type="button"
             onClick={() => setPresentIdx((i) => Math.min(deck.slides.length - 1, i + 1))}
             disabled={presentIdx === deck.slides.length - 1}
-            aria-label="Slide berikutnya"
+            aria-label={tr("Slide berikutnya")}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors disabled:opacity-30"
           >
             <ChevronRight className="w-6 h-6" />

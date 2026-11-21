@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AlignLeft, AlignCenter, AlignRight, WrapText, Crop as CropIcon, Trash2, Check, X, RotateCw, Move } from "lucide-react";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { cmdSetImageAlign, cmdDeleteImage, cmdSetImageRotation, type ImageAlignValue } from "./commands";
+import { tr } from "@/i18n";
 
 interface Rect {
   top: number;
@@ -19,11 +20,11 @@ interface ImageInspectorProps {
 }
 
 const ALIGN_OPTIONS: { value: ImageAlignValue; label: string; icon: React.ReactNode }[] = [
-  { value: "left", label: "Rata kiri", icon: <AlignLeft className="w-4 h-4" /> },
-  { value: "center", label: "Rata tengah", icon: <AlignCenter className="w-4 h-4" /> },
-  { value: "right", label: "Rata kanan", icon: <AlignRight className="w-4 h-4" /> },
-  { value: "float-left", label: "Kiri, teks melingkar", icon: <WrapText className="w-4 h-4 -scale-x-100" /> },
-  { value: "float-right", label: "Kanan, teks melingkar", icon: <WrapText className="w-4 h-4" /> },
+  { value: "left", label: tr("Rata kiri"), icon: <AlignLeft className="w-4 h-4" /> },
+  { value: "center", label: tr("Rata tengah"), icon: <AlignCenter className="w-4 h-4" /> },
+  { value: "right", label: tr("Rata kanan"), icon: <AlignRight className="w-4 h-4" /> },
+  { value: "float-left", label: tr("Kiri, teks melingkar"), icon: <WrapText className="w-4 h-4 -scale-x-100" /> },
+  { value: "float-right", label: tr("Kanan, teks melingkar"), icon: <WrapText className="w-4 h-4" /> },
 ];
 
 function getRectRelativeTo(el: HTMLElement, containerEl: HTMLElement): Rect {
@@ -278,7 +279,7 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
             <div className="pointer-events-none absolute left-1/2 -top-7 -translate-x-1/2 w-px h-5 bg-indigo-500" />
             <div
               onPointerDown={startRotate}
-              title="Putar (tahan Shift untuk kelipatan 15°)"
+              title={tr("Putar (tahan Shift untuk kelipatan 15°)")}
               className="pointer-events-auto absolute left-1/2 -top-9 -translate-x-1/2 w-5 h-5 bg-white border-2 border-indigo-600 rounded-full shadow flex items-center justify-center cursor-grab active:cursor-grabbing"
             >
               <RotateCw className="w-3 h-3 text-indigo-600" />
@@ -321,20 +322,20 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
       >
         {cropMode ? (
           <>
-            <GamatoTooltip label="Terapkan crop">
+            <GamatoTooltip label={tr("Terapkan crop")}>
               <button type="button" onClick={applyCrop} className="h-7 px-2 inline-flex items-center gap-1 rounded-lg text-xs font-semibold hover:bg-white/10">
-                <Check className="w-3.5 h-3.5" /> Terapkan
+                <Check className="w-3.5 h-3.5" /> {tr("Terapkan")}
               </button>
             </GamatoTooltip>
-            <GamatoTooltip label="Batal">
+            <GamatoTooltip label={tr("Batal")}>
               <button type="button" onClick={() => setCropMode(false)} className="h-7 px-2 inline-flex items-center gap-1 rounded-lg text-xs font-semibold hover:bg-white/10">
-                <X className="w-3.5 h-3.5" /> Batal
+                <X className="w-3.5 h-3.5" /> {tr("Batal")}
               </button>
             </GamatoTooltip>
           </>
         ) : (
           <>
-            <GamatoTooltip label="Geser (seret ke posisi baru dalam teks)">
+            <GamatoTooltip label={tr("Geser (seret ke posisi baru dalam teks)")}>
               <button
                 type="button"
                 onPointerDown={startMove}
@@ -356,7 +357,7 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
               </GamatoTooltip>
             ))}
             <div className="w-px h-5 bg-white/20 mx-0.5 shrink-0" />
-            <GamatoTooltip label={currentRotation() ? "Kembalikan rotasi ke 0° dulu untuk memotong" : "Potong (crop)"}>
+            <GamatoTooltip label={currentRotation() ? tr("Kembalikan rotasi ke 0° dulu untuk memotong") : tr("Potong (crop)")}>
               <button
                 type="button"
                 onClick={() => currentRotation() === 0 && enterCropMode()}
@@ -366,7 +367,7 @@ export const ImageInspector: React.FC<ImageInspectorProps> = ({ containerRef, im
                 <CropIcon className="w-4 h-4" />
               </button>
             </GamatoTooltip>
-            <GamatoTooltip label="Hapus gambar">
+            <GamatoTooltip label={tr("Hapus gambar")}>
               <button type="button" onClick={handleDelete} className="h-7 w-7 inline-flex items-center justify-center rounded-lg hover:bg-red-500/80 shrink-0">
                 <Trash2 className="w-4 h-4" />
               </button>

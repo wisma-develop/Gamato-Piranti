@@ -7,13 +7,14 @@ import { requestMicrophone, stopStream, ensureAudioRunning, PermissionError, typ
 import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
 import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
 import { useMediaDevices } from "@/hooks/useMediaDevices";
+import { tr } from "@/i18n";
 
 function levelInfo(pct: number): { label: string; tone: string } {
-  if (pct < 15) return { label: "Hening", tone: "text-emerald-600 dark:text-emerald-400" };
-  if (pct < 40) return { label: "Tenang", tone: "text-emerald-600 dark:text-emerald-400" };
-  if (pct < 65) return { label: "Normal", tone: "text-amber-600 dark:text-amber-400" };
-  if (pct < 85) return { label: "Ramai", tone: "text-orange-600 dark:text-orange-400" };
-  return { label: "Sangat Keras", tone: "text-red-600 dark:text-red-400" };
+  if (pct < 15) return { label: tr("Hening"), tone: "text-emerald-600 dark:text-emerald-400" };
+  if (pct < 40) return { label: tr("Tenang"), tone: "text-emerald-600 dark:text-emerald-400" };
+  if (pct < 65) return { label: tr("Normal"), tone: "text-amber-600 dark:text-amber-400" };
+  if (pct < 85) return { label: tr("Ramai"), tone: "text-orange-600 dark:text-orange-400" };
+  return { label: tr("Sangat Keras"), tone: "text-red-600 dark:text-red-400" };
 }
 
 export const AudioSoundMeter: React.FC = () => {
@@ -97,7 +98,7 @@ export const AudioSoundMeter: React.FC = () => {
       audioCtxRef.current = null;
       setIsActive(false);
       if (err instanceof PermissionError) setPermFail(err.failure);
-      else setError("Gagal memulai pengukuran. Coba lagi.");
+      else setError(tr("Gagal memulai pengukuran. Coba lagi."));
     }
   }, [micId, refreshMics]);
 
@@ -128,9 +129,9 @@ export const AudioSoundMeter: React.FC = () => {
 
             <div className="text-center">
               <p className={cn("text-4xl font-bold tabular-nums", tone)}>{isActive ? level : 0}%</p>
-              <p className={cn("text-sm font-semibold mt-1", tone.replace("-600", "-700"))}>{isActive ? label : "Belum aktif"}</p>
+              <p className={cn("text-sm font-semibold mt-1", tone.replace("-600", "-700"))}>{isActive ? label : tr("Belum aktif")}</p>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                {isActive ? `${dbfs === -Infinity ? "-∞" : dbfs.toFixed(1)} dBFS relatif` : "Tekan mulai untuk mengaktifkan mikrofon"}
+                {isActive ? tr("{0} dBFS relatif", dbfs === -Infinity ? "-∞" : dbfs.toFixed(1)) : tr("Tekan mulai untuk mengaktifkan mikrofon")}
               </p>
             </div>
 
@@ -138,18 +139,18 @@ export const AudioSoundMeter: React.FC = () => {
               {isActive ? (
                 <>
                   <MicOff className="w-4 h-4" />
-                  Berhenti
+                  {tr("Berhenti")}
                 </>
               ) : (
                 <>
                   <Mic className="w-4 h-4" />
-                  Mulai Mengukur
+                  {tr("Mulai Mengukur")}
                 </>
               )}
             </Btn>
 
             {mics.length > 1 && !isActive && (
-              <div className="w-full max-w-xs"><MediaDevicePicker label="Mikrofon" devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>
+              <div className="w-full max-w-xs"><MediaDevicePicker label={tr("Mikrofon")} devices={mics} value={micId} onChange={setMicId} testId="mic-picker" /></div>
             )}
             <GamatoPermissionNotice failure={permFail} onRetry={start} onDismiss={() => setPermFail(null)} className="w-full max-w-md" />
             {error && <p className="text-sm text-red-600 dark:text-red-400 text-center max-w-sm">{error}</p>}
@@ -157,20 +158,20 @@ export const AudioSoundMeter: React.FC = () => {
         </div>
 
         <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-2xl px-5 py-4 text-sm text-amber-800 dark:text-amber-300">
-          Pengukuran ini bersifat <strong>relatif</strong>, mengikuti sensitivitas mikrofon perangkatmu — bukan pengukuran desibel (dB SPL) terkalibrasi seperti alat sound level meter profesional. Gunakan sebagai indikator kasar, bukan acuan resmi.
+          {tr("Pengukuran ini bersifat")} <strong>{tr("relatif")}</strong>{tr(", mengikuti sensitivitas mikrofon perangkatmu — bukan pengukuran desibel (dB SPL) terkalibrasi seperti alat sound level meter profesional. Gunakan sebagai indikator kasar, bukan acuan resmi.")}
         </div>
       </div>
 
       <ToolInfoPanel
         icon={<Gauge className="w-5 h-5" />}
-        label="Pengukur Kekuatan Suara"
-        desc="Meter level suara real-time"
+        label={tr("Pengukur Kekuatan Suara")}
+        desc={tr("Meter level suara real-time")}
         points={[
-          "Memakai Web Audio API langsung dari mikrofon browser — tanpa server.",
-          "Audio tidak direkam maupun disimpan, hanya level volumenya yang dianalisis secara langsung.",
-          "Tekan Berhenti kapan saja untuk melepas akses mikrofon.",
+          tr("Memakai Web Audio API langsung dari mikrofon browser — tanpa server."),
+          tr("Audio tidak direkam maupun disimpan, hanya level volumenya yang dianalisis secara langsung."),
+          tr("Tekan Berhenti kapan saja untuk melepas akses mikrofon."),
         ]}
-        badgeText="Native — audio tidak direkam/dikirim"
+        badgeText={tr("Native — audio tidak direkam/dikirim")}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { AnchoredPortal } from "@/components/ui/AnchoredPortal";
+import { tr } from "@/i18n";
 
 interface ColorSwatchPickerProps {
   presets: string[];
@@ -91,12 +92,12 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, o
     <>
       <div className="fixed inset-0 z-10" onClick={onClose} />
       <span ref={anchorRef} aria-hidden className="absolute left-0 top-full w-0 h-0 pointer-events-none" />
-      <AnchoredPortal anchorRef={anchorRef} open role="dialog" aria-label="Pilih warna" offset={4} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-3 w-56 max-w-[calc(100vw-1rem)]">
+      <AnchoredPortal anchorRef={anchorRef} open role="dialog" aria-label={tr("Pilih warna")} offset={4} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-3 w-56 max-w-[calc(100vw-1rem)]">
         <div className="grid grid-cols-6 gap-1.5 mb-3">
           {allowNone && (
             <button
               type="button"
-              title={noneLabel || "Tanpa warna"}
+              title={noneLabel || tr("Tanpa warna")}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
                 onPick("transparent");
@@ -176,7 +177,7 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, o
               maxLength={7}
               spellCheck={false}
             />
-            <GamatoTooltip label="Terapkan warna kustom ini">
+            <GamatoTooltip label={tr("Terapkan warna kustom ini")}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -187,7 +188,7 @@ export const ColorSwatchPicker: React.FC<ColorSwatchPickerProps> = ({ presets, o
                 className="h-8 px-2.5 inline-flex items-center gap-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0"
               >
                 <Check className="w-3.5 h-3.5" />
-                Terapkan
+                {tr("Terapkan")}
               </button>
             </GamatoTooltip>
           </div>

@@ -1,5 +1,6 @@
 import { Document, Packer, Paragraph, TextRun, ImageRun, ExternalHyperlink, AlignmentType, UnderlineType } from "docx";
 import type { BlockModel, RunModel, Align, ImageAlign } from "./parseEditor";
+import { tr } from "@/i18n";
 
 const IMAGE_ALIGN_MAP: Partial<Record<ImageAlign, any>> = {
   left: AlignmentType.LEFT,
@@ -31,14 +32,14 @@ async function prepareImageForDocx(dataUrl: string): Promise<{ bytes: Uint8Array
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image();
     el.onload = () => resolve(el);
-    el.onerror = () => reject(new Error("Gagal memuat gambar untuk konversi."));
+    el.onerror = () => reject(new Error(tr("Gagal memuat gambar untuk konversi.")));
     el.src = dataUrl;
   });
   const canvas = document.createElement("canvas");
   canvas.width = img.naturalWidth || img.width;
   canvas.height = img.naturalHeight || img.height;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D context tidak tersedia.");
+  if (!ctx) throw new Error(tr("Canvas 2D context tidak tersedia."));
   ctx.drawImage(img, 0, 0);
   const pngDataUrl = canvas.toDataURL("image/png");
   const base64 = pngDataUrl.split(",")[1] || "";
@@ -172,7 +173,7 @@ export async function exportDocxFromBlocks(blocks: BlockModel[], title: string):
         // clearly-labelled placeholder instead of silently dropping it.
         paragraphs.push(
           new Paragraph({
-            children: [new TextRun({ text: "[Gambar tidak dapat disisipkan]", italics: true, color: "94A3B8" })],
+            children: [new TextRun({ text: tr("[Gambar tidak dapat disisipkan]"), italics: true, color: "94A3B8" })],
           })
         );
       }

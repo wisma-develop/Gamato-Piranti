@@ -11,6 +11,7 @@ import {
   type EvalResult,
 } from "./formulaEngine";
 import { buildCsv, parseCsv as parseCsvRows } from "@/lib/csv";
+import { LOCALE, tr } from "@/i18n";
 
 export type NumberFormat = "general" | "number" | "currency" | "percent" | "integer";
 export type TextAlign = "left" | "center" | "right";
@@ -44,7 +45,7 @@ export interface SheetData {
 export const DEFAULT_ROWS = 60;
 export const DEFAULT_COLS = 20;
 
-export function createEmptySheet(name = "Sheet1"): SheetData {
+export function createEmptySheet(name = tr("Sheet1")): SheetData {
   return { name, rowCount: DEFAULT_ROWS, colCount: DEFAULT_COLS, cells: {} };
 }
 
@@ -113,13 +114,13 @@ export function formatCellValue(value: EvalResult, format?: CellFormat): string 
   const decimals = format?.decimals ?? 2;
   switch (format?.numberFormat) {
     case "currency":
-      return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: decimals }).format(value);
+      return new Intl.NumberFormat(LOCALE, { style: "currency", currency: "IDR", maximumFractionDigits: decimals }).format(value);
     case "percent":
       return `${(value * 100).toFixed(decimals)}%`;
     case "integer":
-      return Math.round(value).toLocaleString("id-ID");
+      return Math.round(value).toLocaleString(LOCALE);
     case "number":
-      return value.toLocaleString("id-ID", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      return value.toLocaleString(LOCALE, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     default:
       // "general": trim trailing float noise but don't force decimals
       return Number.isInteger(value) ? String(value) : String(Math.round(value * 1e10) / 1e10);

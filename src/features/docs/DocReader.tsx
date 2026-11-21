@@ -7,6 +7,7 @@ import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { tr } from "@/i18n";
 
 export const DocReader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -20,7 +21,7 @@ export const DocReader: React.FC = () => {
   const addFiles = async (incoming: File[]) => {
     const f = incoming.find((x) => /\.(txt|docx|rtf)$/i.test(x.name));
     if (!f) {
-      setInfo("Format belum didukung. Gunakan .txt, .docx, atau .rtf.");
+      setInfo(tr("Format belum didukung. Gunakan .txt, .docx, atau .rtf."));
       return;
     }
     setInfo(null);
@@ -39,7 +40,7 @@ export const DocReader: React.FC = () => {
       setFile(f);
       setContent(text);
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal membaca file."));
+      setInfo("" + (err?.message || tr("Gagal membaca file.")));
     } finally {
       setIsLoading(false);
     }
@@ -53,8 +54,8 @@ export const DocReader: React.FC = () => {
             onFiles={addFiles}
             accept=".txt,.docx,.rtf"
             multiple={false}
-            label="Drop dokumen di sini"
-            sublabel=".txt, .docx, atau .rtf"
+            label={tr("Drop dokumen di sini")}
+            sublabel={tr(".txt, .docx, atau .rtf")}
             icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -67,7 +68,7 @@ export const DocReader: React.FC = () => {
                 <button type="button" onClick={() => setFontSize((s) => Math.max(13, s - 1))} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg">
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="text-xs text-slate-400 dark:text-slate-500 w-8 text-center">{fontSize}px</span>
+                <span className="text-xs text-slate-400 dark:text-slate-500 w-8 text-center">{tr("{0}px", fontSize)}</span>
                 <button type="button" onClick={() => setFontSize((s) => Math.min(28, s + 1))} className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg">
                   <Plus className="w-4 h-4" />
                 </button>
@@ -88,11 +89,11 @@ export const DocReader: React.FC = () => {
             <div className="max-h-[65vh] overflow-y-auto px-6 py-6 sm:px-10 sm:py-8 bg-white dark:bg-slate-900">
               {isLoading ? (
                 <div className="flex items-center gap-2 text-slate-400 text-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" /> Membaca dokumen…
+                  <Loader2 className="w-4 h-4 animate-spin" /> {tr("Membaca dokumen…")}
                 </div>
               ) : (
                 <div className="whitespace-pre-wrap leading-relaxed text-slate-700 dark:text-slate-200 font-serif" style={{ fontSize }}>
-                  {content || "(Dokumen kosong)"}
+                  {content || tr("(Dokumen kosong)")}
                 </div>
               )}
             </div>
@@ -103,23 +104,23 @@ export const DocReader: React.FC = () => {
           <div className="flex gap-3">
             {!isSpeaking ? (
               <Btn onClick={() => speak(content, { rate: 1 })} className="flex-1 py-3.5 gap-2">
-                <Play className="w-4 h-4" /> Dengarkan Dokumen
+                <Play className="w-4 h-4" /> {tr("Dengarkan Dokumen")}
               </Btn>
             ) : (
               <Btn onClick={isPaused ? resume : pause} className="flex-1 py-3.5 gap-2">
                 {isPaused ? (
                   <>
-                    <Play className="w-4 h-4" /> Lanjutkan
+                    <Play className="w-4 h-4" /> {tr("Lanjutkan")}
                   </>
                 ) : (
                   <>
-                    <Pause className="w-4 h-4" /> Jeda
+                    <Pause className="w-4 h-4" /> {tr("Jeda")}
                   </>
                 )}
               </Btn>
             )}
             <Btn onClick={stop} disabled={!isSpeaking} variant="secondary" className="gap-2">
-              <Square className="w-4 h-4" /> Stop
+              <Square className="w-4 h-4" /> {tr("Stop")}
             </Btn>
           </div>
         )}
@@ -129,9 +130,9 @@ export const DocReader: React.FC = () => {
 
       <ToolInfoPanel
         icon={<BookOpen className="w-5 h-5" />}
-        label="Doc Reader"
-        desc="Baca .txt, .docx, .rtf"
-        points={["Tampilan baca nyaman dengan ukuran font yang bisa diatur.", "Bisa didengarkan langsung lewat Text-to-Speech bawaan browser."]}
+        label={tr("Doc Reader")}
+        desc={tr("Baca .txt, .docx, .rtf")}
+        points={[tr("Tampilan baca nyaman dengan ukuran font yang bisa diatur."), tr("Bisa didengarkan langsung lewat Text-to-Speech bawaan browser.")]}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { msgStarts, tr } from "@/i18n";
 
 type DragMode = "move" | "nw" | "ne" | "sw" | "se";
 interface Sel {
@@ -22,7 +23,7 @@ interface Sel {
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 
 const PRESETS: { label: string; ratio: number | null }[] = [
-  { label: "Bebas", ratio: null },
+  { label: tr("Bebas"), ratio: null },
   { label: "1:1", ratio: 1 },
   { label: "4:3", ratio: 4 / 3 },
   { label: "3:4", ratio: 3 / 4 },
@@ -131,9 +132,9 @@ export const ImageCrop: React.FC = () => {
       const blob = await canvasToBlob(canvas, mime, mime === "image/jpeg" ? 0.92 : undefined);
       const base = file.name.replace(/\.[^.]+$/, "");
       downloadBlob(blob, `${base}-crop.${outputFormat === "png" ? "png" : "jpg"}`);
-      setInfo("Gambar berhasil dipotong.");
+      setInfo(tr("Gambar berhasil dipotong."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memotong gambar."));
+      setInfo("" + (err?.message || tr("Gagal memotong gambar.")));
     } finally {
       setIsWorking(false);
     }
@@ -143,15 +144,15 @@ export const ImageCrop: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
-      <GamatoDesktopRecommended toolName="Crop Gambar" className="lg:col-span-full" />
+      <GamatoDesktopRecommended toolName={tr("Crop Gambar")} className="lg:col-span-full" />
       <div className="space-y-5">
         {!previewUrl ? (
           <Dropzone
             onFiles={addFiles}
             accept="image/*"
             multiple={false}
-            label="Drop gambar di sini"
-            sublabel="JPG, PNG, WEBP"
+            label={tr("Drop gambar di sini")}
+            sublabel={tr("JPG, PNG, WEBP")}
             icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -171,7 +172,7 @@ export const ImageCrop: React.FC = () => {
                 }}
                 className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
               >
-                Ganti File
+                {tr("Ganti File")}
               </button>
             </div>
             <div className="p-4 flex justify-center bg-slate-100 dark:bg-slate-950">
@@ -204,7 +205,7 @@ export const ImageCrop: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Rasio Crop</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Rasio Crop")}</p>
             <UndoRedoBar canUndo={selHistory.canUndo} canRedo={selHistory.canRedo} onUndo={selHistory.undo} onRedo={selHistory.redo} hideLabel />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -225,24 +226,24 @@ export const ImageCrop: React.FC = () => {
               </button>
             ))}
           </div>
-          <Select label="Format Output" value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)}>
-            <option value="png">PNG</option>
-            <option value="jpeg">JPEG</option>
+          <Select label={tr("Format Output")} value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)}>
+            <option value="png">{tr("PNG")}</option>
+            <option value="jpeg">{tr("JPEG")}</option>
           </Select>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleCrop} disabled={isWorking || !previewUrl} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Potong &amp; Unduh
+              {tr("Potong & Unduh")}
             </>
           )}
         </Btn>
@@ -250,11 +251,11 @@ export const ImageCrop: React.FC = () => {
 
       <ToolInfoPanel
         icon={<CropIcon className="w-5 h-5" />}
-        label="Crop Gambar"
-        desc="Potong area tertentu"
+        label={tr("Crop Gambar")}
+        desc={tr("Potong area tertentu")}
         points={[
-          "Geser kotak untuk memilih area, tarik titik di sudut untuk mengubah ukuran.",
-          "Pakai preset rasio untuk hasil pas 1:1, 4:3, 16:9, dan lainnya.",
+          tr("Geser kotak untuk memilih area, tarik titik di sudut untuk mengubah ukuran."),
+          tr("Pakai preset rasio untuk hasil pas 1:1, 4:3, 16:9, dan lainnya."),
         ]}
       />
     </div>

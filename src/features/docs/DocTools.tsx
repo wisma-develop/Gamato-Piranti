@@ -15,6 +15,7 @@ import { sanitizeEditorHtml } from "@/lib/sanitizeHtml";
 import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { msgStarts, tr } from "@/i18n";
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -29,16 +30,16 @@ function textToHtml(text: string): string {
 
 const TEMPLATES: Record<"notulen" | "surat" | "catatan", { name: string; text: string }> = {
   notulen: {
-    name: "Notulen Gamato",
-    text: "NOTULEN RAPAT\nGamato Piranti\n\nAgenda:\n- \n\nPeserta:\n- \n\nRingkasan:\n- \n\nKeputusan:\n- \n\nTindak Lanjut:\n- ",
+    name: tr("Notulen Gamato"),
+    text: tr("NOTULEN RAPAT\nGamato Piranti\n\nAgenda:\n- \n\nPeserta:\n- \n\nRingkasan:\n- \n\nKeputusan:\n- \n\nTindak Lanjut:\n- "),
   },
   surat: {
-    name: "Surat Gamato",
-    text: "Surabaya, .................................... 20..\n\nKepada Yth.\n...........................................\nDi Tempat\n\nPerihal: ...........................................\n\nDengan hormat,\n\n...\n\nHormat kami,\nGamato Piranti\n",
+    name: tr("Surat Gamato"),
+    text: tr("Surabaya, .................................... 20..\n\nKepada Yth.\n...........................................\nDi Tempat\n\nPerihal: ...........................................\n\nDengan hormat,\n\n...\n\nHormat kami,\nGamato Piranti\n"),
   },
   catatan: {
-    name: "Catatan Gamato",
-    text: "Catatan kerja Gamato Piranti\n\n- ",
+    name: tr("Catatan Gamato"),
+    text: tr("Catatan kerja Gamato Piranti\n\n- "),
   },
 };
 
@@ -53,7 +54,7 @@ export const DocTools: React.FC = () => {
   const draftHtml = useMemo(() => (draft && typeof draft.data.html === "string" ? sanitizeEditorHtml(draft.data.html) || null : null), [draft]);
   const initialHtmlRef = useRef<string>(draftHtml ?? EMPTY_DOC);
 
-  const [fileName, setFileName] = useState(draft && typeof draft.data.fileName === "string" && draft.data.fileName ? draft.data.fileName : "Gamato Piranti Dokumen");
+  const [fileName, setFileName] = useState(draft && typeof draft.data.fileName === "string" && draft.data.fileName ? draft.data.fileName : tr("Gamato Piranti Dokumen"));
   const [docInfo, setDocInfo] = useState<string | null>(null);
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
@@ -205,7 +206,7 @@ export const DocTools: React.FC = () => {
     const tpl = TEMPLATES[kind];
     setEditorHtml(textToHtml(tpl.text));
     setFileName(tpl.name);
-    setDocInfo("Template dimuat.");
+    setDocInfo(tr("Template dimuat."));
   };
 
   const quickClean = (kind: "trim" | "noBlank") => {
@@ -218,13 +219,13 @@ export const DocTools: React.FC = () => {
         node.textContent = (node.textContent || "").replace(/[ \t]+/g, " ");
         node = walker.nextNode();
       }
-      setDocInfo("Spasi ganda dirapikan.");
+      setDocInfo(tr("Spasi ganda dirapikan."));
     } else {
       Array.from(el.children).forEach((child) => {
         const empty = !(child.textContent || "").trim() && !child.querySelector("img");
         if (empty && (child.tagName === "P" || child.tagName === "DIV")) child.remove();
       });
-      setDocInfo("Baris kosong dihapus.");
+      setDocInfo(tr("Baris kosong dihapus."));
     }
     afterEdit();
   };
@@ -243,7 +244,7 @@ export const DocTools: React.FC = () => {
       }
       node = walker.nextNode();
     }
-    setDocInfo(count === 0 ? "Teks tidak ditemukan." : `${count} kemunculan diganti.`);
+    setDocInfo(count === 0 ? tr("Teks tidak ditemukan.") : tr("{0} kemunculan diganti.", count));
     afterEdit();
   };
 
@@ -258,7 +259,7 @@ export const DocTools: React.FC = () => {
         kind === "upper" ? t.toUpperCase() : kind === "lower" ? t.toLowerCase() : t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
       node = walker.nextNode();
     }
-    setDocInfo("Huruf diubah.");
+    setDocInfo(tr("Huruf diubah."));
     afterEdit();
   };
 
@@ -268,7 +269,7 @@ export const DocTools: React.FC = () => {
     const r = new FileReader();
     r.onload = () => {
       setEditorHtml(textToHtml((r.result as string) || ""));
-      setDocInfo("File .txt berhasil diimpor.");
+      setDocInfo(tr("File .txt berhasil diimpor."));
     };
     r.readAsText(file);
   };
@@ -277,13 +278,13 @@ export const DocTools: React.FC = () => {
     if (!editorRef.current) return;
     setSnapshot(editorRef.current.innerHTML);
     setSnapshotLabel(fileName);
-    setDocInfo("Snapshot disimpan.");
+    setDocInfo(tr("Snapshot disimpan."));
   };
 
   const restoreSnapshot = () => {
     if (!snapshot) return;
     setEditorHtml(snapshot);
-    setDocInfo("Snapshot dipulihkan.");
+    setDocInfo(tr("Snapshot dipulihkan."));
   };
 
   const exportDocx = async () => {
@@ -292,11 +293,11 @@ export const DocTools: React.FC = () => {
     setIsExporting(true);
     try {
       const blocks = parseEditor(el);
-      const blob = await exportDocxFromBlocks(blocks, fileName || "Gamato Piranti Dokumen");
+      const blob = await exportDocxFromBlocks(blocks, fileName || tr("Gamato Piranti Dokumen"));
       downloadBlob(blob, `${sanitizeFileName(fileName || "gamato-dokumen")}.docx`);
-      setDocInfo("Dokumen .docx berhasil disiapkan.");
+      setDocInfo(tr("Dokumen .docx berhasil disiapkan."));
     } catch {
-      setDocInfo("Gagal menyusun .docx.");
+      setDocInfo(tr("Gagal menyusun .docx."));
     } finally {
       setIsExporting(false);
     }
@@ -308,11 +309,11 @@ export const DocTools: React.FC = () => {
     setIsExporting(true);
     try {
       const blocks = parseEditor(el);
-      const blob = await exportPdfFromBlocks(blocks, fileName || "Gamato Piranti Dokumen");
+      const blob = await exportPdfFromBlocks(blocks, fileName || tr("Gamato Piranti Dokumen"));
       downloadBlob(blob, `${sanitizeFileName(fileName || "gamato-dokumen")}.pdf`);
-      setDocInfo("Disimpan sebagai PDF.");
+      setDocInfo(tr("Disimpan sebagai PDF."));
     } catch {
-      setDocInfo("Gagal menyusun PDF.");
+      setDocInfo(tr("Gagal menyusun PDF."));
     } finally {
       setIsExporting(false);
     }
@@ -321,7 +322,7 @@ export const DocTools: React.FC = () => {
   const downloadTxt = () => {
     if (!plainText) return;
     downloadBlob(new Blob([plainText], { type: "text/plain;charset=utf-8" }), `${sanitizeFileName(fileName || "gamato-dokumen")}.txt`);
-    setDocInfo("Diekspor sebagai .txt.");
+    setDocInfo(tr("Diekspor sebagai .txt."));
   };
 
   return (
@@ -339,18 +340,18 @@ export const DocTools: React.FC = () => {
                 value={fileName}
                 onChange={(e) => setFileName(sanitizeText(e.target.value))}
                 className="border-0 bg-transparent p-0 font-bold text-slate-800 dark:text-slate-100 text-base focus:ring-0 shadow-none"
-                placeholder="Nama dokumen"
+                placeholder={tr("Nama dokumen")}
               />
             </div>
             <label className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold cursor-pointer hover:text-indigo-700 shrink-0">
-              Import .txt
+              {tr("Import .txt")}
               <input type="file" accept="text/plain" className="hidden" onChange={(e) => importTxt(e.target.files)} />
             </label>
           </div>
 
           {/* Template & quick-clean row */}
           <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 self-center mr-1">Template:</span>
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 self-center mr-1">{tr("Template:")}</span>
             {(["notulen", "surat", "catatan"] as const).map((k) => (
               <button
                 key={k}
@@ -363,10 +364,10 @@ export const DocTools: React.FC = () => {
             ))}
           </div>
           <div className="flex flex-wrap gap-2 px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 self-center mr-1">Ubah:</span>
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 self-center mr-1">{tr("Ubah:")}</span>
             {([
-              ["trim", "Rapikan spasi"],
-              ["noBlank", "Hapus baris kosong"],
+              ["trim", tr("Rapikan spasi")],
+              ["noBlank", tr("Hapus baris kosong")],
             ] as const).map(([k, l]) => (
               <button key={k} type="button" onClick={() => quickClean(k)} className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-3 py-1.5 rounded-lg">
                 {l}
@@ -386,13 +387,13 @@ export const DocTools: React.FC = () => {
           {/* Find & Replace */}
           <div className="flex gap-3 px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 items-end flex-wrap">
             <div className="flex-1 min-w-[9rem]">
-              <Input label="Cari" value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Teks yang dicari…" className="py-2" />
+              <Input label={tr("Cari")} value={findText} onChange={(e) => setFindText(e.target.value)} placeholder={tr("Teks yang dicari…")} className="py-2" />
             </div>
             <div className="flex-1 min-w-[9rem]">
-              <Input label="Ganti dengan" value={replaceText} onChange={(e) => setReplaceText(e.target.value)} placeholder="Teks pengganti…" className="py-2" />
+              <Input label={tr("Ganti dengan")} value={replaceText} onChange={(e) => setReplaceText(e.target.value)} placeholder={tr("Teks pengganti…")} className="py-2" />
             </div>
             <Btn onClick={runFindReplace} disabled={!findText} variant="secondary" className="py-2 shrink-0">
-              Ganti
+              {tr("Ganti")}
             </Btn>
             <button
               type="button"
@@ -402,7 +403,7 @@ export const DocTools: React.FC = () => {
               }}
               className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 shrink-0 pb-0.5"
             >
-              Reset
+              {tr("Reset")}
             </button>
           </div>
 
@@ -425,7 +426,7 @@ export const DocTools: React.FC = () => {
               }}
               onKeyDown={handleEditorKeyDown}
               onClick={handleEditorClick}
-              data-placeholder="Mulai menulis di sini, atau gunakan template di atas…"
+              data-placeholder={tr("Mulai menulis di sini, atau gunakan template di atas…")}
               className={cn(
                 "w-full min-h-[24rem] px-5 py-4 text-sm text-slate-800 dark:text-slate-100 leading-relaxed focus:outline-none",
                 "empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 dark:empty:before:text-slate-500",
@@ -453,41 +454,41 @@ export const DocTools: React.FC = () => {
         {/* Export buttons */}
         <div className="flex flex-wrap gap-3">
           <Btn onClick={exportDocx} disabled={isExporting || !hasContent} className="bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-md shadow-indigo-600/20">
-            Unduh .docx
+            {tr("Unduh .docx")}
           </Btn>
           <Btn onClick={exportPdf} disabled={isExporting || !hasContent} variant="secondary" className="gap-2">
             <Download className="w-4 h-4" />
-            Unduh .pdf
+            {tr("Unduh .pdf")}
           </Btn>
           <Btn onClick={downloadTxt} disabled={!plainText.trim()} variant="secondary" className="gap-2">
             <Download className="w-4 h-4" />
-            Unduh .txt
+            {tr("Unduh .txt")}
           </Btn>
           <Btn onClick={saveSnapshot} disabled={!hasContent} variant="ghost" className="gap-2">
             <Copy className="w-4 h-4" />
-            Snapshot
+            {tr("Snapshot")}
           </Btn>
           <Btn onClick={restoreSnapshot} disabled={!snapshot} variant="ghost">
-            Pulihkan{snapshotLabel ? ` "${snapshotLabel}"` : ""}
+            {tr("Pulihkan")}{snapshotLabel ? ` "${snapshotLabel}"` : ""}
           </Btn>
         </div>
 
-        {docInfo && <GamatoInlineAlert message={docInfo} tone={docInfo.startsWith("Gagal") || docInfo.startsWith("Teks tidak") ? "warning" : "success"} />}
+        {docInfo && <GamatoInlineAlert message={docInfo} tone={msgStarts(docInfo, "Gagal") || msgStarts(docInfo, "Teks tidak") ? "warning" : "success"} />}
 
         <p className="text-xs text-slate-400 dark:text-slate-500 px-1">
-          Gambar yang disisipkan (termasuk hasil crop, ukuran, dan posisinya) ikut tersimpan utuh baik di ekspor <b>.pdf</b> maupun <b>.docx</b> — sama seperti yang tampil di editor.
+          {tr("Gambar yang disisipkan (termasuk hasil crop, ukuran, dan posisinya) ikut tersimpan utuh baik di ekspor")} <b>{tr(".pdf")}</b> {tr("maupun")} <b>{tr(".docx")}</b> {tr("— sama seperti yang tampil di editor.")}
         </p>
       </div>
 
       {/* Stats sidebar */}
       <div className="space-y-4 lg:sticky lg:top-24">
         <div className="bg-slate-900 dark:ring-1 dark:ring-slate-700 rounded-2xl p-5 text-white space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-300">Statistik</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-300">{tr("Statistik")}</p>
           <div className="grid grid-cols-3 gap-3">
             {([
-              ["Kata", stats.words],
-              ["Karakter", stats.chars],
-              ["Baris", stats.lines],
+              [tr("Kata"), stats.words],
+              [tr("Karakter"), stats.chars],
+              [tr("Baris"), stats.lines],
             ] as const).map(([l, v]) => (
               <div key={l} className="text-center bg-slate-800 rounded-xl p-3">
                 <div className="text-2xl font-bold text-white">{v}</div>
@@ -497,7 +498,7 @@ export const DocTools: React.FC = () => {
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-2">Preview</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-2">{tr("Preview")}</p>
             <div className="bg-slate-800 rounded-xl p-3 max-h-40 overflow-hidden text-xs text-slate-300 leading-relaxed font-mono">
               {plainText ? (
                 plainText
@@ -509,14 +510,14 @@ export const DocTools: React.FC = () => {
                     </p>
                   ))
               ) : (
-                <p className="text-slate-500 dark:text-slate-400">Mulai menulis…</p>
+                <p className="text-slate-500 dark:text-slate-400">{tr("Mulai menulis…")}</p>
               )}
             </div>
           </div>
 
           {outline.length > 0 && (
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-2">Outline</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-2">{tr("Outline")}</p>
               <ul className="space-y-1">
                 {outline.slice(0, 8).map((item) => (
                   <li key={item.index} className="text-xs text-slate-300 truncate flex gap-1.5">
@@ -528,7 +529,7 @@ export const DocTools: React.FC = () => {
             </div>
           )}
 
-          <SectionBadge>Native — data tidak dikirim</SectionBadge>
+          <SectionBadge>{tr("Native — data tidak dikirim")}</SectionBadge>
         </div>
       </div>
     </div>

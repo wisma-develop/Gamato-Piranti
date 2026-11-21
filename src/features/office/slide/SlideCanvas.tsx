@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/utils/cn";
 import { SLIDE_HEIGHT, SLIDE_WIDTH, type Slide, type SlideElement } from "./slideModel";
+import { tr } from "@/i18n";
 
 type DragMode = "move" | "resize-nw" | "resize-ne" | "resize-sw" | "resize-se";
 
@@ -183,7 +184,7 @@ export const SlideCanvas: React.FC<{
                       lineHeight: 1.3,
                     }}
                   >
-                    {el.text || (isSelected ? "Ketik teks…" : "")}
+                    {el.text || (isSelected ? tr("Ketik teks…") : "")}
                   </div>
                 ))}
 
