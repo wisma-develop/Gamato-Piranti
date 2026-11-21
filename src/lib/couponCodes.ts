@@ -9,7 +9,10 @@
 
 import type { CharsetId, CodeGenSettings } from "@/lib/couponTypes";
 import { buildCsv } from "@/lib/csv";
+import { LOCALE, tr } from "@/i18n";
 
+import { pick } from "@/i18n";
+import { singleKey } from "@/i18n/tokens";
 export interface CouponRecord {
   /** Nomor urut tampil (seqStart + i·seqStep), dipakai token {no}. */
   no: number;
@@ -19,11 +22,11 @@ export interface CouponRecord {
 }
 
 export const CHARSETS: Record<CharsetId, { label: string; chars: string }> = {
-  "alnum-safe": { label: "Huruf & angka (tanpa 0/O/1/I)", chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" },
-  alnum: { label: "Huruf & angka lengkap", chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" },
-  digits: { label: "Angka saja", chars: "0123456789" },
-  letters: { label: "Huruf saja", chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
-  hex: { label: "Heksadesimal", chars: "0123456789ABCDEF" },
+  "alnum-safe": { label: tr("Huruf & angka (tanpa 0/O/1/I)"), chars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" },
+  alnum: { label: tr("Huruf & angka lengkap"), chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" },
+  digits: { label: tr("Angka saja"), chars: "0123456789" },
+  letters: { label: tr("Huruf saja"), chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ" },
+  hex: { label: tr("Heksadesimal"), chars: "0123456789ABCDEF" },
 };
 
 const CHK_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -124,27 +127,27 @@ export interface PatternCheck {
 
 export function checkPattern(g: CodeGenSettings, count: number): PatternCheck {
   const pat = (g.pattern || "").trim();
-  if (!pat) return { ok: false, message: "Pola kode masih kosong.", sample: "" };
+  if (!pat) return { ok: false, message: tr("Pola kode masih kosong."), sample: "" };
   const sample = sampleCode(g);
-  if (!sample.trim()) return { ok: false, message: "Pola menghasilkan kode kosong.", sample };
+  if (!sample.trim()) return { ok: false, message: tr("Pola menghasilkan kode kosong."), sample };
   if (count > 1) {
     const space = patternSpace(pat, g.charset);
-    if (space <= 1) return { ok: false, message: "Pola tidak punya bagian acak/urut — semua kode akan sama. Tambahkan {RAND:4} atau {SEQ:4}.", sample };
+    if (space <= 1) return { ok: false, message: tr("Pola tidak punya bagian acak/urut — semua kode akan sama. Tambahkan {RAND:4} atau {SEQ:4}."), sample };
     if (g.seqStep === 0 && patternSpace(pat, g.charset) === Infinity && !/\{(RAND|NUM|ALPHA|HEX):/i.test(pat)) {
-      return { ok: false, message: "Langkah urut 0 membuat semua kode sama.", sample };
+      return { ok: false, message: tr("Langkah urut 0 membuat semua kode sama."), sample };
     }
     if (Number.isFinite(space) && space < count * 2) {
-      return { ok: false, message: `Pola hanya mampu ±${space.toLocaleString("id-ID")} kode unik — perpanjang bagian acak untuk ${count} kode.`, sample };
+      return { ok: false, message: tr("Pola hanya mampu ±{0} kode unik — perpanjang bagian acak untuk {1} kode.", space.toLocaleString(LOCALE), count), sample };
     }
   }
-  if (/[\u0000-\u001f]/.test(sample)) return { ok: false, message: "Kode memuat karakter kontrol.", sample };
+  if (/[\u0000-\u001f]/.test(sample)) return { ok: false, message: tr("Kode memuat karakter kontrol."), sample };
   return { ok: true, message: null, sample };
 }
 
 /** Membuat `count` kode unik; `taken` = kode yang sudah dipakai (tidak akan diulang). */
 export function generateCodes(g: CodeGenSettings, count: number, taken?: Set<string>, seqOffset = 0): string[] {
   const chk = checkPattern(g, count);
-  if (!chk.ok) throw new Error(chk.message ?? "Pola kode tidak valid.");
+  if (!chk.ok) throw new Error(chk.message ?? tr("Pola kode tidak valid."));
   const toks = parsePattern(g.pattern.trim(), g.charset);
   const hasRand = toks.some((t) => t.t === "rand");
   const now = new Date();
@@ -155,7 +158,7 @@ export function generateCodes(g: CodeGenSettings, count: number, taken?: Set<str
     let code = buildOne(toks, seq, g.uppercase, now);
     let tries = 0;
     while (seen.has(code)) {
-      if (!hasRand || ++tries > 200) throw new Error("Tidak bisa membuat kode unik dengan pola ini. Perpanjang bagian acak atau ubah pola.");
+      if (!hasRand || ++tries > 200) throw new Error(tr("Tidak bisa membuat kode unik dengan pola ini. Perpanjang bagian acak atau ubah pola."));
       code = buildOne(toks, seq, g.uppercase, now);
     }
     seen.add(code);
@@ -184,14 +187,14 @@ export function applyTokens(text: string, rec: CouponRecord): string {
     const k = key.toLowerCase();
     if (k === "kode" || k === "code") return rec.code;
     if (k === "no" || k === "nomor") return pad ? String(rec.no).padStart(parseInt(pad, 10), "0") : String(rec.no);
-    const v = rec.fields[k];
+    const v = rec.fields[k] ?? rec.fields[singleKey(k)];
     return v === undefined ? "" : v;
   });
 }
 
 /** Token yang tersedia untuk pengguna (bawaan + kolom tabel). */
 export function availableTokens(records: CouponRecord[]): string[] {
-  const set = new Set<string>(["kode", "no", "no:4"]);
+  const set = new Set<string>([pick("kode", "code"), "no", "no:4"]);
   for (const r of records.slice(0, 50)) for (const k of Object.keys(r.fields)) if (k !== "kode" && k !== "code") set.add(k);
   return Array.from(set);
 }
@@ -218,12 +221,12 @@ const CODE_HEADERS = new Set(["kode", "code", "kode_voucher", "kode_kupon", "vou
  */
 export function recordsFromTable(grid: string[][], g: CodeGenSettings, maxRows = 1000): TableRecords {
   const warnings: string[] = [];
-  if (grid.length < 2) return { records: [], headers: [], warnings: ["Tabel perlu header dan minimal satu baris data."] };
+  if (grid.length < 2) return { records: [], headers: [], warnings: [tr("Tabel perlu header dan minimal satu baris data.")] };
   const rawHeaders = grid[0].map((h) => h.trim());
   const keys = rawHeaders.map((h, i) => slugKey(h) || `kolom_${i + 1}`);
   const codeIdx = keys.findIndex((k) => CODE_HEADERS.has(k));
   const rows = grid.slice(1).filter((r) => r.some((c) => c.trim() !== ""));
-  if (rows.length > maxRows) warnings.push(`Data ${rows.length} baris — hanya ${maxRows} baris pertama yang diproses.`);
+  if (rows.length > maxRows) warnings.push(tr("Data {0} baris — hanya {1} baris pertama yang diproses.", rows.length, maxRows));
   const used = rows.slice(0, maxRows);
 
   const taken = new Set<string>();
@@ -237,14 +240,14 @@ export function recordsFromTable(grid: string[][], g: CodeGenSettings, maxRows =
     taken.add(c);
     return c;
   });
-  if (dup) warnings.push(`${dup} kode di tabel duplikat — periksa kolom kode.`);
+  if (dup) warnings.push(tr("{0} kode di tabel duplikat — periksa kolom kode.", dup));
   const missing = given.filter((c) => c === null).length;
   let auto: string[] = [];
   if (missing > 0) {
     try {
       auto = generateCodes(g, missing, taken);
     } catch (e: any) {
-      return { records: [], headers: rawHeaders, warnings: [e?.message || "Gagal membuat kode otomatis."] };
+      return { records: [], headers: rawHeaders, warnings: [e?.message || tr("Gagal membuat kode otomatis.")] };
     }
   }
   let ai = 0;
@@ -262,21 +265,21 @@ export function recordsFromTable(grid: string[][], g: CodeGenSettings, maxRows =
 
 export function sampleTable(): string {
   return [
-    "Nama\tKategori\tKursi\tZona",
-    "Budi Santoso\tVIP\tA-01\tZona A",
-    "Siti Rahma\tVIP\tA-02\tZona A",
-    "Agus Wijaya\tReguler\tB-10\tZona B",
-    "Dewi Lestari\tReguler\tB-11\tZona B",
-    "Rina Putri\tFestival\t-\tZona C",
+    tr("Nama\tKategori\tKursi\tZona"),
+    tr("Budi Santoso\tVIP\tA-01\tZona A"),
+    tr("Siti Rahma\tVIP\tA-02\tZona A"),
+    tr("Agus Wijaya\tReguler\tB-10\tZona B"),
+    tr("Dewi Lestari\tReguler\tB-11\tZona B"),
+    tr("Rina Putri\tFestival\t-\tZona C"),
   ].join("\n");
 }
 
 export function couponCsvTemplate(): string {
   return buildCsv([
     ["nama", "kode", "kategori", "kursi", "zona"],
-    ["Budi Santoso", "", "VIP", "A-01", "Zona A"],
-    ["Siti Rahma", "", "VIP", "A-02", "Zona A"],
-    ["Agus Wijaya", "KODE-MANUAL-01", "Reguler", "B-10", "Zona B"],
+    [tr("Budi Santoso"), "", "VIP", "A-01", tr("Zona A")],
+    [tr("Siti Rahma"), "", "VIP", "A-02", tr("Zona A")],
+    [tr("Agus Wijaya"), "KODE-MANUAL-01", tr("Reguler"), "B-10", tr("Zona B")],
   ]);
 }
 

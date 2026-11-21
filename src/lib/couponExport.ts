@@ -8,6 +8,7 @@ import { BulkCancelled, sheetLayout, type BulkProgress, type SheetPaper } from "
 import { renderCoupon, couponPixelSize, type CouponAssets } from "@/lib/couponEngine";
 import { slugFile, type CouponRecord } from "@/lib/couponCodes";
 import type { CouponDesign } from "@/lib/couponTypes";
+import { tr } from "@/i18n";
 
 const MM_TO_PT = 72 / 25.4;
 
@@ -67,7 +68,7 @@ export async function exportCouponPdf(o: CouponBulkCommon): Promise<Blob> {
   const { wMM, hMM } = couponPixelSize(o.design);
   const wPt = wMM * MM_TO_PT, hPt = hMM * MM_TO_PT;
   const pdf = await PDFDocument.create();
-  pdf.setTitle("Kupon — Gamato Piranti");
+  pdf.setTitle(tr("Kupon — Gamato Piranti"));
   const canvas = document.createElement("canvas");
   const total = o.records.length;
   for (let i = 0; i < total; i++) {
@@ -90,9 +91,9 @@ export function couponSheetInfo(d: CouponDesign, s: CouponSheetOptions) {
 export async function exportCouponSheet(o: CouponBulkCommon & { sheet: CouponSheetOptions }): Promise<{ blob: Blob; pages: number; perPage: number }> {
   const { wMM, hMM } = couponPixelSize(o.design);
   const L = couponSheetInfo(o.design, o.sheet);
-  if (L.perPage < 1) throw new Error("Kupon tidak muat di halaman dengan margin/ukuran ini — kecilkan margin, putar kertas, atau pilih kertas lebih besar.");
+  if (L.perPage < 1) throw new Error(tr("Kupon tidak muat di halaman dengan margin/ukuran ini — kecilkan margin, putar kertas, atau pilih kertas lebih besar."));
   const pdf = await PDFDocument.create();
-  pdf.setTitle("Lembar Cetak Kupon — Gamato Piranti");
+  pdf.setTitle(tr("Lembar Cetak Kupon — Gamato Piranti"));
   const canvas = document.createElement("canvas");
   const pageW = L.pageW * MM_TO_PT, pageH = L.pageH * MM_TO_PT;
   const cw = wMM * MM_TO_PT, ch = hMM * MM_TO_PT;

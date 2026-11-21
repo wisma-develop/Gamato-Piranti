@@ -5,6 +5,7 @@
 // exactly, unlike MediaRecorder. Fallbacks (MediaRecorder / WAV) live in the UI.
 
 import { PCM, pcmFrames, resamplePcm, toMono, yieldUi } from "@/lib/audioEditEngine";
+import { tr } from "@/i18n";
 
 export async function isOpusEncoderSupported(): Promise<boolean> {
   try {
@@ -41,7 +42,7 @@ function makePage(packets: Uint8Array[], headerType: number, granule: number, se
     while (n >= 255) { lacing.push(255); n -= 255; }
     lacing.push(n);
   }
-  if (lacing.length > 255) throw new Error("Halaman Ogg terlalu besar.");
+  if (lacing.length > 255) throw new Error(tr("Halaman Ogg terlalu besar."));
   const bodyLen = packets.reduce((a, p) => a + p.length, 0);
   const out = new Uint8Array(27 + lacing.length + bodyLen);
   const v = new DataView(out.buffer);
@@ -76,7 +77,7 @@ function opusHead(channels: number, inputRate: number, preSkip: number): Uint8Ar
 }
 
 function opusTags(): Uint8Array {
-  const vendor = new TextEncoder().encode("Gamato Piranti");
+  const vendor = new TextEncoder().encode(tr("Gamato Piranti"));
   const b = new Uint8Array(8 + 4 + vendor.length + 4);
   const v = new DataView(b.buffer);
   b.set([0x4f, 0x70, 0x75, 0x73, 0x54, 0x61, 0x67, 0x73], 0); // OpusTags
@@ -129,14 +130,14 @@ export interface OpusOptions {
 export async function encodeOpusOgg(source: PCM, o: OpusOptions): Promise<Blob> {
   const AE = (globalThis as any).AudioEncoder;
   const AD = (globalThis as any).AudioData;
-  if (!AE || !AD) throw new Error("Browser ini belum mendukung WebCodecs AudioEncoder.");
+  if (!AE || !AD) throw new Error(tr("Browser ini belum mendukung WebCodecs AudioEncoder."));
 
   let pcm = source.channels.length > 2 ? { sampleRate: source.sampleRate, channels: source.channels.slice(0, 2) } : source;
   if (o.mono && pcm.channels.length > 1) pcm = toMono(pcm);
   if (pcm.sampleRate !== 48000) pcm = resamplePcm(pcm, 48000);
   const nCh = pcm.channels.length;
   const total = pcmFrames(pcm);
-  if (total === 0) throw new Error("Audio kosong.");
+  if (total === 0) throw new Error(tr("Audio kosong."));
 
   const bitrate = Math.max(6000, Math.min(510000 * nCh, Math.round(o.bitrate)));
   const packets: { data: Uint8Array; samples: number }[] = [];
@@ -182,7 +183,7 @@ export async function encodeOpusOgg(source: PCM, o: OpusOptions): Promise<Blob> 
   await encoder.flush();
   encoder.close();
   if (encError) throw encError;
-  if (!packets.length) throw new Error("Encoder tidak menghasilkan data.");
+  if (!packets.length) throw new Error(tr("Encoder tidak menghasilkan data."));
   o.onProgress?.(1);
   return muxOggOpus(packets, nCh, source.sampleRate, preSkip, total);
 }
@@ -199,11 +200,11 @@ export interface CompressPreset {
 }
 
 export const COMPRESS_PRESETS: CompressPreset[] = [
-  { id: "vn", label: "Sangat kecil", desc: "Voice note / chat — 16 kbps mono", kbps: 16, mono: true, application: "voip" },
-  { id: "voice", label: "Suara & rapat", desc: "Rekaman bicara — 24 kbps mono", kbps: 24, mono: true, application: "voip" },
-  { id: "podcast", label: "Podcast", desc: "Bicara jernih — 48 kbps mono", kbps: 48, mono: true, application: "audio" },
-  { id: "music", label: "Musik hemat", desc: "Stereo — 96 kbps", kbps: 96, mono: false, application: "audio" },
-  { id: "hq", label: "Musik kualitas tinggi", desc: "Stereo — 160 kbps", kbps: 160, mono: false, application: "audio" },
+  { id: "vn", label: tr("Sangat kecil"), desc: tr("Voice note / chat — 16 kbps mono"), kbps: 16, mono: true, application: "voip" },
+  { id: "voice", label: tr("Suara & rapat"), desc: tr("Rekaman bicara — 24 kbps mono"), kbps: 24, mono: true, application: "voip" },
+  { id: "podcast", label: tr("Podcast"), desc: tr("Bicara jernih — 48 kbps mono"), kbps: 48, mono: true, application: "audio" },
+  { id: "music", label: tr("Musik hemat"), desc: tr("Stereo — 96 kbps"), kbps: 96, mono: false, application: "audio" },
+  { id: "hq", label: tr("Musik kualitas tinggi"), desc: tr("Stereo — 160 kbps"), kbps: 160, mono: false, application: "audio" },
 ];
 
 export const fmtBytes = (n: number): string => (n >= 1048576 ? `${(n / 1048576).toFixed(2)} MB` : `${(n / 1024).toFixed(1)} KB`);

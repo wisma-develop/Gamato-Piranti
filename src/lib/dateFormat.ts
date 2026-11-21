@@ -1,7 +1,8 @@
-// Shared date helpers for Kwitansi / Invoice / Struk generators.
+
+import { LOCALE } from "@/i18n";// Shared date helpers for Kwitansi / Invoice / Struk generators.
 
 export function formatLongDateID(date: Date): string {
-  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
 export function todayISODate(): string {

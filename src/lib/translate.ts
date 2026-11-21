@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Kamus Dunia (World Dictionary) helper.
 //
 // This is the ONE utility tool in Gamato Piranti that needs an internet
@@ -13,36 +14,36 @@ export const MAX_TRANSLATE_CHARS = 480;
 export type LangCode = string;
 
 export const WORLD_LANGUAGES: { code: LangCode; label: string }[] = [
-  { code: "id", label: "Indonesia" },
-  { code: "en", label: "Inggris" },
-  { code: "ar", label: "Arab" },
-  { code: "zh-CN", label: "Mandarin (Sederhana)" },
-  { code: "ja", label: "Jepang" },
-  { code: "ko", label: "Korea" },
-  { code: "es", label: "Spanyol" },
-  { code: "fr", label: "Prancis" },
-  { code: "de", label: "Jerman" },
-  { code: "it", label: "Italia" },
-  { code: "pt", label: "Portugis" },
-  { code: "ru", label: "Rusia" },
-  { code: "nl", label: "Belanda" },
-  { code: "th", label: "Thailand" },
-  { code: "vi", label: "Vietnam" },
-  { code: "hi", label: "Hindi" },
-  { code: "tr", label: "Turki" },
-  { code: "ms", label: "Melayu" },
-  { code: "tl", label: "Tagalog" },
-  { code: "bn", label: "Bengali" },
-  { code: "pl", label: "Polandia" },
-  { code: "uk", label: "Ukraina" },
-  { code: "el", label: "Yunani" },
-  { code: "sv", label: "Swedia" },
-  { code: "fa", label: "Persia" },
-  { code: "he", label: "Ibrani" },
-  { code: "ur", label: "Urdu" },
-  { code: "ta", label: "Tamil" },
-  { code: "jv", label: "Jawa" },
-  { code: "su", label: "Sunda" },
+  { code: "id", label: tr("Indonesia") },
+  { code: "en", label: tr("Inggris") },
+  { code: "ar", label: tr("Arab") },
+  { code: "zh-CN", label: tr("Mandarin (Sederhana)") },
+  { code: "ja", label: tr("Jepang") },
+  { code: "ko", label: tr("Korea") },
+  { code: "es", label: tr("Spanyol") },
+  { code: "fr", label: tr("Prancis") },
+  { code: "de", label: tr("Jerman") },
+  { code: "it", label: tr("Italia") },
+  { code: "pt", label: tr("Portugis") },
+  { code: "ru", label: tr("Rusia") },
+  { code: "nl", label: tr("Belanda") },
+  { code: "th", label: tr("Thailand") },
+  { code: "vi", label: tr("Vietnam") },
+  { code: "hi", label: tr("Hindi") },
+  { code: "tr", label: tr("Turki") },
+  { code: "ms", label: tr("Melayu") },
+  { code: "tl", label: tr("Tagalog") },
+  { code: "bn", label: tr("Bengali") },
+  { code: "pl", label: tr("Polandia") },
+  { code: "uk", label: tr("Ukraina") },
+  { code: "el", label: tr("Yunani") },
+  { code: "sv", label: tr("Swedia") },
+  { code: "fa", label: tr("Persia") },
+  { code: "he", label: tr("Ibrani") },
+  { code: "ur", label: tr("Urdu") },
+  { code: "ta", label: tr("Tamil") },
+  { code: "jv", label: tr("Jawa") },
+  { code: "su", label: tr("Sunda") },
 ];
 
 export class TranslateError extends Error {}
@@ -51,30 +52,30 @@ export async function translateText(text: string, from: LangCode, to: LangCode, 
   const trimmed = (text || "").trim();
   if (!trimmed) return "";
   if (trimmed.length > MAX_TRANSLATE_CHARS) {
-    throw new TranslateError(`Maksimal ${MAX_TRANSLATE_CHARS} karakter per permintaan (batas layanan gratis).`);
+    throw new TranslateError(tr("Maksimal {0} karakter per permintaan (batas layanan gratis).", MAX_TRANSLATE_CHARS));
   }
 
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${encodeURIComponent(from)}|${encodeURIComponent(to)}`;
+  const url = tr("https://api.mymemory.translated.net/get?q={0}&langpair={1}|{2}", encodeURIComponent(trimmed), encodeURIComponent(from), encodeURIComponent(to));
 
   let res: Response;
   try {
     res = await fetch(url, { signal });
   } catch {
-    throw new TranslateError("Gagal terhubung ke layanan terjemahan. Periksa koneksi internetmu.");
+    throw new TranslateError(tr("Gagal terhubung ke layanan terjemahan. Periksa koneksi internetmu."));
   }
 
-  if (!res.ok) throw new TranslateError(`Layanan terjemahan merespons error (${res.status}).`);
+  if (!res.ok) throw new TranslateError(tr("Layanan terjemahan merespons error ({0}).", res.status));
 
   let data: any;
   try {
     data = await res.json();
   } catch {
-    throw new TranslateError("Respons layanan terjemahan tidak valid.");
+    throw new TranslateError(tr("Respons layanan terjemahan tidak valid."));
   }
 
   const translated = data?.responseData?.translatedText;
   if (!translated || (typeof data?.responseStatus === "number" && data.responseStatus >= 400)) {
-    throw new TranslateError("Tidak bisa menerjemahkan teks ini. Coba pasangan bahasa lain.");
+    throw new TranslateError(tr("Tidak bisa menerjemahkan teks ini. Coba pasangan bahasa lain."));
   }
 
   return String(translated);

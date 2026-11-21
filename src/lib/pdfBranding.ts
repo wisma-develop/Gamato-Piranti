@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFImage } from "pdf-lib";
 import { GAMATO_NAME, GAMATO_SITE, loadGamatoIconPng } from "@/lib/gamatoIcon";
+import { tr } from "@/i18n";
 
 // ─── Gamato Piranti PDF identity stamp ─────────────────────────────────────
 // Adds a small, unobtrusive logo + label to the corner of every page of a
@@ -32,7 +33,7 @@ export interface StampBrandingOptions {
  */
 export async function stampGamatoBranding(pdfDoc: PDFDocument, opts: StampBrandingOptions = {}): Promise<void> {
   try {
-    const label = opts.label ?? `Dibuat dengan ${GAMATO_NAME}`;
+    const label = opts.label ?? tr("Dibuat dengan {0}", GAMATO_NAME);
     const sub = opts.sub ?? `WisDev · ${GAMATO_SITE}`;
     const minPageSizePt = opts.minPageSizePt ?? 70;
 

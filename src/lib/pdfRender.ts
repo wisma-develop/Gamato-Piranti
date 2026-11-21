@@ -5,6 +5,7 @@ import * as pdfjsLib from "pdfjs-dist";
 // Vite-native asset import: resolves to a real URL for the pdf.js worker file.
 // eslint-disable-next-line import/no-unresolved
 import pdfjsWorkerUrl from "pdfjs-dist/build/pdf.worker.mjs?url";
+import { tr } from "@/i18n";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl as unknown as string;
 
@@ -20,7 +21,7 @@ export async function renderPageToCanvas(pdf: any, pageNumber: number, scale: nu
   canvas.width = Math.max(1, Math.round(viewport.width));
   canvas.height = Math.max(1, Math.round(viewport.height));
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
   await page.render({ canvasContext: ctx, viewport }).promise;
   return canvas;
 }

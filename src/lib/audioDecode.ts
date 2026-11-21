@@ -2,6 +2,7 @@
 
 import type { PCM } from "@/lib/audioEditEngine";
 import { peekWavSampleRate } from "@/lib/audioEditEngine";
+import { tr } from "@/i18n";
 
 /** Reads the sample rate of an MP3 (skips ID3v2, finds first frame header) or null. */
 export function peekMp3SampleRate(buf: ArrayBuffer): number | null {
@@ -39,7 +40,7 @@ export async function decodeFileToPcm(file: File): Promise<PCM> {
     const buf = await ctx.decodeAudioData(ab.slice(0));
     return { sampleRate: buf.sampleRate, channels: Array.from({ length: buf.numberOfChannels }, (_, c) => buf.getChannelData(c).slice()) };
   } catch {
-    throw new Error(`"${file.name}" tidak bisa dibaca. Coba MP3, WAV, OGG, M4A, FLAC, atau video yang berisi audio.`);
+    throw new Error(tr("\"{0}\" tidak bisa dibaca. Coba MP3, WAV, OGG, M4A, FLAC, atau video yang berisi audio.", file.name));
   } finally {
     ctx.close().catch(() => {});
   }

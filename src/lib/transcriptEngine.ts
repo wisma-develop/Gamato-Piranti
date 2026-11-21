@@ -1,3 +1,4 @@
+import { LOCALE, tr } from "@/i18n";
 // Transcript engine — pure functions (no DOM): formatting, paragraphing,
 // statistics, keyword/summary extraction, SRT/VTT parsing and text exporters.
 
@@ -174,7 +175,7 @@ export function buildParagraphs(segs: Segment[], o: FormatOptions): Paragraph[] 
 /* ─────────────────────────── analysis ─────────────────────────── */
 
 const STOP = new Set(
-  ("yang dan di ke dari ini itu untuk dengan pada adalah dalam tidak akan juga atau saya kami kita kamu anda dia mereka sudah belum bisa dapat ada lebih sangat seperti karena jadi kalau tapi tetapi namun oleh agar supaya sebagai para bahwa hal itu nya lah kah pun saja hanya masih sedang telah harus mau ya iya gak enggak nggak dong sih deh kan lagi aja gitu begitu bagaimana apa siapa kapan dimana mengapa kenapa bukan setelah sebelum saat ketika antara sampai hingga lalu kemudian terus yaitu yakni dll dsb sini situ sana mungkin sekali banyak semua setiap beberapa " +
+  (tr("yang dan di ke dari ini itu untuk dengan pada adalah dalam tidak akan juga atau saya kami kita kamu anda dia mereka sudah belum bisa dapat ada lebih sangat seperti karena jadi kalau tapi tetapi namun oleh agar supaya sebagai para bahwa hal itu nya lah kah pun saja hanya masih sedang telah harus mau ya iya gak enggak nggak dong sih deh kan lagi aja gitu begitu bagaimana apa siapa kapan dimana mengapa kenapa bukan setelah sebelum saat ketika antara sampai hingga lalu kemudian terus yaitu yakni dll dsb sini situ sana mungkin sekali banyak semua setiap beberapa ") +
     "the a an and or but if then of to in on at for with from by as is are was were be been being it its this that these those i you he she we they them his her our your their not no yes do does did done have has had will would can could should may might must so than too very just about into over after before also there here what which who whom when where why how all any some more most other such only own same").split(" ")
 );
 
@@ -349,23 +350,23 @@ export interface ExportOptions {
   keywords: string[] | null;
 }
 
-const spName = (meta: TranscriptMeta, i: number | null): string => (i == null ? "" : meta.speakers[i] ?? `Pembicara ${i + 1}`);
+const spName = (meta: TranscriptMeta, i: number | null): string => (i == null ? "" : meta.speakers[i] ?? tr("Pembicara {0}", i + 1));
 
 export function exportTxt(meta: TranscriptMeta, paras: Paragraph[], o: ExportOptions): string {
   const lines: string[] = [];
   lines.push(meta.title.toUpperCase());
   lines.push("=".repeat(Math.min(72, Math.max(10, meta.title.length))));
-  lines.push(`Sumber   : ${meta.sourceName}`);
-  lines.push(`Durasi   : ${fmtTime(meta.duration)}`);
-  lines.push(`Bahasa   : ${meta.language}`);
-  lines.push(`Tanggal  : ${new Date(meta.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`);
+  lines.push(tr("Sumber   : {0}", meta.sourceName));
+  lines.push(tr("Durasi   : {0}", fmtTime(meta.duration)));
+  lines.push(tr("Bahasa   : {0}", meta.language));
+  lines.push(tr("Tanggal  : {0}", new Date(meta.date).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" })));
   lines.push("");
   if (o.summary?.length) {
     lines.push("RINGKASAN", "---------");
     o.summary.forEach((s) => lines.push(`• ${s}`));
     lines.push("");
   }
-  if (o.keywords?.length) lines.push(`Kata kunci: ${o.keywords.join(", ")}`, "");
+  if (o.keywords?.length) lines.push(tr("Kata kunci: {0}", o.keywords.join(", ")), "");
   lines.push("TRANSKRIP", "---------");
   for (const p of paras) {
     const head = [o.timestamps ? `[${fmtTime(p.start)}]` : "", o.speakers && p.speaker != null ? `${spName(meta, p.speaker)}:` : ""].filter(Boolean).join(" ");
@@ -377,17 +378,17 @@ export function exportTxt(meta: TranscriptMeta, paras: Paragraph[], o: ExportOpt
 export function exportMarkdown(meta: TranscriptMeta, paras: Paragraph[], o: ExportOptions): string {
   const L: string[] = [];
   L.push(`# ${meta.title}`, "");
-  L.push(`- **Sumber:** ${meta.sourceName}`, `- **Durasi:** ${fmtTime(meta.duration)}`, `- **Bahasa:** ${meta.language}`);
-  L.push(`- **Tanggal:** ${new Date(meta.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`);
-  if (meta.speakers.length) L.push(`- **Pembicara:** ${meta.speakers.join(", ")}`);
+  L.push(tr("- **Sumber:** {0}", meta.sourceName), tr("- **Durasi:** {0}", fmtTime(meta.duration)), tr("- **Bahasa:** {0}", meta.language));
+  L.push(tr("- **Tanggal:** {0}", new Date(meta.date).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" })));
+  if (meta.speakers.length) L.push(tr("- **Pembicara:** {0}", meta.speakers.join(", ")));
   L.push("");
   if (o.summary?.length) {
-    L.push("## Ringkasan", "");
+    L.push(tr("## Ringkasan"), "");
     o.summary.forEach((s) => L.push(`- ${s}`));
     L.push("");
   }
-  if (o.keywords?.length) L.push("## Kata Kunci", "", o.keywords.map((k) => `\`${k}\``).join(" · "), "");
-  L.push("## Transkrip", "");
+  if (o.keywords?.length) L.push(tr("## Kata Kunci"), "", o.keywords.map((k) => `\`${k}\``).join(" · "), "");
+  L.push(tr("## Transkrip"), "");
   for (const p of paras) {
     const parts: string[] = [];
     if (o.timestamps) parts.push(`\`${fmtTime(p.start)}\``);
@@ -469,7 +470,7 @@ const round3 = (n: number) => Math.round(n * 1000) / 1000;
 
 export function exportCsv(meta: TranscriptMeta, segs: Segment[]): string {
   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-  const rows = ["No,Mulai,Selesai,Pembicara,Teks", ...segs.map((s, i) => [i + 1, fmtTime(s.start, { ms: true }), fmtTime(s.end, { ms: true }), esc(spName(meta, s.speaker)), esc(s.text)].join(","))];
+  const rows = [tr("No,Mulai,Selesai,Pembicara,Teks"), ...segs.map((s, i) => [i + 1, fmtTime(s.start, { ms: true }), fmtTime(s.end, { ms: true }), esc(spName(meta, s.speaker)), esc(s.text)].join(","))];
   return "\uFEFF" + rows.join("\r\n") + "\r\n";
 }
 

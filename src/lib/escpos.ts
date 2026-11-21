@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Minimal ESC/POS command builder for thermal receipt printers.
 //
 // We print via the GS v 0 RASTER BITMAP command instead of ESC/POS text
@@ -53,7 +54,7 @@ export function escposRasterImage(packedBits: Uint8Array, widthPx: number, heigh
  */
 export function canvasToMonochromeBits(canvas: HTMLCanvasElement, threshold = 200): { bits: Uint8Array; width: number; height: number } {
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
   const { width, height } = canvas;
   const imageData = ctx.getImageData(0, 0, width, height);
   const widthBytes = Math.ceil(width / 8);

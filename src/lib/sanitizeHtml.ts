@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 /**
  * Sanitasi HTML untuk isi editor yang dipulihkan dari draf (atau diimpor). Memakai DOMParser — dokumen hasilnya
  * inert (skrip tidak dieksekusi, gambar tidak diunduh) — lalu membuang elemen & atribut yang bisa menjalankan kode.
@@ -8,7 +9,7 @@ const URL_ATTRS = ["href", "src", "xlink:href", "action", "formaction", "poster"
 
 export function sanitizeEditorHtml(html: string): string {
   if (!html) return "";
-  const doc = new DOMParser().parseFromString(`<!doctype html><body>${html}`, "text/html");
+  const doc = new DOMParser().parseFromString(tr("<!doctype html><body>{0}", html), "text/html");
   doc.querySelectorAll(BLOCKED_TAGS.join(",")).forEach((el) => el.remove());
   doc.body.querySelectorAll("*").forEach((el) => {
     for (const attr of [...el.attributes]) {

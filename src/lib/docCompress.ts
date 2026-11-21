@@ -15,6 +15,7 @@ import JSZip from "jszip";
 import { PDFDocument } from "pdf-lib";
 import { compressPdf } from "@/lib/pdfCompress";
 import { loadPdfDocument } from "@/lib/pdfRender";
+import { tr } from "@/i18n";
 
 export type DocKind = "pdf" | "ooxml" | "odf" | "epub" | "zip" | "image" | "wrap" | "unsupported";
 
@@ -40,12 +41,12 @@ export function extOf(name: string): string {
 export function detectKind(file: { name: string; type?: string }): DocKindInfo {
   const ext = extOf(file.name);
   const mime = file.type || "";
-  if (ext === "pdf" || mime === "application/pdf") return { kind: "pdf", ext: "pdf", label: "PDF", plan: "Gambar di dalam PDF dikompres ulang + struktur dipadatkan." };
-  if (OOXML.has(ext)) return { kind: "ooxml", ext, label: ext.toUpperCase(), plan: "Gambar di dalam dokumen dikompres ulang, ZIP ditulis ulang DEFLATE 9." };
-  if (ODF.has(ext)) return { kind: "odf", ext, label: ext.toUpperCase(), plan: "Gambar di dalam dokumen dikompres ulang, ZIP ditulis ulang DEFLATE 9." };
-  if (ext === "epub") return { kind: "epub", ext, label: "EPUB", plan: "Gambar buku dikompres ulang (format tetap), ZIP ditulis ulang." };
-  if (ext === "zip") return { kind: "zip", ext, label: "ZIP", plan: "Gambar di dalam ZIP dikompres ulang (format tetap), ZIP ditulis ulang DEFLATE 9." };
-  if (IMAGE.has(ext) || /^image\/(jpeg|png|webp|bmp)$/.test(mime)) return { kind: "image", ext: ext || "jpg", label: (ext || "gambar").toUpperCase(), plan: "Gambar dikodekan ulang dengan kualitas & dimensi pilihanmu." };
+  if (ext === "pdf" || mime === "application/pdf") return { kind: "pdf", ext: "pdf", label: tr("PDF"), plan: tr("Gambar di dalam PDF dikompres ulang + struktur dipadatkan.") };
+  if (OOXML.has(ext)) return { kind: "ooxml", ext, label: ext.toUpperCase(), plan: tr("Gambar di dalam dokumen dikompres ulang, ZIP ditulis ulang DEFLATE 9.") };
+  if (ODF.has(ext)) return { kind: "odf", ext, label: ext.toUpperCase(), plan: tr("Gambar di dalam dokumen dikompres ulang, ZIP ditulis ulang DEFLATE 9.") };
+  if (ext === "epub") return { kind: "epub", ext, label: tr("EPUB"), plan: tr("Gambar buku dikompres ulang (format tetap), ZIP ditulis ulang.") };
+  if (ext === "zip") return { kind: "zip", ext, label: tr("ZIP"), plan: tr("Gambar di dalam ZIP dikompres ulang (format tetap), ZIP ditulis ulang DEFLATE 9.") };
+  if (IMAGE.has(ext) || /^image\/(jpeg|png|webp|bmp)$/.test(mime)) return { kind: "image", ext: ext || "jpg", label: (ext || "gambar").toUpperCase(), plan: tr("Gambar dikodekan ulang dengan kualitas & dimensi pilihanmu.") };
   if (WRAP.has(ext)) {
     const legacy = ["doc", "xls", "ppt", "dot", "xlt", "pot", "pps", "wps", "rtf"].includes(ext);
     return {
@@ -53,13 +54,13 @@ export function detectKind(file: { name: string; type?: string }): DocKindInfo {
       ext,
       label: ext.toUpperCase(),
       plan: legacy
-        ? "Format biner lama tidak bisa dipadatkan isinya di browser — dibungkus ZIP (DEFLATE 9). Untuk hasil maksimal, simpan ulang sebagai .docx/.xlsx/.pptx lalu kompres."
-        : "Berkas teks dibungkus ZIP (DEFLATE 9) — biasanya hemat 60–90%.",
+        ? tr("Format biner lama tidak bisa dipadatkan isinya di browser — dibungkus ZIP (DEFLATE 9). Untuk hasil maksimal, simpan ulang sebagai .docx/.xlsx/.pptx lalu kompres.")
+        : tr("Berkas teks dibungkus ZIP (DEFLATE 9) — biasanya hemat 60–90%."),
     };
   }
   if (MEDIA.has(ext) || /^(audio|video)\//.test(mime))
-    return { kind: "unsupported", ext, label: ext.toUpperCase() || "MEDIA", plan: "Audio/video punya alat khusus: gunakan Kompres Audio atau Kompres Video." };
-  return { kind: "wrap", ext, label: ext ? ext.toUpperCase() : "FILE", plan: "Format ini tidak dikenali — dibungkus ZIP (DEFLATE 9)." };
+    return { kind: "unsupported", ext, label: ext.toUpperCase() || tr("MEDIA"), plan: tr("Audio/video punya alat khusus: gunakan Kompres Audio atau Kompres Video.") };
+  return { kind: "wrap", ext, label: ext ? ext.toUpperCase() : tr("FILE"), plan: tr("Format ini tidak dikenali — dibungkus ZIP (DEFLATE 9).") };
 }
 
 export interface DocCompressOptions {
@@ -78,9 +79,9 @@ export interface DocCompressOptions {
 }
 
 export const LEVEL_PRESETS = {
-  low: { quality: 0.85, maxDim: 2400, label: "Ringan" },
-  medium: { quality: 0.72, maxDim: 1800, label: "Sedang" },
-  high: { quality: 0.55, maxDim: 1280, label: "Tinggi" },
+  low: { quality: 0.85, maxDim: 2400, label: tr("Ringan") },
+  medium: { quality: 0.72, maxDim: 1800, label: tr("Sedang") },
+  high: { quality: 0.55, maxDim: 1280, label: tr("Tinggi") },
 } as const;
 
 export interface DocCompressResult {
@@ -275,7 +276,7 @@ async function compressZipPackage(file: File, kind: "ooxml" | "odf" | "epub" | "
   try {
     zip = await JSZip.loadAsync(await file.arrayBuffer());
   } catch {
-    throw new Error(`“${file.name}” rusak atau bukan berkas ${extOf(file.name).toUpperCase()} yang valid (bukan arsip ZIP yang utuh).`);
+    throw new Error(tr("“{0}” rusak atau bukan berkas {1} yang valid (bukan arsip ZIP yang utuh).", file.name, extOf(file.name).toUpperCase()));
   }
   const entries = Object.values(zip.files).filter((f) => !f.dir);
   const imageEntries = entries.filter((f) => IMG_ENTRY.test(f.name));
@@ -287,7 +288,7 @@ async function compressZipPackage(file: File, kind: "ooxml" | "odf" | "epub" | "
   for (let i = 0; i < imageEntries.length; i++) {
     checkCancel(o);
     const entry = imageEntries[i];
-    o.onProgress?.(0.05 + (0.8 * i) / Math.max(1, imageEntries.length), `Gambar ${i + 1}/${imageEntries.length}…`);
+    o.onProgress?.(0.05 + (0.8 * i) / Math.max(1, imageEntries.length), tr("Gambar {0}/{1}…", i + 1, imageEntries.length));
     try {
       const bytes = await entry.async("uint8array");
       const ext = extOf(entry.name);
@@ -385,11 +386,11 @@ async function compressZipPackage(file: File, kind: "ooxml" | "odf" | "epub" | "
     const fresh = new JSZip();
     fresh.file("mimetype", text, { compression: "STORE", createFolders: false });
     for (const r of rest) fresh.file(r.name, r.data, { binary: true, date: r.date, createFolders: false });
-    o.onProgress?.(0.92, "Menulis ulang ZIP…");
+    o.onProgress?.(0.92, tr("Menulis ulang ZIP…"));
     const blob = await fresh.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 9 }, mimeType: outMime });
     return { blob, images, converted, notes };
   }
-  o.onProgress?.(0.92, "Menulis ulang ZIP…");
+  o.onProgress?.(0.92, tr("Menulis ulang ZIP…"));
   const blob = await zip.generateAsync({
     type: "blob",
     compression: "DEFLATE",
@@ -417,7 +418,7 @@ async function compressPdfRaster(file: File, o: DocCompressOptions): Promise<Blo
   const scale = Math.max(0.5, Math.min(4, o.rasterDpi / 72));
   for (let p = 1; p <= pdf.numPages; p++) {
     checkCancel(o);
-    o.onProgress?.(0.05 + (0.9 * (p - 1)) / pdf.numPages, `Halaman ${p}/${pdf.numPages}…`);
+    o.onProgress?.(0.05 + (0.9 * (p - 1)) / pdf.numPages, tr("Halaman {0}/{1}…", p, pdf.numPages));
     const page = await pdf.getPage(p);
     const vp1 = page.getViewport({ scale: 1 });
     const vp = page.getViewport({ scale });
@@ -429,7 +430,7 @@ async function compressPdfRaster(file: File, o: DocCompressOptions): Promise<Blo
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     await page.render({ canvasContext: ctx, viewport: vp, canvas } as any).promise;
     const blob = await canvasToBlob(canvas, "image/jpeg", o.quality);
-    if (!blob) throw new Error("Gagal membuat gambar halaman.");
+    if (!blob) throw new Error(tr("Gagal membuat gambar halaman."));
     const img = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
     const pg = out.addPage([vp1.width, vp1.height]);
     pg.drawImage(img, { x: 0, y: 0, width: vp1.width, height: vp1.height });
@@ -458,20 +459,20 @@ export async function compressDocument(file: File, o: DocCompressOptions): Promi
   let images = 0;
   let converted = 0;
 
-  o.onProgress?.(0.02, "Membaca berkas…");
+  o.onProgress?.(0.02, tr("Membaca berkas…"));
 
   if (info.kind === "unsupported") throw new Error(info.plan);
 
   const compressPdfBranch = async () => {
     if (o.pdfRaster) {
       blob = await compressPdfRaster(file, o);
-      notes.push("Mode agresif: setiap halaman dijadikan gambar JPEG — teks tidak bisa diseleksi/dicari lagi.");
+      notes.push(tr("Mode agresif: setiap halaman dijadikan gambar JPEG — teks tidak bisa diseleksi/dicari lagi."));
       images = 0;
     } else {
       const r = await compressPdf(await file.arrayBuffer(), "medium", { quality: o.quality, maxDim: o.maxDim });
       blob = new Blob([r.bytes as BlobPart], { type: "application/pdf" });
       images = r.imagesProcessed;
-      if (!images) notes.push("Tidak ada gambar JPEG di PDF ini; hanya struktur yang dipadatkan. Untuk PDF hasil scan, coba “Mode agresif”.");
+      if (!images) notes.push(tr("Tidak ada gambar JPEG di PDF ini; hanya struktur yang dipadatkan. Untuk PDF hasil scan, coba “Mode agresif”."));
     }
   };
 
@@ -480,7 +481,7 @@ export async function compressDocument(file: File, o: DocCompressOptions): Promi
       await compressPdfBranch();
     } catch (e) {
       if (isCancelled(e)) throw e;
-      throw new Error(`“${file.name}” tidak bisa dibaca sebagai PDF (rusak, bukan PDF, atau terkunci password).`);
+      throw new Error(tr("“{0}” tidak bisa dibaca sebagai PDF (rusak, bukan PDF, atau terkunci password).", file.name));
     }
   } else if (info.kind === "image") {
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -492,34 +493,34 @@ export async function compressDocument(file: File, o: DocCompressOptions): Promi
       images = 1;
       if (mimeFromExt(ext) !== r.mime) {
         converted = 1;
-        notes.push(`Format diubah ke ${r.ext === "jpeg" ? "JPEG" : r.ext.toUpperCase()}.`);
+        notes.push(tr("Format diubah ke {0}.", r.ext === "jpeg" ? "JPEG" : r.ext.toUpperCase()));
       }
     } else {
       blob = file;
-      notes.push("Gambar sudah efisien pada pengaturan ini.");
+      notes.push(tr("Gambar sudah efisien pada pengaturan ini."));
     }
   } else if (info.kind === "wrap") {
     blob = await wrapZip(file);
     name = `${base}.zip`;
     outcome = "zip";
-    if (info.plan.startsWith("Format biner")) notes.push("Format lama dibungkus ZIP — buka ZIP untuk memakai dokumennya.");
+    if (info.plan.startsWith("Format biner")) notes.push(tr("Format lama dibungkus ZIP — buka ZIP untuk memakai dokumennya."));
   } else {
     const r = await compressZipPackage(file, info.kind, o);
     blob = r.blob;
     images = r.images;
     converted = r.converted;
-    if (!images) notes.push("Tidak ada gambar yang bisa dihemat; hanya kompresi ZIP yang diperbarui.");
+    if (!images) notes.push(tr("Tidak ada gambar yang bisa dihemat; hanya kompresi ZIP yang diperbarui."));
   }
 
-  o.onProgress?.(1, "Selesai");
+  o.onProgress?.(1, tr("Selesai"));
 
   // Aturan emas: jangan pernah lebih besar dari aslinya.
   if (outcome !== "zip" && blob.size >= original) {
-    notes.push("Hasil tidak lebih kecil — berkas asli dipertahankan.");
+    notes.push(tr("Hasil tidak lebih kecil — berkas asli dipertahankan."));
     return { blob: file, name: file.name, originalSize: original, compressedSize: original, outcome: "original", notes, images: 0, converted: 0 };
   }
   if (outcome === "zip" && blob.size >= original) {
-    notes.push("Berkas ini sudah padat — ZIP tidak menghemat ruang.");
+    notes.push(tr("Berkas ini sudah padat — ZIP tidak menghemat ruang."));
   }
   if (outcome === "compressed" && info.kind !== "image") {
     const ext = extOf(file.name);

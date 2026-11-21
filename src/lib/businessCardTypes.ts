@@ -4,6 +4,7 @@
 // mirrors the cvTypes.ts / cvEngine.ts split already used by the CV Maker.
 
 import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { tr } from "@/i18n";
 
 // ── Size ─────────────────────────────────────────────────────────────────
 
@@ -17,12 +18,12 @@ export interface CardSizePreset {
 }
 
 export const CARD_SIZES: CardSizePreset[] = [
-  { id: "std-id", label: "Standar Indonesia (90 × 55 mm)", wMM: 90, hMM: 55 },
-  { id: "us", label: "US Standard (89 × 51 mm)", wMM: 89, hMM: 51 },
-  { id: "eu", label: "Eropa (85 × 55 mm)", wMM: 85, hMM: 55 },
-  { id: "square", label: "Persegi (65 × 65 mm)", wMM: 65, hMM: 65 },
-  { id: "mini", label: "Mini / Mungil (70 × 40 mm)", wMM: 70, hMM: 40 },
-  { id: "custom", label: "Ukuran Kustom…", wMM: 90, hMM: 55 },
+  { id: "std-id", label: tr("Standar Indonesia (90 × 55 mm)"), wMM: 90, hMM: 55 },
+  { id: "us", label: tr("US Standard (89 × 51 mm)"), wMM: 89, hMM: 51 },
+  { id: "eu", label: tr("Eropa (85 × 55 mm)"), wMM: 85, hMM: 55 },
+  { id: "square", label: tr("Persegi (65 × 65 mm)"), wMM: 65, hMM: 65 },
+  { id: "mini", label: tr("Mini / Mungil (70 × 40 mm)"), wMM: 70, hMM: 40 },
+  { id: "custom", label: tr("Ukuran Kustom…"), wMM: 90, hMM: 55 },
 ];
 
 /** Rendering resolution: pixels per physical millimetre. 12 px/mm keeps the
@@ -60,28 +61,28 @@ export interface ContactData {
 }
 
 export const CONTACT_FIELD_LABEL: Record<ContactField, string> = {
-  name: "Nama",
-  title: "Jabatan",
-  company: "Perusahaan",
-  phone: "Telepon",
-  email: "Email",
-  website: "Website",
-  address: "Alamat",
-  tagline: "Tagline",
+  name: tr("Nama"),
+  title: tr("Jabatan"),
+  company: tr("Perusahaan"),
+  phone: tr("Telepon"),
+  email: tr("Email"),
+  website: tr("Website"),
+  address: tr("Alamat"),
+  tagline: tr("Tagline"),
 };
 
 export const CONTACT_FIELD_KEYS: ContactField[] = ["name", "title", "company", "phone", "email", "website", "address", "tagline"];
 
 export function defaultContactData(): ContactData {
   return {
-    name: "Nama Anda",
-    title: "Jabatan / Profesi",
-    company: "Nama Perusahaan",
+    name: tr("Nama Anda"),
+    title: tr("Jabatan / Profesi"),
+    company: tr("Nama Perusahaan"),
     phone: "+62 812-3456-7890",
-    email: "nama@email.com",
+    email: tr("nama@email.com"),
     website: "www.website.com",
-    address: "Kota, Indonesia",
-    tagline: "Tagline singkat perusahaan Anda",
+    address: tr("Kota, Indonesia"),
+    tagline: tr("Tagline singkat perusahaan Anda"),
   };
 }
 
@@ -152,7 +153,7 @@ export function makeTextElement(overrides: Partial<CardTextElement> = {}): CardT
     id: newElementId("text"),
     kind: "text",
     bind: null,
-    text: "Teks baru",
+    text: tr("Teks baru"),
     xPct: 50,
     yPct: 50,
     fontFamily: DEFAULT_FONT_FAMILY,
@@ -262,13 +263,13 @@ function contactText(field: ContactField, overrides: Partial<CardTextElement>): 
 }
 
 const TEMPLATE_BUILDERS: Omit<CardTemplateDef, "build">[] = [
-  { id: "minimal", name: "Minimalis Putih", desc: "Bersih, banyak ruang kosong, aksen garis tipis." },
-  { id: "gradient", name: "Gradasi Modern", desc: "Latar gradasi diagonal dengan teks putih." },
-  { id: "corporate", name: "Korporat Navy", desc: "Latar gelap formal dengan aksen emas." },
-  { id: "elegant", name: "Elegan Emas", desc: "Krem lembut, garis tepi emas, nama bergaya kaligrafi." },
-  { id: "creative", name: "Kreatif Splash", desc: "Bentuk lingkaran warna-warni yang playful." },
-  { id: "dark-tech", name: "Dark Tech", desc: "Latar hitam pekat dengan aksen neon." },
-  { id: "pastel", name: "Pastel Lembut", desc: "Warna pastel lembut, cocok untuk bisnis kreatif/kecantikan." },
+  { id: "minimal", name: tr("Minimalis Putih"), desc: tr("Bersih, banyak ruang kosong, aksen garis tipis.") },
+  { id: "gradient", name: tr("Gradasi Modern"), desc: tr("Latar gradasi diagonal dengan teks putih.") },
+  { id: "corporate", name: tr("Korporat Navy"), desc: tr("Latar gelap formal dengan aksen emas.") },
+  { id: "elegant", name: tr("Elegan Emas"), desc: tr("Krem lembut, garis tepi emas, nama bergaya kaligrafi.") },
+  { id: "creative", name: tr("Kreatif Splash"), desc: tr("Bentuk lingkaran warna-warni yang playful.") },
+  { id: "dark-tech", name: tr("Dark Tech"), desc: tr("Latar hitam pekat dengan aksen neon.") },
+  { id: "pastel", name: tr("Pastel Lembut"), desc: tr("Warna pastel lembut, cocok untuk bisnis kreatif/kecantikan.") },
 ];
 
 function buildMinimal(): CardDesign {
@@ -277,19 +278,19 @@ function buildMinimal(): CardDesign {
     background: { type: "solid", color: "#ffffff" },
     elements: [
       makeShapeElement({ shape: "rect", xPct: 6, yPct: 50, widthPct: 1, heightPct: 70, fill: "#4f46e5", hasFill: true }),
-      contactText("name", { text: "Nama Anda", xPct: 13, yPct: 30, fontSize: 18.5, bold: true, align: "left", color: "#0f172a" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 13, yPct: 43, fontSize: 11, align: "left", color: "#4f46e5" }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 13, yPct: 30, fontSize: 18.5, bold: true, align: "left", color: "#0f172a" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 13, yPct: 43, fontSize: 11, align: "left", color: "#4f46e5" }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 13, yPct: 66, fontSize: 9.5, align: "left", color: "#475569" }),
-      contactText("email", { text: "nama@email.com", xPct: 13, yPct: 77, fontSize: 9.5, align: "left", color: "#475569" }),
+      contactText("email", { text: tr("nama@email.com"), xPct: 13, yPct: 77, fontSize: 9.5, align: "left", color: "#475569" }),
       contactText("website", { text: "www.website.com", xPct: 13, yPct: 88, fontSize: 9.5, align: "left", color: "#475569" }),
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 92, yPct: 14, fontSize: 9, align: "right", uppercase: true, letterSpacing: 1.5, color: "#94a3b8" }),
+      contactText("company", { text: tr("NAMA PERUSAHAAN"), xPct: 92, yPct: 14, fontSize: 9, align: "right", uppercase: true, letterSpacing: 1.5, color: "#94a3b8" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#0f172a" },
     elements: [
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 48, widthPct: 80, fontSize: 14.5, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
-      contactText("tagline", { text: "Tagline singkat perusahaan Anda", xPct: 50, yPct: 60, widthPct: 80, fontSize: 8.5, align: "center", color: "#94a3b8" }),
+      contactText("company", { text: tr("NAMA PERUSAHAAN"), xPct: 50, yPct: 48, widthPct: 80, fontSize: 14.5, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
+      contactText("tagline", { text: tr("Tagline singkat perusahaan Anda"), xPct: 50, yPct: 60, widthPct: 80, fontSize: 8.5, align: "center", color: "#94a3b8" }),
     ],
   };
   return d;
@@ -300,19 +301,19 @@ function buildGradient(): CardDesign {
   d.front = {
     background: { type: "gradient", angle: 135, from: "#4f46e5", to: "#7c3aed" },
     elements: [
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 60, fontSize: 19.5, bold: true, align: "left", color: "#ffffff" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 72, fontSize: 10.5, align: "left", color: "#e0e7ff" }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 8, yPct: 60, fontSize: 19.5, bold: true, align: "left", color: "#ffffff" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 8, yPct: 72, fontSize: 10.5, align: "left", color: "#e0e7ff" }),
       makeShapeElement({ shape: "line", xPct: 18, yPct: 80, widthPct: 20, heightPct: 0.6, fill: "#ffffff", hasFill: true, strokeWidth: 2 }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 89, fontSize: 8.5, align: "left", color: "#f1f5f9" }),
-      contactText("company", { text: "PERUSAHAAN", xPct: 92, yPct: 15, fontSize: 10, align: "right", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
+      contactText("company", { text: tr("PERUSAHAAN"), xPct: 92, yPct: 15, fontSize: 10, align: "right", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
     ],
   };
   d.back = {
     background: { type: "gradient", angle: 135, from: "#7c3aed", to: "#4f46e5" },
     elements: [
       contactText("website", { text: "www.website.com", xPct: 50, yPct: 45, widthPct: 80, fontSize: 11, align: "center", color: "#ffffff", bold: true }),
-      contactText("email", { text: "nama@email.com", xPct: 50, yPct: 56, widthPct: 80, fontSize: 9.5, align: "center", color: "#e0e7ff" }),
-      contactText("address", { text: "Kota, Indonesia", xPct: 50, yPct: 66, widthPct: 80, fontSize: 9, align: "center", color: "#e0e7ff" }),
+      contactText("email", { text: tr("nama@email.com"), xPct: 50, yPct: 56, widthPct: 80, fontSize: 9.5, align: "center", color: "#e0e7ff" }),
+      contactText("address", { text: tr("Kota, Indonesia"), xPct: 50, yPct: 66, widthPct: 80, fontSize: 9, align: "center", color: "#e0e7ff" }),
     ],
   };
   return d;
@@ -324,18 +325,18 @@ function buildCorporate(): CardDesign {
     background: { type: "solid", color: "#0b1220" },
     elements: [
       makeShapeElement({ shape: "rect", xPct: 50, yPct: 97, widthPct: 100, heightPct: 6, fill: "#c9a227", hasFill: true }),
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 28, fontSize: 17.5, bold: true, align: "left", color: "#ffffff" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 40, fontSize: 10, align: "left", color: "#c9a227" }),
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 8, yPct: 60, fontSize: 11.5, align: "left", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 8, yPct: 28, fontSize: 17.5, bold: true, align: "left", color: "#ffffff" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 8, yPct: 40, fontSize: 10, align: "left", color: "#c9a227" }),
+      contactText("company", { text: tr("NAMA PERUSAHAAN"), xPct: 8, yPct: 60, fontSize: 11.5, align: "left", uppercase: true, letterSpacing: 1.5, color: "#ffffff", bold: true }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 74, fontSize: 8.5, align: "left", color: "#94a3b8" }),
-      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 83, fontSize: 8.5, align: "left", color: "#94a3b8" }),
+      contactText("email", { text: tr("nama@email.com"), xPct: 8, yPct: 83, fontSize: 8.5, align: "left", color: "#94a3b8" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#0b1220" },
     elements: [
       makeShapeElement({ shape: "rect", xPct: 50, yPct: 3, widthPct: 100, heightPct: 6, fill: "#c9a227", hasFill: true }),
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 50, widthPct: 84, fontSize: 14, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
+      contactText("company", { text: tr("NAMA PERUSAHAAN"), xPct: 50, yPct: 50, widthPct: 84, fontSize: 14, align: "center", uppercase: true, letterSpacing: 2, color: "#ffffff", bold: true }),
       contactText("website", { text: "www.website.com", xPct: 50, yPct: 62, widthPct: 84, fontSize: 9, align: "center", color: "#c9a227" }),
     ],
   };
@@ -351,17 +352,17 @@ function buildElegant(): CardDesign {
     background: { type: "solid", color: "#faf6ec" },
     elements: [
       ...frameEls,
-      contactText("name", { text: "Nama Anda", xPct: 50, yPct: 40, widthPct: 80, fontSize: 22, align: "center", color: "#3f3421", fontFamily: "Great Vibes" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 50, yPct: 54, widthPct: 80, fontSize: 9, align: "center", uppercase: true, letterSpacing: 2, color: "#8a7a4f" }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 50, yPct: 40, widthPct: 80, fontSize: 22, align: "center", color: "#3f3421", fontFamily: "Great Vibes" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 50, yPct: 54, widthPct: 80, fontSize: 9, align: "center", uppercase: true, letterSpacing: 2, color: "#8a7a4f" }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 50, yPct: 75, widthPct: 84, fontSize: 8, align: "center", color: "#5c5238" }),
-      contactText("email", { text: "nama@email.com", xPct: 50, yPct: 82, widthPct: 84, fontSize: 8, align: "center", color: "#5c5238" }),
+      contactText("email", { text: tr("nama@email.com"), xPct: 50, yPct: 82, widthPct: 84, fontSize: 8, align: "center", color: "#5c5238" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#faf6ec" },
     elements: [
       ...frameEls.map((e) => ({ ...e, id: newElementId("shape") })),
-      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 50, widthPct: 80, fontSize: 15.5, align: "center", color: "#3f3421", fontFamily: "Playfair Display" }),
+      contactText("company", { text: tr("Nama Perusahaan"), xPct: 50, yPct: 50, widthPct: 80, fontSize: 15.5, align: "center", color: "#3f3421", fontFamily: "Playfair Display" }),
     ],
   };
   return d;
@@ -374,17 +375,17 @@ function buildCreative(): CardDesign {
     elements: [
       makeShapeElement({ shape: "circle", xPct: 92, yPct: 6, widthPct: 30, heightPct: 30, fill: "#fb7185", hasFill: true, opacity: 0.85 }),
       makeShapeElement({ shape: "circle", xPct: 99, yPct: 26, widthPct: 16, heightPct: 16, fill: "#facc15", hasFill: true, opacity: 0.85 }),
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 55, fontSize: 18.5, bold: true, align: "left", color: "#1c1917" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 66, fontSize: 10, align: "left", color: "#ea580c" }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 8, yPct: 55, fontSize: 18.5, bold: true, align: "left", color: "#1c1917" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 8, yPct: 66, fontSize: 10, align: "left", color: "#ea580c" }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 84, fontSize: 8.5, align: "left", color: "#57534e" }),
-      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 92, fontSize: 8.5, align: "left", color: "#57534e" }),
+      contactText("email", { text: tr("nama@email.com"), xPct: 8, yPct: 92, fontSize: 8.5, align: "left", color: "#57534e" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#fb7185" },
     elements: [
       makeShapeElement({ shape: "circle", xPct: 8, yPct: 92, widthPct: 26, heightPct: 26, fill: "#facc15", hasFill: true, opacity: 0.85 }),
-      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 45, widthPct: 84, fontSize: 14.5, align: "center", color: "#ffffff", bold: true }),
+      contactText("company", { text: tr("Nama Perusahaan"), xPct: 50, yPct: 45, widthPct: 84, fontSize: 14.5, align: "center", color: "#ffffff", bold: true }),
       contactText("website", { text: "www.website.com", xPct: 50, yPct: 58, widthPct: 84, fontSize: 9, align: "center", color: "#fff1f2" }),
     ],
   };
@@ -397,17 +398,17 @@ function buildDarkTech(): CardDesign {
     background: { type: "solid", color: "#020617" },
     elements: [
       makeShapeElement({ shape: "line", xPct: 20, yPct: 20, widthPct: 24, heightPct: 0.5, fill: "#22d3ee", hasFill: true }),
-      contactText("name", { text: "Nama Anda", xPct: 8, yPct: 40, fontSize: 17.5, bold: true, align: "left", color: "#f8fafc" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 8, yPct: 51, fontSize: 9.5, align: "left", color: "#22d3ee", uppercase: true, letterSpacing: 1 }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 8, yPct: 40, fontSize: 17.5, bold: true, align: "left", color: "#f8fafc" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 8, yPct: 51, fontSize: 9.5, align: "left", color: "#22d3ee", uppercase: true, letterSpacing: 1 }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 8, yPct: 74, fontSize: 8.5, align: "left", color: "#94a3b8" }),
-      contactText("email", { text: "nama@email.com", xPct: 8, yPct: 82, fontSize: 8.5, align: "left", color: "#94a3b8" }),
+      contactText("email", { text: tr("nama@email.com"), xPct: 8, yPct: 82, fontSize: 8.5, align: "left", color: "#94a3b8" }),
       contactText("website", { text: "www.website.com", xPct: 8, yPct: 90, fontSize: 8.5, align: "left", color: "#94a3b8" }),
     ],
   };
   d.back = {
     background: { type: "solid", color: "#020617" },
     elements: [
-      contactText("company", { text: "NAMA PERUSAHAAN", xPct: 50, yPct: 50, widthPct: 84, fontSize: 14, align: "center", uppercase: true, letterSpacing: 3, color: "#22d3ee", bold: true }),
+      contactText("company", { text: tr("NAMA PERUSAHAAN"), xPct: 50, yPct: 50, widthPct: 84, fontSize: 14, align: "center", uppercase: true, letterSpacing: 3, color: "#22d3ee", bold: true }),
     ],
   };
   return d;
@@ -419,15 +420,15 @@ function buildPastel(): CardDesign {
     background: { type: "gradient", angle: 160, from: "#fbcfe8", to: "#ddd6fe" },
     elements: [
       makeShapeElement({ shape: "circle", xPct: 50, yPct: 30, widthPct: 24, heightPct: 24, fill: "#ffffff", hasFill: true, opacity: 0.9 }),
-      contactText("name", { text: "Nama Anda", xPct: 50, yPct: 60, widthPct: 84, fontSize: 16.5, bold: true, align: "center", color: "#4c1d95" }),
-      contactText("title", { text: "Jabatan / Profesi", xPct: 50, yPct: 70, widthPct: 84, fontSize: 9.5, align: "center", color: "#6d28d9" }),
+      contactText("name", { text: tr("Nama Anda"), xPct: 50, yPct: 60, widthPct: 84, fontSize: 16.5, bold: true, align: "center", color: "#4c1d95" }),
+      contactText("title", { text: tr("Jabatan / Profesi"), xPct: 50, yPct: 70, widthPct: 84, fontSize: 9.5, align: "center", color: "#6d28d9" }),
       contactText("phone", { text: "+62 812-3456-7890", xPct: 50, yPct: 86, widthPct: 84, fontSize: 8.5, align: "center", color: "#5b21b6" }),
     ],
   };
   d.back = {
     background: { type: "gradient", angle: 160, from: "#ddd6fe", to: "#fbcfe8" },
     elements: [
-      contactText("company", { text: "Nama Perusahaan", xPct: 50, yPct: 45, widthPct: 84, fontSize: 14, align: "center", color: "#4c1d95", bold: true }),
+      contactText("company", { text: tr("Nama Perusahaan"), xPct: 50, yPct: 45, widthPct: 84, fontSize: 14, align: "center", color: "#4c1d95", bold: true }),
       contactText("website", { text: "www.website.com", xPct: 50, yPct: 58, widthPct: 84, fontSize: 8.5, align: "center", color: "#6d28d9" }),
     ],
   };

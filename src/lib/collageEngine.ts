@@ -5,6 +5,7 @@
 // Pure browser/canvas code, no dependencies.
 
 import { fontStack } from "@/lib/fontPresets";
+import { tr } from "@/i18n";
 
 /* ────────────────────────────── Types ────────────────────────────── */
 
@@ -116,18 +117,18 @@ export interface CanvasPreset {
 }
 
 export const CANVAS_PRESETS: CanvasPreset[] = [
-  { id: "sq", label: "Persegi 1:1 (Instagram)", w: 1, h: 1 },
-  { id: "p45", label: "Potret 4:5 (Instagram)", w: 4, h: 5 },
-  { id: "story", label: "Story 9:16 (Reels / TikTok)", w: 9, h: 16 },
-  { id: "land169", label: "Lanskap 16:9 (YouTube)", w: 16, h: 9 },
-  { id: "land32", label: "Foto 3:2", w: 3, h: 2 },
-  { id: "p23", label: "Foto potret 2:3", w: 2, h: 3 },
-  { id: "land43", label: "Layar 4:3", w: 4, h: 3 },
-  { id: "p34", label: "Potret 3:4", w: 3, h: 4 },
-  { id: "a4p", label: "A4 Potret", w: 210, h: 297 },
-  { id: "a4l", label: "A4 Lanskap", w: 297, h: 210 },
-  { id: "fb", label: "Cover Facebook (205:78)", w: 205, h: 78 },
-  { id: "custom", label: "Kustom (px)", w: 1, h: 1 },
+  { id: "sq", label: tr("Persegi 1:1 (Instagram)"), w: 1, h: 1 },
+  { id: "p45", label: tr("Potret 4:5 (Instagram)"), w: 4, h: 5 },
+  { id: "story", label: tr("Story 9:16 (Reels / TikTok)"), w: 9, h: 16 },
+  { id: "land169", label: tr("Lanskap 16:9 (YouTube)"), w: 16, h: 9 },
+  { id: "land32", label: tr("Foto 3:2"), w: 3, h: 2 },
+  { id: "p23", label: tr("Foto potret 2:3"), w: 2, h: 3 },
+  { id: "land43", label: tr("Layar 4:3"), w: 4, h: 3 },
+  { id: "p34", label: tr("Potret 3:4"), w: 3, h: 4 },
+  { id: "a4p", label: tr("A4 Potret"), w: 210, h: 297 },
+  { id: "a4l", label: tr("A4 Lanskap"), w: 297, h: 210 },
+  { id: "fb", label: tr("Cover Facebook (205:78)"), w: 205, h: 78 },
+  { id: "custom", label: tr("Kustom (px)"), w: 1, h: 1 },
 ];
 
 export const MAX_SIDE = 8192;
@@ -217,61 +218,61 @@ export function defaultAutoCols(n: number): number {
 }
 
 export const TEMPLATES: CollageTemplate[] = [
-  T("t1", "Satu foto penuh", L),
+  T("t1", tr("Satu foto penuh"), L),
 
-  T("t2-v", "2 kolom", row(L, L)),
-  T("t2-h", "2 baris", col(L, L)),
-  T("t2-lw", "2 kolom — kiri lebar", row([2, L], [1, L])),
-  T("t2-rw", "2 kolom — kanan lebar", row([1, L], [2, L])),
-  T("t2-tw", "2 baris — atas tinggi", col([2, L], [1, L])),
-  T("t2-bw", "2 baris — bawah tinggi", col([1, L], [2, L])),
+  T("t2-v", tr("2 kolom"), row(L, L)),
+  T("t2-h", tr("2 baris"), col(L, L)),
+  T("t2-lw", tr("2 kolom — kiri lebar"), row([2, L], [1, L])),
+  T("t2-rw", tr("2 kolom — kanan lebar"), row([1, L], [2, L])),
+  T("t2-tw", tr("2 baris — atas tinggi"), col([2, L], [1, L])),
+  T("t2-bw", tr("2 baris — bawah tinggi"), col([1, L], [2, L])),
 
-  T("t3-v", "3 kolom", row(L, L, L)),
-  T("t3-h", "3 baris", col(L, L, L)),
-  T("t3-l", "1 besar kiri + 2", row([3, L], [2, col(L, L)])),
-  T("t3-r", "1 besar kanan + 2", row([2, col(L, L)], [3, L])),
-  T("t3-t", "1 besar atas + 2", col([3, L], [2, row(L, L)])),
-  T("t3-b", "1 besar bawah + 2", col([2, row(L, L)], [3, L])),
+  T("t3-v", tr("3 kolom"), row(L, L, L)),
+  T("t3-h", tr("3 baris"), col(L, L, L)),
+  T("t3-l", tr("1 besar kiri + 2"), row([3, L], [2, col(L, L)])),
+  T("t3-r", tr("1 besar kanan + 2"), row([2, col(L, L)], [3, L])),
+  T("t3-t", tr("1 besar atas + 2"), col([3, L], [2, row(L, L)])),
+  T("t3-b", tr("1 besar bawah + 2"), col([2, row(L, L)], [3, L])),
 
-  T("t4-g", "Grid 2×2", gridTree(2, 2)),
-  T("t4-v", "4 kolom", row(L, L, L, L)),
-  T("t4-h", "4 baris", col(L, L, L, L)),
-  T("t4-l", "1 besar kiri + 3", row([2, L], [1, col(L, L, L)])),
-  T("t4-r", "1 besar kanan + 3", row([1, col(L, L, L)], [2, L])),
-  T("t4-t", "1 besar atas + 3", col([2, L], [1, row(L, L, L)])),
-  T("t4-b", "1 besar bawah + 3", col([1, row(L, L, L)], [2, L])),
-  T("t4-m", "Mozaik 4", row([1, col([2, L], [1, L])], [1, col([1, L], [2, L])])),
+  T("t4-g", tr("Grid 2×2"), gridTree(2, 2)),
+  T("t4-v", tr("4 kolom"), row(L, L, L, L)),
+  T("t4-h", tr("4 baris"), col(L, L, L, L)),
+  T("t4-l", tr("1 besar kiri + 3"), row([2, L], [1, col(L, L, L)])),
+  T("t4-r", tr("1 besar kanan + 3"), row([1, col(L, L, L)], [2, L])),
+  T("t4-t", tr("1 besar atas + 3"), col([2, L], [1, row(L, L, L)])),
+  T("t4-b", tr("1 besar bawah + 3"), col([1, row(L, L, L)], [2, L])),
+  T("t4-m", tr("Mozaik 4"), row([1, col([2, L], [1, L])], [1, col([1, L], [2, L])])),
 
   T("t5-23", "2 + 3", col(row(L, L), row(L, L, L))),
   T("t5-32", "3 + 2", col(row(L, L, L), row(L, L))),
-  T("t5-l", "1 besar kiri + 4", row([2, L], [1, col(L, L, L, L)])),
-  T("t5-q", "1 besar + 4 grid", row([1, L], [1, gridTree(2, 2)])),
-  T("t5-t", "1 besar atas + 4", col([2, L], [1, row(L, L, L, L)])),
+  T("t5-l", tr("1 besar kiri + 4"), row([2, L], [1, col(L, L, L, L)])),
+  T("t5-q", tr("1 besar + 4 grid"), row([1, L], [1, gridTree(2, 2)])),
+  T("t5-t", tr("1 besar atas + 4"), col([2, L], [1, row(L, L, L, L)])),
 
-  T("t6-g", "Grid 3×2", gridTree(3, 2)),
-  T("t6-g2", "Grid 2×3", gridTree(2, 3)),
-  T("t6-l", "1 besar kiri + 5", row([2, L], [1, col(L, L, L, L, L)])),
-  T("t6-m", "Mozaik 6", col([1, row(L, L, L)], [2, row([1, col(L, L)], [2, L])])),
-  T("t6-h", "1 besar atas + 5", col([2, L], [1, row(L, L, L, L, L)])),
+  T("t6-g", tr("Grid 3×2"), gridTree(3, 2)),
+  T("t6-g2", tr("Grid 2×3"), gridTree(2, 3)),
+  T("t6-l", tr("1 besar kiri + 5"), row([2, L], [1, col(L, L, L, L, L)])),
+  T("t6-m", tr("Mozaik 6"), col([1, row(L, L, L)], [2, row([1, col(L, L)], [2, L])])),
+  T("t6-h", tr("1 besar atas + 5"), col([2, L], [1, row(L, L, L, L, L)])),
 
   T("t7-a", "3 + 4", col(row(L, L, L), row(L, L, L, L))),
-  T("t7-b", "1 besar + 6", row([2, L], [1, gridTree(2, 3)])),
+  T("t7-b", tr("1 besar + 6"), row([2, L], [1, gridTree(2, 3)])),
   T("t7-c", "2 + 2 + 3", col(row(L, L), row(L, L), row(L, L, L))),
 
-  T("t8-g", "Grid 4×2", gridTree(4, 2)),
-  T("t8-g2", "Grid 2×4", gridTree(2, 4)),
+  T("t8-g", tr("Grid 4×2"), gridTree(4, 2)),
+  T("t8-g2", tr("Grid 2×4"), gridTree(2, 4)),
   T("t8-a", "3 + 2 + 3", col(row(L, L, L), row(L, L), row(L, L, L))),
-  T("t8-b", "1 besar + 7", row([2, L], [1, col(L, L, L, L, L, L, L)])),
+  T("t8-b", tr("1 besar + 7"), row([2, L], [1, col(L, L, L, L, L, L, L)])),
 
-  T("t9-g", "Grid 3×3", gridTree(3, 3)),
-  T("t9-a", "1 besar + 8", row([2, L], [2, gridTree(2, 4)])),
-  T("t9-b", "Mozaik 9", col(row(L, L, L), row([2, L], [1, L]), row(L, L, L))),
+  T("t9-g", tr("Grid 3×3"), gridTree(3, 3)),
+  T("t9-a", tr("1 besar + 8"), row([2, L], [2, gridTree(2, 4)])),
+  T("t9-b", tr("Mozaik 9"), col(row(L, L, L), row([2, L], [1, L]), row(L, L, L))),
 
-  T("t10-a", "Grid 5×2", gridTree(5, 2)),
+  T("t10-a", tr("Grid 5×2"), gridTree(5, 2)),
   T("t10-b", "3 + 4 + 3", col(row(L, L, L), row(L, L, L, L), row(L, L, L))),
-  T("t12-g", "Grid 4×3", gridTree(4, 3)),
-  T("t12-g2", "Grid 3×4", gridTree(3, 4)),
-  T("t16-g", "Grid 4×4", gridTree(4, 4)),
+  T("t12-g", tr("Grid 4×3"), gridTree(4, 3)),
+  T("t12-g2", tr("Grid 3×4"), gridTree(3, 4)),
+  T("t16-g", tr("Grid 4×4"), gridTree(4, 4)),
 ];
 
 export const AUTO_TEMPLATE_ID = "auto";
@@ -376,7 +377,7 @@ export function defaultCell(photoId: string | null = null): CellState {
   };
 }
 
-export function defaultText(id: string, text = "Teks Baru"): TextLayer {
+export function defaultText(id: string, text = tr("Teks Baru")): TextLayer {
   return {
     id,
     text,

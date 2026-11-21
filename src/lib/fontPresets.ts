@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Shared font preset catalogue.
 // Used by every "generator" tool (Certificate, Business Card Studio, Invoice,
 // Kwitansi, Struk, CV Maker) so the list of available fonts — and the way a
@@ -28,41 +29,41 @@ const CATEGORY_FALLBACK: Record<FontCategory, string> = {
 
 export const FONT_PRESETS: FontPreset[] = [
   // Sans — bersih & modern, cocok untuk body text / dokumen bisnis
-  { id: "Alan Sans", label: "Alan Sans — Modern Sans", category: "sans", webFont: true },
-  { id: "Poppins", label: "Poppins — Geometris & Ramah", category: "sans", webFont: true },
-  { id: "Montserrat", label: "Montserrat — Sans Profesional", category: "sans", webFont: true },
-  { id: "Arial", label: "Arial — Sans Netral (Sistem)", category: "sans" },
-  { id: "Trebuchet MS", label: "Trebuchet MS — Sans Ramah (Sistem)", category: "sans" },
+  { id: "Alan Sans", label: tr("Alan Sans — Modern Sans"), category: "sans", webFont: true },
+  { id: "Poppins", label: tr("Poppins — Geometris & Ramah"), category: "sans", webFont: true },
+  { id: "Montserrat", label: tr("Montserrat — Sans Profesional"), category: "sans", webFont: true },
+  { id: "Arial", label: tr("Arial — Sans Netral (Sistem)"), category: "sans" },
+  { id: "Trebuchet MS", label: tr("Trebuchet MS — Sans Ramah (Sistem)"), category: "sans" },
 
   // Serif — elegan, formal, cocok untuk sertifikat / undangan resmi
-  { id: "Playfair Display", label: "Playfair Display — Serif Elegan", category: "serif", webFont: true },
-  { id: "Merriweather", label: "Merriweather — Serif Mudah Dibaca", category: "serif", webFont: true },
-  { id: "Cormorant Garamond", label: "Cormorant Garamond — Serif Mewah", category: "serif", webFont: true },
-  { id: "Georgia", label: "Georgia — Serif Klasik (Sistem)", category: "serif" },
-  { id: "Times New Roman", label: "Times New Roman — Serif Formal (Sistem)", category: "serif" },
+  { id: "Playfair Display", label: tr("Playfair Display — Serif Elegan"), category: "serif", webFont: true },
+  { id: "Merriweather", label: tr("Merriweather — Serif Mudah Dibaca"), category: "serif", webFont: true },
+  { id: "Cormorant Garamond", label: tr("Cormorant Garamond — Serif Mewah"), category: "serif", webFont: true },
+  { id: "Georgia", label: tr("Georgia — Serif Klasik (Sistem)"), category: "serif" },
+  { id: "Times New Roman", label: tr("Times New Roman — Serif Formal (Sistem)"), category: "serif" },
 
   // Script — kaligrafi, untuk nama penerima sertifikat / kartu nama mewah
-  { id: "Great Vibes", label: "Great Vibes — Kaligrafi Elegan", category: "script", webFont: true },
-  { id: "Dancing Script", label: "Dancing Script — Kaligrafi Ceria", category: "script", webFont: true },
+  { id: "Great Vibes", label: tr("Great Vibes — Kaligrafi Elegan"), category: "script", webFont: true },
+  { id: "Dancing Script", label: tr("Dancing Script — Kaligrafi Ceria"), category: "script", webFont: true },
 
   // Display — tebal & mencolok, untuk judul / header besar
-  { id: "Oswald", label: "Oswald — Display Ramping", category: "display", webFont: true },
-  { id: "Bebas Neue", label: "Bebas Neue — Display Tebal", category: "display", webFont: true },
+  { id: "Oswald", label: tr("Oswald — Display Ramping"), category: "display", webFont: true },
+  { id: "Bebas Neue", label: tr("Bebas Neue — Display Tebal"), category: "display", webFont: true },
 
   // Monospace — cocok untuk nomor invoice / struk / kode
-  { id: "JetBrains Mono", label: "JetBrains Mono — Monospace Modern", category: "mono", webFont: true },
-  { id: "Courier New", label: "Courier New — Monospace Klasik (Sistem)", category: "mono" },
+  { id: "JetBrains Mono", label: tr("JetBrains Mono — Monospace Modern"), category: "mono", webFont: true },
+  { id: "Courier New", label: tr("Courier New — Monospace Klasik (Sistem)"), category: "mono" },
 ];
 
 export const FONT_CATEGORY_LABEL: Record<FontCategory, string> = {
-  sans: "Sans Serif",
-  serif: "Serif",
-  script: "Kaligrafi / Script",
-  display: "Display",
-  mono: "Monospace",
+  sans: tr("Sans Serif"),
+  serif: tr("Serif"),
+  script: tr("Kaligrafi / Script"),
+  display: tr("Display"),
+  mono: tr("Monospace"),
 };
 
-export const DEFAULT_FONT_FAMILY = "Alan Sans";
+export const DEFAULT_FONT_FAMILY = tr("Alan Sans");
 
 /** Quick lookup so callers don't need to re-filter FONT_PRESETS. */
 export function isPresetFont(family: string): boolean {

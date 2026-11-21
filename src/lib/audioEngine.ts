@@ -14,6 +14,7 @@
 //      format option, not just a relabeled WAV.
 
 import { audioFileToWav, encodeAudioBufferToWav } from "@/features/utility/convert/converters/audioConvert";
+import { tr } from "@/i18n";
 
 export { audioFileToWav, encodeAudioBufferToWav };
 
@@ -35,7 +36,7 @@ export async function loadAudioMeta(file: File): Promise<AudioMeta> {
   try {
     buffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
   } catch {
-    throw new Error("Browser tidak bisa membaca format audio ini. Coba file MP3, WAV, OGG, atau M4A.");
+    throw new Error(tr("Browser tidak bisa membaca format audio ini. Coba file MP3, WAV, OGG, atau M4A."));
   } finally {
     ctx.close().catch(() => {});
   }
@@ -56,9 +57,9 @@ export interface CompressedAudioFormat {
 }
 
 const COMPRESSED_CANDIDATE_FORMATS: CompressedAudioFormat[] = [
-  { mimeType: "audio/webm;codecs=opus", ext: "webm", label: "WebM Audio (Opus)" },
-  { mimeType: "audio/ogg;codecs=opus", ext: "ogg", label: "OGG Audio (Opus)" },
-  { mimeType: "audio/webm", ext: "webm", label: "WebM Audio" },
+  { mimeType: "audio/webm;codecs=opus", ext: "webm", label: tr("WebM Audio (Opus)") },
+  { mimeType: "audio/ogg;codecs=opus", ext: "ogg", label: tr("OGG Audio (Opus)") },
+  { mimeType: "audio/webm", ext: "webm", label: tr("WebM Audio") },
 ];
 
 export function getSupportedCompressedAudioFormats(): CompressedAudioFormat[] {

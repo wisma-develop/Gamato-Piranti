@@ -12,6 +12,7 @@ import { slidesToPdfBlob } from "@/lib/pdfSlides";
 import { parseCsv } from "@/lib/csv";
 import { toWinAnsi } from "@/lib/transcriptDocs";
 import type { PrintPageSource } from "@/lib/printEngine";
+import { tr } from "@/i18n";
 
 export interface TextOptions {
   family: "mono" | "sans" | "serif";
@@ -50,8 +51,8 @@ async function sourceFromPdfBytes(bytes: ArrayBuffer, name: string, kind: Loaded
   try {
     pdf = await loadPdfDocument(bytes.slice(0));
   } catch (e: any) {
-    if (e?.name === "PasswordException") throw new Error(`"${name}" dilindungi kata sandi. Buka kuncinya dulu (mis. lewat tool PDF Lab) lalu coba lagi.`);
-    throw new Error(`"${name}" bukan PDF yang valid atau rusak.`);
+    if (e?.name === "PasswordException") throw new Error(tr("\"{0}\" dilindungi kata sandi. Buka kuncinya dulu (mis. lewat tool PDF Lab) lalu coba lagi.", name));
+    throw new Error(tr("\"{0}\" bukan PDF yang valid atau rusak.", name));
   }
   const pages: PrintPageSource[] = [];
   for (let i = 1; i <= pdf.numPages; i++) {
@@ -59,7 +60,7 @@ async function sourceFromPdfBytes(bytes: ArrayBuffer, name: string, kind: Loaded
     const vp = page.getViewport({ scale: 1 });
     const cache = new Map<number, HTMLCanvasElement>();
     pages.push({
-      ref: { id: `${name}#${i}`, wMm: vp.width * PT_TO_MM, hMm: vp.height * PT_TO_MM, label: `${name} · hal. ${i}` },
+      ref: { id: `${name}#${i}`, wMm: vp.width * PT_TO_MM, hMm: vp.height * PT_TO_MM, label: tr("{0} · hal. {1}", name, i) },
       async render(widthPx: number) {
         const w = Math.max(8, Math.round(widthPx));
         const hit = cache.get(w);
@@ -92,7 +93,7 @@ async function sourceFromImage(file: File): Promise<LoadedSource> {
     await img.decode();
   } catch {
     URL.revokeObjectURL(url);
-    throw new Error(`"${file.name}" bukan gambar yang bisa dibaca browser.`);
+    throw new Error(tr("\"{0}\" bukan gambar yang bisa dibaca browser.", file.name));
   }
   let nw = img.naturalWidth || 800;
   let nh = img.naturalHeight || 600;
@@ -172,7 +173,7 @@ export async function buildTextSource(name: string, text: string, o: TextOptions
   const { bytes, lossy } = await textToPdfBytes(text, name, o);
   return sourceFromPdfBytes(bytes, name, kind, {
     text,
-    note: lossy ? "Sebagian karakter non-Latin diganti “?” (font cetak standar hanya mendukung aksara Latin)." : undefined,
+    note: lossy ? tr("Sebagian karakter non-Latin diganti “?” (font cetak standar hanya mendukung aksara Latin).") : undefined,
   });
 }
 
@@ -186,17 +187,17 @@ export async function loadPrintSource(file: File, textOpts: TextOptions): Promis
   if (e === "docx") {
     const blocks = await readDocxBlocks(file);
     const blob = await exportPdfFromBlocks(blocks, title, { branding: false });
-    return sourceFromPdfBytes(await blob.arrayBuffer(), file.name, "docx", { note: "DOCX dirender sederhana (teks, tebal/miring, rata). Gambar & tabel di dalam DOCX tidak ikut — untuk tata letak persis, simpan dokumen sebagai PDF dari Word lalu cetak PDF-nya." });
+    return sourceFromPdfBytes(await blob.arrayBuffer(), file.name, "docx", { note: tr("DOCX dirender sederhana (teks, tebal/miring, rata). Gambar & tabel di dalam DOCX tidak ikut — untuk tata letak persis, simpan dokumen sebagai PDF dari Word lalu cetak PDF-nya.") });
   }
   if (e === "xlsx") {
     const grid = await readXlsxGrid(file);
     const blob = await gridToPdfBlob(grid, title, { branding: false });
-    return sourceFromPdfBytes(await blob.arrayBuffer(), file.name, "xlsx", { note: "Hanya lembar pertama yang dicetak, sebagai tabel (nilai sel, tanpa format/warna Excel)." });
+    return sourceFromPdfBytes(await blob.arrayBuffer(), file.name, "xlsx", { note: tr("Hanya lembar pertama yang dicetak, sebagai tabel (nilai sel, tanpa format/warna Excel).") });
   }
   if (e === "pptx") {
     const slides = await readPptxSlides(file);
     const blob = await slidesToPdfBlob(slides, title, { branding: false });
-    return sourceFromPdfBytes(await blob.arrayBuffer(), file.name, "pptx", { note: "Slide dicetak sebagai teks judul + poin (tanpa gambar/desain). Untuk tampilan asli, ekspor PPTX ke PDF dari PowerPoint." });
+    return sourceFromPdfBytes(await blob.arrayBuffer(), file.name, "pptx", { note: tr("Slide dicetak sebagai teks judul + poin (tanpa gambar/desain). Untuk tampilan asli, ekspor PPTX ke PDF dari PowerPoint.") });
   }
   if (e === "csv") {
     const grid = parseCsv(await file.text());
@@ -205,5 +206,5 @@ export async function loadPrintSource(file: File, textOpts: TextOptions): Promis
   }
   if (e === "rtf") return buildTextSource(file.name, await readRtfText(file), { ...textOpts, family: "sans" }, "text");
   if (TEXT_EXTS.includes(e) || file.type.startsWith("text/")) return buildTextSource(file.name, await file.text(), textOpts);
-  throw new Error(`Format "${e || file.type || "?"}" belum didukung. Didukung: PDF, gambar, DOCX, XLSX, PPTX, CSV, RTF, TXT/MD & berkas kode.`);
+  throw new Error(tr("Format \"{0}\" belum didukung. Didukung: PDF, gambar, DOCX, XLSX, PPTX, CSV, RTF, TXT/MD & berkas kode.", e || file.type || "?"));
 }

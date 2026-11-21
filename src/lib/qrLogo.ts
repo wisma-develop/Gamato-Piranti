@@ -1,4 +1,5 @@
 import { roundRect } from "@/lib/businessDocCanvas";
+import { tr } from "@/i18n";
 
 export type QrLogoShape = "rounded" | "circle" | "square" | "none";
 
@@ -28,7 +29,7 @@ export async function buildFramedLogoDataUrl(
   img.src = rawDataUrl;
   await new Promise<void>((resolve, reject) => {
     img.onload = () => resolve();
-    img.onerror = () => reject(new Error("Gagal memuat gambar logo."));
+    img.onerror = () => reject(new Error(tr("Gagal memuat gambar logo.")));
   });
 
   const canvas = document.createElement("canvas");

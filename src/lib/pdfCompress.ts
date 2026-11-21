@@ -1,5 +1,6 @@
 import { PDFDocument, PDFName, PDFRawStream, PDFNumber } from "pdf-lib";
 import { loadImageFromUrl } from "@/lib/canvas";
+import { tr } from "@/i18n";
 
 export type CompressLevel = "low" | "medium" | "high";
 
@@ -43,10 +44,10 @@ export async function compressPdf(
       if (!(obj instanceof PDFRawStream)) continue;
       const dict = obj.dict;
 
-      const subtype = dict.get(PDFName.of("Subtype"));
+      const subtype = dict.get(PDFName.of(tr("Subtype")));
       if (!subtype || subtype.toString() !== "/Image") continue;
 
-      const filterEntry = dict.get(PDFName.of("Filter"));
+      const filterEntry = dict.get(PDFName.of(tr("Filter")));
       const filterStr = filterEntry ? filterEntry.toString() : "";
       if (!filterStr.includes("DCTDecode")) continue; // only re-encode already-JPEG images, safest path
 
@@ -84,11 +85,11 @@ export async function compressPdf(
 
         if (newBytes.length >= rawBytes.length) continue; // never make it bigger
 
-        dict.set(PDFName.of("Width"), PDFNumber.of(targetW));
-        dict.set(PDFName.of("Height"), PDFNumber.of(targetH));
-        dict.set(PDFName.of("Filter"), PDFName.of("DCTDecode"));
+        dict.set(PDFName.of(tr("Width")), PDFNumber.of(targetW));
+        dict.set(PDFName.of(tr("Height")), PDFNumber.of(targetH));
+        dict.set(PDFName.of(tr("Filter")), PDFName.of("DCTDecode"));
         dict.delete(PDFName.of("DecodeParms"));
-        dict.delete(PDFName.of("Decode"));
+        dict.delete(PDFName.of(tr("Decode")));
 
         const newStream = PDFRawStream.of(dict, newBytes);
         pdfDoc.context.assign(ref, newStream);

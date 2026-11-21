@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Small, dependency-free CSV parse/generate helpers — used by the
 // Certificate Generator's "Upload CSV" bulk mode. Kept generic (no
 // certificate-specific logic) so it stays reusable and easy to unit-reason
@@ -105,16 +106,16 @@ export interface CsvParseResult {
 export function csvToRecipients(text: string): CsvParseResult {
   const rows = parseCsv(text);
   if (!rows.length) {
-    return { recipients: [], extraColumns: [], error: "File CSV kosong atau tidak terbaca." };
+    return { recipients: [], extraColumns: [], error: tr("File CSV kosong atau tidak terbaca.") };
   }
 
   const header = rows[0].map((h) => h.trim().toLowerCase());
-  let nameIdx = header.findIndex((h) => h === "nama");
+  let nameIdx = header.findIndex((h) => h === "nama" || h === "name");
   if (nameIdx === -1) nameIdx = 0; // fall back: treat the first column as the name
 
   const dataRows = rows.slice(1);
   if (!dataRows.length) {
-    return { recipients: [], extraColumns: [], error: "CSV hanya berisi header, tidak ada baris data penerima." };
+    return { recipients: [], extraColumns: [], error: tr("CSV hanya berisi header, tidak ada baris data penerima.") };
   }
 
   const recipients: CsvRecipient[] = [];
@@ -130,10 +131,10 @@ export function csvToRecipients(text: string): CsvParseResult {
     recipients.push({ nama, fields });
   }
 
-  const extraColumns = header.filter((h, idx) => h && idx !== nameIdx && h !== "nama" && h !== "nomor" && h !== "tanggal");
+  const extraColumns = header.filter((h, idx) => h && idx !== nameIdx && h !== "nama" && h !== "name" && h !== "nomor" && h !== "number" && h !== "tanggal" && h !== "date");
 
   if (!recipients.length) {
-    return { recipients: [], extraColumns, error: "Tidak ada baris dengan nama yang terisi di kolom \"nama\"." };
+    return { recipients: [], extraColumns, error: tr("Tidak ada baris dengan nama yang terisi di kolom \"nama\".") };
   }
 
   return { recipients, extraColumns, error: null };
@@ -143,9 +144,9 @@ export function csvToRecipients(text: string): CsvParseResult {
 export function certificateCsvTemplate(): string {
   const rows = [
     ["nama", "nomor", "tanggal", "jabatan"],
-    ["Budi Santoso", "", "", "Ketua Panitia"],
-    ["Siti Aminah", "", "", "Sekretaris"],
-    ["Ahmad Fauzi", "", "", "Bendahara"],
+    [tr("Budi Santoso"), "", "", tr("Ketua Panitia")],
+    [tr("Siti Aminah"), "", "", "Sekretaris"],
+    [tr("Ahmad Fauzi"), "", "", tr("Bendahara")],
   ];
   return buildCsv(rows);
 }

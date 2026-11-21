@@ -7,6 +7,7 @@ import {
   removeSilences, toMono, toStereo, swapChannels, panPcm, keepChannel, resamplePcm, repeatRange, insertPcm, makeSilence,
   type FadeCurve,
 } from "@/lib/audioEditEngine";
+import { tr } from "@/i18n";
 
 export type OpKind =
   | "gain" | "normalize" | "fadeIn" | "fadeOut" | "silence" | "reverse" | "invert" | "dc"
@@ -85,10 +86,10 @@ export interface OpResult {
 export const WHOLE_FILE_OPS: OpKind[] = ["mono", "stereo", "swap", "pan", "keepL", "keepR", "resample"];
 
 export const OP_LABELS: Record<OpKind, string> = {
-  gain: "Volume", normalize: "Normalisasi", fadeIn: "Fade in", fadeOut: "Fade out", silence: "Bisukan", reverse: "Balik", invert: "Balik fase", dc: "Hapus DC offset",
-  speed: "Kecepatan", tempo: "Tempo", pitch: "Pitch", eq: "Equalizer", compress: "Kompresor", limit: "Limiter", echo: "Echo", reverb: "Reverb", gate: "Noise gate",
-  removeSilence: "Hapus hening", trimSilence: "Pangkas hening tepi", mono: "Jadikan mono", stereo: "Jadikan stereo", swap: "Tukar kanal L/R", pan: "Pan",
-  keepL: "Pakai kanal kiri", keepR: "Pakai kanal kanan", resample: "Ubah sample rate", repeat: "Ulangi seleksi", insertSilence: "Sisipkan hening",
+  gain: tr("Volume"), normalize: tr("Normalisasi"), fadeIn: tr("Fade in"), fadeOut: tr("Fade out"), silence: tr("Bisukan"), reverse: tr("Balik"), invert: tr("Balik fase"), dc: tr("Hapus DC offset"),
+  speed: tr("Kecepatan"), tempo: tr("Tempo"), pitch: tr("Pitch"), eq: tr("Equalizer"), compress: tr("Kompresor"), limit: tr("Limiter"), echo: tr("Echo"), reverb: tr("Reverb"), gate: tr("Noise gate"),
+  removeSilence: tr("Hapus hening"), trimSilence: tr("Pangkas hening tepi"), mono: tr("Jadikan mono"), stereo: tr("Jadikan stereo"), swap: tr("Tukar kanal L/R"), pan: tr("Pan"),
+  keepL: tr("Pakai kanal kiri"), keepR: tr("Pakai kanal kanan"), resample: tr("Ubah sample rate"), repeat: tr("Ulangi seleksi"), insertSilence: tr("Sisipkan hening"),
 };
 
 export async function runOperation(

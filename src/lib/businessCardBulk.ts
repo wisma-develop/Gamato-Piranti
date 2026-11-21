@@ -7,6 +7,7 @@ import { renderCardSide, cardPixelSize } from "@/lib/businessCardEngine";
 import { CONTACT_FIELD_KEYS, type CardDesign, type ContactData, type ContactField } from "@/lib/businessCardTypes";
 import { canvasToBlob } from "@/lib/canvas";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
+import { tr } from "@/i18n";
 
 export const MAX_BULK_ROWS = 1000;
 const MM_TO_PT = 2.834645669;
@@ -52,10 +53,10 @@ export function parseTable(text: string, delim = detectDelimiter(text)): string[
 export type ColumnMap = Record<ContactField, number | "default" | "blank">;
 
 const ALIASES: Record<ContactField, string[]> = {
-  name: ["nama", "name", "nama lengkap", "fullname", "full name", "nama karyawan"],
+  name: ["nama", "name", tr("nama lengkap"), "fullname", tr("full name"), tr("nama karyawan")],
   title: ["jabatan", "title", "posisi", "position", "job title", "role", "profesi"],
-  company: ["perusahaan", "company", "organisasi", "organization", "instansi", "kantor", "nama perusahaan"],
-  phone: ["telepon", "telp", "phone", "hp", "no hp", "nomor hp", "wa", "whatsapp", "mobile", "tel", "no telepon", "nomor telepon"],
+  company: ["perusahaan", "company", "organisasi", "organization", "instansi", "kantor", tr("nama perusahaan")],
+  phone: ["telepon", "telp", "phone", "hp", "no hp", tr("nomor hp"), "wa", "whatsapp", "mobile", "tel", tr("no telepon"), tr("nomor telepon")],
   email: ["email", "e-mail", "surel", "mail"],
   website: ["website", "web", "situs", "url", "site", "laman"],
   address: ["alamat", "address", "lokasi", "location"],
@@ -97,14 +98,10 @@ export function forRender(rec: ContactData): ContactData {
   return o;
 }
 
-export const SAMPLE_TABLE = `Nama\tJabatan\tPerusahaan\tTelepon\tEmail\tWebsite\tAlamat
-Budi Santoso\tDirektur Utama\tPT Maju Jaya\t+62 812-1111-2222\tbudi@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta
-Siti Rahma\tManajer Pemasaran\tPT Maju Jaya\t+62 813-3333-4444\tsiti@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta
-Agus Wijaya\tSenior Developer\tPT Maju Jaya\t+62 857-5555-6666\tagus@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta
-Dewi Lestari\tFinance Officer\tPT Maju Jaya\t\tdewi@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta`;
+export const SAMPLE_TABLE = tr("Nama\tJabatan\tPerusahaan\tTelepon\tEmail\tWebsite\tAlamat\nBudi Santoso\tDirektur Utama\tPT Maju Jaya\t+62 812-1111-2222\tbudi@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta\nSiti Rahma\tManajer Pemasaran\tPT Maju Jaya\t+62 813-3333-4444\tsiti@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta\nAgus Wijaya\tSenior Developer\tPT Maju Jaya\t+62 857-5555-6666\tagus@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta\nDewi Lestari\tFinance Officer\tPT Maju Jaya\t\tdewi@majujaya.co.id\twww.majujaya.co.id\tJl. Sudirman No. 1, Jakarta");
 
 export function csvTemplate(): string {
-  return "Nama,Jabatan,Perusahaan,Telepon,Email,Website,Alamat,Tagline\n\"Nama Lengkap\",\"Jabatan\",\"Nama Perusahaan\",\"+62 812-0000-0000\",\"nama@email.com\",\"www.website.com\",\"Kota, Indonesia\",\"Tagline singkat\"\n";
+  return tr("Nama,Jabatan,Perusahaan,Telepon,Email,Website,Alamat,Tagline\n\"Nama Lengkap\",\"Jabatan\",\"Nama Perusahaan\",\"+62 812-0000-0000\",\"nama@email.com\",\"www.website.com\",\"Kota, Indonesia\",\"Tagline singkat\"\n");
 }
 
 // ── vCard ────────────────────────────────────────────────────────────────
@@ -120,7 +117,7 @@ export function toVcf(records: ContactData[]): string {
     if (r.company) lines.push(`ORG:${vEsc(r.company)}`);
     if (r.title) lines.push(`TITLE:${vEsc(r.title)}`);
     if (r.phone) lines.push(`TEL;TYPE=CELL:${vEsc(r.phone)}`);
-    if (r.email) lines.push(`EMAIL;TYPE=INTERNET:${vEsc(r.email)}`);
+    if (r.email) lines.push(tr("EMAIL;TYPE=INTERNET:{0}", vEsc(r.email)));
     if (r.website) lines.push(`URL:${vEsc(r.website)}`);
     if (r.address) lines.push(`ADR;TYPE=WORK:;;${vEsc(r.address)};;;;`);
     if (r.tagline) lines.push(`NOTE:${vEsc(r.tagline)}`);
@@ -213,7 +210,7 @@ export interface SheetOptions { paper: SheetPaper; landscape: boolean; marginMm:
 export async function exportBulkSheet(o: BulkCommon & { sheet: SheetOptions }): Promise<{ blob: Blob; pages: number; perPage: number }> {
   const { wMM, hMM } = cardPixelSize(o.design);
   const L = sheetLayout(wMM, hMM, o.sheet.paper, o.sheet.landscape, o.sheet.marginMm, o.sheet.gapMm);
-  if (L.perPage < 1) throw new Error("Kartu tidak muat di halaman dengan margin/ukuran ini — kecilkan margin atau pilih kertas lebih besar.");
+  if (L.perPage < 1) throw new Error(tr("Kartu tidak muat di halaman dengan margin/ukuran ini — kecilkan margin atau pilih kertas lebih besar."));
   const pdf = await PDFDocument.create();
   const canvas = document.createElement("canvas");
   const total = steps(o);

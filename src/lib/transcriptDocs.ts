@@ -4,9 +4,10 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, Ta
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { fmtTime, type ExportOptions, type Paragraph as TPara, type TranscriptMeta } from "@/lib/transcriptEngine";
+import { LOCALE, tr } from "@/i18n";
 
-const spName = (meta: TranscriptMeta, i: number | null): string => (i == null ? "" : meta.speakers[i] ?? `Pembicara ${i + 1}`);
-const dateText = (meta: TranscriptMeta) => new Date(meta.date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+const spName = (meta: TranscriptMeta, i: number | null): string => (i == null ? "" : meta.speakers[i] ?? tr("Pembicara {0}", i + 1));
+const dateText = (meta: TranscriptMeta) => new Date(meta.date).toLocaleDateString(LOCALE, { day: "numeric", month: "long", year: "numeric" });
 
 const SPEAKER_COLORS = ["1D4ED8", "BE185D", "047857", "B45309", "6D28D9", "0E7490"];
 
@@ -16,12 +17,12 @@ export async function buildTranscriptDocx(meta: TranscriptMeta, paras: TPara[], 
   const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
   const noBorders = { top: none, bottom: none, left: none, right: none };
   const metaRows: [string, string][] = [
-    ["Sumber", meta.sourceName],
-    ["Durasi", fmtTime(meta.duration)],
-    ["Bahasa", meta.language],
-    ["Tanggal", dateText(meta)],
+    [tr("Sumber"), meta.sourceName],
+    [tr("Durasi"), fmtTime(meta.duration)],
+    [tr("Bahasa"), meta.language],
+    [tr("Tanggal"), dateText(meta)],
   ];
-  if (meta.speakers.length) metaRows.push(["Pembicara", meta.speakers.join(", ")]);
+  if (meta.speakers.length) metaRows.push([tr("Pembicara"), meta.speakers.join(", ")]);
 
   const children: (Paragraph | Table)[] = [];
   children.push(new Paragraph({ heading: HeadingLevel.TITLE, children: [new TextRun({ text: meta.title, bold: true })], spacing: { after: 200 } }));
@@ -42,7 +43,7 @@ export async function buildTranscriptDocx(meta: TranscriptMeta, paras: TPara[], 
   children.push(new Paragraph({ border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1", space: 1 } }, spacing: { after: 240 }, children: [] }));
 
   if (o.summary?.length) {
-    children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: "Ringkasan", bold: true })], spacing: { before: 120, after: 120 } }));
+    children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: tr("Ringkasan"), bold: true })], spacing: { before: 120, after: 120 } }));
     for (const s of o.summary) children.push(new Paragraph({ bullet: { level: 0 }, spacing: { after: 80 }, children: [new TextRun({ text: s, size: 22 })] }));
   }
   if (o.keywords?.length) {
@@ -50,12 +51,12 @@ export async function buildTranscriptDocx(meta: TranscriptMeta, paras: TPara[], 
       new Paragraph({
         spacing: { before: 160, after: 200 },
         shading: { type: ShadingType.CLEAR, fill: "F1F5F9", color: "auto" },
-        children: [new TextRun({ text: "Kata kunci: ", bold: true, size: 20 }), new TextRun({ text: o.keywords.join(" · "), size: 20, color: "334155" })],
+        children: [new TextRun({ text: tr("Kata kunci: "), bold: true, size: 20 }), new TextRun({ text: o.keywords.join(" · "), size: 20, color: "334155" })],
       })
     );
   }
 
-  children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: "Transkrip", bold: true })], spacing: { before: 240, after: 160 } }));
+  children.push(new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: tr("Transkrip"), bold: true })], spacing: { before: 240, after: 160 } }));
   for (const p of paras) {
     const runs: TextRun[] = [];
     if (o.timestamps) runs.push(new TextRun({ text: `[${fmtTime(p.start)}]  `, color: "94A3B8", size: 18, font: "Consolas" }));
@@ -65,9 +66,9 @@ export async function buildTranscriptDocx(meta: TranscriptMeta, paras: TPara[], 
   }
 
   const doc = new Document({
-    creator: "Gamato Piranti",
+    creator: tr("Gamato Piranti"),
     title: meta.title,
-    description: "Transkrip audio — Gamato Piranti",
+    description: tr("Transkrip audio — Gamato Piranti"),
     styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
     sections: [
       {
@@ -78,7 +79,7 @@ export async function buildTranscriptDocx(meta: TranscriptMeta, paras: TPara[], 
               new Paragraph({
                 alignment: AlignmentType.CENTER,
                 children: [
-                  new TextRun({ text: "Dibuat dengan Gamato Piranti · Halaman ", size: 16, color: "94A3B8" }),
+                  new TextRun({ text: tr("Dibuat dengan Gamato Piranti · Halaman "), size: 16, color: "94A3B8" }),
                   new TextRun({ children: [PageNumber.CURRENT], size: 16, color: "94A3B8" }),
                   new TextRun({ text: " / ", size: 16, color: "94A3B8" }),
                   new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, color: "94A3B8" }),
@@ -143,7 +144,7 @@ function wrapLines(text: string, font: PDFFont, size: number, maxWidth: number):
 export async function buildTranscriptPdf(meta: TranscriptMeta, paras: TPara[], o: ExportOptions): Promise<Blob> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(toWinAnsi(meta.title).text);
-  pdf.setCreator("Gamato Piranti");
+  pdf.setCreator(tr("Gamato Piranti"));
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const mono = await pdf.embedFont(StandardFonts.Courier);
@@ -166,8 +167,8 @@ export async function buildTranscriptPdf(meta: TranscriptMeta, paras: TPara[], o
     y -= 28;
   }
   y -= 6;
-  const metaLines: [string, string][] = [["Sumber", meta.sourceName], ["Durasi", fmtTime(meta.duration)], ["Bahasa", meta.language], ["Tanggal", dateText(meta)]];
-  if (meta.speakers.length) metaLines.push(["Pembicara", meta.speakers.join(", ")]);
+  const metaLines: [string, string][] = [[tr("Sumber"), meta.sourceName], [tr("Durasi"), fmtTime(meta.duration)], [tr("Bahasa"), meta.language], [tr("Tanggal"), dateText(meta)]];
+  if (meta.speakers.length) metaLines.push([tr("Pembicara"), meta.speakers.join(", ")]);
   for (const [k, v] of metaLines) {
     ensure(15);
     page.drawText(`${k}`, { x: M, y: y - 11, size: 10, font: bold, color: rgb(0.39, 0.45, 0.55) });
@@ -186,7 +187,7 @@ export async function buildTranscriptPdf(meta: TranscriptMeta, paras: TPara[], o
   };
 
   if (o.summary?.length) {
-    heading("Ringkasan");
+    heading(tr("Ringkasan"));
     for (const s of o.summary) {
       const ls = wrapLines(W(s), font, 10.5, maxW - 14);
       ensure(ls.length * 15 + 4);
@@ -197,13 +198,13 @@ export async function buildTranscriptPdf(meta: TranscriptMeta, paras: TPara[], o
     y -= 8;
   }
   if (o.keywords?.length) {
-    const ls = wrapLines(W(`Kata kunci: ${o.keywords.join(" · ").replace(/·/g, "|")}`), font, 10, maxW);
+    const ls = wrapLines(W(tr("Kata kunci: {0}", o.keywords.join(" · ").replace(/·/g, "|"))), font, 10, maxW);
     ensure(ls.length * 14 + 14);
     for (const l of ls) { page.drawText(l, { x: M, y: y - 10, size: 10, font, color: rgb(0.28, 0.33, 0.41) }); y -= 14; }
     y -= 14;
   }
 
-  heading("Transkrip");
+  heading(tr("Transkrip"));
   const palette = [rgb(0.11, 0.31, 0.85), rgb(0.74, 0.09, 0.36), rgb(0.02, 0.47, 0.34), rgb(0.7, 0.33, 0.04), rgb(0.43, 0.16, 0.85), rgb(0.05, 0.45, 0.52)];
   for (const p of paras) {
     const stamp = o.timestamps ? `[${fmtTime(p.start)}]` : "";

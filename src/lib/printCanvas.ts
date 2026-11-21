@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Prints a canvas via the browser's native print dialog. This is the reliable,
 // universally-compatible printing path: it works with ANY printer already
 // installed on the operating system — wired USB or Bluetooth-paired — because
@@ -9,11 +10,11 @@ export function printCanvasImage(canvas: HTMLCanvasElement, opts: { widthMm?: nu
   const dataUrl = canvas.toDataURL("image/png");
   const win = window.open("", "_blank", "width=420,height=640");
   if (!win) {
-    throw new Error("Popup diblokir browser. Izinkan popup untuk domain ini agar bisa mencetak.");
+    throw new Error(tr("Popup diblokir browser. Izinkan popup untuk domain ini agar bisa mencetak."));
   }
   const pageSize = opts.widthMm ? `${opts.widthMm}mm auto` : "auto";
   const imgWidth = opts.widthMm ? `${opts.widthMm}mm` : "100%";
-  const title = opts.title ?? "Cetak — Gamato Piranti";
+  const title = opts.title ?? tr("Cetak — Gamato Piranti");
 
   win.document.write(`<!DOCTYPE html>
 <html lang="id">
@@ -47,12 +48,12 @@ export function printCanvasPages(pages: HTMLCanvasElement[], opts: { title?: str
   if (!pages.length) return;
   const win = window.open("", "_blank", "width=480,height=680");
   if (!win) {
-    throw new Error("Popup diblokir browser. Izinkan popup untuk domain ini agar bisa mencetak.");
+    throw new Error(tr("Popup diblokir browser. Izinkan popup untuk domain ini agar bisa mencetak."));
   }
-  const title = opts.title ?? "Cetak — Gamato Piranti";
+  const title = opts.title ?? tr("Cetak — Gamato Piranti");
   const pageSize = opts.pageSizeMm ? `${opts.pageSizeMm.w}mm ${opts.pageSizeMm.h}mm` : "A4";
   const imgs = pages
-    .map((p, i) => `<img src="${p.toDataURL("image/png")}" alt="${title} — Halaman ${i + 1}" />`)
+    .map((p, i) => tr("<img src=\"{0}\" alt=\"{1} — Halaman {2}\" />", p.toDataURL("image/png"), title, i + 1))
     .join("\n");
 
   win.document.write(`<!DOCTYPE html>

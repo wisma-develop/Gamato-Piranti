@@ -13,14 +13,15 @@
 // menyampaikannya apa adanya kepada pengguna (catatan di UI), bukan menyembunyikannya.
 
 import type { ExportFormat } from "@/lib/videoEngine";
+import { tr } from "@/i18n";
 
 export type VideoContainer = "mp4" | "mov" | "webm";
 export type VideoContainerChoice = VideoContainer | "asli";
 
 export const CONTAINER_META: Record<VideoContainer, { label: string; ext: string; mime: string; title: string; hint: string }> = {
-  mp4: { label: "MP4", ext: "mp4", mime: "video/mp4", title: "MP4 (universal)", hint: "Diputar di hampir semua perangkat, WhatsApp, YouTube, Instagram, TV." },
-  mov: { label: "MOV", ext: "mov", mime: "video/quicktime", title: "MOV (QuickTime)", hint: "Format Apple — ideal untuk iPhone/Mac dan editor video (Final Cut, Premiere)." },
-  webm: { label: "WebM", ext: "webm", mime: "video/webm", title: "WebM", hint: "Ringan untuk web/Chrome/Firefox. Tidak didukung semua perangkat Apple lama." },
+  mp4: { label: tr("MP4"), ext: "mp4", mime: "video/mp4", title: tr("MP4 (universal)"), hint: tr("Diputar di hampir semua perangkat, WhatsApp, YouTube, Instagram, TV.") },
+  mov: { label: tr("MOV"), ext: "mov", mime: "video/quicktime", title: tr("MOV (QuickTime)"), hint: tr("Format Apple — ideal untuk iPhone/Mac dan editor video (Final Cut, Premiere).") },
+  webm: { label: tr("WebM"), ext: "webm", mime: "video/webm", title: tr("WebM"), hint: tr("Ringan untuk web/Chrome/Firefox. Tidak didukung semua perangkat Apple lama.") },
 };
 
 const STORE_KEY = "gamato.video.container";
@@ -106,8 +107,8 @@ export async function probeContainer(target: VideoContainer, width = 1280, heigh
   const universal = video === "avc" && audio === "aac";
   const names: Record<string, string> = { avc: "H.264", vp9: "VP9", vp8: "VP8", av1: "AV1", aac: "AAC", opus: "Opus", vorbis: "Vorbis" };
   const summary = !video
-    ? "Browser ini tidak punya encoder video yang bisa dipakai."
-    : `${names[video] ?? video}${audio ? ` + ${names[audio] ?? audio}` : ""}${universal ? " — universal" : ""}`;
+    ? tr("Browser ini tidak punya encoder video yang bisa dipakai.")
+    : `${names[video] ?? video}${audio ? ` + ${names[audio] ?? audio}` : ""}${universal ? tr(" — universal") : ""}`;
   return { video, audio, universal, summary };
 }
 
@@ -116,10 +117,10 @@ function describeFallback(target: VideoContainer, cap: { video: string | null; a
   const parts: string[] = [];
   if (cap.video && cap.video !== "avc") {
     parts.push(
-      `Browser ini tidak punya encoder H.264, jadi ${CONTAINER_META[target].label} berisi video ${cap.video.toUpperCase()}. Aman diputar di Chrome, Edge, Firefox, Android, VLC, dan Safari/Mac terbaru; pemutar lama (mis. Windows Media Player lama) mungkin tidak bisa. Untuk H.264 penuh, ekspor dari Chrome/Edge/Safari versi desktop.`
+      tr("Browser ini tidak punya encoder H.264, jadi {0} berisi video {1}. Aman diputar di Chrome, Edge, Firefox, Android, VLC, dan Safari/Mac terbaru; pemutar lama (mis. Windows Media Player lama) mungkin tidak bisa. Untuk H.264 penuh, ekspor dari Chrome/Edge/Safari versi desktop.", CONTAINER_META[target].label, cap.video.toUpperCase())
     );
   }
-  if (cap.audio && cap.audio !== "aac") parts.push(`Audio memakai ${cap.audio === "opus" ? "Opus" : cap.audio.toUpperCase()}.`);
+  if (cap.audio && cap.audio !== "aac") parts.push(tr("Audio memakai {0}.", cap.audio === "opus" ? "Opus" : cap.audio.toUpperCase()));
   return parts.length ? parts.join(" ") : undefined;
 }
 
@@ -135,7 +136,7 @@ export async function convertVideoBlob(source: Blob, target: VideoContainer, opt
     const h = opts.height || vt?.displayHeight || 720;
 
     const videoCodec = await mb.getFirstEncodableVideoCodec(VIDEO_PREF[target] as any, { width: w, height: h });
-    if (vt && !videoCodec) throw new Error("Browser ini tidak memiliki encoder video yang dibutuhkan (H.264/VP9). Coba Chrome, Edge, atau Safari terbaru di desktop.");
+    if (vt && !videoCodec) throw new Error(tr("Browser ini tidak memiliki encoder video yang dibutuhkan (H.264/VP9). Coba Chrome, Edge, atau Safari terbaru di desktop."));
 
     let audioCodec: string | null;
     if (target === "webm") audioCodec = await mb.getFirstEncodableAudioCodec(AUDIO_PREF[target] as any);
@@ -191,12 +192,12 @@ export async function convertVideoBlob(source: Blob, target: VideoContainer, opt
     });
     if (!conversion.isValid) {
       const why = conversion.discardedTracks.map((t) => t.reason).join(", ");
-      throw new Error(`Konversi tidak dapat dilakukan (${why || "track tidak didukung"}).`);
+      throw new Error(tr("Konversi tidak dapat dilakukan ({0}).", why || tr("track tidak didukung")));
     }
     if (opts.onProgress) conversion.onProgress = (p: number) => opts.onProgress!(Math.min(1, Math.max(0, p)));
     await conversion.execute();
     const buffer = output.target.buffer;
-    if (!buffer || !buffer.byteLength) throw new Error("Hasil konversi kosong.");
+    if (!buffer || !buffer.byteLength) throw new Error(tr("Hasil konversi kosong."));
     const meta = CONTAINER_META[target];
     return {
       blob: new Blob([buffer], { type: meta.mime }),
@@ -228,12 +229,12 @@ export async function finalizeVideoExport(
   try {
     return await convertVideoBlob(blob, choice, { ...extra, onProgress });
   } catch (err: any) {
-    const reason = err?.message || "kesalahan tidak diketahui";
+    const reason = err?.message || tr("kesalahan tidak diketahui");
     return {
       blob,
       fmt: recorded,
       converted: false,
-      note: `Pengemasan ke ${CONTAINER_META[choice].label} gagal di browser ini (${reason}). Hasil disimpan dalam format .${recorded.ext} (isinya tetap benar dan bisa diputar di Chrome/Firefox/VLC).`,
+      note: tr("Pengemasan ke {0} gagal di browser ini ({1}). Hasil disimpan dalam format .{2} (isinya tetap benar dan bisa diputar di Chrome/Firefox/VLC).", CONTAINER_META[choice].label, reason, recorded.ext),
     };
   }
 }

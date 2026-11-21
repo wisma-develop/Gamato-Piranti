@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Safe arithmetic expression evaluator — tokenizer + recursive-descent parser.
 // Deliberately avoids eval()/new Function() so arbitrary user input can never
 // execute as JavaScript. Supports + - * / % ^ (), unary +/-, named variables,
@@ -92,7 +93,7 @@ function tokenize(expr: string): Token[] {
       i++;
       continue;
     }
-    throw new Error(`Karakter tidak dikenali: "${ch}"`);
+    throw new Error(tr("Karakter tidak dikenali: \"{0}\"", ch));
   }
   return tokens;
 }
@@ -129,7 +130,7 @@ class Parser {
       const right = this.parsePow();
       if (op === "*") left = left * right;
       else if (op === "/") {
-        if (right === 0) throw new Error("Pembagian dengan nol.");
+        if (right === 0) throw new Error(tr("Pembagian dengan nol."));
         left = left / right;
       } else {
         left = left % right;
@@ -159,7 +160,7 @@ class Parser {
 
   private parsePrimary(): number {
     const tok = this.peek();
-    if (!tok) throw new Error("Rumus tidak lengkap.");
+    if (!tok) throw new Error(tr("Rumus tidak lengkap."));
 
     if (tok.type === "num") {
       this.next();
@@ -169,7 +170,7 @@ class Parser {
     if (tok.type === "lparen") {
       this.next();
       const val = this.parseExpression();
-      if (this.peek()?.type !== "rparen") throw new Error("Kurung tidak seimbang.");
+      if (this.peek()?.type !== "rparen") throw new Error(tr("Kurung tidak seimbang."));
       this.next();
       return val;
     }
@@ -189,19 +190,19 @@ class Parser {
             args.push(this.parseExpression());
           }
         }
-        if (this.peek()?.type !== "rparen") throw new Error("Kurung fungsi tidak seimbang.");
+        if (this.peek()?.type !== "rparen") throw new Error(tr("Kurung fungsi tidak seimbang."));
         this.next();
         const fn = FUNCTIONS[lower];
-        if (!fn) throw new Error(`Fungsi "${name}" tidak dikenali.`);
+        if (!fn) throw new Error(tr("Fungsi \"{0}\" tidak dikenali.", name));
         return fn(...args);
       }
 
       if (lower in CONSTANTS) return CONSTANTS[lower];
       if (name in this.vars) return this.vars[name];
-      throw new Error(`Variabel "${name}" belum diisi.`);
+      throw new Error(tr("Variabel \"{0}\" belum diisi.", name));
     }
 
-    throw new Error("Rumus tidak valid.");
+    throw new Error(tr("Rumus tidak valid."));
   }
 
   get position() {
@@ -215,12 +216,12 @@ class Parser {
 /** Evaluates an arithmetic expression string with the given variable values. Throws on invalid syntax. */
 export function evaluateFormula(expr: string, vars: Record<string, number> = {}): number {
   const trimmed = (expr || "").trim();
-  if (!trimmed) throw new Error("Rumus kosong.");
+  if (!trimmed) throw new Error(tr("Rumus kosong."));
   const tokens = tokenize(trimmed);
-  if (!tokens.length) throw new Error("Rumus kosong.");
+  if (!tokens.length) throw new Error(tr("Rumus kosong."));
   const parser = new Parser(tokens, vars);
   const result = parser.parseExpression();
-  if (parser.position < parser.length) throw new Error("Rumus tidak valid (karakter berlebih).");
-  if (!isFinite(result)) throw new Error("Hasil tidak valid (kemungkinan pembagian dengan nol atau overflow).");
+  if (parser.position < parser.length) throw new Error(tr("Rumus tidak valid (karakter berlebih)."));
+  if (!isFinite(result)) throw new Error(tr("Hasil tidak valid (kemungkinan pembagian dengan nol atau overflow)."));
   return result;
 }

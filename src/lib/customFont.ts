@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Loads a user-uploaded font file (.ttf/.otf/.woff/.woff2) into the page via
 // the CSS Font Loading API so it can be used as a normal `font-family` value
 // on <canvas> text — exactly like any of the built-in preset fonts.
@@ -28,14 +29,14 @@ export function isSupportedFontFile(file: File): boolean {
  */
 export async function loadCustomFont(file: File): Promise<CustomFontEntry> {
   if (!isSupportedFontFile(file)) {
-    throw new Error("Format font tidak didukung. Gunakan file .ttf, .otf, .woff, atau .woff2.");
+    throw new Error(tr("Format font tidak didukung. Gunakan file .ttf, .otf, .woff, atau .woff2."));
   }
   if (file.size > MAX_FONT_BYTES) {
-    throw new Error("Ukuran file font terlalu besar (maksimal 8MB).");
+    throw new Error(tr("Ukuran file font terlalu besar (maksimal 8MB)."));
   }
 
   customFontCounter += 1;
-  const family = `gp-custom-font-${Date.now().toString(36)}-${customFontCounter}`;
+  const family = tr("gp-custom-font-{0}-{1}", Date.now().toString(36), customFontCounter);
 
   const buffer = await file.arrayBuffer();
   let fontFace: FontFace;
@@ -43,7 +44,7 @@ export async function loadCustomFont(file: File): Promise<CustomFontEntry> {
     fontFace = new FontFace(family, buffer);
     await fontFace.load();
   } catch {
-    throw new Error(`Gagal memuat font "${file.name}". Pastikan file tidak rusak.`);
+    throw new Error(tr("Gagal memuat font \"{0}\". Pastikan file tidak rusak.", file.name));
   }
 
   document.fonts.add(fontFace);

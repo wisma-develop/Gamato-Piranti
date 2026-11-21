@@ -8,6 +8,7 @@ import { slugFile } from "@/lib/couponCodes";
 import { renderLetter, type LetterAssets } from "@/lib/letterEngine";
 import { letterToDocx } from "@/lib/letterDocx";
 import { buildVars, paperSpec, type LetterDoc, type TemplateField } from "@/lib/letterTypes";
+import { tr } from "@/i18n";
 
 const MM_TO_PT = 72 / 25.4;
 const tick = () => new Promise<void>((r) => setTimeout(r, 0));
@@ -33,7 +34,7 @@ async function appendPages(pdf: PDFDocument, pages: HTMLCanvasElement[], doc: Le
   }
 }
 
-export async function pagesToPdf(pages: HTMLCanvasElement[], doc: LetterDoc, title = "Surat — Gamato Piranti"): Promise<Blob> {
+export async function pagesToPdf(pages: HTMLCanvasElement[], doc: LetterDoc, title = tr("Surat — Gamato Piranti")): Promise<Blob> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(title);
   await appendPages(pdf, pages, doc);
@@ -65,7 +66,7 @@ function renderRow(o: LetterBulkOptions, row: Record<string, string>, i: number)
 /** Semua surat digabung dalam satu PDF (urut sesuai baris). */
 export async function exportMergedPdf(o: LetterBulkOptions, rows: Record<string, string>[]): Promise<Blob> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle("Surat Massal — Gamato Piranti");
+  pdf.setTitle(tr("Surat Massal — Gamato Piranti"));
   for (let i = 0; i < rows.length; i++) {
     if (o.signal?.cancelled) throw new BulkCancelled();
     const { pages } = renderRow(o, rows[i], i);

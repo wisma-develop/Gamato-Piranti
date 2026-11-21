@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Lightweight, dependency-free browser video editing engine.
 //
 // Deliberate architecture choice: this uses native <video> + <canvas> +
@@ -31,7 +32,7 @@ export function loadVideoMeta(file: File): Promise<VideoMeta> {
     };
     v.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Gagal membaca file video. Pastikan formatnya didukung (MP4, WebM, atau MOV)."));
+      reject(new Error(tr("Gagal membaca file video. Pastikan formatnya didukung (MP4, WebM, atau MOV).")));
     };
     v.src = url;
   });
@@ -48,10 +49,10 @@ export function formatTime(sec: number): string {
 export type ExportFormat = { mimeType: string; ext: string; label: string };
 
 const CANDIDATE_FORMATS: ExportFormat[] = [
-  { mimeType: "video/mp4;codecs=h264", ext: "mp4", label: "MP4" },
-  { mimeType: "video/webm;codecs=vp9,opus", ext: "webm", label: "WebM (VP9)" },
-  { mimeType: "video/webm;codecs=vp8,opus", ext: "webm", label: "WebM (VP8)" },
-  { mimeType: "video/webm", ext: "webm", label: "WebM" },
+  { mimeType: "video/mp4;codecs=h264", ext: "mp4", label: tr("MP4") },
+  { mimeType: "video/webm;codecs=vp9,opus", ext: "webm", label: tr("WebM (VP9)") },
+  { mimeType: "video/webm;codecs=vp8,opus", ext: "webm", label: tr("WebM (VP8)") },
+  { mimeType: "video/webm", ext: "webm", label: tr("WebM") },
 ];
 
 export function getSupportedExportFormats(): ExportFormat[] {
@@ -115,7 +116,7 @@ function startRecording(canvas: HTMLCanvasElement, audioStream: MediaStream | nu
 
   const result = new Promise<Blob>((resolve, reject) => {
     recorder.onstop = () => resolve(new Blob(chunks, { type: format.mimeType.split(";")[0] }));
-    recorder.onerror = (e: any) => reject(new Error(e?.error?.message || "Perekaman video gagal."));
+    recorder.onerror = (e: any) => reject(new Error(e?.error?.message || tr("Perekaman video gagal.")));
   });
 
   recorder.start(250);
@@ -191,25 +192,25 @@ export async function exportSegmentedVideo(opts: {
   monitorAudio?: boolean;
 }): Promise<Blob> {
   const { sourceUrl, segments, outputWidth, outputHeight, fps = 30, drawFrame, includeAudio = true, onProgress, signal } = opts;
-  if (!segments.length) throw new Error("Tidak ada bagian video yang dipilih.");
+  if (!segments.length) throw new Error(tr("Tidak ada bagian video yang dipilih."));
   if (!isVideoExportSupported()) {
-    throw new Error("Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Coba Chrome, Edge, atau Firefox versi terbaru.");
+    throw new Error(tr("Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Coba Chrome, Edge, atau Firefox versi terbaru."));
   }
   const format = opts.format ?? getBestExportFormat();
-  if (!format) throw new Error("Browser ini tidak mendukung format ekspor video apa pun.");
+  if (!format) throw new Error(tr("Browser ini tidak mendukung format ekspor video apa pun."));
 
   const video = createOffscreenVideo(sourceUrl);
   video.muted = !includeAudio;
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
-    video.onerror = () => reject(new Error("Gagal memuat video untuk diekspor."));
+    video.onerror = () => reject(new Error(tr("Gagal memuat video untuk diekspor.")));
   });
 
   const canvas = document.createElement("canvas");
   canvas.width = outputWidth;
   canvas.height = outputHeight;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
 
   let audioCtx: AudioContext | null = null;
   let audioStream: MediaStream | null = null;
@@ -261,9 +262,9 @@ export async function exportSegmentedVideo(opts: {
 }
 
 const AUDIO_CANDIDATE_FORMATS: ExportFormat[] = [
-  { mimeType: "audio/webm;codecs=opus", ext: "webm", label: "WebM Audio (Opus)" },
-  { mimeType: "audio/ogg;codecs=opus", ext: "ogg", label: "OGG Audio (Opus)" },
-  { mimeType: "audio/webm", ext: "webm", label: "WebM Audio" },
+  { mimeType: "audio/webm;codecs=opus", ext: "webm", label: tr("WebM Audio (Opus)") },
+  { mimeType: "audio/ogg;codecs=opus", ext: "ogg", label: tr("OGG Audio (Opus)") },
+  { mimeType: "audio/webm", ext: "webm", label: tr("WebM Audio") },
 ];
 
 export function getSupportedAudioFormats(): ExportFormat[] {
@@ -290,13 +291,13 @@ export async function extractAudioFromVideo(opts: {
 }): Promise<Blob> {
   const { sourceUrl, start, end, onProgress } = opts;
   const format = getBestAudioFormat();
-  if (!format) throw new Error("Browser ini tidak mendukung ekstraksi audio (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru.");
+  if (!format) throw new Error(tr("Browser ini tidak mendukung ekstraksi audio (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru."));
 
   const video = createOffscreenVideo(sourceUrl);
   video.muted = false;
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
-    video.onerror = () => reject(new Error("Gagal memuat video untuk diekstrak audionya."));
+    video.onerror = () => reject(new Error(tr("Gagal memuat video untuk diekstrak audionya.")));
   });
 
   const audioCtx = newAudioContext();
@@ -310,7 +311,7 @@ export async function extractAudioFromVideo(opts: {
   };
   const resultPromise = new Promise<Blob>((resolve, reject) => {
     recorder.onstop = () => resolve(new Blob(chunks, { type: format.mimeType.split(";")[0] }));
-    recorder.onerror = (e: any) => reject(new Error(e?.error?.message || "Ekstraksi audio gagal."));
+    recorder.onerror = (e: any) => reject(new Error(e?.error?.message || tr("Ekstraksi audio gagal.")));
   });
 
   recorder.start(250);
@@ -341,7 +342,7 @@ export async function captureVideoFrame(sourceUrl: string, atTime: number): Prom
   video.muted = true;
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
-    video.onerror = () => reject(new Error("Gagal memuat video untuk mengambil thumbnail."));
+    video.onerror = () => reject(new Error(tr("Gagal memuat video untuk mengambil thumbnail.")));
   });
   await waitSeeked(video, atTime);
 
@@ -349,13 +350,13 @@ export async function captureVideoFrame(sourceUrl: string, atTime: number): Prom
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-      else reject(new Error("Gagal membuat gambar dari video."));
+      else reject(new Error(tr("Gagal membuat gambar dari video.")));
     }, "image/png");
   });
 }
@@ -390,7 +391,7 @@ export async function sampleVideoFrames(opts: {
   video.muted = true;
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
-    video.onerror = () => reject(new Error("Gagal memuat video untuk diambil frame-nya."));
+    video.onerror = () => reject(new Error(tr("Gagal memuat video untuk diambil frame-nya.")));
   });
 
   const srcW = video.videoWidth || 1;
@@ -403,7 +404,7 @@ export async function sampleVideoFrames(opts: {
   canvas.width = outW;
   canvas.height = outH;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
 
   const clampedEnd = Math.min(end, video.duration || end);
   const duration = Math.max(0, clampedEnd - start);
@@ -436,18 +437,18 @@ export async function exportMergedVideo(opts: {
 }): Promise<Blob> {
   const { clips, transition, outputWidth, outputHeight, fps = 30, includeAudio = true, onProgress } = opts;
   const transitionDuration = Math.max(0.05, opts.transitionDuration);
-  if (!clips.length) throw new Error("Tidak ada klip untuk digabung.");
+  if (!clips.length) throw new Error(tr("Tidak ada klip untuk digabung."));
   if (!isVideoExportSupported()) {
-    throw new Error("Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Coba Chrome, Edge, atau Firefox versi terbaru.");
+    throw new Error(tr("Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Coba Chrome, Edge, atau Firefox versi terbaru."));
   }
   const format = getBestExportFormat();
-  if (!format) throw new Error("Browser ini tidak mendukung format ekspor video apa pun.");
+  if (!format) throw new Error(tr("Browser ini tidak mendukung format ekspor video apa pun."));
 
   const canvas = document.createElement("canvas");
   canvas.width = outputWidth;
   canvas.height = outputHeight;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak didukung di browser ini.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak didukung di browser ini."));
 
   let audioCtx: AudioContext | null = null;
   let sharedDest: MediaStreamAudioDestinationNode | null = null;
@@ -468,7 +469,7 @@ export async function exportMergedVideo(opts: {
     v.muted = !includeAudio;
     await new Promise<void>((resolve, reject) => {
       v.onloadedmetadata = () => resolve();
-      v.onerror = () => reject(new Error("Gagal memuat salah satu klip."));
+      v.onerror = () => reject(new Error(tr("Gagal memuat salah satu klip.")));
     });
     if (includeAudio && audioCtx && sharedDest) {
       try {

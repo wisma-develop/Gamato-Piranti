@@ -1,4 +1,5 @@
 import { copyText } from "@/lib/permissions";
+import { LOCALE } from "@/i18n";
 // Shared helpers for the Rak Utilitas tools (password/token generator, currency, clipboard)
 export function cryptoRandomInt(max: number): number {
   const buf = new Uint32Array(1);
@@ -11,7 +12,7 @@ export function cryptoRandomInt(max: number): number {
 }
 
 export function formatIDR(n: number): string {
-  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(n);
+  return new Intl.NumberFormat(LOCALE, { style: "currency", currency: "IDR", currencyDisplay: "narrowSymbol" }).format(n);
 }
 
 /** Salin teks — Clipboard API dengan fallback execCommand (lihat lib/permissions). */

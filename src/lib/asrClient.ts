@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Client for the Whisper worker. Exposes a tiny session API and a test hook:
 // set `window.__GP_ASR_MOCK__ = true` before load to use a deterministic fake
 // engine (used by the automated UI tests; no model download needed).
@@ -10,32 +11,32 @@ export interface AsrModelDef {
 }
 
 export const ASR_MODELS: AsrModelDef[] = [
-  { id: "Xenova/whisper-tiny", label: "Tiny", size: "≈ 40 MB", note: "Paling cepat, akurasi dasar — cocok untuk draf cepat." },
-  { id: "Xenova/whisper-base", label: "Base", size: "≈ 80 MB", note: "Seimbang antara kecepatan dan akurasi." },
-  { id: "Xenova/whisper-small", label: "Small", size: "≈ 250 MB", note: "Paling akurat (lebih lambat) — disarankan untuk bahasa Indonesia." },
+  { id: "Xenova/whisper-tiny", label: tr("Tiny"), size: "≈ 40 MB", note: tr("Paling cepat, akurasi dasar — cocok untuk draf cepat.") },
+  { id: "Xenova/whisper-base", label: tr("Base"), size: "≈ 80 MB", note: tr("Seimbang antara kecepatan dan akurasi.") },
+  { id: "Xenova/whisper-small", label: tr("Small"), size: "≈ 250 MB", note: tr("Paling akurat (lebih lambat) — disarankan untuk bahasa Indonesia.") },
 ];
 
 export const ASR_LANGUAGES: { id: string; label: string }[] = [
-  { id: "auto", label: "Deteksi otomatis" },
-  { id: "id", label: "Indonesia" },
-  { id: "en", label: "Inggris" },
-  { id: "ms", label: "Melayu" },
-  { id: "jw", label: "Jawa" },
-  { id: "su", label: "Sunda" },
-  { id: "ar", label: "Arab" },
-  { id: "zh", label: "Mandarin" },
-  { id: "ja", label: "Jepang" },
-  { id: "ko", label: "Korea" },
-  { id: "hi", label: "Hindi" },
-  { id: "es", label: "Spanyol" },
-  { id: "fr", label: "Prancis" },
-  { id: "de", label: "Jerman" },
-  { id: "nl", label: "Belanda" },
-  { id: "pt", label: "Portugis" },
-  { id: "ru", label: "Rusia" },
-  { id: "tr", label: "Turki" },
-  { id: "th", label: "Thai" },
-  { id: "vi", label: "Vietnam" },
+  { id: "auto", label: tr("Deteksi otomatis") },
+  { id: "id", label: tr("Indonesia") },
+  { id: "en", label: tr("Inggris") },
+  { id: "ms", label: tr("Melayu") },
+  { id: "jw", label: tr("Jawa") },
+  { id: "su", label: tr("Sunda") },
+  { id: "ar", label: tr("Arab") },
+  { id: "zh", label: tr("Mandarin") },
+  { id: "ja", label: tr("Jepang") },
+  { id: "ko", label: tr("Korea") },
+  { id: "hi", label: tr("Hindi") },
+  { id: "es", label: tr("Spanyol") },
+  { id: "fr", label: tr("Prancis") },
+  { id: "de", label: tr("Jerman") },
+  { id: "nl", label: tr("Belanda") },
+  { id: "pt", label: tr("Portugis") },
+  { id: "ru", label: tr("Rusia") },
+  { id: "tr", label: tr("Turki") },
+  { id: "th", label: tr("Thai") },
+  { id: "vi", label: tr("Vietnam") },
 ];
 
 export interface AsrChunkResult {
@@ -50,14 +51,14 @@ export interface AsrSession {
 export type AsrStatus = { stage: "download"; pct: number; file: string } | { stage: "loading" } | { stage: "ready" };
 
 const MOCK_LINES = [
-  "eh selamat pagi semuanya terima kasih sudah hadir pada rapat hari ini",
-  "baik ehm kita mulai dengan laporan penjualan kuartal ketiga",
-  "penjualan naik dua belas persen dibanding kuartal sebelumnya",
-  "hmm tim pemasaran berhasil menambah pelanggan baru lewat kampanye digital",
-  "selanjutnya kita bahas rencana anggaran untuk kuartal keempat",
-  "anggaran pemasaran akan dinaikkan karena kampanye digital terbukti efektif",
-  "ada pertanyaan sebelum kita lanjut ke agenda berikutnya",
-  "tidak ada ya baik terima kasih semuanya",
+  tr("eh selamat pagi semuanya terima kasih sudah hadir pada rapat hari ini"),
+  tr("baik ehm kita mulai dengan laporan penjualan kuartal ketiga"),
+  tr("penjualan naik dua belas persen dibanding kuartal sebelumnya"),
+  tr("hmm tim pemasaran berhasil menambah pelanggan baru lewat kampanye digital"),
+  tr("selanjutnya kita bahas rencana anggaran untuk kuartal keempat"),
+  tr("anggaran pemasaran akan dinaikkan karena kampanye digital terbukti efektif"),
+  tr("ada pertanyaan sebelum kita lanjut ke agenda berikutnya"),
+  tr("tidak ada ya baik terima kasih semuanya"),
 ];
 
 function createMockSession(onStatus: (s: AsrStatus) => void): AsrSession {
@@ -91,7 +92,7 @@ export async function createAsrSession(model: string, onStatus: (s: AsrStatus) =
   const files = new Map<string, { loaded: number; total: number }>();
 
   await new Promise<void>((resolve, reject) => {
-    worker.onerror = (ev) => reject(new Error(ev.message || "Worker gagal dimulai."));
+    worker.onerror = (ev) => reject(new Error(ev.message || tr("Worker gagal dimulai.")));
     worker.onmessage = (ev: MessageEvent) => {
       const m = ev.data;
       if (m.type === "download") {
@@ -112,7 +113,7 @@ export async function createAsrSession(model: string, onStatus: (s: AsrStatus) =
 
   // after init: route results
   worker.onerror = (ev) => {
-    pending.forEach((p) => p.reject(new Error(ev.message || "Worker error")));
+    pending.forEach((p) => p.reject(new Error(ev.message || tr("Worker error"))));
     pending.clear();
   };
   worker.onmessage = (ev: MessageEvent) => {

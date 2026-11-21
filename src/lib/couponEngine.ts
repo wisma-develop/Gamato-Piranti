@@ -9,6 +9,7 @@ import { roundRect, drawLogoFit } from "@/lib/businessDocCanvas";
 import { formatDateID } from "@/lib/dateFormat";
 import { applyTokens, barcodeCompatible, type CouponRecord } from "@/lib/couponCodes";
 import { COUPON_PX_PER_MM, resolveCouponSizeMM, type CouponDesign, type LayoutMode } from "@/lib/couponTypes";
+import { tr } from "@/i18n";
 
 export interface CouponAssets {
   logo: HTMLImageElement | null;
@@ -1025,5 +1026,5 @@ export function renderCoupon(canvas: HTMLCanvasElement, d: CouponDesign, rec: Co
 
 /** Isi contoh (untuk thumbnail template & pratinjau awal). */
 export function sampleRecord(): CouponRecord {
-  return { no: 1, code: "GMT-7K2Q-X9PD", fields: { nama: "Budi Santoso", kursi: "A-12", zona: "VIP", kategori: "VIP" } };
+  return { no: 1, code: "GMT-7K2Q-X9PD", fields: { nama: tr("Budi Santoso"), name: tr("Budi Santoso"), kursi: "A-12", seat: "A-12", zona: "VIP", zone: "VIP", kategori: "VIP", category: "VIP" } };
 }

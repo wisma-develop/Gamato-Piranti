@@ -28,6 +28,7 @@ import {
   type LangItem,
   type PhotoShape,
 } from "@/lib/cvTypes";
+import { tr } from "@/i18n";
 
 export const CV_PAGE_W = 1240;
 export const CV_PAGE_H = 1754;
@@ -496,7 +497,7 @@ function drawSkillListBlock(
   if (rest > 0) {
     ctx.font = `500 10.5px ${FONT}`;
     ctx.fillStyle = rgba(labelColor === "#ffffff" ? "#ffffff" : "#64748b", 0.75);
-    ctx.fillText(`+${rest} keahlian lainnya`, x, cy);
+    ctx.fillText(tr("+{0} keahlian lainnya", rest), x, cy);
     cy += 16;
   }
   return cy;
@@ -795,7 +796,7 @@ function plainContinuationHeader(data: CvData, accent: string) {
     ctx.textAlign = "left";
     ctx.font = `700 13px ${FONT}`;
     ctx.fillStyle = "#94a3b8";
-    ctx.fillText(`${data.fullName || "CV"} — Lanjutan (Halaman ${pageNumber})`, MARGIN, MARGIN - 20);
+    ctx.fillText(tr("{0} — Lanjutan (Halaman {1})", data.fullName || "CV", pageNumber), MARGIN, MARGIN - 20);
     ctx.strokeStyle = accent;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -859,7 +860,7 @@ function buildSidebarPages(data: CvData, photo: HTMLImageElement | null, mirrore
   ctx.textAlign = "center";
   ctx.font = `700 21px ${FONT}`;
   ctx.fillStyle = "#ffffff";
-  const nameLines = wrapText(ctx, data.fullName || "Nama Lengkap", innerW);
+  const nameLines = wrapText(ctx, data.fullName || tr("Nama Lengkap"), innerW);
   nameLines.slice(0, 2).forEach((ln) => {
     ctx.fillText(ln, sideX + sideW / 2, y);
     y += 25;
@@ -867,7 +868,7 @@ function buildSidebarPages(data: CvData, photo: HTMLImageElement | null, mirrore
   ctx.font = `500 13px ${FONT}`;
   ctx.fillStyle = "rgba(255,255,255,0.85)";
   y += 2;
-  drawWrappedText(ctx, data.jobTitle || "Profesi", sideX + sideW / 2, y, innerW, 17, 2);
+  drawWrappedText(ctx, data.jobTitle || tr("Profesi"), sideX + sideW / 2, y, innerW, 17, 2);
   y += 46;
 
   const divider = () => {
@@ -881,7 +882,7 @@ function buildSidebarPages(data: CvData, photo: HTMLImageElement | null, mirrore
 
   divider();
   y += 30;
-  asideLabel(ctx, "Kontak", padX, y, "rgba(255,255,255,0.65)");
+  asideLabel(ctx, tr("Kontak"), padX, y, "rgba(255,255,255,0.65)");
   y += 22;
   for (const line of headerItems(data)) {
     ctx.font = `400 12px ${FONT}`;
@@ -940,10 +941,10 @@ function buildBandPages(data: CvData, photo: HTMLImageElement | null): HTMLCanva
   ctx.textAlign = "left";
   ctx.font = `700 30px ${FONT}`;
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(truncateText(ctx, data.fullName || "Nama Lengkap", textW), textX, bandH / 2 - 18);
+  ctx.fillText(truncateText(ctx, data.fullName || tr("Nama Lengkap"), textW), textX, bandH / 2 - 18);
   ctx.font = `500 16px ${FONT}`;
   ctx.fillStyle = "rgba(255,255,255,0.88)";
-  ctx.fillText(truncateText(ctx, data.jobTitle || "Profesi", textW), textX, bandH / 2 + 10);
+  ctx.fillText(truncateText(ctx, data.jobTitle || tr("Profesi"), textW), textX, bandH / 2 + 10);
   ctx.font = `400 12.5px ${FONT}`;
   ctx.fillStyle = "rgba(255,255,255,0.78)";
   wrapItemsRow(ctx, headerItems(data), "   •   ", textW).slice(0, 2).forEach((ln, i) => ctx.fillText(ln, textX, bandH / 2 + 36 + i * 18));
@@ -984,11 +985,11 @@ function buildMinimalPages(data: CvData): HTMLCanvasElement[] {
   ctx.textAlign = "left";
   ctx.font = `700 30px ${FONT}`;
   ctx.fillStyle = "#0f172a";
-  ctx.fillText(truncateText(ctx, data.fullName || "Nama Lengkap", colW), colX, y);
+  ctx.fillText(truncateText(ctx, data.fullName || tr("Nama Lengkap"), colW), colX, y);
   y += 28;
   ctx.font = `600 15px ${FONT}`;
   ctx.fillStyle = accent;
-  ctx.fillText(truncateText(ctx, data.jobTitle || "Profesi", colW), colX, y);
+  ctx.fillText(truncateText(ctx, data.jobTitle || tr("Profesi"), colW), colX, y);
   y += 26;
   ctx.font = `400 12.5px ${FONT}`;
   ctx.fillStyle = "#64748b";
@@ -1021,11 +1022,11 @@ function buildTimelinePages(data: CvData): HTMLCanvasElement[] {
   ctx.textAlign = "left";
   ctx.font = `700 28px ${FONT}`;
   ctx.fillStyle = "#0f172a";
-  ctx.fillText(truncateText(ctx, data.fullName || "Nama Lengkap", outerW), outerX, y);
+  ctx.fillText(truncateText(ctx, data.fullName || tr("Nama Lengkap"), outerW), outerX, y);
   y += 26;
   ctx.font = `600 14px ${FONT}`;
   ctx.fillStyle = accent;
-  ctx.fillText(truncateText(ctx, data.jobTitle || "Profesi", outerW), outerX, y);
+  ctx.fillText(truncateText(ctx, data.jobTitle || tr("Profesi"), outerW), outerX, y);
   y += 24;
   ctx.font = `400 12px ${FONT}`;
   ctx.fillStyle = "#64748b";
@@ -1093,7 +1094,7 @@ function buildElegantPages(data: CvData): HTMLCanvasElement[] {
   } catch {
     /* tidak didukung — lanjut tanpa spasi huruf */
   }
-  ctx.fillText(truncateText(ctx, (data.fullName || "Nama Lengkap").toUpperCase(), colW), cx, y);
+  ctx.fillText(truncateText(ctx, (data.fullName || tr("Nama Lengkap")).toUpperCase(), colW), cx, y);
   try {
     (ctx as any).letterSpacing = "0px";
   } catch {
@@ -1102,7 +1103,7 @@ function buildElegantPages(data: CvData): HTMLCanvasElement[] {
   y += 28;
   ctx.font = `500 15px ${FONT}`;
   ctx.fillStyle = accent;
-  ctx.fillText(truncateText(ctx, data.jobTitle || "Profesi", colW), cx, y);
+  ctx.fillText(truncateText(ctx, data.jobTitle || tr("Profesi"), colW), cx, y);
   y += 24;
   ctx.font = `400 12.5px ${FONT}`;
   ctx.fillStyle = "#64748b";
@@ -1153,11 +1154,11 @@ function buildBannerPages(data: CvData, photo: HTMLImageElement | null): HTMLCan
   ctx.textAlign = "left";
   ctx.font = `700 32px ${FONT}`;
   ctx.fillStyle = "#ffffff";
-  ctx.fillText(truncateText(ctx, data.fullName || "Nama Lengkap", textW), textX, y);
+  ctx.fillText(truncateText(ctx, data.fullName || tr("Nama Lengkap"), textW), textX, y);
   y += 30;
   ctx.font = `500 16px ${FONT}`;
   ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.fillText(truncateText(ctx, data.jobTitle || "Profesi", textW), textX, y);
+  ctx.fillText(truncateText(ctx, data.jobTitle || tr("Profesi"), textW), textX, y);
   y += 28;
   ctx.font = `400 12.5px ${FONT}`;
   ctx.fillStyle = "rgba(255,255,255,0.8)";
@@ -1183,11 +1184,11 @@ function buildSplitPages(data: CvData, photo: HTMLImageElement | null): HTMLCanv
   ctx.textAlign = "left";
   ctx.font = `700 32px ${FONT}`;
   ctx.fillStyle = "#0f172a";
-  ctx.fillText(truncateText(ctx, data.fullName || "Nama Lengkap", fullW), MARGIN, y);
+  ctx.fillText(truncateText(ctx, data.fullName || tr("Nama Lengkap"), fullW), MARGIN, y);
   y += 28;
   ctx.font = `600 16px ${FONT}`;
   ctx.fillStyle = accent;
-  ctx.fillText(truncateText(ctx, data.jobTitle || "Profesi", fullW), MARGIN, y);
+  ctx.fillText(truncateText(ctx, data.jobTitle || tr("Profesi"), fullW), MARGIN, y);
   y += 20;
   ctx.fillStyle = accent;
   ctx.fillRect(MARGIN, y, fullW, 3);
@@ -1206,7 +1207,7 @@ function buildSplitPages(data: CvData, photo: HTMLImageElement | null): HTMLCanv
     ay += r * 2 + S(36);
   }
 
-  asideLabel(ctx, "Kontak", asideX, ay, accent, 12.5);
+  asideLabel(ctx, tr("Kontak"), asideX, ay, accent, 12.5);
   ay += 8;
   ctx.strokeStyle = "#e2e8f0";
   ctx.lineWidth = 1;

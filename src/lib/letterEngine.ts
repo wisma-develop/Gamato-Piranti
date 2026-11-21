@@ -11,6 +11,7 @@ import {
   applyVars, blockLines, numberLabel, paperSpec, parseTable, signerCount,
   type LetterBlock, type LetterDoc, type Signer, type TextAlign,
 } from "@/lib/letterTypes";
+import { tr } from "@/i18n";
 
 export interface LetterAssets {
   logo: HTMLImageElement | null;
@@ -353,7 +354,7 @@ export function renderLetter(doc: LetterDoc, vars: Record<string, string>, asset
     gap(paraGap * 1.4, true);
   }
   if (doc.metaEnabled) {
-    const rows: [string, string, boolean?][] = [["Nomor", vars.nomor ?? ""], ["Sifat", T(doc.sifat)], ["Lampiran", T(doc.lampiran)], ["Hal", T(doc.perihal), true]];
+    const rows: [string, string, boolean?][] = [[tr("Nomor"), vars.nomor ?? ""], [tr("Sifat"), T(doc.sifat)], [tr("Lampiran"), T(doc.lampiran)], [tr("Hal"), T(doc.perihal), true]];
     const used = rows.filter((r) => r[1].trim());
     const lw = 24 * ppm;
     used.forEach((r, i) => { const it = rowItem(r[0], r[1], lw, 0, { boldValue: !!r[2] }); it.keepNext = i < used.length - 1 ? true : false; items.push(it); });
@@ -525,7 +526,7 @@ export function renderLetter(doc: LetterDoc, vars: Record<string, string>, asset
             }
             const sig = assets.sigs[cell.s.id];
             if (cell.s.qr) {
-              const payload = `Ditandatangani secara elektronik oleh ${T(cell.s.name)}${T(cell.s.role) ? ` (${T(cell.s.role)})` : ""} — ${vars.nomor ? `No. ${vars.nomor} — ` : ""}${vars.tanggal}`;
+              const payload = tr("Ditandatangani secara elektronik oleh {0}{1} — {2}{3}", T(cell.s.name), T(cell.s.role) ? ` (${T(cell.s.role)})` : "", vars.nomor ? `No. ${vars.nomor} — ` : "", vars.tanggal);
               const m = buildQrMatrix(payload, "M");
               if (m) {
                 const side = Math.min(gh, 24 * ppm);
@@ -554,7 +555,7 @@ export function renderLetter(doc: LetterDoc, vars: Record<string, string>, asset
   if (tembusan.length) {
     gap(paraGap * 1.6);
     const ts = fs * 0.92;
-    items.push({ h: lh * 0.92, keepNext: true, draw: (c, x, y) => { c.font = font(ts, { b: false }); c.fillStyle = color; c.textBaseline = "top"; c.textAlign = "left"; c.fillText("Tembusan:", x, y + (lh * 0.92 - ts) / 2); } });
+    items.push({ h: lh * 0.92, keepNext: true, draw: (c, x, y) => { c.font = font(ts, { b: false }); c.fillStyle = color; c.textBaseline = "top"; c.textAlign = "left"; c.fillText(tr("Tembusan:"), x, y + (lh * 0.92 - ts) / 2); } });
     tembusan.forEach((l, i) => {
       const wrapped = wrapRuns(mc, l, ts, contentW - 8 * ppm, 0);
       wrapped.forEach((ln, li) => items.push({
@@ -658,7 +659,7 @@ export function renderLetter(doc: LetterDoc, vars: Record<string, string>, asset
 
     if (doc.kopEnabled && (p === 0 || doc.kopAllPages)) kop.draw(c, mT);
     else if (p > 0 && doc.contHeader) {
-      const label = T(doc.perihal).trim() || "Lanjutan surat";
+      const label = T(doc.perihal).trim() || tr("Lanjutan surat");
       c.save();
       c.font = font(fs * 0.82); c.fillStyle = muted; c.textBaseline = "top"; c.textAlign = "left";
       let l = label;

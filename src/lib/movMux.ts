@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Penulis berkas QuickTime (.mov) buatan sendiri — tanpa dependensi.
 //
 // Video : kodek `png ` (setiap frame = berkas PNG RGBA lurus, transparan penuh), ATAU
@@ -78,8 +79,8 @@ export class MovWriter {
   private finished = false;
 
   constructor(o: MovOptions) {
-    if (!Number.isInteger(o.fps) || o.fps < 1 || o.fps > 240) throw new Error("FPS harus bilangan bulat 1–240.");
-    if (o.audio && (o.audio.sampleRate < 8000 || o.audio.sampleRate > 65535)) throw new Error("Sample rate audio di luar rentang MOV.");
+    if (!Number.isInteger(o.fps) || o.fps < 1 || o.fps > 240) throw new Error(tr("FPS harus bilangan bulat 1–240."));
+    if (o.audio && (o.audio.sampleRate < 8000 || o.audio.sampleRate > 65535)) throw new Error(tr("Sample rate audio di luar rentang MOV."));
     this.o = o;
     this.ftyp = box("ftyp", new Bytes().fourcc("qt  ").u32(0x20050300).fourcc("qt  ").done());
     this.parts.push(this.ftyp as BlobPart);
@@ -101,7 +102,7 @@ export class MovWriter {
 
   /** Tambahkan satu frame video (sampel PNG utuh, atau data RLE). */
   addVideoFrame(sample: Blob | Uint8Array) {
-    if (this.finished) throw new Error("Berkas sudah selesai ditulis.");
+    if (this.finished) throw new Error(tr("Berkas sudah selesai ditulis."));
     if (this.pendingVideo === 0) this.pendingVideoStart = this.pos;
     const size = this.write(sample);
     this.videoSizes.push(size);
@@ -135,12 +136,12 @@ export class MovWriter {
   }
 
   finish(): Blob {
-    if (this.finished) throw new Error("Sudah selesai.");
+    if (this.finished) throw new Error(tr("Sudah selesai."));
     this.finished = true;
     this.closeVideoChunk();
     this.writeAudioSecond(true);
     const frames = this.videoSizes.length;
-    if (frames === 0) throw new Error("Tidak ada frame yang ditulis.");
+    if (frames === 0) throw new Error(tr("Tidak ada frame yang ditulis."));
 
     // Header mdat 16 byte
     const hdr = new Bytes();
@@ -213,7 +214,7 @@ export class MovWriter {
     const FRAME_UNITS = 100;
     const ts = o.fps * FRAME_UNITS;
     const fourcc = o.codec === "png" ? "png " : o.codec === "rle" ? "rle " : "jpeg";
-    const name = o.codec === "png" ? "PNG" : o.codec === "rle" ? "Animation" : "Photo - JPEG";
+    const name = o.codec === "png" ? "PNG" : o.codec === "rle" ? tr("Animation") : tr("Photo - JPEG");
     const cn = new TextEncoder().encode(name);
     const comp = new Uint8Array(32);
     comp[0] = cn.length;
@@ -233,7 +234,7 @@ export class MovWriter {
     const stbl = box("stbl", stsd, stts, stsc, stsz, stco);
     const vmhd = fullbox("vmhd", 0, 1, new Bytes().u16(o.hasAlpha ? 0x0040 : 0).u16(0).u16(0).u16(0).done());
     const minf = box("minf", vmhd, this.dinf(), stbl);
-    const mdia = box("mdia", this.mdhd(ts, frames * FRAME_UNITS, now), this.hdlr("vide", "Gamato Video"), minf);
+    const mdia = box("mdia", this.mdhd(ts, frames * FRAME_UNITS, now), this.hdlr("vide", tr("Gamato Video")), minf);
     return box("trak", this.tkhd(id, durationMs, now, o.width, o.height, 0), mdia);
   }
 
@@ -252,7 +253,7 @@ export class MovWriter {
     const stbl = box("stbl", stsd, stts, stsc, stsz, stco);
     const smhd = fullbox("smhd", 0, 0, new Bytes().u16(0).u16(0).done());
     const minf = box("minf", smhd, this.dinf(), stbl);
-    const mdia = box("mdia", this.mdhd(a.sampleRate, total, now), this.hdlr("soun", "Gamato Audio"), minf);
+    const mdia = box("mdia", this.mdhd(a.sampleRate, total, now), this.hdlr("soun", tr("Gamato Audio")), minf);
     return box("trak", this.tkhd(id, durationMs, now, 0, 0, 0x0100), mdia);
   }
 }

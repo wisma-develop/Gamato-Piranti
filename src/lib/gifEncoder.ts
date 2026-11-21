@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Dependency-free animated GIF89a encoder.
 //
 // Why hand-written instead of a library: this project has no network access
@@ -250,7 +251,7 @@ function writeSubBlocks(writer: ByteWriter, data: Uint8Array) {
  * consistent frame-to-frame (no per-frame palette flicker).
  */
 export async function encodeGif(frames: GifFrameInput[], opts: EncodeGifOptions = {}): Promise<Blob> {
-  if (frames.length === 0) throw new Error("Tidak ada frame untuk dijadikan GIF.");
+  if (frames.length === 0) throw new Error(tr("Tidak ada frame untuk dijadikan GIF."));
   const width = frames[0].imageData.width;
   const height = frames[0].imageData.height;
   const loopCount = opts.loopCount ?? 0;
@@ -283,7 +284,7 @@ export async function encodeGif(frames: GifFrameInput[], opts: EncodeGifOptions 
   const colorDepth = Math.max(2, Math.ceil(Math.log2(tableSize)));
 
   const writer = new ByteWriter();
-  writer.ascii("GIF89a");
+  writer.ascii(tr("GIF89a"));
 
   // Logical Screen Descriptor
   writer.u16le(width);

@@ -8,6 +8,9 @@ import { BLANK, BulkCancelled, MAX_BULK_ROWS, parseTable, detectDelimiter, sheet
 import { NT_FIELD_KEYS, roleColor, type NametagDesign, type NtField, type NtRecord } from "@/lib/nametagTypes";
 import { canvasToBlob } from "@/lib/canvas";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
+import { tr } from "@/i18n";
+
+export const NO_ROLE = tr("(tanpa peran)");
 
 export { parseTable, detectDelimiter, BulkCancelled, MAX_BULK_ROWS };
 export type { BulkProgress, SheetPaper };
@@ -22,14 +25,14 @@ export type NtColumnMap = Record<NtMapKey, NtMapVal>;
 export const NT_MAP_KEYS: NtMapKey[] = [...NT_FIELD_KEYS, "photo"];
 
 const ALIASES: Record<NtMapKey, string[]> = {
-  name: ["nama", "name", "nama lengkap", "fullname", "full name", "nama peserta", "peserta", "nama siswa", "siswa", "nama tamu", "tamu"],
+  name: ["nama", "name", tr("nama lengkap"), "fullname", tr("full name"), tr("nama peserta"), "peserta", tr("nama siswa"), "siswa", tr("nama tamu"), "tamu"],
   role: ["peran", "role", "kategori", "category", "tipe", "type", "status", "jabatan", "title"],
   org: ["instansi", "organisasi", "organization", "perusahaan", "company", "sekolah", "asal", "institusi", "kantor", "lembaga", "komunitas"],
-  id: ["id", "no", "nomor", "no id", "nomor id", "nis", "nip", "kode", "kode peserta", "ticket", "tiket", "no peserta", "nomor peserta", "no tiket"],
+  id: ["id", "no", "nomor", "no id", tr("nomor id"), "nis", "nip", "kode", tr("kode peserta"), "ticket", "tiket", tr("no peserta"), tr("nomor peserta"), tr("no tiket")],
   group: ["grup", "group", "meja", "table", "kelas", "class", "tim", "team", "divisi", "kelompok", "seksi", "bagian"],
-  event: ["acara", "event", "kegiatan", "nama acara"],
+  event: ["acara", "event", "kegiatan", tr("nama acara")],
   note: ["catatan", "note", "keterangan", "info", "tanggal", "date", "deskripsi"],
-  photo: ["foto", "photo", "gambar", "image", "pas foto", "file foto", "nama file", "filename", "file"],
+  photo: ["foto", "photo", "gambar", "image", tr("pas foto"), tr("file foto"), tr("nama file"), "filename", "file"],
 };
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -109,7 +112,7 @@ export async function ingestPhoto(file: File, maxPx = 900): Promise<string> {
   try {
     const img = new Image();
     img.src = url;
-    await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error("Gambar tidak bisa dibaca")); });
+    await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error(tr("Gambar tidak bisa dibaca"))); });
     const sc = Math.min(1, maxPx / Math.max(img.naturalWidth, img.naturalHeight));
     if (sc >= 1 && file.size < 600_000) return url;
     const cv = document.createElement("canvas");
@@ -125,29 +128,23 @@ export async function ingestPhoto(file: File, maxPx = 900): Promise<string> {
   }
 }
 
-export const SAMPLE_TABLE = `Nama\tPeran\tInstansi\tID\tGrup\tFoto
-Budi Santoso\tPeserta\tPT Maju Jaya\tA-001\tMeja 1\tbudi.jpg
-Siti Rahmawati\tPanitia\tUniversitas Nusantara\tA-002\tKoordinator\tsiti.jpg
-Dr. Agus Wijayakusuma, M.Kom.\tPembicara\tInstitut Teknologi Bali\tA-003\tPanel 2\tagus.jpg
-Dewi Lestari\tVIP\tKementerian Pariwisata\tA-004\tMeja VIP\t
-I Gusti Ngurah Bagus Mahendra Putra\tMedia\tRadio Singaraja FM\tA-005\tPress\t
-Ayu Ting Ting\tSponsor\tCV Sinar Abadi\tA-006\tBooth 4\t`;
+export const SAMPLE_TABLE = tr("Nama\tPeran\tInstansi\tID\tGrup\tFoto\nBudi Santoso\tPeserta\tPT Maju Jaya\tA-001\tMeja 1\tbudi.jpg\nSiti Rahmawati\tPanitia\tUniversitas Nusantara\tA-002\tKoordinator\tsiti.jpg\nDr. Agus Wijayakusuma, M.Kom.\tPembicara\tInstitut Teknologi Bali\tA-003\tPanel 2\tagus.jpg\nDewi Lestari\tVIP\tKementerian Pariwisata\tA-004\tMeja VIP\t\nI Gusti Ngurah Bagus Mahendra Putra\tMedia\tRadio Singaraja FM\tA-005\tPress\t\nAyu Ting Ting\tSponsor\tCV Sinar Abadi\tA-006\tBooth 4\t");
 
 export function csvTemplate(): string {
-  return "Nama,Peran,Instansi,ID,Grup,Acara,Catatan,Foto\n\"Nama Lengkap\",\"Peserta\",\"Nama Instansi\",\"A-001\",\"Meja 1\",\"Nama Acara\",\"12 November 2026\",\"nama-file-foto.jpg\"\n";
+  return tr("Nama,Peran,Instansi,ID,Grup,Acara,Catatan,Foto\n\"Nama Lengkap\",\"Peserta\",\"Nama Instansi\",\"A-001\",\"Meja 1\",\"Nama Acara\",\"12 November 2026\",\"nama-file-foto.jpg\"\n");
 }
 
 const q = (s: string) => `"${(s ?? "").replace(/"/g, '""')}"`;
 /** Daftar akhir (termasuk ID otomatis) sebagai CSV — dipakai untuk daftar hadir / arsip. */
 export function recordsToCsv(recs: NtRecord[]): string {
-  return "No,Nama,Peran,Instansi,ID,Grup,Acara,Catatan\n" + recs.map((r, i) => [i + 1, r.name, r.role, r.org, r.id, r.group, r.event, r.note].map((v) => q(String(v))).join(",")).join("\n") + "\n";
+  return tr("No,Nama,Peran,Instansi,ID,Grup,Acara,Catatan\n") + recs.map((r, i) => [i + 1, r.name, r.role, r.org, r.id, r.group, r.event, r.note].map((v) => q(String(v))).join(",")).join("\n") + "\n";
 }
 
 /** Ringkasan peran → jumlah, untuk panel bulk. */
 export function roleSummary(recs: NtRecord[], design: Pick<NametagDesign, "roles" | "roleFallback">): { role: string; count: number; color: string; known: boolean }[] {
   const m = new Map<string, { role: string; count: number }>();
   for (const r of recs) {
-    const k = norm(r.role) || "(tanpa peran)";
+    const k = norm(r.role) || NO_ROLE;
     const cur = m.get(k) ?? { role: r.role.trim() || "(tanpa peran)", count: 0 };
     cur.count++; m.set(k, cur);
   }
@@ -231,7 +228,7 @@ export async function exportNtSheet(o: NtBulkCommon & { sheet: NtSheetOptions })
   const tent = o.sheet.tentFold;
   const unitH = hMM * (tent ? 2 : 1);
   const L = sheetLayout(wMM, unitH, o.sheet.paper, o.sheet.landscape, o.sheet.marginMm, o.sheet.gapMm);
-  if (L.perPage < 1) throw new Error("Name tag tidak muat di halaman dengan margin/ukuran ini — kecilkan margin atau pilih kertas lebih besar.");
+  if (L.perPage < 1) throw new Error(tr("Name tag tidak muat di halaman dengan margin/ukuran ini — kecilkan margin atau pilih kertas lebih besar."));
   const sides: ("front" | "back")[] = tent || o.sides === "front" ? ["front"] : ["front", "back"];
   const pdf = await PDFDocument.create();
   const canvas = document.createElement("canvas");

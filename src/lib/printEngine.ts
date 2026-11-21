@@ -7,26 +7,27 @@
 // print/PDF output are produced by exactly the same code.
 
 import { loadGamatoIcon } from "@/lib/gamatoIcon";
+import { LOCALE, tr } from "@/i18n";
 
 /* ───────────────────────────── paper ───────────────────────────── */
 
 export interface Paper { id: string; label: string; w: number; h: number } // mm, portrait
 
 export const PAPERS: Paper[] = [
-  { id: "a4", label: "A4 (210 × 297 mm)", w: 210, h: 297 },
-  { id: "a3", label: "A3 (297 × 420 mm)", w: 297, h: 420 },
-  { id: "a5", label: "A5 (148 × 210 mm)", w: 148, h: 210 },
-  { id: "a6", label: "A6 (105 × 148 mm)", w: 105, h: 148 },
-  { id: "b4", label: "B4 (250 × 353 mm)", w: 250, h: 353 },
-  { id: "b5", label: "B5 (176 × 250 mm)", w: 176, h: 250 },
-  { id: "letter", label: "Letter (8,5 × 11 in)", w: 215.9, h: 279.4 },
-  { id: "legal", label: "Legal (8,5 × 14 in)", w: 215.9, h: 355.6 },
-  { id: "f4", label: "F4 / Folio (215 × 330 mm)", w: 215, h: 330 },
-  { id: "executive", label: "Executive (7,25 × 10,5 in)", w: 184.15, h: 266.7 },
-  { id: "tabloid", label: "Tabloid (11 × 17 in)", w: 279.4, h: 431.8 },
-  { id: "p4r", label: "Foto 4R (4 × 6 in)", w: 101.6, h: 152.4 },
-  { id: "p5r", label: "Foto 5R (5 × 7 in)", w: 127, h: 177.8 },
-  { id: "custom", label: "Kustom (mm)", w: 210, h: 297 },
+  { id: "a4", label: tr("A4 (210 × 297 mm)"), w: 210, h: 297 },
+  { id: "a3", label: tr("A3 (297 × 420 mm)"), w: 297, h: 420 },
+  { id: "a5", label: tr("A5 (148 × 210 mm)"), w: 148, h: 210 },
+  { id: "a6", label: tr("A6 (105 × 148 mm)"), w: 105, h: 148 },
+  { id: "b4", label: tr("B4 (250 × 353 mm)"), w: 250, h: 353 },
+  { id: "b5", label: tr("B5 (176 × 250 mm)"), w: 176, h: 250 },
+  { id: "letter", label: tr("Letter (8,5 × 11 in)"), w: 215.9, h: 279.4 },
+  { id: "legal", label: tr("Legal (8,5 × 14 in)"), w: 215.9, h: 355.6 },
+  { id: "f4", label: tr("F4 / Folio (215 × 330 mm)"), w: 215, h: 330 },
+  { id: "executive", label: tr("Executive (7,25 × 10,5 in)"), w: 184.15, h: 266.7 },
+  { id: "tabloid", label: tr("Tabloid (11 × 17 in)"), w: 279.4, h: 431.8 },
+  { id: "p4r", label: tr("Foto 4R (4 × 6 in)"), w: 101.6, h: 152.4 },
+  { id: "p5r", label: tr("Foto 5R (5 × 7 in)"), w: 127, h: 177.8 },
+  { id: "custom", label: tr("Kustom (mm)"), w: 210, h: 297 },
 ];
 
 /* ───────────────────────────── settings ───────────────────────────── */
@@ -265,8 +266,8 @@ function expandTemplate(t: string, ctx: RenderContext, sheetNo: number): string 
   return t
     .replace(/\{title\}/gi, ctx.title)
     .replace(/\{file\}/gi, ctx.fileLabel)
-    .replace(/\{date\}/gi, d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }))
-    .replace(/\{time\}/gi, d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }))
+    .replace(/\{date\}/gi, d.toLocaleDateString(LOCALE, { day: "2-digit", month: "short", year: "numeric" }))
+    .replace(/\{time\}/gi, d.toLocaleTimeString(LOCALE, { hour: "2-digit", minute: "2-digit" }))
     .replace(/\{(page|sheet)\}/gi, String(sheetNo))
     .replace(/\{(pages|sheets)\}/gi, String(ctx.uniqueSheets));
 }
@@ -319,7 +320,7 @@ export async function renderSheet(
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas 2D tidak tersedia.");
+  if (!ctx) throw new Error(tr("Canvas 2D tidak tersedia."));
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
   ctx.imageSmoothingQuality = "high";
@@ -451,7 +452,7 @@ export async function renderSheet(
 /* ───────────────────────────── output ───────────────────────────── */
 
 export function canvasToBlob(c: HTMLCanvasElement, type: string, q?: number): Promise<Blob> {
-  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error("Gagal membuat gambar lembar."))), type, q));
+  return new Promise((resolve, reject) => c.toBlob((b) => (b ? resolve(b) : reject(new Error(tr("Gagal membuat gambar lembar.")))), type, q));
 }
 
 export function buildPrintHtml(urls: string[], paperW: number, paperH: number, title: string): string {

@@ -5,6 +5,7 @@
 
 import JSZip from "jszip";
 import type { Align, BlockModel, RunModel } from "@/features/docs/richtext/parseEditor";
+import { tr } from "@/i18n";
 
 const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const SS_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
@@ -22,7 +23,7 @@ function nsAttr(el: Element, ns: string, name: string): string | null {
 export async function readDocxBlocks(file: File): Promise<BlockModel[]> {
   const zip = await JSZip.loadAsync(file);
   const xml = await zip.file("word/document.xml")?.async("text");
-  if (!xml) throw new Error("Bukan file .docx yang valid.");
+  if (!xml) throw new Error(tr("Bukan file .docx yang valid."));
   const doc = parseXml(xml);
   const paragraphs = Array.from(doc.getElementsByTagNameNS(W_NS, "p"));
   const blocks: BlockModel[] = [];
@@ -83,7 +84,7 @@ export async function readXlsxGrid(file: File): Promise<string[][]> {
       .sort();
     if (candidates.length) sheetFile = zip.file(candidates[0]);
   }
-  if (!sheetFile) throw new Error("Bukan file .xlsx yang valid atau sheet tidak ditemukan.");
+  if (!sheetFile) throw new Error(tr("Bukan file .xlsx yang valid atau sheet tidak ditemukan."));
 
   const sheetXml = await sheetFile.async("text");
   const sheetDoc = parseXml(sheetXml);
@@ -131,7 +132,7 @@ export async function readPptxSlides(file: File): Promise<SlideContent[]> {
       const nb = parseInt(b.match(/slide(\d+)\.xml/)?.[1] || "0", 10);
       return na - nb;
     });
-  if (!slidePaths.length) throw new Error("Bukan file .pptx yang valid atau tidak ada slide.");
+  if (!slidePaths.length) throw new Error(tr("Bukan file .pptx yang valid atau tidak ada slide."));
 
   const slides: SlideContent[] = [];
   for (const path of slidePaths) {
@@ -145,7 +146,7 @@ export async function readPptxSlides(file: File): Promise<SlideContent[]> {
         .join("");
       if (text.trim()) lines.push(text);
     }
-    slides.push({ title: lines[0] || `Slide ${slides.length + 1}`, bullets: lines.slice(1) });
+    slides.push({ title: lines[0] || tr("Slide {0}", slides.length + 1), bullets: lines.slice(1) });
   }
   return slides;
 }

@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Shared signature-image helpers used by the Invoice, Kwitansi, Struk, and
 // Sertifikat/Certificate generators (Menu Spesial). A signature captured
 // through <SignaturePad> can come from two sources — freehand drawing on a
@@ -100,7 +101,7 @@ export async function makeUploadedSignatureTransparent(dataUrl: string, threshol
         reject(err);
       }
     };
-    img.onerror = () => reject(new Error("Gagal memuat gambar tanda tangan."));
+    img.onerror = () => reject(new Error(tr("Gagal memuat gambar tanda tangan.")));
     img.src = dataUrl;
   });
 }

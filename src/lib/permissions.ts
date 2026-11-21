@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 /**
  * Gamato Permission Engine — satu pintu untuk semua izin web (kamera, mikrofon, lokasi,
  * papan klip, tangkap layar, speaker, perangkat USB).
@@ -39,11 +40,11 @@ export const PERM_LABEL: Record<PermKind, string> = {
   camera: "kamera",
   microphone: "mikrofon",
   geolocation: "lokasi",
-  "clipboard-read": "papan klip (baca)",
-  "clipboard-write": "papan klip (tulis)",
-  "display-capture": "tangkap layar",
-  usb: "perangkat USB",
-  "speaker-selection": "pemilihan speaker",
+  "clipboard-read": tr("papan klip (baca)"),
+  "clipboard-write": tr("papan klip (tulis)"),
+  "display-capture": tr("tangkap layar"),
+  usb: tr("perangkat USB"),
+  "speaker-selection": tr("pemilihan speaker"),
 };
 
 /* ───────────────────────── Deteksi lingkungan ───────────────────────── */
@@ -80,30 +81,30 @@ export function unblockSteps(kind: PermKind): string[] {
   const p = detectPlatform();
   if (p === "ios") {
     return [
-      `Buka Pengaturan iPhone/iPad → Safari (atau browser yang dipakai) → ${kind === "geolocation" ? "Lokasi" : kind === "camera" ? "Kamera" : "Mikrofon"}.`,
-      "Pilih \"Tanya\" atau \"Izinkan\" untuk situs ini.",
-      "Kembali ke halaman ini lalu muat ulang (tarik ke bawah) dan coba lagi.",
+      tr("Buka Pengaturan iPhone/iPad → Safari (atau browser yang dipakai) → {0}.", kind === "geolocation" ? tr("Lokasi") : kind === "camera" ? tr("Kamera") : tr("Mikrofon")),
+      tr("Pilih \"Tanya\" atau \"Izinkan\" untuk situs ini."),
+      tr("Kembali ke halaman ini lalu muat ulang (tarik ke bawah) dan coba lagi."),
     ];
   }
   if (b === "firefox") {
     return [
-      "Klik ikon izin (gembok/kamera) di sebelah kiri alamat situs.",
-      `Hapus status \"Diblokir\" pada ${label}.`,
-      "Muat ulang halaman (F5) lalu klik tombolnya lagi dan pilih \"Izinkan\".",
+      tr("Klik ikon izin (gembok/kamera) di sebelah kiri alamat situs."),
+      tr("Hapus status \"Diblokir\" pada {0}.", label),
+      tr("Muat ulang halaman (F5) lalu klik tombolnya lagi dan pilih \"Izinkan\"."),
     ];
   }
   if (b === "safari") {
     return [
-      "Menu Safari → Pengaturan → Situs Web.",
-      `Pilih ${kind === "geolocation" ? "Lokasi" : kind === "camera" ? "Kamera" : "Mikrofon"} lalu ubah situs ini menjadi \"Izinkan\" atau \"Tanya\".`,
-      "Muat ulang halaman lalu coba lagi.",
+      tr("Menu Safari → Pengaturan → Situs Web."),
+      tr("Pilih {0} lalu ubah situs ini menjadi \"Izinkan\" atau \"Tanya\".", kind === "geolocation" ? tr("Lokasi") : kind === "camera" ? tr("Kamera") : tr("Mikrofon")),
+      tr("Muat ulang halaman lalu coba lagi."),
     ];
   }
   // Chrome / Edge / lainnya (Android & desktop)
   return [
-    "Klik ikon setelan di sebelah kiri alamat situs (gembok atau ikon penyetel).",
-    `Buka \"Izin\" / \"Setelan situs\" lalu ubah ${label} menjadi \"Izinkan\" (atau \"Tanya\").`,
-    "Muat ulang halaman lalu klik tombolnya lagi.",
+    tr("Klik ikon setelan di sebelah kiri alamat situs (gembok atau ikon penyetel)."),
+    tr("Buka \"Izin\" / \"Setelan situs\" lalu ubah {0} menjadi \"Izinkan\" (atau \"Tanya\").", label),
+    tr("Muat ulang halaman lalu klik tombolnya lagi."),
   ];
 }
 
@@ -189,8 +190,8 @@ export function describePermissionError(kind: PermKind, err: unknown, prior: Per
   const msg: string = String(e.message || "");
 
   if (!isSecureEnv()) {
-    return failure(kind, "insecure", `Akses ${label} butuh koneksi aman`,
-      `Browser hanya mengizinkan ${label} di halaman HTTPS (atau localhost). Buka situs lewat alamat https://gamatopiranti.zone.id.`,
+    return failure(kind, "insecure", tr("Akses {0} butuh koneksi aman", label),
+      tr("Browser hanya mengizinkan {0} di halaman HTTPS (atau localhost). Buka situs lewat alamat https://gamatopiranti.zone.id.", label),
       { retryable: false });
   }
 
@@ -198,65 +199,65 @@ export function describePermissionError(kind: PermKind, err: unknown, prior: Per
   if (kind === "geolocation" && typeof e.code === "number" && typeof e.PERMISSION_DENIED === "number") {
     if (e.code === e.PERMISSION_DENIED) {
       return failure(kind, prior === "denied" ? "denied" : "dismissed",
-        "Izin lokasi ditolak",
+        tr("Izin lokasi ditolak"),
         prior === "denied"
-          ? "Akses lokasi diblokir untuk situs ini, jadi browser tidak menampilkan permintaan lagi."
-          : "Permintaan izin lokasi ditutup atau ditolak.",
+          ? tr("Akses lokasi diblokir untuk situs ini, jadi browser tidak menampilkan permintaan lagi.")
+          : tr("Permintaan izin lokasi ditutup atau ditolak."),
         { howTo: true });
     }
     if (e.code === e.POSITION_UNAVAILABLE) {
-      return failure(kind, "unavailable", "Lokasi tidak tersedia",
-        "Perangkat belum bisa menentukan posisi. Nyalakan GPS/layanan lokasi di perangkat, lalu coba lagi (lebih baik di dekat jendela atau di luar ruangan).");
+      return failure(kind, "unavailable", tr("Lokasi tidak tersedia"),
+        tr("Perangkat belum bisa menentukan posisi. Nyalakan GPS/layanan lokasi di perangkat, lalu coba lagi (lebih baik di dekat jendela atau di luar ruangan)."));
     }
     if (e.code === e.TIMEOUT) {
-      return failure(kind, "timeout", "Pencarian lokasi kehabisan waktu",
-        "Sinyal lokasi terlalu lemah. Coba lagi di tempat dengan sinyal GPS/Wi-Fi lebih baik.");
+      return failure(kind, "timeout", tr("Pencarian lokasi kehabisan waktu"),
+        tr("Sinyal lokasi terlalu lemah. Coba lagi di tempat dengan sinyal GPS/Wi-Fi lebih baik."));
     }
   }
 
   if (name === "NotAllowedError" || name === "PermissionDeniedError") {
     // Kebijakan Permissions-Policy / iframe tanpa izin juga mengirim NotAllowedError.
     if (/permissions? policy|feature policy|disallowed by/i.test(msg)) {
-      return failure(kind, "blocked-policy", `Akses ${label} diblokir kebijakan halaman`,
-        `Halaman ini tidak diizinkan memakai ${label} (kebijakan keamanan situs atau bingkai tertanam). Buka Gamato Piranti langsung di tab sendiri.`,
+      return failure(kind, "blocked-policy", tr("Akses {0} diblokir kebijakan halaman", label),
+        tr("Halaman ini tidak diizinkan memakai {0} (kebijakan keamanan situs atau bingkai tertanam). Buka Gamato Piranti langsung di tab sendiri.", label),
         { retryable: false });
     }
     if (kind === "display-capture") {
-      return failure(kind, "dismissed", "Tangkap layar dibatalkan",
-        "Anda menutup jendela pemilihan layar/tab. Klik tombolnya lagi lalu pilih layar atau tab yang ingin dibagikan.");
+      return failure(kind, "dismissed", tr("Tangkap layar dibatalkan"),
+        tr("Anda menutup jendela pemilihan layar/tab. Klik tombolnya lagi lalu pilih layar atau tab yang ingin dibagikan."));
     }
     if (prior === "denied") {
-      return failure(kind, "denied", `Izin ${label} diblokir`,
-        `Akses ${label} sudah ditolak sebelumnya, sehingga browser tidak akan menampilkan permintaan lagi. Aktifkan manual di setelan situs.`,
+      return failure(kind, "denied", tr("Izin {0} diblokir", label),
+        tr("Akses {0} sudah ditolak sebelumnya, sehingga browser tidak akan menampilkan permintaan lagi. Aktifkan manual di setelan situs.", label),
         { howTo: true });
     }
-    return failure(kind, "dismissed", `Izin ${label} belum diberikan`,
-      `Pilih \"Izinkan\" pada permintaan browser agar alat ini bisa memakai ${label}. Jika permintaan tidak muncul lagi, aktifkan manual di setelan situs.`,
+    return failure(kind, "dismissed", tr("Izin {0} belum diberikan", label),
+      tr("Pilih \"Izinkan\" pada permintaan browser agar alat ini bisa memakai {0}. Jika permintaan tidak muncul lagi, aktifkan manual di setelan situs.", label),
       { howTo: true });
   }
   if (name === "NotFoundError" || name === "DevicesNotFoundError" || name === "OverconstrainedError") {
-    return failure(kind, "no-device", `${cap(label)} tidak ditemukan`,
+    return failure(kind, "no-device", tr("{0} tidak ditemukan", cap(label)),
       kind === "camera"
-        ? "Tidak ada kamera yang terdeteksi. Sambungkan kamera atau coba perangkat lain."
+        ? tr("Tidak ada kamera yang terdeteksi. Sambungkan kamera atau coba perangkat lain.")
         : kind === "microphone"
-        ? "Tidak ada mikrofon yang terdeteksi. Sambungkan mikrofon/headset, lalu coba lagi."
-        : `Perangkat ${label} tidak ditemukan.`);
+        ? tr("Tidak ada mikrofon yang terdeteksi. Sambungkan mikrofon/headset, lalu coba lagi.")
+        : tr("Perangkat {0} tidak ditemukan.", label));
   }
   if (name === "NotReadableError" || name === "TrackStartError" || name === "AbortError") {
     return failure(kind, name === "AbortError" ? "aborted" : "busy",
-      `${cap(label)} sedang dipakai aplikasi lain`,
-      `Tutup aplikasi atau tab lain yang sedang memakai ${label} (mis. Zoom, Meet, kamera bawaan), lalu coba lagi.`);
+      tr("{0} sedang dipakai aplikasi lain", cap(label)),
+      tr("Tutup aplikasi atau tab lain yang sedang memakai {0} (mis. Zoom, Meet, kamera bawaan), lalu coba lagi.", label));
   }
   if (name === "SecurityError") {
-    return failure(kind, "blocked-policy", `Akses ${label} diblokir keamanan browser`,
-      `Browser menolak akses ${label} karena alasan keamanan. Pastikan situs dibuka lewat HTTPS dan bukan di dalam bingkai (iframe).`,
+    return failure(kind, "blocked-policy", tr("Akses {0} diblokir keamanan browser", label),
+      tr("Browser menolak akses {0} karena alasan keamanan. Pastikan situs dibuka lewat HTTPS dan bukan di dalam bingkai (iframe).", label),
       { retryable: false });
   }
   if (name === "NotSupportedError" || name === "TypeError" && /not a function|undefined/i.test(msg)) {
-    return failure(kind, "unsupported", `Browser tidak mendukung ${label}`,
-      "Gunakan Chrome, Edge, Firefox, atau Safari versi terbaru.", { retryable: false });
+    return failure(kind, "unsupported", tr("Browser tidak mendukung {0}", label),
+      tr("Gunakan Chrome, Edge, Firefox, atau Safari versi terbaru."), { retryable: false });
   }
-  return failure(kind, "unknown", `Gagal mengakses ${label}`, msg || "Terjadi kesalahan tak terduga. Coba lagi.");
+  return failure(kind, "unknown", tr("Gagal mengakses {0}", label), msg || tr("Terjadi kesalahan tak terduga. Coba lagi."));
 }
 
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -351,7 +352,7 @@ export async function listMediaDevices(kind: "videoinput" | "audioinput" | "audi
   if (typeof navigator === "undefined" || !navigator.mediaDevices?.enumerateDevices) return [];
   try {
     const all = await navigator.mediaDevices.enumerateDevices();
-    const base = kind === "videoinput" ? "Kamera" : kind === "audioinput" ? "Mikrofon" : "Speaker";
+    const base = kind === "videoinput" ? tr("Kamera") : kind === "audioinput" ? tr("Mikrofon") : tr("Speaker");
     return all
       .filter((d) => d.kind === kind && d.deviceId !== "")
       .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `${base} ${i + 1}` }));
@@ -438,15 +439,15 @@ export async function copyText(text: string): Promise<boolean> {
 /** Baca teks dari papan klip. Mengembalikan null bila izin tidak diberikan / tidak didukung. */
 export async function readClipboardText(): Promise<{ text: string | null; failure?: PermFailure }> {
   if (!navigator.clipboard?.readText || !isSecureEnv()) {
-    return { text: null, failure: failure("clipboard-read", "unsupported", "Browser tidak mendukung tempel otomatis",
-      "Tempel manual dengan Ctrl+V (⌘+V di Mac) atau tekan-tahan lalu pilih Tempel.", { retryable: false }) };
+    return { text: null, failure: failure("clipboard-read", "unsupported", tr("Browser tidak mendukung tempel otomatis"),
+      tr("Tempel manual dengan Ctrl+V (⌘+V di Mac) atau tekan-tahan lalu pilih Tempel."), { retryable: false }) };
   }
   const prior = await queryPermission("clipboard-read");
   try {
     return { text: await navigator.clipboard.readText() };
   } catch (err) {
     const f = describePermissionError("clipboard-read", err, prior);
-    return { text: null, failure: { ...f, message: `${f.message} Sebagai gantinya tempel manual dengan Ctrl+V (⌘+V di Mac).` } };
+    return { text: null, failure: { ...f, message: tr("{0} Sebagai gantinya tempel manual dengan Ctrl+V (⌘+V di Mac).", f.message) } };
   }
 }
 
@@ -505,7 +506,7 @@ export async function pickAudioOutput(): Promise<{ deviceId: string; label: stri
   if (!md?.selectAudioOutput) return null;
   try {
     const d = await md.selectAudioOutput();
-    return { deviceId: d.deviceId, label: d.label || "Speaker" };
+    return { deviceId: d.deviceId, label: d.label || tr("Speaker") };
   } catch {
     return { deviceId: "", label: "" };
   }

@@ -3,15 +3,17 @@
 // template, dan ekspor memakai definisi yang sama.
 
 import { formatDateID, todayISODate } from "@/lib/dateFormat";
+import { LOCALE, tr } from "@/i18n";
 
+import { idKey, localizeVars } from "@/i18n/tokens";
 export type PaperId = "a4" | "f4" | "letter" | "legal" | "a5";
 export interface PaperSpec { id: PaperId; label: string; wMM: number; hMM: number }
 export const PAPERS: PaperSpec[] = [
-  { id: "a4", label: "A4 (210 × 297 mm)", wMM: 210, hMM: 297 },
-  { id: "f4", label: "F4 / Folio (215 × 330 mm)", wMM: 215, hMM: 330 },
-  { id: "letter", label: "Letter (216 × 279 mm)", wMM: 215.9, hMM: 279.4 },
-  { id: "legal", label: "Legal (216 × 356 mm)", wMM: 215.9, hMM: 355.6 },
-  { id: "a5", label: "A5 (148 × 210 mm)", wMM: 148, hMM: 210 },
+  { id: "a4", label: tr("A4 (210 × 297 mm)"), wMM: 210, hMM: 297 },
+  { id: "f4", label: tr("F4 / Folio (215 × 330 mm)"), wMM: 215, hMM: 330 },
+  { id: "letter", label: tr("Letter (216 × 279 mm)"), wMM: 215.9, hMM: 279.4 },
+  { id: "legal", label: tr("Legal (216 × 356 mm)"), wMM: 215.9, hMM: 355.6 },
+  { id: "a5", label: tr("A5 (148 × 210 mm)"), wMM: 148, hMM: 210 },
 ];
 export const paperSpec = (id: PaperId): PaperSpec => PAPERS.find((p) => p.id === id) ?? PAPERS[0];
 
@@ -117,27 +119,27 @@ export const newId = (p = "b") => `${p}${Date.now().toString(36)}${(idc++).toStr
 export const blk = (type: BlockType, text = "", extra: Partial<LetterBlock> = {}): LetterBlock => ({ id: newId(), type, text, ...extra });
 export const dataRow = (label: string, value: string): DataRow => ({ id: newId("d"), label, value });
 export const newSigner = (p: Partial<Signer> = {}): Signer => ({
-  id: newId("s"), heading: "Hormat saya,", role: "", name: "{{penandatangan}}", idLabel: "", idValue: "", image: null, showStamp: false, qr: false, ...p,
+  id: newId("s"), heading: tr("Hormat saya,"), role: "", name: localizeVars(tr("{{penandatangan}}")), idLabel: "", idValue: "", image: null, showStamp: false, qr: false, ...p,
 });
 
 export function blankLetter(): LetterDoc {
   return {
     templateId: "kosong",
     paper: "a4", marginTop: 22, marginRight: 25, marginBottom: 22, marginLeft: 30,
-    fontFamily: "Times New Roman", fontHeading: "Times New Roman", fontSize: 12, lineHeight: 1.35, paraSpacing: 6, align: "justify",
+    fontFamily: "Times New Roman", fontHeading: tr("Times New Roman"), fontSize: 12, lineHeight: 1.35, paraSpacing: 6, align: "justify",
     colorText: "#111827", colorAccent: "#1e3a8a", frame: "none", frameColor: "#1e3a8a", frameInset: 8,
-    kopEnabled: false, kopStyle: "klasik", kopLine: "double", kopLine1: "", kopName: "NAMA INSTANSI / PERUSAHAAN", kopAddress: "Jl. Contoh Alamat No. 123, Kota, Provinsi 12345", kopContact: "Telp. (021) 1234567 · Email: info@contoh.id · www.contoh.id",
+    kopEnabled: false, kopStyle: "klasik", kopLine: "double", kopLine1: "", kopName: tr("NAMA INSTANSI / PERUSAHAAN"), kopAddress: tr("Jl. Contoh Alamat No. 123, Kota, Provinsi 12345"), kopContact: tr("Telp. (021) 1234567 · Email: info@contoh.id · www.contoh.id"),
     kopLogo: null, kopLogoSize: 22, kopAllPages: false, kopColor: "#111827", contHeader: true,
-    city: "Jakarta", date: todayISODate(), dateLocation: "top", dateAlign: "right",
-    numberMode: "manual", nomor: "", noUrut: 1, noKode: "UM", noFormat: "{no:3}/{kode}/{bulan_romawi}/{tahun}",
+    city: tr("Jakarta"), date: todayISODate(), dateLocation: "top", dateAlign: "right",
+    numberMode: "manual", nomor: "", noUrut: 1, noKode: "UM", noFormat: tr("{no:3}/{kode}/{bulan_romawi}/{tahun}"),
     metaEnabled: false, sifat: "", lampiran: "", perihal: "",
     addressee: "",
-    blocks: [blk("paragraph", "Tulis isi surat di sini…")],
+    blocks: [blk("paragraph", tr("Tulis isi surat di sini…"))],
     signEnabled: true, signLayout: "right", signGap: 22,
-    signers: [newSigner({ role: "", name: "Nama Lengkap" })],
+    signers: [newSigner({ role: "", name: tr("Nama Lengkap") })],
     materai: false, stampImage: null, tembusan: "",
     lampiranPage: false, lampiranTitle: "LAMPIRAN", lampiranText: "",
-    pageNum: "center", pageNumFormat: "Halaman {n} dari {total}", footerText: "",
+    pageNum: "center", pageNumFormat: tr("Halaman {n} dari {total}"), footerText: "",
     watermarkText: "", watermarkOpacity: 0.08, watermarkColor: "#64748b", watermarkLogo: false,
     vars: {}, customVars: [],
   };
@@ -155,8 +157,8 @@ function parseISO(iso: string): Date {
 
 export function formatNomor(fmt: string, noUrut: number, kode: string, iso: string): string {
   const d = parseISO(iso);
-  return fmt.replace(/\{(no|kode|bulan_romawi|bulan|tahun|hari)(?::(\d{1,2}))?\}/gi, (_m, key: string, pad?: string) => {
-    switch (key.toLowerCase()) {
+  return fmt.replace(/\{(no|kode|code|bulan_romawi|roman_month|bulan|month|tahun|year|hari|day)(?::(\d{1,2}))?\}/gi, (_m, key: string, pad?: string) => {
+    switch (({ code: "kode", roman_month: "bulan_romawi", month: "bulan", year: "tahun", day: "hari" } as Record<string, string>)[key.toLowerCase()] ?? key.toLowerCase()) {
       case "no": return pad ? String(noUrut).padStart(parseInt(pad, 10), "0") : String(noUrut);
       case "kode": return kode;
       case "bulan_romawi": return monthRoman(d.getMonth() + 1);
@@ -174,7 +176,7 @@ const VAR_RE = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
 
 export function applyVars(text: string, vars: Record<string, string>): string {
   if (!text) return "";
-  return text.replace(VAR_RE, (_m, k: string) => vars[k.toLowerCase()] ?? "");
+  return text.replace(VAR_RE, (_m, k: string) => vars[k.toLowerCase()] ?? vars[idKey(k.toLowerCase())] ?? "");
 }
 
 export const templateFieldsKey = (f: TemplateField[]) => f.map((x) => x.key).join(",");
@@ -186,14 +188,14 @@ export const templateFieldsKey = (f: TemplateField[]) => f.map((x) => x.key).joi
  */
 export function buildVars(doc: LetterDoc, fields: TemplateField[], row?: Record<string, string>, noUrutOverride?: number): Record<string, string> {
   const d = parseISO(doc.date);
-  const weekday = new Intl.DateTimeFormat("id-ID", { weekday: "long" }).format(d);
+  const weekday = new Intl.DateTimeFormat(LOCALE, { weekday: "long" }).format(d);
   const v: Record<string, string> = {
     tanggal: formatDateID(doc.date),
     tanggal_pendek: `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`,
     hari: weekday,
     kota: doc.city,
     tahun: String(d.getFullYear()),
-    bulan: new Intl.DateTimeFormat("id-ID", { month: "long" }).format(d),
+    bulan: new Intl.DateTimeFormat(LOCALE, { month: "long" }).format(d),
     bulan_romawi: monthRoman(d.getMonth() + 1),
     nomor: resolveNomor(doc, noUrutOverride),
     perihal: doc.perihal,
@@ -260,9 +262,9 @@ export function letterToText(doc: LetterDoc, vars: Record<string, string>): stri
   if (doc.dateLocation === "top" && dateLine) out.push(dateLine, "");
   if (doc.metaEnabled) {
     const nomor = vars.nomor;
-    if (nomor) out.push(`Nomor     : ${nomor}`);
-    if (doc.sifat) out.push(`Sifat     : ${T(doc.sifat)}`);
-    if (doc.lampiran) out.push(`Lampiran  : ${T(doc.lampiran)}`);
+    if (nomor) out.push(tr("Nomor     : {0}", nomor));
+    if (doc.sifat) out.push(tr("Sifat     : {0}", T(doc.sifat)));
+    if (doc.lampiran) out.push(tr("Lampiran  : {0}", T(doc.lampiran)));
     if (doc.perihal) out.push(`Hal       : ${T(doc.perihal)}`);
     out.push("");
   }
@@ -287,7 +289,7 @@ export function letterToText(doc: LetterDoc, vars: Record<string, string>): stri
     });
     out.push("");
   }
-  if (doc.tembusan.trim()) { out.push("Tembusan:"); blockLines(T(doc.tembusan)).forEach((l, i) => out.push(`${i + 1}. ${l}`)); }
+  if (doc.tembusan.trim()) { out.push(tr("Tembusan:")); blockLines(T(doc.tembusan)).forEach((l, i) => out.push(`${i + 1}. ${l}`)); }
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
 }
 

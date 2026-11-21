@@ -1,3 +1,4 @@
+import { isEn, tr } from "@/i18n";
 // Konversi angka ke kata dalam Bahasa Indonesia ("terbilang") — dipakai pada Kwitansi
 // untuk baris "Uang sejumlah: ...". Ditulis manual (bukan library eksternal) supaya
 // tetap ringan dan 100% berjalan di browser tanpa dependency tambahan.
@@ -29,9 +30,31 @@ const SCALES: { value: number; label: string }[] = [
   { value: 1_000, label: "ribu" },
 ];
 
+// ── English ("one hundred twenty-five thousand") ─────────────────────────
+const EN_ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const EN_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+const EN_SCALES: { value: number; label: string }[] = [
+  { value: 1_000_000_000_000, label: "trillion" }, { value: 1_000_000_000, label: "billion" }, { value: 1_000_000, label: "million" }, { value: 1_000, label: "thousand" },
+];
+function enBelow1000(n: number): string {
+  const h = Math.floor(n / 100), r = n % 100; const out: string[] = [];
+  if (h) out.push(`${EN_ONES[h]} hundred`);
+  if (r) out.push(r < 20 ? EN_ONES[r] : `${EN_TENS[Math.floor(r / 10)]}${r % 10 ? "-" + EN_ONES[r % 10] : ""}`);
+  return out.join(" ");
+}
+function numberToWordsEn(num: number): string {
+  const n = Math.round(Math.abs(num));
+  if (n === 0) return "zero";
+  let rem = n; const parts: string[] = [];
+  for (const { value, label } of EN_SCALES) { const c = Math.floor(rem / value); if (c > 0) { parts.push(`${enBelow1000(c)} ${label}`); rem %= value; } }
+  if (rem > 0) parts.push(enBelow1000(rem));
+  return (num < 0 ? "minus " : "") + parts.join(" ");
+}
+
 /** Converts an integer amount into Indonesian words, e.g. 125000 -> "seratus dua puluh lima ribu". */
 export function terbilang(num: number): string {
   if (!isFinite(num)) return "";
+  if (isEn) return numberToWordsEn(num);
   const n = Math.round(Math.abs(num));
   if (n === 0) return "nol";
 
@@ -48,7 +71,7 @@ export function terbilang(num: number): string {
   if (remaining > 0) parts.push(threeDigits(remaining));
 
   const words = parts.join(" ").replace(/\s+/g, " ").trim();
-  return (num < 0 ? "minus " : "") + words;
+  return (num < 0 ? tr("minus ") : "") + words;
 }
 
 /** Same as terbilang() but capitalised and suffixed with "rupiah", ready to print on a receipt. */

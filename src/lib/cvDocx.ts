@@ -1,5 +1,6 @@
 import { AlignmentType, BorderStyle, Document, Packer, Paragraph, TextRun } from "docx";
 import { SECTION_TITLES_ID, type CvData, type SectionKey } from "@/lib/cvTypes";
+import { tr } from "@/i18n";
 
 const hex = (c: string) => (/^#[0-9a-f]{6}$/i.test(c) ? c.slice(1).toUpperCase() : "0F172A");
 const lines = (t: string) => t.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
@@ -11,7 +12,7 @@ const lines = (t: string) => t.split(/\r?\n/).map((s) => s.trim()).filter(Boolea
  */
 export async function buildCvDocxBlob(data: CvData): Promise<Blob> {
   const accent = hex(data.accentColor);
-  const font = data.fontFamily?.trim() || "Calibri";
+  const font = data.fontFamily?.trim() || tr("Calibri");
   const titles: Record<SectionKey, string> = { ...SECTION_TITLES_ID };
   for (const [k, v] of Object.entries(data.sectionTitles || {})) if (typeof v === "string" && v.trim()) titles[k as SectionKey] = v.trim();
   const hidden = new Set(data.hiddenSections);
@@ -39,7 +40,7 @@ export async function buildCvDocxBlob(data: CvData): Promise<Blob> {
     if (sub.trim()) kids.push(new Paragraph({ spacing: { after: 40 }, children: [run(sub, { italics: true, color: "475569" })] }));
   };
 
-  kids.push(new Paragraph({ alignment: AlignmentType.LEFT, children: [run(data.fullName || "Nama Lengkap", { bold: true, size: 40, color: "0F172A" })] }));
+  kids.push(new Paragraph({ alignment: AlignmentType.LEFT, children: [run(data.fullName || tr("Nama Lengkap"), { bold: true, size: 40, color: "0F172A" })] }));
   if (data.jobTitle.trim()) kids.push(new Paragraph({ spacing: { after: 40 }, children: [run(data.jobTitle, { bold: true, size: 26, color: accent })] }));
   const contact = [data.email, data.phone, data.address, data.website, ...lines(data.extraInfo || "")].map((s) => s.trim()).filter(Boolean);
   if (contact.length) kids.push(new Paragraph({ spacing: { after: 60 }, children: [run(contact.join("  |  "), { color: "475569", size: 20 })] }));
@@ -136,7 +137,7 @@ export async function buildCvDocxBlob(data: CvData): Promise<Blob> {
   }
 
   const doc = new Document({
-    creator: "Gamato Piranti",
+    creator: tr("Gamato Piranti"),
     title: `CV ${data.fullName}`.trim(),
     sections: [{ properties: { page: { margin: { top: 900, bottom: 900, left: 1000, right: 1000 } } }, children: kids }],
   });

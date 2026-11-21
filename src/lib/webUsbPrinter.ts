@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // Experimental direct-to-USB-printer transport using the WebUSB API.
 //
 // Honesty first: WebUSB only works in Chromium browsers (Chrome/Edge/Opera),
@@ -17,7 +18,7 @@ export class WebUsbPrintError extends Error {}
 /** Opens a user-picked USB device, sends the raw bytes to its first bulk OUT endpoint, then closes it. */
 export async function printViaWebUsb(data: Uint8Array): Promise<void> {
   if (!isWebUsbSupported()) {
-    throw new WebUsbPrintError("WebUSB tidak didukung di browser ini. Gunakan Chrome atau Edge di desktop.");
+    throw new WebUsbPrintError(tr("WebUSB tidak didukung di browser ini. Gunakan Chrome atau Edge di desktop."));
   }
   const usb = (navigator as any).usb;
 
@@ -25,7 +26,7 @@ export async function printViaWebUsb(data: Uint8Array): Promise<void> {
   try {
     device = await usb.requestDevice({ filters: [] });
   } catch {
-    throw new WebUsbPrintError("Tidak ada printer yang dipilih.");
+    throw new WebUsbPrintError(tr("Tidak ada printer yang dipilih."));
   }
 
   try {
@@ -51,13 +52,13 @@ export async function printViaWebUsb(data: Uint8Array): Promise<void> {
     }
 
     if (interfaceNumber === null || endpointNumber === null) {
-      throw new WebUsbPrintError("Tidak menemukan endpoint printer yang cocok pada perangkat ini.");
+      throw new WebUsbPrintError(tr("Tidak menemukan endpoint printer yang cocok pada perangkat ini."));
     }
 
     await device.claimInterface(interfaceNumber);
     const result = await device.transferOut(endpointNumber, data);
     if (result.status !== "ok") {
-      throw new WebUsbPrintError(`Transfer data gagal (status: ${result.status}).`);
+      throw new WebUsbPrintError(tr("Transfer data gagal (status: {0}).", result.status));
     }
     await device.releaseInterface(interfaceNumber);
   } catch (err: any) {
@@ -65,10 +66,10 @@ export async function printViaWebUsb(data: Uint8Array): Promise<void> {
     const msg = String(err?.message || err);
     if (/claim/i.test(msg)) {
       throw new WebUsbPrintError(
-        "Gagal mengakses printer — kemungkinan printer sudah terpasang sebagai printer sistem (driver OS memegang koneksi). Gunakan tombol 'Cetak (Dialog Browser)' sebagai gantinya."
+        tr("Gagal mengakses printer — kemungkinan printer sudah terpasang sebagai printer sistem (driver OS memegang koneksi). Gunakan tombol 'Cetak (Dialog Browser)' sebagai gantinya.")
       );
     }
-    throw new WebUsbPrintError(`Gagal mencetak via USB: ${msg}`);
+    throw new WebUsbPrintError(tr("Gagal mencetak via USB: {0}", msg));
   } finally {
     try {
       await device?.close();

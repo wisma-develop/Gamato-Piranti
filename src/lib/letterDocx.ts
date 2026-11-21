@@ -10,6 +10,7 @@ import {
 import { parseRuns, type LetterAssets } from "@/lib/letterEngine";
 import { buildQrMatrix } from "@/lib/couponEngine";
 import { applyVars, blockLines, numberLabel, paperSpec, parseTable, signerCount, type LetterBlock, type LetterDoc, type TextAlign } from "@/lib/letterTypes";
+import { tr } from "@/i18n";
 
 const tw = convertMillimetersToTwip;
 const hex = (c: string) => c.replace("#", "").toUpperCase().padEnd(6, "0").slice(0, 6);
@@ -79,7 +80,7 @@ export async function letterToDocx(doc: LetterDoc, vars: Record<string, string>,
 
   // meta (Nomor/Sifat/Lampiran/Hal)
   if (doc.metaEnabled) {
-    const rows = ([["Nomor", vars.nomor ?? ""], ["Sifat", T(doc.sifat)], ["Lampiran", T(doc.lampiran)], ["Hal", T(doc.perihal)]] as [string, string][]).filter((r) => r[1].trim());
+    const rows = ([[tr("Nomor"), vars.nomor ?? ""], [tr("Sifat"), T(doc.sifat)], [tr("Lampiran"), T(doc.lampiran)], [tr("Hal"), T(doc.perihal)]] as [string, string][]).filter((r) => r[1].trim());
     if (rows.length) {
       const w = [tw(24), tw(4), contentTw - tw(28)];
       body.push(new Table({
@@ -177,7 +178,7 @@ export async function letterToDocx(doc: LetterDoc, vars: Record<string, string>,
       if (T(s.role).trim()) kids.push(c(s.role, { bold: true }));
       const gapMM = Math.max(doc.signGap, doc.materai ? 18 : 8);
       const sig = await imgToPng(assets.sigs[s.id] ?? null);
-      const qr = s.qr ? await qrPng(`Ditandatangani secara elektronik oleh ${T(s.name)} — ${vars.nomor ? `No. ${vars.nomor} — ` : ""}${vars.tanggal}`) : null;
+      const qr = s.qr ? await qrPng(tr("Ditandatangani secara elektronik oleh {0} — {1}{2}", T(s.name), vars.nomor ? `No. ${vars.nomor} — ` : "", vars.tanggal)) : null;
       const pic = qr ?? sig;
       const kidsRuns: ParagraphChild[] = [];
       if (s.showStamp && stamp) {
@@ -189,7 +190,7 @@ export async function letterToDocx(doc: LetterDoc, vars: Record<string, string>,
         kidsRuns.push(new ImageRun({ type: "png", data: pic.data, transformation: { width: Math.min(Math.round((hpx * pic.w) / pic.h), Math.round((w / 15) * 0.75)), height: hpx } }));
       }
       if (kidsRuns.length) kids.push(new Paragraph({ children: kidsRuns, alignment: AlignmentType.CENTER, spacing: { ...spacing, after: 0 } }));
-      else if (doc.materai && idx === signers.length - 1) kids.push(new Paragraph({ children: [new TextRun({ text: "[ Materai Rp10.000 ]", font, size: Math.round(size * 0.7), color: "94A3B8" })], alignment: AlignmentType.CENTER, spacing: { before: tw(gapMM) / 3, after: tw(gapMM) / 3 } }));
+      else if (doc.materai && idx === signers.length - 1) kids.push(new Paragraph({ children: [new TextRun({ text: tr("[ Materai Rp10.000 ]"), font, size: Math.round(size * 0.7), color: "94A3B8" })], alignment: AlignmentType.CENTER, spacing: { before: tw(gapMM) / 3, after: tw(gapMM) / 3 } }));
       else kids.push(new Paragraph({ children: [], spacing: { before: tw(gapMM), after: 0 } }));
       kids.push(c(s.name, { bold: true }));
       if (s.idValue.trim()) kids.push(c(`${s.idLabel ? `${T(s.idLabel)} ` : ""}${T(s.idValue)}`));
@@ -215,7 +216,7 @@ export async function letterToDocx(doc: LetterDoc, vars: Record<string, string>,
   const tem = blockLines(T(doc.tembusan));
   if (tem.length) {
     body.push(new Paragraph({ children: [], spacing: { after: 160 } }));
-    body.push(new Paragraph({ children: runsFor("Tembusan:", { size: Math.round(size * 0.92) }), spacing: { ...spacing, after: 0 }, keepNext: true }));
+    body.push(new Paragraph({ children: runsFor(tr("Tembusan:"), { size: Math.round(size * 0.92) }), spacing: { ...spacing, after: 0 }, keepNext: true }));
     tem.forEach((l, i) => body.push(new Paragraph({
       children: [new TextRun({ text: `${i + 1}.`, font, size: Math.round(size * 0.92), color }), new TextRun({ text: "\t", font }), ...runsFor(l, { size: Math.round(size * 0.92) })],
       tabStops: [{ type: TabStopType.LEFT, position: tw(7) }], indent: { left: tw(7), hanging: tw(7) }, spacing: { ...spacing, after: 0 },
@@ -260,7 +261,7 @@ export async function letterToDocx(doc: LetterDoc, vars: Record<string, string>,
   const firstHeader = new Header({ children: kopChildren });
   const contHeader = doc.kopEnabled && doc.kopAllPages
     ? new Header({ children: makeKop() })
-    : new Header({ children: doc.contHeader ? [new Paragraph({ children: [new TextRun({ text: `${T(doc.perihal).trim() || vars.nomor || "Lanjutan surat"}`, font, size: Math.round(size * 0.8), color: "64748B" })], border: { bottom: { style: BorderStyle.SINGLE, size: 4, space: 2, color: "CBD5E1" } } })] : [new Paragraph({ children: [] })] });
+    : new Header({ children: doc.contHeader ? [new Paragraph({ children: [new TextRun({ text: `${T(doc.perihal).trim() || vars.nomor || tr("Lanjutan surat")}`, font, size: Math.round(size * 0.8), color: "64748B" })], border: { bottom: { style: BorderStyle.SINGLE, size: 4, space: 2, color: "CBD5E1" } } })] : [new Paragraph({ children: [] })] });
 
   const pageNumRuns = (): TextRun[] => {
     const parts = doc.pageNumFormat.split(/(\{n\}|\{total\})/);
@@ -274,8 +275,8 @@ export async function letterToDocx(doc: LetterDoc, vars: Record<string, string>,
   const footer = new Footer({ children: footerParas.length ? footerParas : [new Paragraph({ children: [] })] });
 
   const document = new Document({
-    creator: "Gamato Piranti",
-    title: T(doc.perihal) || "Surat",
+    creator: tr("Gamato Piranti"),
+    title: T(doc.perihal) || tr("Surat"),
     styles: { default: { document: { run: { font, size, color }, paragraph: { spacing } } } },
     sections: [{
       properties: {

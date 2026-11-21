@@ -6,10 +6,11 @@
 // berkas ikon diganti di /public, semua watermark ikut berubah tanpa mengubah kode.
 
 import { SITE_HOST } from "@/lib/site";
+import { tr } from "@/i18n";
 
 export const GAMATO_ICON_URL = "/gamato-piranti.png";
 export const GAMATO_SITE = SITE_HOST;
-export const GAMATO_NAME = "Gamato Piranti";
+export const GAMATO_NAME = tr("Gamato Piranti");
 
 export interface GamatoIcon {
   /** Kanvas ikon yang sudah dipangkas (siap untuk drawImage). */
@@ -26,7 +27,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Ikon Gamato Piranti tidak ditemukan."));
+    img.onerror = () => reject(new Error(tr("Ikon Gamato Piranti tidak ditemukan.")));
     img.src = url;
   });
 }

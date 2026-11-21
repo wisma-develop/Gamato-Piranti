@@ -8,6 +8,7 @@
 
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { resamplePcm, yieldUi, type PCM } from "@/lib/audioEditEngine";
+import { tr } from "@/i18n";
 
 export const MP3_BITRATES = [96, 128, 160, 192, 256, 320] as const;
 export type Mp3Kbps = (typeof MP3_BITRATES)[number];
@@ -36,7 +37,7 @@ export interface Mp3Options {
 }
 
 export async function encodeMp3(pcm: PCM, opts: Mp3Options = {}): Promise<Blob> {
-  if (!pcm.channels.length || !pcm.channels[0].length) throw new Error("Audio kosong — tidak ada yang bisa diekspor.");
+  if (!pcm.channels.length || !pcm.channels[0].length) throw new Error(tr("Audio kosong — tidak ada yang bisa diekspor."));
   let kbps = opts.kbps ?? 192;
 
   let src: PCM = pcm;
@@ -50,7 +51,7 @@ export async function encodeMp3(pcm: PCM, opts: Mp3Options = {}): Promise<Blob> 
   const total = src.channels[0].length;
   const a = Math.max(0, Math.min(total, Math.floor((opts.start ?? 0) * src.sampleRate)));
   const b = Math.max(a, Math.min(total, opts.end !== undefined ? Math.ceil(opts.end * src.sampleRate) : total));
-  if (b - a < 1) throw new Error("Rentang audio kosong.");
+  if (b - a < 1) throw new Error(tr("Rentang audio kosong."));
 
   const wantMono = opts.mono || src.channels.length === 1;
   const left = src.channels[0].subarray(a, b);
