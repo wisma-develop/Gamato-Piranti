@@ -8,6 +8,7 @@ import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfToWord: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -42,16 +43,16 @@ export const PdfToWord: React.FC = () => {
       }
 
       if (!hasText) {
-        setInfo("Tidak ada teks yang terdeteksi — kemungkinan PDF ini hasil scan gambar. Coba alat OCR PDF untuk membaca teksnya.");
+        setInfo(tr("Tidak ada teks yang terdeteksi — kemungkinan PDF ini hasil scan gambar. Coba alat OCR PDF untuk membaca teksnya."));
         return;
       }
 
       const base = file.name.replace(/\.pdf$/i, "");
       const blob = await exportDocxFromBlocks(blocks, base);
       downloadBlob(blob, `${base}.docx`);
-      setInfo(`Berhasil dikonversi ke Word (${pdf.numPages} halaman).`);
+      setInfo(tr("Berhasil dikonversi ke Word ({0} halaman).", pdf.numPages));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal mengonversi PDF ke Word."));
+      setInfo("" + (err?.message || tr("Gagal mengonversi PDF ke Word.")));
     } finally {
       setIsWorking(false);
     }
@@ -64,8 +65,8 @@ export const PdfToWord: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -77,7 +78,7 @@ export const PdfToWord: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -86,18 +87,18 @@ export const PdfToWord: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Tidak") ? "warning" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Tidak") ? "warning" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Mengekstrak teks…
+              {tr("Mengekstrak teks…")}
             </>
           ) : (
             <>
               <FileDown className="w-4 h-4" />
-              Konversi ke Word
+              {tr("Konversi ke Word")}
             </>
           )}
         </Btn>
@@ -105,11 +106,11 @@ export const PdfToWord: React.FC = () => {
 
       <ToolInfoPanel
         icon={<FileText className="w-5 h-5" />}
-        label="PDF ke Word"
-        desc="Ekstrak teks asli PDF"
+        label={tr("PDF ke Word")}
+        desc={tr("Ekstrak teks asli PDF")}
         points={[
-          "Setiap baris teks di PDF menjadi satu paragraf di Word.",
-          "Bekerja untuk PDF berbasis teks asli — untuk PDF hasil scan, gunakan alat OCR PDF terlebih dahulu.",
+          tr("Setiap baris teks di PDF menjadi satu paragraf di Word."),
+          tr("Bekerja untuk PDF berbasis teks asli — untuk PDF hasil scan, gunakan alat OCR PDF terlebih dahulu."),
         ]}
       />
     </div>

@@ -8,6 +8,7 @@ import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { copyText as gamatoCopyText } from "@/lib/permissions";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfOcr: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -36,21 +37,21 @@ export const PdfOcr: React.FC = () => {
         const bytes = await fileToArrayBuffer(file);
         const pdf = await loadPdfDocument(bytes);
         for (let i = 1; i <= pdf.numPages; i++) {
-          setProgressLabel(`Membaca halaman ${i} dari ${pdf.numPages}…`);
+          setProgressLabel(tr("Membaca halaman {0} dari {1}…", i, pdf.numPages));
           const canvas = await renderPageToCanvas(pdf, i, 2.2);
           const text = await runOcr(canvas, lang);
-          combined += `${i > 1 ? "\n\n" : ""}--- Halaman ${i} ---\n${text.trim()}`;
+          combined += `${i > 1 ? "\n\n" : ""}${tr("--- Halaman {0} ---", i)}\n${text.trim()}`;
         }
       } else {
-        setProgressLabel("Membaca teks dari gambar…");
+        setProgressLabel(tr("Membaca teks dari gambar…"));
         const dataUrl = await fileToDataUrl(file);
         combined = await runOcr(dataUrl, lang);
       }
       const trimmed = combined.trim();
       setResultText(trimmed);
-      setInfo(trimmed ? "Teks berhasil dibaca." : "Tidak ada teks yang berhasil terbaca dari file ini.");
+      setInfo(trimmed ? tr("Teks berhasil dibaca.") : tr("Tidak ada teks yang berhasil terbaca dari file ini."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal menjalankan OCR. Pastikan koneksi internet aktif (mesin OCR dimuat saat pertama kali dipakai)."));
+      setInfo("" + (err?.message || tr("Gagal menjalankan OCR. Pastikan koneksi internet aktif (mesin OCR dimuat saat pertama kali dipakai).")));
     } finally {
       setIsWorking(false);
       setProgressLabel(null);
@@ -60,9 +61,9 @@ export const PdfOcr: React.FC = () => {
   const copyText = async () => {
     try {
       if (!(await gamatoCopyText(resultText))) throw new Error("clipboard");
-      setInfo("Teks disalin ke clipboard.");
+      setInfo(tr("Teks disalin ke clipboard."));
     } catch {
-      setInfo("Gagal menyalin teks.");
+      setInfo(tr("Gagal menyalin teks."));
     }
   };
 
@@ -78,8 +79,8 @@ export const PdfOcr: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf,image/*"
           multiple={false}
-          label="Drop PDF atau gambar dokumen di sini"
-          sublabel="Baca teks dari PDF hasil scan atau foto dokumen"
+          label={tr("Drop PDF atau gambar dokumen di sini")}
+          sublabel={tr("Baca teks dari PDF hasil scan atau foto dokumen")}
           icon={<Type className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -91,7 +92,7 @@ export const PdfOcr: React.FC = () => {
               {file.type === "application/pdf" ? <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" /> : <ImageIcon className="w-5 h-5 text-slate-400 dark:text-slate-500" />}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => { setFile(null); setResultText(""); setInfo(null); }} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -101,10 +102,10 @@ export const PdfOcr: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
-          <Select label="Bahasa" value={lang} onChange={(e) => setLang(e.target.value as any)}>
-            <option value="ind+eng">Indonesia + Inggris</option>
-            <option value="ind">Indonesia</option>
-            <option value="eng">Inggris</option>
+          <Select label={tr("Bahasa")} value={lang} onChange={(e) => setLang(e.target.value as any)}>
+            <option value="ind+eng">{tr("Indonesia + Inggris")}</option>
+            <option value="ind">{tr("Indonesia")}</option>
+            <option value="eng">{tr("Inggris")}</option>
           </Select>
         </div>
 
@@ -115,18 +116,18 @@ export const PdfOcr: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Tidak") ? "warning" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Tidak") ? "warning" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Menjalankan OCR…
+              {tr("Menjalankan OCR…")}
             </>
           ) : (
             <>
               <Type className="w-4 h-4" />
-              Baca Teks (OCR)
+              {tr("Baca Teks (OCR)")}
             </>
           )}
         </Btn>
@@ -134,13 +135,13 @@ export const PdfOcr: React.FC = () => {
         {resultText && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Hasil OCR</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Hasil OCR")}</p>
               <div className="flex gap-2">
                 <Btn onClick={copyText} variant="secondary" className="text-xs py-1.5 gap-1.5">
-                  <Copy className="w-3.5 h-3.5" /> Salin
+                  <Copy className="w-3.5 h-3.5" /> {tr("Salin")}
                 </Btn>
                 <Btn onClick={downloadTxt} variant="secondary" className="text-xs py-1.5 gap-1.5">
-                  <Download className="w-3.5 h-3.5" /> Unduh .txt
+                  <Download className="w-3.5 h-3.5" /> {tr("Unduh .txt")}
                 </Btn>
               </div>
             </div>
@@ -152,11 +153,11 @@ export const PdfOcr: React.FC = () => {
       <ToolInfoPanel
         icon={<Type className="w-5 h-5" />}
         label="OCR"
-        desc="Baca teks dari scan/foto"
+        desc={tr("Baca teks dari scan/foto")}
         points={[
-          "Bekerja untuk PDF hasil scan maupun foto dokumen biasa (JPG/PNG).",
-          "Mesin OCR (Tesseract) dimuat otomatis saat pertama kali dipakai — butuh koneksi internet sekali di awal.",
-          "Hasil bisa langsung diedit, disalin, atau diunduh sebagai .txt.",
+          tr("Bekerja untuk PDF hasil scan maupun foto dokumen biasa (JPG/PNG)."),
+          tr("Mesin OCR (Tesseract) dimuat otomatis saat pertama kali dipakai — butuh koneksi internet sekali di awal."),
+          tr("Hasil bisa langsung diedit, disalin, atau diunduh sebagai .txt."),
         ]}
       />
     </div>

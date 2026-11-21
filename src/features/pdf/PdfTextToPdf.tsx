@@ -7,6 +7,7 @@ import { Textarea, Btn } from "@/components/ui/primitives";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { useAutosave, useDraft } from "@/hooks/useAutosave";
 import { AutosaveBar } from "@/components/ui/AutosaveBar";
+import { msgOk, tr } from "@/i18n";
 
 const DRAFT_KEY = "gamato.draft.teksketopdf";
 
@@ -53,9 +54,9 @@ export const PdfTextToPdf: React.FC = () => {
       await stampGamatoBranding(pdfDoc);
       const blob = new Blob([await pdfDoc.save()], { type: "application/pdf" });
       downloadBlob(blob, "gamato-text.pdf");
-      setInfo("Teks berhasil dikonversi ke PDF.");
+      setInfo(tr("Teks berhasil dikonversi ke PDF."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal."));
+      setInfo("" + (err?.message || tr("Gagal.")));
     } finally {
       setIsWorking(false);
     }
@@ -66,17 +67,17 @@ export const PdfTextToPdf: React.FC = () => {
       <AutosaveBar autosave={autosave} what="teks" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <Textarea label="Teks untuk dijadikan PDF" rows={12} value={textForPdf} onChange={(e) => setTextForPdf(e.target.value)} placeholder="Tulis atau tempel teks di sini…" />
+          <Textarea label={tr("Teks untuk dijadikan PDF")} rows={12} value={textForPdf} onChange={(e) => setTextForPdf(e.target.value)} placeholder={tr("Tulis atau tempel teks di sini…")} />
           <Btn onClick={handleRun} disabled={isWorking || !textForPdf.trim()} className="w-full py-3.5">
             {isWorking ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Memproses…
+                {tr("Memproses…")}
               </>
             ) : (
               <>
                 <FileText className="w-4 h-4" />
-                Jadikan PDF
+                {tr("Jadikan PDF")}
               </>
             )}
           </Btn>
@@ -85,11 +86,11 @@ export const PdfTextToPdf: React.FC = () => {
 
       <ToolInfoPanel
         icon={<AlignLeft className="w-5 h-5" />}
-        label="Teks ke PDF"
-        desc="Teks polos ke PDF"
-        points={["Teks polos jadi PDF rapi.", "Layout sederhana, bisa dibuka di mana saja."]}
+        label={tr("Teks ke PDF")}
+        desc={tr("Teks polos ke PDF")}
+        points={[tr("Teks polos jadi PDF rapi."), tr("Layout sederhana, bisa dibuka di mana saja.")]}
         info={info}
-        infoTone={info?.includes("berhasil") ? "success" : "error"}
+        infoTone={msgOk(info) ? "success" : "error"}
       />
     </div>
   );

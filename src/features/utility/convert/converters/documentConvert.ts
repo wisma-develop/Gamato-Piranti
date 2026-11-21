@@ -15,6 +15,7 @@ import { renderHtmlToPngBlob } from "@/lib/htmlRender";
 import { loadPdfDocument, extractPageTextItems, groupIntoLines, joinLineText, renderPageToCanvas } from "@/lib/pdfRender";
 import { canvasToBlob } from "@/lib/canvas";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
+import { tr } from "@/i18n";
 
 /** Plain text -> one BlockModel paragraph per line (blank lines preserved as empty paragraphs). */
 function textToBlocks(text: string): BlockModel[] {
@@ -59,13 +60,13 @@ export function markdownToHtml(md: string): string {
     if (heading) {
       closeList();
       const level = heading[1].length;
-      out.push(`<h${level} style="margin:0.6em 0 0.3em;">${inlineMd(heading[2])}</h${level}>`);
+      out.push(tr("<h{0} style=\"margin:0.6em 0 0.3em;\">{1}</h{2}>", level, inlineMd(heading[2]), level));
       continue;
     }
     const bullet = /^\s*[-*+]\s+(.*)$/.exec(line);
     if (bullet) {
       if (!inList) {
-        out.push("<ul style=\"margin:0.3em 0;padding-left:1.4em;\">");
+        out.push(tr("<ul style=\"margin:0.3em 0;padding-left:1.4em;\">"));
         inList = true;
       }
       out.push(`<li>${inlineMd(bullet[1])}</li>`);
@@ -75,7 +76,7 @@ export function markdownToHtml(md: string): string {
     if (line.trim() === "") {
       out.push("<br/>");
     } else {
-      out.push(`<p style="margin:0.4em 0;">${inlineMd(line)}</p>`);
+      out.push(tr("<p style=\"margin:0.4em 0;\">{0}</p>", inlineMd(line)));
     }
   }
   closeList();
@@ -148,7 +149,7 @@ function runToHtml(r: RunModel): string {
   if (r.color) styles.push(`color:${r.color}`);
   if (r.highlight) styles.push(`background-color:${r.highlight}`);
   if (r.fontSizePx) styles.push(`font-size:${r.fontSizePx}px`);
-  if (styles.length) t = `<span style="${styles.join(";")}">${t}</span>`;
+  if (styles.length) t = tr("<span style=\"{0}\">{1}</span>", styles.join(";"), t);
   if (r.link) t = `<a href="${escapeHtmlText(r.link)}">${t}</a>`;
   return t;
 }
@@ -166,7 +167,7 @@ export function blocksToHtml(blocks: BlockModel[]): string {
   for (const b of blocks) {
     if (b.kind === "image") {
       flushList();
-      parts.push(`<p><img src="${b.dataUrl}" style="max-width:100%;" width="${Math.round(b.width)}" height="${Math.round(b.height)}" /></p>`);
+      parts.push(tr("<p><img src=\"{0}\" style=\"max-width:100%;\" width=\"{1}\" height=\"{2}\" /></p>", b.dataUrl, Math.round(b.width), Math.round(b.height)));
       continue;
     }
     const inner = b.runs.map(runToHtml).join("") || "&nbsp;";
@@ -178,7 +179,7 @@ export function blocksToHtml(blocks: BlockModel[]): string {
       list.items.push(inner);
     } else {
       flushList();
-      const alignAttr = b.align && b.align !== "left" ? ` style="text-align:${b.align}"` : "";
+      const alignAttr = b.align && b.align !== "left" ? tr(" style=\"text-align:{0}\"", b.align) : "";
       parts.push(`<p${alignAttr}>${inner}</p>`);
     }
   }
@@ -200,7 +201,7 @@ export function blocksToMarkdown(blocks: BlockModel[]): string {
   const lines: string[] = [];
   for (const b of blocks) {
     if (b.kind === "image") {
-      lines.push(`![gambar](${b.dataUrl})`);
+      lines.push(tr("![gambar]({0})", b.dataUrl));
       continue;
     }
     const text = b.runs.map(runToMarkdown).join("");

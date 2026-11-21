@@ -10,6 +10,7 @@ import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommend
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 
@@ -21,7 +22,7 @@ export const PdfSign: React.FC = () => {
   const [targetPage, setTargetPage] = useState(1);
 
   const [mode, setMode] = useState<"draw" | "type">("draw");
-  const [typedName, setTypedName] = useState("Nama Anda");
+  const [typedName, setTypedName] = useState(tr("Nama Anda"));
   const sigCanvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [hasDrawing, setHasDrawing] = useState(false);
@@ -103,7 +104,7 @@ export const PdfSign: React.FC = () => {
       ctx.font = "italic 700 64px Georgia, 'Times New Roman', serif";
       ctx.fillStyle = "#0f172a";
       ctx.textBaseline = "middle";
-      ctx.fillText(typedName || "Tanda Tangan", 20, canvas.height / 2);
+      ctx.fillText(typedName || tr("Tanda Tangan"), 20, canvas.height / 2);
     }
     const dataUrl = canvas.toDataURL("image/png");
     return Uint8Array.from(atob(dataUrl.split(",")[1]), (c) => c.charCodeAt(0));
@@ -132,7 +133,7 @@ export const PdfSign: React.FC = () => {
   const handleApply = async () => {
     if (!file) return;
     if (mode === "draw" && !hasDrawing) {
-      setInfo("Gambar tanda tangan terlebih dahulu, atau pindah ke mode Ketik.");
+      setInfo(tr("Gambar tanda tangan terlebih dahulu, atau pindah ke mode Ketik."));
       return;
     }
     setInfo(null);
@@ -152,9 +153,9 @@ export const PdfSign: React.FC = () => {
       page.drawImage(sigImg, { x, y, width: stampW, height: stampH });
 
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-signed.pdf");
-      setInfo(`Tanda tangan berhasil dibubuhkan di halaman ${targetPage}.`);
+      setInfo(tr("Tanda tangan berhasil dibubuhkan di halaman {0}.", targetPage));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal membubuhkan tanda tangan."));
+      setInfo("" + (err?.message || tr("Gagal membubuhkan tanda tangan.")));
     } finally {
       setIsWorking(false);
     }
@@ -172,8 +173,8 @@ export const PdfSign: React.FC = () => {
             onFiles={addFiles}
             accept="application/pdf"
             multiple={false}
-            label="Drop file PDF di sini"
-            sublabel="atau klik untuk browse"
+            label={tr("Drop file PDF di sini")}
+            sublabel={tr("atau klik untuk browse")}
             icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -193,7 +194,7 @@ export const PdfSign: React.FC = () => {
                   }}
                   className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0"
                 >
-                  Ganti File
+                  {tr("Ganti File")}
                 </button>
               </div>
               <div className="grid md:grid-cols-2 gap-0">
@@ -209,43 +210,43 @@ export const PdfSign: React.FC = () => {
                       className="absolute border-2 border-indigo-500 bg-indigo-50/60 dark:bg-indigo-500/20 cursor-move touch-none flex items-center justify-center text-[10px] text-indigo-600 font-semibold"
                       style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%`, width: `${pos.w * 100}%`, aspectRatio: "600 / 220" }}
                     >
-                      Tanda Tangan
+                      {tr("Tanda Tangan")}
                     </div>
                   </div>
                 </div>
               </div>
               <p className="text-xs text-slate-400 dark:text-slate-500 px-5 py-2 border-t border-slate-100 dark:border-slate-800">
-                Kiri: pratinjau halaman asli. Kanan: geser kotak untuk mengatur posisi tanda tangan (proporsional terhadap halaman).
+                {tr("Kiri: pratinjau halaman asli. Kanan: geser kotak untuk mengatur posisi tanda tangan (proporsional terhadap halaman).")}
               </p>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Halaman" type="number" min={1} max={pageCount} value={targetPage} onChange={(e) => setTargetPage(clamp(parseInt(e.target.value) || 1, 1, pageCount))} />
+                <Input label={tr("Halaman")} type="number" min={1} max={pageCount} value={targetPage} onChange={(e) => setTargetPage(clamp(parseInt(e.target.value) || 1, 1, pageCount))} />
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <Label>Ukuran</Label>
+                    <Label>{tr("Ukuran")}</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(pos.w * 100)}%</span>
                   </div>
-                  <GamatoSlider min={10} max={70} value={Math.round(pos.w * 100)} onChange={(v) => setPos((p) => ({ ...p, w: v / 100 }))} aria-label="Ukuran tanda tangan" />
+                  <GamatoSlider min={10} max={70} value={Math.round(pos.w * 100)} onChange={(v) => setPos((p) => ({ ...p, w: v / 100 }))} aria-label={tr("Ukuran tanda tangan")} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" onClick={() => setMode("draw")} className={cn("py-2.5 rounded-xl text-sm font-semibold border-2", mode === "draw" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>
-                  Gambar
+                  {tr("Gambar")}
                 </button>
                 <button type="button" onClick={() => setMode("type")} className={cn("py-2.5 rounded-xl text-sm font-semibold border-2", mode === "type" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}>
-                  Ketik
+                  {tr("Ketik")}
                 </button>
               </div>
 
               {mode === "draw" ? (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <Label>Gambar tanda tangan di sini</Label>
+                    <Label>{tr("Gambar tanda tangan di sini")}</Label>
                     <button type="button" onClick={clearSig} className="text-xs text-red-500 font-semibold flex items-center gap-1">
-                      <Eraser className="w-3.5 h-3.5" /> Hapus
+                      <Eraser className="w-3.5 h-3.5" /> {tr("Hapus")}
                     </button>
                   </div>
                   <canvas
@@ -260,24 +261,24 @@ export const PdfSign: React.FC = () => {
                   />
                 </div>
               ) : (
-                <Input label="Ketik nama untuk dijadikan tanda tangan" value={typedName} onChange={(e) => setTypedName(e.target.value)} placeholder="Nama Anda" />
+                <Input label={tr("Ketik nama untuk dijadikan tanda tangan")} value={typedName} onChange={(e) => setTypedName(e.target.value)} placeholder={tr("Nama Anda")} />
               )}
             </div>
           </>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Gambar") ? "warning" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Gambar") ? "warning" : "success"} />}
 
         <Btn onClick={handleApply} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Bubuhkan Tanda Tangan
+              {tr("Bubuhkan Tanda Tangan")}
             </>
           )}
         </Btn>
@@ -285,9 +286,9 @@ export const PdfSign: React.FC = () => {
 
       <ToolInfoPanel
         icon={<PenLine className="w-5 h-5" />}
-        label="Tanda Tangan PDF"
-        desc="Gambar atau ketik"
-        points={["Gambar tanda tangan dengan mouse/jari, atau ketik nama bergaya tulisan tangan.", "Posisi & ukuran diatur proporsional terhadap halaman yang dipilih."]}
+        label={tr("Tanda Tangan PDF")}
+        desc={tr("Gambar atau ketik")}
+        points={[tr("Gambar tanda tangan dengan mouse/jari, atau ketik nama bergaya tulisan tangan."), tr("Posisi & ukuran diatur proporsional terhadap halaman yang dipilih.")]}
       />
     </div>
     </div>

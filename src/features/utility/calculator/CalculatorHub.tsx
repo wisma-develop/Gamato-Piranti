@@ -10,18 +10,19 @@ import { CalcLoan } from "./CalcLoan";
 import { CalcFormula } from "./CalcFormula";
 import { CalcHpp } from "./CalcHpp";
 import { CalcUnit } from "./CalcUnit";
+import { tr } from "@/i18n";
 
 type CalcId = "standar" | "pajak" | "bunga" | "investasi" | "cicilan" | "rumus" | "hpp" | "satuan";
 
 const CALCULATORS: { id: CalcId; label: string; icon: React.ReactNode; title: string; subtitle: string }[] = [
-  { id: "standar", label: "Standar", icon: <Calculator className="w-4 h-4" />, title: "Kalkulator Standar", subtitle: "Kalkulator harian — tambah, kurang, kali, bagi." },
-  { id: "pajak", label: "Pajak", icon: <Receipt className="w-4 h-4" />, title: "Kalkulator Pajak", subtitle: "Hitung PPN eksklusif atau inklusif." },
-  { id: "bunga", label: "Bunga", icon: <TrendingUp className="w-4 h-4" />, title: "Kalkulator Bunga", subtitle: "Bunga sederhana & majemuk." },
-  { id: "investasi", label: "Investasi", icon: <PiggyBank className="w-4 h-4" />, title: "Kalkulator Investasi", subtitle: "Proyeksi nilai investasi dengan setoran rutin bulanan." },
-  { id: "cicilan", label: "Cicilan / Hutang", icon: <Landmark className="w-4 h-4" />, title: "Kalkulator Cicilan & Hutang", subtitle: "Cicilan bulanan pinjaman sistem anuitas." },
-  { id: "rumus", label: "Rumus", icon: <Sigma className="w-4 h-4" />, title: "Kalkulator Rumus", subtitle: "Hitung rumus custom dengan variabel bebas." },
-  { id: "hpp", label: "HPP / COGS", icon: <Boxes className="w-4 h-4" />, title: "Kalkulator HPP / COGS", subtitle: "Harga Pokok Penjualan — usaha dagang & manufaktur." },
-  { id: "satuan", label: "Konversi Satuan", icon: <Ruler className="w-4 h-4" />, title: "Konversi Satuan", subtitle: "Panjang, berat, suhu, volume, luas, kecepatan, data digital." },
+  { id: "standar", label: tr("Standar"), icon: <Calculator className="w-4 h-4" />, title: tr("Kalkulator Standar"), subtitle: tr("Kalkulator harian — tambah, kurang, kali, bagi.") },
+  { id: "pajak", label: tr("Pajak"), icon: <Receipt className="w-4 h-4" />, title: tr("Kalkulator Pajak"), subtitle: tr("Hitung PPN eksklusif atau inklusif.") },
+  { id: "bunga", label: tr("Bunga"), icon: <TrendingUp className="w-4 h-4" />, title: tr("Kalkulator Bunga"), subtitle: tr("Bunga sederhana & majemuk.") },
+  { id: "investasi", label: tr("Investasi"), icon: <PiggyBank className="w-4 h-4" />, title: tr("Kalkulator Investasi"), subtitle: tr("Proyeksi nilai investasi dengan setoran rutin bulanan.") },
+  { id: "cicilan", label: tr("Cicilan / Hutang"), icon: <Landmark className="w-4 h-4" />, title: tr("Kalkulator Cicilan & Hutang"), subtitle: tr("Cicilan bulanan pinjaman sistem anuitas.") },
+  { id: "rumus", label: tr("Rumus"), icon: <Sigma className="w-4 h-4" />, title: tr("Kalkulator Rumus"), subtitle: tr("Hitung rumus custom dengan variabel bebas.") },
+  { id: "hpp", label: tr("HPP / COGS"), icon: <Boxes className="w-4 h-4" />, title: tr("Kalkulator HPP / COGS"), subtitle: tr("Harga Pokok Penjualan — usaha dagang & manufaktur.") },
+  { id: "satuan", label: tr("Konversi Satuan"), icon: <Ruler className="w-4 h-4" />, title: tr("Konversi Satuan"), subtitle: tr("Panjang, berat, suhu, volume, luas, kecepatan, data digital.") },
 ];
 
 export const CalculatorHub: React.FC = () => {

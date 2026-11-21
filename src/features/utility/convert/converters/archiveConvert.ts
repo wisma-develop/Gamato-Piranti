@@ -1,5 +1,6 @@
 // ─── Archive converters ─────────────────────────────────────────────────────
 import JSZip from "jszip";
+import { tr } from "@/i18n";
 
 export async function filesToZip(files: File[]): Promise<Blob> {
   const zip = new JSZip();
@@ -36,7 +37,7 @@ export async function listZipEntries(file: File): Promise<ZipEntryInfo[]> {
 export async function extractZipFile(file: File, entryName: string): Promise<Blob> {
   const zip = await JSZip.loadAsync(file);
   const entry = zip.file(entryName);
-  if (!entry) throw new Error(`"${entryName}" tidak ditemukan di dalam ZIP.`);
+  if (!entry) throw new Error(tr("\"{0}\" tidak ditemukan di dalam ZIP.", entryName));
   return entry.async("blob");
 }
 

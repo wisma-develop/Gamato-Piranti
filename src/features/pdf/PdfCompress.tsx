@@ -6,6 +6,7 @@ import { compressPdf, type CompressLevel } from "@/lib/pdfCompress";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { msgStarts, tr } from "@/i18n";
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -35,18 +36,18 @@ export const PdfCompress: React.FC = () => {
     setIsWorking(true);
     try {
       const { bytes, originalSize, compressedSize, imagesProcessed } = await compressPdf(await fileToArrayBuffer(file), compressLevel);
-      downloadBlob(new Blob([bytes], { type: "application/pdf" }), `gamato-compressed-${compressLevel}.pdf`);
+      downloadBlob(new Blob([bytes], { type: "application/pdf" }), tr("gamato-compressed-{0}.pdf", compressLevel));
       setResult({ original: originalSize, compressed: compressedSize, images: imagesProcessed });
       const savedPct = Math.max(0, Math.round((1 - compressedSize / originalSize) * 100));
       setInfo(
         imagesProcessed > 0
-          ? `Berhasil dikompresi ${savedPct}% (${imagesProcessed} gambar dioptimasi).`
+          ? tr("Berhasil dikompresi {0}% ({1} gambar dioptimasi).", savedPct, imagesProcessed)
           : savedPct > 0
-          ? `Berhasil dikompresi ${savedPct}% (optimasi struktur, tidak ada gambar JPEG untuk dipadatkan).`
-          : "PDF sudah cukup padat — tidak banyak yang bisa dihemat lagi."
+          ? tr("Berhasil dikompresi {0}% (optimasi struktur, tidak ada gambar JPEG untuk dipadatkan).", savedPct)
+          : tr("PDF sudah cukup padat — tidak banyak yang bisa dihemat lagi.")
       );
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses PDF."));
+      setInfo("" + (err?.message || tr("Gagal memproses PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -59,8 +60,8 @@ export const PdfCompress: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -90,7 +91,7 @@ export const PdfCompress: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Tingkat Kompresi</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Tingkat Kompresi")}</p>
           <div className="grid grid-cols-3 gap-2">
             {(["low", "medium", "high"] as const).map((l) => (
               <button
@@ -104,14 +105,14 @@ export const PdfCompress: React.FC = () => {
                     : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"
                 )}
               >
-                {l === "low" ? "Ringan" : l === "medium" ? "Sedang" : "Tinggi"}
+                {l === "low" ? tr("Ringan") : l === "medium" ? tr("Sedang") : tr("Tinggi")}
               </button>
             ))}
           </div>
           <p className="text-xs text-slate-400 dark:text-slate-500">
-            {compressLevel === "low" && "Kualitas gambar tetap tinggi, penghematan ukuran moderat."}
-            {compressLevel === "medium" && "Keseimbangan terbaik antara kualitas dan ukuran file."}
-            {compressLevel === "high" && "Penghematan ukuran maksimal, gambar dikompres & diperkecil lebih agresif."}
+            {compressLevel === "low" && tr("Kualitas gambar tetap tinggi, penghematan ukuran moderat.")}
+            {compressLevel === "medium" && tr("Keseimbangan terbaik antara kualitas dan ukuran file.")}
+            {compressLevel === "high" && tr("Penghematan ukuran maksimal, gambar dikompres & diperkecil lebih agresif.")}
           </p>
         </div>
 
@@ -119,12 +120,12 @@ export const PdfCompress: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm">
             <div className="flex items-center justify-between text-sm">
               <div className="text-center flex-1">
-                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">Sebelum</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">{tr("Sebelum")}</p>
                 <p className="font-bold text-slate-700 dark:text-slate-200">{formatSize(result.original)}</p>
               </div>
               <div className="text-indigo-500 font-bold text-lg px-3">→</div>
               <div className="text-center flex-1">
-                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">Sesudah</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">{tr("Sesudah")}</p>
                 <p className="font-bold text-green-600 dark:text-green-400">{formatSize(result.compressed)}</p>
               </div>
             </div>
@@ -135,12 +136,12 @@ export const PdfCompress: React.FC = () => {
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Mengompres gambar &amp; struktur PDF…
+              {tr("Mengompres gambar & struktur PDF…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Kompres PDF
+              {tr("Kompres PDF")}
             </>
           )}
         </Btn>
@@ -148,15 +149,15 @@ export const PdfCompress: React.FC = () => {
 
       <ToolInfoPanel
         icon={<FileDown className="w-5 h-5" />}
-        label="Kompres PDF"
-        desc="Kurangi ukuran file"
+        label={tr("Kompres PDF")}
+        desc={tr("Kurangi ukuran file")}
         points={[
-          "Gambar JPEG di dalam PDF diperkecil & dikompres ulang — penghemat ukuran terbesar.",
-          "Struktur PDF dipadatkan (object streams) untuk file berbasis teks.",
-          "Gambar non-JPEG (PNG mentah) dibiarkan apa adanya agar tidak merusak kualitas.",
+          tr("Gambar JPEG di dalam PDF diperkecil & dikompres ulang — penghemat ukuran terbesar."),
+          tr("Struktur PDF dipadatkan (object streams) untuk file berbasis teks."),
+          tr("Gambar non-JPEG (PNG mentah) dibiarkan apa adanya agar tidak merusak kualitas."),
         ]}
         info={info}
-        infoTone={info?.startsWith("Gagal") ? "error" : "success"}
+        infoTone={msgStarts(info, "Gagal") ? "error" : "success"}
       />
     </div>
   );

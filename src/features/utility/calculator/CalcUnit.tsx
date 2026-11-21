@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { ArrowLeftRight, Ruler } from "lucide-react";
 import { Select, Input } from "@/components/ui/primitives";
 import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
+import { tr } from "@/i18n";
 
 type UnitDef = { id: string; label: string; toBase: number }; // toBase: multiply value by this to get base unit
 type UnitCategory = { id: string; label: string; baseLabel: string; units: UnitDef[]; offset?: boolean };
@@ -9,90 +10,90 @@ type UnitCategory = { id: string; label: string; baseLabel: string; units: UnitD
 const CATEGORIES: UnitCategory[] = [
   {
     id: "panjang",
-    label: "Panjang",
+    label: tr("Panjang"),
     baseLabel: "meter",
     units: [
-      { id: "mm", label: "Milimeter (mm)", toBase: 0.001 },
-      { id: "cm", label: "Sentimeter (cm)", toBase: 0.01 },
-      { id: "m", label: "Meter (m)", toBase: 1 },
-      { id: "km", label: "Kilometer (km)", toBase: 1000 },
-      { id: "in", label: "Inci (in)", toBase: 0.0254 },
-      { id: "ft", label: "Kaki (ft)", toBase: 0.3048 },
-      { id: "yd", label: "Yard (yd)", toBase: 0.9144 },
-      { id: "mi", label: "Mil (mi)", toBase: 1609.344 },
+      { id: "mm", label: tr("Milimeter (mm)"), toBase: 0.001 },
+      { id: "cm", label: tr("Sentimeter (cm)"), toBase: 0.01 },
+      { id: "m", label: tr("Meter (m)"), toBase: 1 },
+      { id: "km", label: tr("Kilometer (km)"), toBase: 1000 },
+      { id: "in", label: tr("Inci (in)"), toBase: 0.0254 },
+      { id: "ft", label: tr("Kaki (ft)"), toBase: 0.3048 },
+      { id: "yd", label: tr("Yard (yd)"), toBase: 0.9144 },
+      { id: "mi", label: tr("Mil (mi)"), toBase: 1609.344 },
     ],
   },
   {
     id: "berat",
-    label: "Berat",
+    label: tr("Berat"),
     baseLabel: "gram",
     units: [
-      { id: "mg", label: "Miligram (mg)", toBase: 0.001 },
-      { id: "g", label: "Gram (g)", toBase: 1 },
-      { id: "kg", label: "Kilogram (kg)", toBase: 1000 },
-      { id: "ton", label: "Ton", toBase: 1_000_000 },
-      { id: "oz", label: "Ons/Ounce (oz)", toBase: 28.3495 },
-      { id: "lb", label: "Pon (lb)", toBase: 453.592 },
+      { id: "mg", label: tr("Miligram (mg)"), toBase: 0.001 },
+      { id: "g", label: tr("Gram (g)"), toBase: 1 },
+      { id: "kg", label: tr("Kilogram (kg)"), toBase: 1000 },
+      { id: "ton", label: tr("Ton"), toBase: 1_000_000 },
+      { id: "oz", label: tr("Ons/Ounce (oz)"), toBase: 28.3495 },
+      { id: "lb", label: tr("Pon (lb)"), toBase: 453.592 },
     ],
   },
   {
     id: "suhu",
-    label: "Suhu",
+    label: tr("Suhu"),
     baseLabel: "celsius",
     offset: true,
     units: [
-      { id: "c", label: "Celsius (°C)", toBase: 1 },
-      { id: "f", label: "Fahrenheit (°F)", toBase: 1 },
-      { id: "k", label: "Kelvin (K)", toBase: 1 },
+      { id: "c", label: tr("Celsius (°C)"), toBase: 1 },
+      { id: "f", label: tr("Fahrenheit (°F)"), toBase: 1 },
+      { id: "k", label: tr("Kelvin (K)"), toBase: 1 },
     ],
   },
   {
     id: "volume",
-    label: "Volume",
+    label: tr("Volume"),
     baseLabel: "liter",
     units: [
-      { id: "ml", label: "Mililiter (ml)", toBase: 0.001 },
-      { id: "l", label: "Liter (l)", toBase: 1 },
-      { id: "m3", label: "Meter Kubik (m³)", toBase: 1000 },
-      { id: "galus", label: "Galon US", toBase: 3.78541 },
-      { id: "cup", label: "Cup (AS)", toBase: 0.24 },
+      { id: "ml", label: tr("Mililiter (ml)"), toBase: 0.001 },
+      { id: "l", label: tr("Liter (l)"), toBase: 1 },
+      { id: "m3", label: tr("Meter Kubik (m³)"), toBase: 1000 },
+      { id: "galus", label: tr("Galon US"), toBase: 3.78541 },
+      { id: "cup", label: tr("Cup (AS)"), toBase: 0.24 },
     ],
   },
   {
     id: "luas",
-    label: "Luas",
+    label: tr("Luas"),
     baseLabel: "m²",
     units: [
-      { id: "m2", label: "Meter Persegi (m²)", toBase: 1 },
-      { id: "km2", label: "Kilometer Persegi (km²)", toBase: 1_000_000 },
-      { id: "ha", label: "Hektar (ha)", toBase: 10_000 },
-      { id: "are", label: "Are", toBase: 100 },
-      { id: "ft2", label: "Kaki Persegi (ft²)", toBase: 0.092903 },
-      { id: "acre", label: "Acre", toBase: 4046.86 },
+      { id: "m2", label: tr("Meter Persegi (m²)"), toBase: 1 },
+      { id: "km2", label: tr("Kilometer Persegi (km²)"), toBase: 1_000_000 },
+      { id: "ha", label: tr("Hektar (ha)"), toBase: 10_000 },
+      { id: "are", label: tr("Are"), toBase: 100 },
+      { id: "ft2", label: tr("Kaki Persegi (ft²)"), toBase: 0.092903 },
+      { id: "acre", label: tr("Acre"), toBase: 4046.86 },
     ],
   },
   {
     id: "kecepatan",
-    label: "Kecepatan",
+    label: tr("Kecepatan"),
     baseLabel: "m/s",
     units: [
-      { id: "ms", label: "Meter/detik (m/s)", toBase: 1 },
-      { id: "kmh", label: "Kilometer/jam (km/j)", toBase: 0.277778 },
-      { id: "mph", label: "Mil/jam (mph)", toBase: 0.44704 },
-      { id: "knot", label: "Knot", toBase: 0.514444 },
+      { id: "ms", label: tr("Meter/detik (m/s)"), toBase: 1 },
+      { id: "kmh", label: tr("Kilometer/jam (km/j)"), toBase: 0.277778 },
+      { id: "mph", label: tr("Mil/jam (mph)"), toBase: 0.44704 },
+      { id: "knot", label: tr("Knot"), toBase: 0.514444 },
     ],
   },
   {
     id: "data",
-    label: "Data Digital",
+    label: tr("Data Digital"),
     baseLabel: "byte",
     units: [
-      { id: "bit", label: "Bit", toBase: 0.125 },
-      { id: "byte", label: "Byte (B)", toBase: 1 },
-      { id: "kb", label: "Kilobyte (KB)", toBase: 1024 },
-      { id: "mb", label: "Megabyte (MB)", toBase: 1024 ** 2 },
-      { id: "gb", label: "Gigabyte (GB)", toBase: 1024 ** 3 },
-      { id: "tb", label: "Terabyte (TB)", toBase: 1024 ** 4 },
+      { id: "bit", label: tr("Bit"), toBase: 0.125 },
+      { id: "byte", label: tr("Byte (B)"), toBase: 1 },
+      { id: "kb", label: tr("Kilobyte (KB)"), toBase: 1024 },
+      { id: "mb", label: tr("Megabyte (MB)"), toBase: 1024 ** 2 },
+      { id: "gb", label: tr("Gigabyte (GB)"), toBase: 1024 ** 3 },
+      { id: "tb", label: tr("Terabyte (TB)"), toBase: 1024 ** 4 },
     ],
   },
 ];
@@ -170,27 +171,27 @@ export const CalcUnit: React.FC = () => {
         ))}
       </div>
 
-      <Input label="Nilai" value={value} onChange={(e) => setValue(e.target.value)} placeholder="1" />
+      <Input label={tr("Nilai")} value={value} onChange={(e) => setValue(e.target.value)} placeholder="1" />
 
       <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
-        <Select label="Dari" value={fromUnit} onChange={(e) => setFromUnit(e.target.value)}>
+        <Select label={tr("Dari")} value={fromUnit} onChange={(e) => setFromUnit(e.target.value)}>
           {category.units.map((u) => (
             <option key={u.id} value={u.id}>
               {u.label}
             </option>
           ))}
         </Select>
-        <GamatoTooltip label="Tukar satuan">
+        <GamatoTooltip label={tr("Tukar satuan")}>
           <button
             type="button"
             onClick={swap}
-            aria-label="Tukar satuan asal dan tujuan"
+            aria-label={tr("Tukar satuan asal dan tujuan")}
             className="mb-0.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
             <ArrowLeftRight className="w-4 h-4" />
           </button>
         </GamatoTooltip>
-        <Select label="Ke" value={toUnit} onChange={(e) => setToUnit(e.target.value)}>
+        <Select label={tr("Ke")} value={toUnit} onChange={(e) => setToUnit(e.target.value)}>
           {category.units.map((u) => (
             <option key={u.id} value={u.id}>
               {u.label}
@@ -202,7 +203,7 @@ export const CalcUnit: React.FC = () => {
       <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-4 flex items-center gap-3">
         <Ruler className="w-5 h-5 text-indigo-500 shrink-0" />
         <div>
-          <p className="text-xs text-slate-400 dark:text-slate-500">Hasil</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Hasil")}</p>
           <p className="text-xl font-bold text-slate-800 dark:text-slate-100 font-mono">{result === null ? "-" : formatResult(result)}</p>
         </div>
       </div>

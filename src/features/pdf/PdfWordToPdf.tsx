@@ -7,6 +7,7 @@ import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfWordToPdf: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -17,7 +18,7 @@ export const PdfWordToPdf: React.FC = () => {
   const addFiles = (incoming: File[]) => {
     const f = incoming.find((x) => x.name.toLowerCase().endsWith(".docx"));
     if (f) setFile(f);
-    else setInfo("Pilih file dengan format .docx.");
+    else setInfo(tr("Pilih file dengan format .docx."));
   };
 
   const handleRun = async () => {
@@ -28,9 +29,9 @@ export const PdfWordToPdf: React.FC = () => {
       const blocks = await readDocxBlocks(file);
       const blob = await exportPdfFromBlocks(blocks, file.name.replace(/\.docx$/i, ""));
       downloadBlob(blob, `${file.name.replace(/\.docx$/i, "")}.pdf`);
-      setInfo("Berhasil dikonversi ke PDF.");
+      setInfo(tr("Berhasil dikonversi ke PDF."));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal mengonversi file. Pastikan file .docx tidak rusak."));
+      setInfo("" + (err?.message || tr("Gagal mengonversi file. Pastikan file .docx tidak rusak.")));
     } finally {
       setIsWorking(false);
     }
@@ -43,8 +44,8 @@ export const PdfWordToPdf: React.FC = () => {
           onFiles={addFiles}
           accept=".docx"
           multiple={false}
-          label="Drop file Word (.docx) di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file Word (.docx) di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -56,7 +57,7 @@ export const PdfWordToPdf: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -65,18 +66,18 @@ export const PdfWordToPdf: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Pilih") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Pilih") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Mengonversi…
+              {tr("Mengonversi…")}
             </>
           ) : (
             <>
               <FileDown className="w-4 h-4" />
-              Konversi ke PDF
+              {tr("Konversi ke PDF")}
             </>
           )}
         </Btn>
@@ -84,11 +85,11 @@ export const PdfWordToPdf: React.FC = () => {
 
       <ToolInfoPanel
         icon={<FileText className="w-5 h-5" />}
-        label="Word ke PDF"
-        desc="Konversi .docx → .pdf"
+        label={tr("Word ke PDF")}
+        desc={tr("Konversi .docx → .pdf")}
         points={[
-          "Teks, bold/italic/underline, dan perataan paragraf dipertahankan.",
-          "Tabel & gambar kompleks di dalam Word saat ini belum didukung penuh.",
+          tr("Teks, bold/italic/underline, dan perataan paragraf dipertahankan."),
+          tr("Tabel & gambar kompleks di dalam Word saat ini belum didukung penuh."),
         ]}
       />
     </div>

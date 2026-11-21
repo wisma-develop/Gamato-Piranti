@@ -8,26 +8,9 @@ import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { useAutosave, useDraft } from "@/hooks/useAutosave";
 import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { tr } from "@/i18n";
 
-const STARTER = `<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8" />
-<style>
-  body { font-family: sans-serif; padding: 24px; color: #0f172a; background: #f8fafc; }
-  h1 { color: #4f46e5; }
-  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-  button { margin-top: 12px; padding: 8px 16px; border-radius: 8px; border: none; background: #4f46e5; color: #fff; cursor: pointer; }
-</style>
-</head>
-<body>
-  <div class="card">
-    <h1>Halo dari Gamato Piranti! 👋</h1>
-    <p>Tulis HTML, CSS, dan JavaScript di sini — hasilnya langsung tampil di panel preview.</p>
-    <button onclick="alert('Script juga jalan di sini!')">Coba klik aku</button>
-  </div>
-</body>
-</html>`;
+const STARTER = tr("<!DOCTYPE html>\n<html lang=\"id\">\n<head>\n<meta charset=\"UTF-8\" />\n<style>\n  body { font-family: sans-serif; padding: 24px; color: #0f172a; background: #f8fafc; }\n  h1 { color: #4f46e5; }\n  .card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }\n  button { margin-top: 12px; padding: 8px 16px; border-radius: 8px; border: none; background: #4f46e5; color: #fff; cursor: pointer; }\n</style>\n</head>\n<body>\n  <div class=\"card\">\n    <h1>Halo dari Gamato Piranti! 👋</h1>\n    <p>Tulis HTML, CSS, dan JavaScript di sini — hasilnya langsung tampil di panel preview.</p>\n    <button onclick=\"alert('Script juga jalan di sini!')\">Coba klik aku</button>\n  </div>\n</body>\n</html>");
 
 type Device = "mobile" | "tablet" | "desktop";
 const DEVICE_WIDTH: Record<Device, string> = { mobile: "375px", tablet: "768px", desktop: "100%" };
@@ -87,7 +70,7 @@ export const UtilityHtmlPreview: React.FC = () => {
       <AutosaveBar autosave={autosave} what="kode HTML" className="lg:col-span-2" />
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Kode HTML / CSS / JS</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Kode HTML / CSS / JS")}</p>
           <div className="flex flex-wrap items-center gap-2">
             <UndoRedoBar canUndo={codeHistory.canUndo} canRedo={codeHistory.canRedo} onUndo={codeHistory.undo} onRedo={codeHistory.redo} hideLabel />
             <button
@@ -96,7 +79,7 @@ export const UtilityHtmlPreview: React.FC = () => {
               className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              Reset ke Template
+              {tr("Reset ke Template")}
             </button>
           </div>
         </div>
@@ -104,24 +87,24 @@ export const UtilityHtmlPreview: React.FC = () => {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           spellCheck={false}
-          aria-label="Kode HTML, CSS, dan JavaScript"
+          aria-label={tr("Kode HTML, CSS, dan JavaScript")}
           className="w-full h-[420px] rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-900 text-slate-100 font-mono text-xs leading-relaxed p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 resize-none"
         />
         <div className="flex flex-wrap gap-2">
           <Btn onClick={openInNewTab} variant="secondary" className="gap-2 text-xs">
             <ExternalLink className="w-3.5 h-3.5" />
-            Buka di Tab Baru
+            {tr("Buka di Tab Baru")}
           </Btn>
           <Btn onClick={download} variant="secondary" className="gap-2 text-xs">
             <Download className="w-3.5 h-3.5" />
-            Unduh .html
+            {tr("Unduh .html")}
           </Btn>
         </div>
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Preview</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Preview")}</p>
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
             {DEVICE_ICONS.map(({ id, icon: Icon }) => (
               <button
@@ -144,7 +127,7 @@ export const UtilityHtmlPreview: React.FC = () => {
         <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-3 overflow-x-auto">
           <div className="mx-auto transition-all" style={{ width: DEVICE_WIDTH[device] }}>
             <iframe
-              title="Gamato HTML Preview"
+              title={tr("Gamato HTML Preview")}
               srcDoc={previewCode}
               sandbox="allow-scripts allow-modals allow-forms allow-popups"
               className="w-full h-[420px] bg-white rounded-xl border border-slate-300 dark:border-slate-600 shadow-sm"
@@ -153,12 +136,12 @@ export const UtilityHtmlPreview: React.FC = () => {
         </div>
         <ToolInfoPanel
           icon={<AppWindow className="w-5 h-5" />}
-          label="HTML Preview"
-          desc="Live preview HTML, CSS & JavaScript"
+          label={tr("HTML Preview")}
+          desc={tr("Live preview HTML, CSS & JavaScript")}
           points={[
-            "Preview berjalan di iframe sandbox — script tetap bisa jalan, tapi terisolasi dari halaman utama Gamato Piranti.",
-            "Preview otomatis diperbarui setelah kamu berhenti mengetik selama sesaat.",
-            "Kode tidak pernah dikirim ke server mana pun — semuanya diproses di browser.",
+            tr("Preview berjalan di iframe sandbox — script tetap bisa jalan, tapi terisolasi dari halaman utama Gamato Piranti."),
+            tr("Preview otomatis diperbarui setelah kamu berhenti mengetik selama sesaat."),
+            tr("Kode tidak pernah dikirim ke server mana pun — semuanya diproses di browser."),
           ]}
         />
       </div>

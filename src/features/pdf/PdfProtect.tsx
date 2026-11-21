@@ -9,6 +9,7 @@ import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfProtect: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -37,7 +38,7 @@ export const PdfProtect: React.FC = () => {
       const font = addWatermark ? await outDoc.embedFont(StandardFonts.HelveticaBold) : null;
 
       for (let i = 1; i <= srcPdf.numPages; i++) {
-        setProgressLabel(`Mengunci halaman ${i} dari ${srcPdf.numPages}…`);
+        setProgressLabel(tr("Mengunci halaman {0} dari {1}…", i, srcPdf.numPages));
         const canvas = await renderPageToCanvas(srcPdf, i, quality);
         const blob = await canvasToBlob(canvas, "image/jpeg", 0.9);
         const imgBytes = new Uint8Array(await blob.arrayBuffer());
@@ -62,9 +63,9 @@ export const PdfProtect: React.FC = () => {
 
       const outBytes = await outDoc.save();
       downloadBlob(new Blob([outBytes], { type: "application/pdf" }), "gamato-protected.pdf");
-      setInfo(`Berhasil dikunci — ${srcPdf.numPages} halaman diubah menjadi gambar (teks tidak lagi bisa disalin/diedit langsung).`);
+      setInfo(tr("Berhasil dikunci — {0} halaman diubah menjadi gambar (teks tidak lagi bisa disalin/diedit langsung).", srcPdf.numPages));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal mengunci PDF."));
+      setInfo("" + (err?.message || tr("Gagal mengunci PDF.")));
     } finally {
       setIsWorking(false);
       setProgressLabel(null);
@@ -78,8 +79,8 @@ export const PdfProtect: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -91,7 +92,7 @@ export const PdfProtect: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -101,17 +102,17 @@ export const PdfProtect: React.FC = () => {
         )}
 
         <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
-          <b>Bukan proteksi password.</b> Alat ini mengubah setiap halaman jadi gambar, sehingga teks tidak bisa disalin (copy-paste) atau diedit langsung — cocok untuk membagikan dokumen tanpa risiko orang lain menjiplak isinya. PDF hasilnya tetap bisa dibuka semua orang tanpa password.
+          <b>{tr("Bukan proteksi password.")}</b> {tr("Alat ini mengubah setiap halaman jadi gambar, sehingga teks tidak bisa disalin (copy-paste) atau diedit langsung — cocok untuk membagikan dokumen tanpa risiko orang lain menjiplak isinya. PDF hasilnya tetap bisa dibuka semua orang tanpa password.")}
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <Select label="Kualitas Render" value={quality} onChange={(e) => setQuality(parseFloat(e.target.value))}>
-            <option value={1.5}>Standar</option>
-            <option value={2.2}>Tinggi</option>
-            <option value={3}>Sangat Tinggi</option>
+          <Select label={tr("Kualitas Render")} value={quality} onChange={(e) => setQuality(parseFloat(e.target.value))}>
+            <option value={1.5}>{tr("Standar")}</option>
+            <option value={2.2}>{tr("Tinggi")}</option>
+            <option value={3}>{tr("Sangat Tinggi")}</option>
           </Select>
-          <GamatoCheckbox checked={addWatermark} onChange={setAddWatermark} label="Tambahkan watermark peringatan" />
-          {addWatermark && <Input label="Teks Watermark" value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} />}
+          <GamatoCheckbox checked={addWatermark} onChange={setAddWatermark} label={tr("Tambahkan watermark peringatan")} />
+          {addWatermark && <Input label={tr("Teks Watermark")} value={watermarkText} onChange={(e) => setWatermarkText(e.target.value)} />}
         </div>
 
         {progressLabel && (
@@ -121,18 +122,18 @@ export const PdfProtect: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Kunci Konten PDF
+              {tr("Kunci Konten PDF")}
             </>
           )}
         </Btn>
@@ -140,11 +141,11 @@ export const PdfProtect: React.FC = () => {
 
       <ToolInfoPanel
         icon={<ShieldCheck className="w-5 h-5" />}
-        label="Protect PDF"
-        desc="Kunci dari salin/edit"
+        label={tr("Protect PDF")}
+        desc={tr("Kunci dari salin/edit")}
         points={[
-          "Mengunci konten dengan mengubah setiap halaman jadi gambar flat.",
-          "Bukan enkripsi/password — untuk itu, alat browser-native seperti ini belum mendukungnya secara aman.",
+          tr("Mengunci konten dengan mengubah setiap halaman jadi gambar flat."),
+          tr("Bukan enkripsi/password — untuk itu, alat browser-native seperti ini belum mendukungnya secara aman."),
         ]}
       />
     </div>

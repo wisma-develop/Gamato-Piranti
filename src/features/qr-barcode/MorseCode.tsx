@@ -9,6 +9,7 @@ import { GamatoAudioPlayer } from "@/components/ui/GamatoAudioPlayer";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { copyText } from "@/lib/permissions";
+import { tr } from "@/i18n";
 
 export const MorseCode: React.FC = () => {
   const [mode, setMode] = useState<"encode" | "decode">("encode");
@@ -42,9 +43,9 @@ export const MorseCode: React.FC = () => {
   const copyOutput = async () => {
     try {
       if (!(await copyText(output))) throw new Error("clipboard");
-      setInfo("Hasil disalin ke clipboard.");
+      setInfo(tr("Hasil disalin ke clipboard."));
     } catch {
-      setInfo("Gagal menyalin.");
+      setInfo(tr("Gagal menyalin."));
     }
   };
 
@@ -58,8 +59,8 @@ export const MorseCode: React.FC = () => {
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           {([
-            ["encode", "Teks → Morse"],
-            ["decode", "Morse → Teks"],
+            ["encode", tr("Teks → Morse")],
+            ["decode", tr("Morse → Teks")],
           ] as const).map(([id, label]) => (
             <button
               key={id}
@@ -80,7 +81,7 @@ export const MorseCode: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <Textarea
-            label={mode === "encode" ? "Teks" : "Kode Morse (titik . dan strip -, pisahkan huruf dengan spasi, kata dengan /)"}
+            label={mode === "encode" ? tr("Teks") : tr("Kode Morse (titik . dan strip -, pisahkan huruf dengan spasi, kata dengan /)")}
             rows={4}
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -89,9 +90,9 @@ export const MorseCode: React.FC = () => {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <Label>{mode === "encode" ? "Hasil Morse" : "Hasil Teks"}</Label>
+              <Label>{mode === "encode" ? tr("Hasil Morse") : tr("Hasil Teks")}</Label>
               <button type="button" onClick={copyOutput} disabled={!output} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
-                <Copy className="w-3.5 h-3.5" /> Salin
+                <Copy className="w-3.5 h-3.5" /> {tr("Salin")}
               </button>
             </div>
             <div className={cn("w-full min-h-[4rem] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm text-slate-800 dark:text-slate-100 break-words", mode === "encode" && "font-mono tracking-widest text-base")}>
@@ -102,26 +103,26 @@ export const MorseCode: React.FC = () => {
 
         {mode === "encode" && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Audio Kode Morse</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Audio Kode Morse")}</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <Label>Kecepatan (WPM)</Label>
+                  <Label>{tr("Kecepatan (WPM)")}</Label>
                   <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{wpm}</span>
                 </div>
-                <GamatoSlider min={5} max={40} value={wpm} onChange={setWpm} aria-label="Kecepatan WPM" />
+                <GamatoSlider min={5} max={40} value={wpm} onChange={setWpm} aria-label={tr("Kecepatan WPM")} />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <Label>Nada (Hz)</Label>
+                  <Label>{tr("Nada (Hz)")}</Label>
                   <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{freq}</span>
                 </div>
-                <GamatoSlider min={300} max={1200} step={10} value={freq} onChange={setFreq} aria-label="Nada Hz" />
+                <GamatoSlider min={300} max={1200} step={10} value={freq} onChange={setFreq} aria-label={tr("Nada Hz")} />
               </div>
             </div>
-            {audioUrl && <GamatoAudioPlayer src={audioUrl} label="Audio Kode Morse" />}
+            {audioUrl && <GamatoAudioPlayer src={audioUrl} label={tr("Audio Kode Morse")} />}
             <Btn onClick={downloadAudio} disabled={!audioBlob} className="w-full py-3.5 gap-2">
-              <Download className="w-4 h-4" /> Unduh Audio (.wav)
+              <Download className="w-4 h-4" /> {tr("Unduh Audio (.wav)")}
             </Btn>
           </div>
         )}
@@ -131,12 +132,12 @@ export const MorseCode: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Radio className="w-5 h-5" />}
-        label="Kode Morse"
-        desc="Teks ↔ Morse + audio"
+        label={tr("Kode Morse")}
+        desc={tr("Teks ↔ Morse + audio")}
         points={[
-          "Mendukung huruf A-Z, angka 0-9, dan tanda baca umum.",
-          "Audio dibuat langsung di browser (nada beep sesuai standar timing Morse) dan bisa diunduh sebagai .wav.",
-          "Atur WPM (kecepatan) dan nada sesuai kebutuhan latihan atau sinyal.",
+          tr("Mendukung huruf A-Z, angka 0-9, dan tanda baca umum."),
+          tr("Audio dibuat langsung di browser (nada beep sesuai standar timing Morse) dan bisa diunduh sebagai .wav."),
+          tr("Atur WPM (kecepatan) dan nada sesuai kebutuhan latihan atau sinyal."),
         ]}
       />
     </div>

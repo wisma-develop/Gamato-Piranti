@@ -13,44 +13,45 @@ import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { useAutosave, useDraft } from "@/hooks/useAutosave";
 import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { tr } from "@/i18n";
 
 type Mode = "diagram" | "formula";
 
 const DIAGRAM_TEMPLATES = [
   {
     id: "flowchart",
-    label: "Flowchart",
-    code: `flowchart TD\n    A[Mulai] --> B{Sudah Login?}\n    B -- Ya --> C[Tampilkan Dashboard]\n    B -- Tidak --> D[Halaman Login]\n    D --> B\n    C --> E[Selesai]`,
+    label: tr("Flowchart"),
+    code: tr(`flowchart TD\n    A[Mulai] --> B{Sudah Login?}\n    B -- Ya --> C[Tampilkan Dashboard]\n    B -- Tidak --> D[Halaman Login]\n    D --> B\n    C --> E[Selesai]`),
   },
   {
     id: "sequence",
-    label: "Sequence",
-    code: `sequenceDiagram\n    participant U as User\n    participant A as Aplikasi\n    participant S as Server\n    U->>A: Buka halaman\n    A->>S: Minta data\n    S-->>A: Kirim data\n    A-->>U: Tampilkan hasil`,
+    label: tr("Sequence"),
+    code: tr(`sequenceDiagram\n    participant U as User\n    participant A as Aplikasi\n    participant S as Server\n    U->>A: Buka halaman\n    A->>S: Minta data\n    S-->>A: Kirim data\n    A-->>U: Tampilkan hasil`),
   },
   {
     id: "struktur",
-    label: "Struktur Organisasi",
-    code: `flowchart TD\n    CEO[Direktur Utama] --> CTO[Kepala Teknologi]\n    CEO --> CFO[Kepala Keuangan]\n    CTO --> DEV[Tim Developer]\n    CTO --> QA[Tim QA]\n    CFO --> ACC[Tim Akuntansi]`,
+    label: tr("Struktur Organisasi"),
+    code: tr(`flowchart TD\n    CEO[Direktur Utama] --> CTO[Kepala Teknologi]\n    CEO --> CFO[Kepala Keuangan]\n    CTO --> DEV[Tim Developer]\n    CTO --> QA[Tim QA]\n    CFO --> ACC[Tim Akuntansi]`),
   },
   {
     id: "pie",
-    label: "Pie Chart",
-    code: `pie title Sumber Trafik\n    "Organik" : 45\n    "Sosial Media" : 30\n    "Iklan" : 15\n    "Lainnya" : 10`,
+    label: tr("Pie Chart"),
+    code: tr(`pie title Sumber Trafik\n    "Organik" : 45\n    "Sosial Media" : 30\n    "Iklan" : 15\n    "Lainnya" : 10`),
   },
   {
     id: "mindmap",
-    label: "Mindmap",
-    code: `mindmap\n  root((Ide Bisnis))\n    Produk\n      Kualitas\n      Kemasan\n    Pemasaran\n      Sosial Media\n      Promosi\n    Keuangan\n      Modal\n      Untung`,
+    label: tr("Mindmap"),
+    code: tr(`mindmap\n  root((Ide Bisnis))\n    Produk\n      Kualitas\n      Kemasan\n    Pemasaran\n      Sosial Media\n      Promosi\n    Keuangan\n      Modal\n      Untung`),
   },
 ] as const;
 
 const FORMULA_TEMPLATES = [
-  { id: "pythagoras", label: "Pythagoras", code: "a^2 + b^2 = c^2" },
-  { id: "kuadratik", label: "Rumus ABC", code: "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}" },
-  { id: "lingkaran", label: "Luas Lingkaran", code: "A = \\pi r^2" },
-  { id: "sigma", label: "Sigma", code: "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}" },
-  { id: "integral", label: "Integral", code: "\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)" },
-  { id: "matrix", label: "Matriks", code: "\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}" },
+  { id: "pythagoras", label: tr("Pythagoras"), code: "a^2 + b^2 = c^2" },
+  { id: "kuadratik", label: tr("Rumus ABC"), code: "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}" },
+  { id: "lingkaran", label: tr("Luas Lingkaran"), code: "A = \\pi r^2" },
+  { id: "sigma", label: tr("Sigma"), code: "\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}" },
+  { id: "integral", label: tr("Integral"), code: "\\int_{a}^{b} f(x)\\,dx = F(b) - F(a)" },
+  { id: "matrix", label: tr("Matriks"), code: "\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}" },
 ] as const;
 
 function ensureSvgDimensions(svg: string): string {
@@ -122,7 +123,7 @@ export const UtilityDiagramFormula: React.FC = () => {
       setDiagramSvg(ensureSvgDimensions(svg));
     } catch (err: any) {
       setDiagramSvg("");
-      const msg = err?.message ? String(err.message).split("\n")[0] : "Sintaks diagram tidak valid.";
+      const msg = err?.message ? String(err.message).split("\n")[0] : tr("Sintaks diagram tidak valid.");
       setDiagramError(msg);
     } finally {
       setIsRendering(false);
@@ -141,7 +142,7 @@ export const UtilityDiagramFormula: React.FC = () => {
       const katex = mod.default;
       katex.render(code, formulaRef.current, { throwOnError: false, displayMode: true, strict: false });
     } catch (err: any) {
-      setFormulaError(err?.message || "Rumus tidak valid.");
+      setFormulaError(err?.message || tr("Rumus tidak valid."));
     }
   }, []);
 
@@ -185,7 +186,7 @@ export const UtilityDiagramFormula: React.FC = () => {
       const blob = await canvasToBlob(canvas, "image/png");
       downloadBlob(blob, "gamato-diagram.png");
     } catch {
-      setDiagramError("Gagal mengekspor PNG.");
+      setDiagramError(tr("Gagal mengekspor PNG."));
     }
   };
 
@@ -207,7 +208,7 @@ export const UtilityDiagramFormula: React.FC = () => {
             )}
           >
             <Workflow className="w-4 h-4" />
-            Diagram / Struktur / Chart
+            {tr("Diagram / Struktur / Chart")}
           </button>
           <button
             type="button"
@@ -220,7 +221,7 @@ export const UtilityDiagramFormula: React.FC = () => {
             )}
           >
             <Sigma className="w-4 h-4" />
-            Rumus (LaTeX)
+            {tr("Rumus (LaTeX)")}
           </button>
         </div>
 
@@ -242,7 +243,7 @@ export const UtilityDiagramFormula: React.FC = () => {
               <UndoRedoBar canUndo={diagramHistory.canUndo} canRedo={diagramHistory.canRedo} onUndo={diagramHistory.undo} onRedo={diagramHistory.redo} hideLabel />
             </div>
             <Textarea
-              label="Sintaks Diagram (Mermaid)"
+              label={tr("Sintaks Diagram (Mermaid)")}
               rows={10}
               value={diagramCode}
               onChange={(e) => setDiagramCode(e.target.value)}
@@ -256,18 +257,18 @@ export const UtilityDiagramFormula: React.FC = () => {
               ) : diagramSvg ? (
                 <div className="max-w-full [&_svg]:max-w-full [&_svg]:h-auto" dangerouslySetInnerHTML={{ __html: diagramSvg }} />
               ) : (
-                <p className="text-sm text-slate-400 dark:text-slate-500">Preview diagram akan tampil di sini.</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">{tr("Preview diagram akan tampil di sini.")}</p>
               )}
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Btn onClick={downloadSvg} disabled={!diagramSvg} variant="secondary" className="gap-2 text-xs">
                 <Download className="w-3.5 h-3.5" />
-                Unduh SVG
+                {tr("Unduh SVG")}
               </Btn>
               <Btn onClick={downloadPng} disabled={!diagramSvg} variant="secondary" className="gap-2 text-xs">
                 <ImageIcon className="w-3.5 h-3.5" />
-                Unduh PNG
+                {tr("Unduh PNG")}
               </Btn>
             </div>
           </div>
@@ -289,7 +290,7 @@ export const UtilityDiagramFormula: React.FC = () => {
               <UndoRedoBar canUndo={formulaHistory.canUndo} canRedo={formulaHistory.canRedo} onUndo={formulaHistory.undo} onRedo={formulaHistory.redo} hideLabel />
             </div>
             <Textarea
-              label="Kode Rumus (LaTeX)"
+              label={tr("Kode Rumus (LaTeX)")}
               rows={4}
               value={formulaCode}
               onChange={(e) => setFormulaCode(e.target.value)}
@@ -303,7 +304,7 @@ export const UtilityDiagramFormula: React.FC = () => {
 
             <Btn onClick={() => copyToClipboard(formulaCode)} variant="secondary" className="gap-2 text-xs">
               <Copy className="w-3.5 h-3.5" />
-              Salin Kode LaTeX
+              {tr("Salin Kode LaTeX")}
             </Btn>
           </div>
         )}
@@ -311,12 +312,12 @@ export const UtilityDiagramFormula: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Workflow className="w-5 h-5" />}
-        label="Diagram & Rumus Studio"
-        desc="Maker + preview diagram, struktur, chart, dan rumus"
+        label={tr("Diagram & Rumus Studio")}
+        desc={tr("Maker + preview diagram, struktur, chart, dan rumus")}
         points={[
-          "Diagram pakai sintaks Mermaid — flowchart, sequence, struktur organisasi, pie chart, hingga mindmap.",
-          "Rumus ditulis dalam format LaTeX dan langsung dirender sebagai notasi matematika yang rapi.",
-          "Semua dirender di browser, hasil diagram bisa diunduh sebagai SVG/PNG — tidak ada data yang dikirim ke server.",
+          tr("Diagram pakai sintaks Mermaid — flowchart, sequence, struktur organisasi, pie chart, hingga mindmap."),
+          tr("Rumus ditulis dalam format LaTeX dan langsung dirender sebagai notasi matematika yang rapi."),
+          tr("Semua dirender di browser, hasil diagram bisa diunduh sebagai SVG/PNG — tidak ada data yang dikirim ke server."),
         ]}
       />
     </div>

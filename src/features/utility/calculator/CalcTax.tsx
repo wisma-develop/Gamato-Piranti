@@ -5,6 +5,7 @@ import { sanitizeNumberString } from "@/utils/sanitize";
 import { Label, Input, Btn } from "@/components/ui/primitives";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { formatIDR } from "@/lib/utilityHelpers";
+import { tr } from "@/i18n";
 
 export const CalcTax: React.FC = () => {
   const [taxBase, setTaxBase] = useState("");
@@ -16,34 +17,34 @@ export const CalcTax: React.FC = () => {
     const base = parseFloat(sanitizeNumberString(taxBase || ""));
     const r = parseFloat(sanitizeNumberString(taxRate || ""));
     if (isNaN(base) || isNaN(r)) {
-      setOutput("Masukkan nilai yang valid.");
+      setOutput(tr("Masukkan nilai yang valid."));
       return;
     }
     const rp = r / 100;
     if (taxMode === "exclusive") {
       const pajak = base * rp;
       const total = base + pajak;
-      setOutput(`Dasar: ${formatIDR(base)}\nPajak (${r}%): ${formatIDR(pajak)}\nTotal: ${formatIDR(total)}`);
+      setOutput(tr("Dasar: {0}\nPajak ({1}%): {2}\nTotal: {3}", formatIDR(base), r, formatIDR(pajak), formatIDR(total)));
     } else {
       const pajak = base - base / (1 + rp);
       const dasar = base - pajak;
-      setOutput(`Total (inklusif): ${formatIDR(base)}\nTermasuk Pajak (${r}%): ${formatIDR(pajak)}\nDasar sebelum pajak: ${formatIDR(dasar)}`);
+      setOutput(tr("Total (inklusif): {0}\nTermasuk Pajak ({1}%): {2}\nDasar sebelum pajak: {3}", formatIDR(base), r, formatIDR(pajak), formatIDR(dasar)));
     }
   };
 
   return (
     <div className="space-y-4 max-w-xl mx-auto w-full">
       <div className="grid grid-cols-2 gap-4">
-        <MoneyInput label="Nilai Dasar (Rp)" value={taxBase} onChange={setTaxBase} placeholder="1000000" prefix="Rp" />
-        <Input label="Tarif Pajak (%)" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="11" />
+        <MoneyInput label={tr("Nilai Dasar (Rp)")} value={taxBase} onChange={setTaxBase} placeholder="1000000" prefix={tr("Rp")} />
+        <Input label={tr("Tarif Pajak (%)")} value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="11" />
       </div>
       <div>
-        <Label>Mode Perhitungan</Label>
+        <Label>{tr("Mode Perhitungan")}</Label>
         <div className="grid grid-cols-2 gap-3 mt-2">
           {(
             [
-              ["exclusive", "Eksklusif (belum termasuk pajak)"],
-              ["inclusive", "Inklusif (sudah termasuk pajak)"],
+              ["exclusive", tr("Eksklusif (belum termasuk pajak)")],
+              ["inclusive", tr("Inklusif (sudah termasuk pajak)")],
             ] as const
           ).map(([v, l]) => (
             <button
@@ -64,7 +65,7 @@ export const CalcTax: React.FC = () => {
       </div>
       <Btn onClick={run} className="w-full gap-2">
         <Receipt className="w-4 h-4" />
-        Hitung Pajak
+        {tr("Hitung Pajak")}
       </Btn>
       {output && (
         <pre className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">

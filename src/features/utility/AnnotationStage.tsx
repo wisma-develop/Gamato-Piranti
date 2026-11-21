@@ -3,6 +3,7 @@ import {
   annId, boundsOf, cloneObjs, dragHandle, drawObjects, handlesOf, hitTest, moveObj,
   type AnnObj, type BlurObj, type HandleId, type LineObj, type PenObj, type ShapeObj, type StepObj, type TextObj, type ToolId,
 } from "@/lib/capture/annotations";
+import { tr } from "@/i18n";
 
 export interface ToolStyle {
   color: string;
@@ -142,7 +143,7 @@ export const AnnotationStage: React.FC<Props> = ({ contentW, contentH, objects, 
       case "line": case "arrow": return { ...common, type: tool, x1: x, y1: y, x2: x, y2: y } as LineObj;
       case "rect": case "ellipse": return { ...common, type: tool, x, y, w: 0, h: 0, fill: style.fill, fillOpacity: style.fillOpacity, radius: style.radius } as ShapeObj;
       case "blur": return { ...common, type: "blur", x, y, w: 0, h: 0, mode: style.blurMode, amount: style.blurAmount } as BlurObj;
-      case "text": return { ...common, type: "text", x, y, text: "Teks", size: style.size, font: style.font, bold: style.bold, bg: style.bg, bgOpacity: style.bgOpacity } as TextObj;
+      case "text": return { ...common, type: "text", x, y, text: tr("Teks"), size: style.size, font: style.font, bold: style.bold, bg: style.bg, bgOpacity: style.bgOpacity } as TextObj;
       case "step": {
         const n = objsRef.current.reduce((m, o) => (o.type === "step" ? Math.max(m, o.n) : m), 0) + 1;
         return { ...common, type: "step", x, y, n, size: Math.max(28, style.size) } as StepObj;

@@ -11,6 +11,7 @@ import { PanelCard } from "@/components/ui/PanelCard";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { LOCALE, msgStarts, tr } from "@/i18n";
 
 const NUMERIC_FORMATS = ["EAN13", "EAN8", "UPC", "ITF14"];
 
@@ -21,12 +22,12 @@ function validateBarcodeValue(format: string, raw: string): ValidationResult {
   if (!value) return { ok: false, reason: "kosong" };
   if (NUMERIC_FORMATS.includes(format)) {
     const digits = value.replace(/\D/g, "");
-    if (!digits) return { ok: false, reason: "format ini hanya mendukung angka" };
+    if (!digits) return { ok: false, reason: tr("format ini hanya mendukung angka") };
     const len = digits.length;
-    if (format === "EAN13" && len !== 12 && len !== 13) return { ok: false, reason: "EAN-13 butuh 12/13 digit" };
-    if (format === "EAN8" && len !== 7 && len !== 8) return { ok: false, reason: "EAN-8 butuh 7/8 digit" };
-    if (format === "UPC" && len !== 11 && len !== 12) return { ok: false, reason: "UPC butuh 11/12 digit" };
-    if (format === "ITF14" && len !== 13 && len !== 14) return { ok: false, reason: "ITF-14 butuh 13/14 digit" };
+    if (format === "EAN13" && len !== 12 && len !== 13) return { ok: false, reason: tr("EAN-13 butuh 12/13 digit") };
+    if (format === "EAN8" && len !== 7 && len !== 8) return { ok: false, reason: tr("EAN-8 butuh 7/8 digit") };
+    if (format === "UPC" && len !== 11 && len !== 12) return { ok: false, reason: tr("UPC butuh 11/12 digit") };
+    if (format === "ITF14" && len !== 13 && len !== 14) return { ok: false, reason: tr("ITF-14 butuh 13/14 digit") };
     value = digits;
   }
   return { ok: true, value };
@@ -34,7 +35,7 @@ function validateBarcodeValue(format: string, raw: string): ValidationResult {
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob(b => (b ? resolve(b) : reject(new Error("Gagal membuat gambar"))), "image/png");
+    canvas.toBlob(b => (b ? resolve(b) : reject(new Error(tr("Gagal membuat gambar")))), "image/png");
   });
 }
 
@@ -43,7 +44,7 @@ function truncateLabel(text: string, max = 30) {
 }
 
 function todayLong() {
-  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
+  return new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", year: "numeric" }).format(new Date());
 }
 
 type BarcodeConfig = {
@@ -109,12 +110,12 @@ export function BarcodeGenerator() {
       if (!canvas) return;
       const result = validateBarcodeValue(barcodeFormat, barcodeContent);
       if (!result.ok) {
-        setError(result.reason === "kosong" ? "Isi barcode belum diisi." : `Format ini butuh nilai yang valid: ${result.reason}.`);
+        setError(result.reason === "kosong" ? tr("Isi barcode belum diisi.") : tr("Format ini butuh nilai yang valid: {0}.", result.reason));
         return;
       }
       JsBarcode(canvas, result.value, { format: barcodeFormat as any, lineColor: fgColor, background: bgColor, width: 2, height: barcodeHeight, displayValue: true, margin: 10 });
     } catch (err: any) {
-      setError(err?.message || "Gagal membuat barcode");
+      setError(err?.message || tr("Gagal membuat barcode"));
     } finally {
       setIsGenerating(false);
     }
@@ -128,13 +129,13 @@ export function BarcodeGenerator() {
 
   const generateBulkPdf = async () => {
     setBulkInfo(null);
-    if (!bulkEntries.length) { setBulkInfo("Isi daftar kode terlebih dahulu, satu kode per baris."); return; }
+    if (!bulkEntries.length) { setBulkInfo(tr("Isi daftar kode terlebih dahulu, satu kode per baris.")); return; }
 
     const validated = bulkEntries.map(e => ({ ...e, result: validateBarcodeValue(barcodeFormat, e.code) }));
     const valid = validated.filter(e => e.result.ok) as { code: string; label?: string; result: { ok: true; value: string } }[];
     const invalidCount = validated.length - valid.length;
 
-    if (!valid.length) { setBulkInfo("Tidak ada kode yang valid untuk format barcode yang dipilih."); return; }
+    if (!valid.length) { setBulkInfo(tr("Tidak ada kode yang valid untuk format barcode yang dipilih.")); return; }
 
     setIsBulkWorking(true);
     setBulkProgress({ done: 0, total: valid.length });
@@ -155,8 +156,8 @@ export function BarcodeGenerator() {
       let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
       let pageIndex = 1;
       const drawHeader = () => {
-        page.drawText("Daftar Barcode", { x: MARGIN, y: PAGE_H - MARGIN - 14, size: 16, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
-        page.drawText(`Dibuat ${todayLong()} · Total ${valid.length} kode · Halaman ${pageIndex}`, { x: MARGIN, y: PAGE_H - MARGIN - 30, size: 9, font, color: rgb(0.45, 0.5, 0.58) });
+        page.drawText(tr("Daftar Barcode"), { x: MARGIN, y: PAGE_H - MARGIN - 14, size: 16, font: fontBold, color: rgb(0.06, 0.09, 0.16) });
+        page.drawText(tr("Dibuat {0} · Total {1} kode · Halaman {2}", todayLong(), valid.length, pageIndex), { x: MARGIN, y: PAGE_H - MARGIN - 30, size: 9, font, color: rgb(0.45, 0.5, 0.58) });
         page.drawLine({ start: { x: MARGIN, y: PAGE_H - MARGIN - 38 }, end: { x: PAGE_W - MARGIN, y: PAGE_H - MARGIN - 38 }, thickness: 0.75, color: rgb(0.85, 0.87, 0.9) });
       };
       drawHeader();
@@ -198,11 +199,11 @@ export function BarcodeGenerator() {
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), "gamato-barcode-massal.pdf");
       setBulkInfo(
         invalidCount > 0
-          ? `${valid.length} barcode berhasil dibuat (${invalidCount} baris dilewati karena tidak valid untuk format ${barcodeFormat}).`
-          : `${valid.length} barcode berhasil dibuat dan disusun rapi dalam PDF.`
+          ? tr("{0} barcode berhasil dibuat ({1} baris dilewati karena tidak valid untuk format {2}).", valid.length, invalidCount, barcodeFormat)
+          : tr("{0} barcode berhasil dibuat dan disusun rapi dalam PDF.", valid.length)
       );
     } catch (err: any) {
-      setBulkInfo(err?.message || "Gagal membuat PDF massal.");
+      setBulkInfo(err?.message || tr("Gagal membuat PDF massal."));
     } finally {
       setIsBulkWorking(false);
       setBulkProgress(null);
@@ -215,78 +216,76 @@ export function BarcodeGenerator() {
         {/* LEFT: Controls */}
         <div className="space-y-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Barcode</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Barcode")}</p>
             <UndoRedoBar canUndo={bcHistory.canUndo} canRedo={bcHistory.canRedo} onUndo={bcHistory.undo} onRedo={bcHistory.redo} />
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <Textarea label="Konten Barcode" rows={4} value={barcodeContent} onChange={e => setBarcodeContent(sanitizeText(e.target.value))} placeholder="Kode produk, SKU, atau angka…" />
+            <Textarea label={tr("Konten Barcode")} rows={4} value={barcodeContent} onChange={e => setBarcodeContent(sanitizeText(e.target.value))} placeholder={tr("Kode produk, SKU, atau angka…")} />
             <div className="grid grid-cols-2 gap-4">
-              <Select label="Format" value={barcodeFormat} onChange={e => setBarcodeFormat(e.target.value)}>
-                <option value="CODE128">CODE 128 (umum)</option>
-                <option value="EAN13">EAN-13</option>
-                <option value="EAN8">EAN-8</option>
-                <option value="UPC">UPC</option>
-                <option value="CODE39">CODE 39</option>
-                <option value="ITF14">ITF-14</option>
+              <Select label={tr("Format")} value={barcodeFormat} onChange={e => setBarcodeFormat(e.target.value)}>
+                <option value="CODE128">{tr("CODE 128 (umum)")}</option>
+                <option value="EAN13">{tr("EAN-13")}</option>
+                <option value="EAN8">{tr("EAN-8")}</option>
+                <option value="UPC">{tr("UPC")}</option>
+                <option value="CODE39">{tr("CODE 39")}</option>
+                <option value="ITF14">{tr("ITF-14")}</option>
               </Select>
-              <Input label="Tinggi (px)" type="number" min={40} max={200} value={barcodeHeight} onChange={e => setBarcodeHeight(Number(e.target.value) || 80)} />
+              <Input label={tr("Tinggi (px)")} type="number" min={40} max={200} value={barcodeHeight} onChange={e => setBarcodeHeight(Number(e.target.value) || 80)} />
             </div>
-            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2">Format EAN/UPC/ITF hanya mendukung angka dengan panjang tertentu. Pengaturan format &amp; warna di sini juga dipakai untuk cetak massal di bawah.</p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2">{tr("Format EAN/UPC/ITF hanya mendukung angka dengan panjang tertentu. Pengaturan format & warna di sini juga dipakai untuk cetak massal di bawah.")}</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Kustomisasi</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Kustomisasi")}</p>
             <div className="grid grid-cols-2 gap-4">
-              <GamatoColorPicker label="Warna Utama" value={fgColor} onChange={setFgColor} />
-              <GamatoColorPicker label="Warna Latar" value={bgColor} onChange={setBgColor} />
+              <GamatoColorPicker label={tr("Warna Utama")} value={fgColor} onChange={setFgColor} />
+              <GamatoColorPicker label={tr("Warna Latar")} value={bgColor} onChange={setBgColor} />
             </div>
           </div>
 
           {error && <GamatoInlineAlert message={error} tone="error" />}
 
           <Btn onClick={generate} disabled={isGenerating || !barcodeContent.trim()} className="w-full py-4 text-base">
-            {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" />Memproses…</> : <><Barcode className="w-4 h-4" />Generate Barcode</>}
+            {isGenerating ? <><Loader2 className="w-4 h-4 animate-spin" />{tr("Memproses…")}</> : <><Barcode className="w-4 h-4" />{tr("Generate Barcode")}</>}
           </Btn>
 
           {/* Bulk / mass print */}
-          <PanelCard title="Cetak Massal ke PDF" subtitle="Satu kode per baris — opsional tambahkan label dengan koma, mis. 8991234567890,Kopi Susu 250ml">
+          <PanelCard title={tr("Cetak Massal ke PDF")} subtitle={tr("Satu kode per baris — opsional tambahkan label dengan koma, mis. 8991234567890,Kopi Susu 250ml")}>
             <div className="space-y-3">
               <Textarea
                 rows={6}
                 value={bulkText}
                 onChange={e => setBulkText(e.target.value)}
-                placeholder={"8991234567890,Kopi Susu 250ml\n8991234567891,Teh Melati 350ml\n8991234567892"}
+                placeholder={tr("8991234567890,Kopi Susu 250ml\n8991234567891,Teh Melati 350ml\n8991234567892")}
               />
               <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
                 <Layers className="w-3.5 h-3.5" />
-                <span>{bulkEntries.length} kode siap diproses · memakai format &amp; warna di atas</span>
+                <span>{tr("{0} kode siap diproses · memakai format & warna di atas", bulkEntries.length)}</span>
               </div>
-              {bulkInfo && <GamatoInlineAlert message={bulkInfo} tone={bulkInfo.startsWith("Gagal") || bulkInfo.startsWith("Isi") || bulkInfo.startsWith("Tidak") ? "warning" : "success"} />}
-              {bulkProgress && <p className="text-xs text-slate-500 dark:text-slate-400">Memproses {bulkProgress.done}/{bulkProgress.total}…</p>}
+              {bulkInfo && <GamatoInlineAlert message={bulkInfo} tone={msgStarts(bulkInfo, "Gagal") || msgStarts(bulkInfo, "Isi") || msgStarts(bulkInfo, "Tidak") ? "warning" : "success"} />}
+              {bulkProgress && <p className="text-xs text-slate-500 dark:text-slate-400">{tr("Memproses {0}/{1}…", bulkProgress.done, bulkProgress.total)}</p>}
               <Btn onClick={generateBulkPdf} disabled={isBulkWorking || !bulkEntries.length} className="w-full gap-2">
-                {isBulkWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-                Buat PDF Massal ({bulkEntries.length} kode)
-              </Btn>
+                {isBulkWorking ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}{tr("Buat PDF Massal ({0} kode)", bulkEntries.length)}</Btn>
             </div>
           </PanelCard>
         </div>
 
         {/* RIGHT: Preview */}
         <div className="lg:sticky lg:top-24 space-y-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">Preview Real-time</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">{tr("Preview Real-time")}</p>
           <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center min-h-[380px] shadow-sm">
             <div className="bg-white p-5 rounded-2xl shadow-xl w-full">
               <canvas ref={barcodeCanvasRef} className="max-w-full" />
-              {!barcodeContent.trim() && <div className="h-28 flex items-center justify-center"><p className="text-sm text-slate-400">Isi konten barcode</p></div>}
+              {!barcodeContent.trim() && <div className="h-28 flex items-center justify-center"><p className="text-sm text-slate-400">{tr("Isi konten barcode")}</p></div>}
             </div>
           </div>
 
           <Btn onClick={downloadBarcode} disabled={!barcodeContent.trim()} className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white border-0 text-base shadow-lg shadow-indigo-600/20">
-            <Download className="w-4 h-4" />Unduh Barcode · PNG
+            <Download className="w-4 h-4" />{tr("Unduh Barcode · PNG")}
           </Btn>
 
-          <div className="text-center"><SectionBadge>Diproses langsung di perangkatmu</SectionBadge></div>
+          <div className="text-center"><SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge></div>
         </div>
       </div>
     </div>

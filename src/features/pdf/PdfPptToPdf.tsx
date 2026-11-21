@@ -7,6 +7,7 @@ import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfPptToPdf: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -17,7 +18,7 @@ export const PdfPptToPdf: React.FC = () => {
   const addFiles = (incoming: File[]) => {
     const f = incoming.find((x) => x.name.toLowerCase().endsWith(".pptx"));
     if (f) setFile(f);
-    else setInfo("Pilih file dengan format .pptx.");
+    else setInfo(tr("Pilih file dengan format .pptx."));
   };
 
   const handleRun = async () => {
@@ -28,9 +29,9 @@ export const PdfPptToPdf: React.FC = () => {
       const slides = await readPptxSlides(file);
       const blob = await slidesToPdfBlob(slides, file.name.replace(/\.pptx$/i, ""));
       downloadBlob(blob, `${file.name.replace(/\.pptx$/i, "")}.pdf`);
-      setInfo(`Berhasil dikonversi ke PDF (${slides.length} slide).`);
+      setInfo(tr("Berhasil dikonversi ke PDF ({0} slide).", slides.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal mengonversi file. Pastikan file .pptx tidak rusak."));
+      setInfo("" + (err?.message || tr("Gagal mengonversi file. Pastikan file .pptx tidak rusak.")));
     } finally {
       setIsWorking(false);
     }
@@ -43,8 +44,8 @@ export const PdfPptToPdf: React.FC = () => {
           onFiles={addFiles}
           accept=".pptx"
           multiple={false}
-          label="Drop file PowerPoint (.pptx) di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PowerPoint (.pptx) di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<Layers className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -56,7 +57,7 @@ export const PdfPptToPdf: React.FC = () => {
               <Layers className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -65,18 +66,18 @@ export const PdfPptToPdf: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Pilih") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Pilih") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Mengonversi…
+              {tr("Mengonversi…")}
             </>
           ) : (
             <>
               <FileDown className="w-4 h-4" />
-              Konversi ke PDF
+              {tr("Konversi ke PDF")}
             </>
           )}
         </Btn>
@@ -84,9 +85,9 @@ export const PdfPptToPdf: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Layers className="w-5 h-5" />}
-        label="PowerPoint ke PDF"
-        desc="Konversi .pptx → .pdf"
-        points={["Satu slide jadi satu halaman PDF landscape.", "Teks & susunan bullet dipertahankan; desain visual asli (gambar, tema) disederhanakan."]}
+        label={tr("PowerPoint ke PDF")}
+        desc={tr("Konversi .pptx → .pdf")}
+        points={[tr("Satu slide jadi satu halaman PDF landscape."), tr("Teks & susunan bullet dipertahankan; desain visual asli (gambar, tema) disederhanakan.")]}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import { Input, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { GamatoPdfPage } from "@/components/ui/GamatoPdfPage";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { tr } from "@/i18n";
 
 interface Meta {
   title: string;
@@ -59,8 +60,8 @@ export const PdfReader: React.FC = () => {
             onFiles={addFiles}
             accept="application/pdf"
             multiple={false}
-            label="Drop file PDF di sini"
-            sublabel="atau klik untuk browse — dibuka langsung di browser"
+            label={tr("Drop file PDF di sini")}
+            sublabel={tr("atau klik untuk browse — dibuka langsung di browser")}
             icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -86,7 +87,7 @@ export const PdfReader: React.FC = () => {
                   }}
                   className="text-sm text-red-500 font-semibold hover:text-red-700"
                 >
-                  Tutup
+                  {tr("Tutup")}
                 </button>
               </div>
             </div>
@@ -94,11 +95,11 @@ export const PdfReader: React.FC = () => {
             {meta && meta.pageCount > 1 && (
               <div className="flex items-center justify-center gap-3 px-5 py-3 border-t border-slate-100 dark:border-slate-800">
                 <Btn variant="secondary" onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1} className="gap-1.5 px-3 py-1.5">
-                  <ChevronLeft className="w-4 h-4" /> Sebelumnya
+                  <ChevronLeft className="w-4 h-4" /> {tr("Sebelumnya")}
                 </Btn>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Halaman {currentPage} / {meta.pageCount}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{tr("Halaman {0} / {1}", currentPage, meta.pageCount)}</span>
                 <Btn variant="secondary" onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= meta.pageCount} className="gap-1.5 px-3 py-1.5">
-                  Berikutnya <ChevronRight className="w-4 h-4" />
+                  {tr("Berikutnya")} <ChevronRight className="w-4 h-4" />
                 </Btn>
               </div>
             )}
@@ -109,23 +110,23 @@ export const PdfReader: React.FC = () => {
       <div className="space-y-4">
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Info Dokumen</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Info Dokumen")}</p>
             <div className="text-sm space-y-2">
               <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Judul</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Judul")}</p>
                 <p className="font-semibold text-slate-700 dark:text-slate-200 truncate">{meta.title}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Penulis</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Penulis")}</p>
                 <p className="font-semibold text-slate-700 dark:text-slate-200 truncate">{meta.author}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Jumlah Halaman</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Jumlah Halaman")}</p>
                 <p className="font-semibold text-slate-700 dark:text-slate-200">{meta.pageCount}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Ukuran File</p>
-                <p className="font-semibold text-slate-700 dark:text-slate-200">{file ? (file.size / 1024 / 1024).toFixed(2) : 0} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Ukuran File")}</p>
+                <p className="font-semibold text-slate-700 dark:text-slate-200">{file ? (file.size / 1024 / 1024).toFixed(2) : 0} {tr("MB")}</p>
               </div>
             </div>
           </div>
@@ -133,9 +134,9 @@ export const PdfReader: React.FC = () => {
 
         <ToolInfoPanel
           icon={<BookOpen className="w-5 h-5" />}
-          label="PDF Reader"
-          desc="Baca langsung di browser"
-          points={["Dirender native oleh engine Gamato Piranti (pdf.js) langsung ke kanvas — cepat & tanpa upload ke server, tanpa viewer bawaan browser.", "Lompat ke halaman tertentu lewat kolom nomor halaman atau tombol navigasi."]}
+          label={tr("PDF Reader")}
+          desc={tr("Baca langsung di browser")}
+          points={[tr("Dirender native oleh engine Gamato Piranti (pdf.js) langsung ke kanvas — cepat & tanpa upload ke server, tanpa viewer bawaan browser."), tr("Lompat ke halaman tertentu lewat kolom nomor halaman atau tombol navigasi.")]}
         />
       </div>
     </div>

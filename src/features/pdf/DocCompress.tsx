@@ -9,6 +9,7 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { cn } from "@/utils/cn";
 import { downloadBlob } from "@/lib/file";
 import { LEVEL_PRESETS, compressDocument, detectKind, isCancelled, type DocCompressResult } from "@/lib/docCompress";
+import { tr } from "@/i18n";
 
 interface Item {
   id: string;
@@ -79,7 +80,7 @@ export const DocCompress: React.FC = () => {
       else fresh.push({ id: uid(), file: f, status: "queued", progress: 0 });
     }
     if (fresh.length) setItems((is) => [...is, ...fresh]);
-    if (rejected.length) setInfo({ msg: `${rejected.join(", ")}: audio/video punya alat khusus — pakai Kompres Audio atau Kompres Video.`, tone: "warning" });
+    if (rejected.length) setInfo({ msg: tr("{0}: audio/video punya alat khusus — pakai Kompres Audio atau Kompres Video.", rejected.join(", ")), tone: "warning" });
   };
 
   const removeItem = (id: string) => setItems((is) => is.filter((i) => i.id !== id));
@@ -94,7 +95,7 @@ export const DocCompress: React.FC = () => {
     let failed = 0;
     for (const it of queue) {
       if (cancelRef.current.cancelled) break;
-      patch(it.id, { status: "working", progress: 0, message: "Memulai…", result: undefined });
+      patch(it.id, { status: "working", progress: 0, message: tr("Memulai…"), result: undefined });
       try {
         const result = await compressDocument(it.file, {
           quality: quality / 100,
@@ -113,14 +114,14 @@ export const DocCompress: React.FC = () => {
           break;
         }
         failed++;
-        patch(it.id, { status: "error", message: e?.message || "Gagal memproses berkas." });
+        patch(it.id, { status: "error", message: e?.message || tr("Gagal memproses berkas.") });
       }
     }
     setRunning(false);
-    if (cancelRef.current.cancelled) setInfo({ msg: "Dibatalkan. Berkas yang sudah selesai tetap bisa diunduh.", tone: "info" });
-    else if (failed && !ok) setInfo({ msg: "Semua berkas gagal diproses — periksa pesan di tiap baris.", tone: "error" });
-    else if (failed) setInfo({ msg: `${ok} berkas selesai, ${failed} gagal.`, tone: "warning" });
-    else setInfo({ msg: `${ok} berkas selesai diproses.`, tone: "success" });
+    if (cancelRef.current.cancelled) setInfo({ msg: tr("Dibatalkan. Berkas yang sudah selesai tetap bisa diunduh."), tone: "info" });
+    else if (failed && !ok) setInfo({ msg: tr("Semua berkas gagal diproses — periksa pesan di tiap baris."), tone: "error" });
+    else if (failed) setInfo({ msg: tr("{0} berkas selesai, {1} gagal.", ok, failed), tone: "warning" });
+    else setInfo({ msg: tr("{0} berkas selesai diproses.", ok), tone: "success" });
   };
 
   const downloadOne = (it: Item) => {
@@ -154,8 +155,8 @@ export const DocCompress: React.FC = () => {
         <Dropzone
           onFiles={addFiles}
           multiple
-          label="Drop dokumen di sini"
-          sublabel="PDF, DOCX, XLSX, PPTX, ODT, EPUB, ZIP, gambar, teks — bisa banyak sekaligus"
+          label={tr("Drop dokumen di sini")}
+          sublabel={tr("PDF, DOCX, XLSX, PPTX, ODT, EPUB, ZIP, gambar, teks — bisa banyak sekaligus")}
           icon={<FileArchive className="w-8 h-8" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -164,8 +165,8 @@ export const DocCompress: React.FC = () => {
         {items.length > 0 && (
           <div className={cn(card, "!p-0 overflow-hidden")} data-testid="dc-list">
             <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{items.length} berkas · {fmtSize(items.reduce((a, i) => a + i.file.size, 0))}</p>
-              <button type="button" disabled={running} onClick={() => setItems([])} className="text-sm text-red-500 font-semibold hover:text-red-700 disabled:opacity-40">Kosongkan</button>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("{0} berkas ·", items.length)}{" "}{fmtSize(items.reduce((a, i) => a + i.file.size, 0))}</p>
+              <button type="button" disabled={running} onClick={() => setItems([])} className="text-sm text-red-500 font-semibold hover:text-red-700 disabled:opacity-40">{tr("Kosongkan")}</button>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {items.map((it) => {
@@ -185,7 +186,7 @@ export const DocCompress: React.FC = () => {
                             <>
                               {" → "}
                               <span data-testid="dc-after" className="font-bold text-green-600 dark:text-green-400">{fmtSize(r.compressedSize)}</span>
-                              {r.outcome === "original" ? " (asli dipertahankan)" : ` · hemat ${saved}%`}
+                              {r.outcome === "original" ? tr(" (asli dipertahankan)") : tr(" · hemat {0}%", saved)}
                             </>
                           )}
                         </p>
@@ -194,13 +195,13 @@ export const DocCompress: React.FC = () => {
                       {it.status === "done" && r && (
                         <>
                           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                          <button type="button" data-testid="dc-download-one" onClick={() => downloadOne(it)} className="p-1.5 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg" title={`Unduh ${r.name}`}>
+                          <button type="button" data-testid="dc-download-one" onClick={() => downloadOne(it)} className="p-1.5 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-lg" title={tr("Unduh {0}", r.name)}>
                             <Download className="w-4 h-4" />
                           </button>
                         </>
                       )}
                       {it.status === "error" && <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />}
-                      <button type="button" disabled={it.status === "working"} onClick={() => removeItem(it.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg disabled:opacity-30" aria-label="Hapus">
+                      <button type="button" disabled={it.status === "working"} onClick={() => removeItem(it.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg disabled:opacity-30" aria-label={tr("Hapus")}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -216,11 +217,11 @@ export const DocCompress: React.FC = () => {
                     {it.status === "queued" && <p className="text-[11px] text-slate-400 dark:text-slate-500">{k.plan}</p>}
                     {r && r.notes.length > 0 && (
                       <ul className="text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
-                        {r.images > 0 && <li>• {r.images} gambar dioptimasi{r.converted ? `, ${r.converted} diubah ke JPEG` : ""}.</li>}
+                        {r.images > 0 && <li>{tr("• {0} gambar dioptimasi", r.images)}{r.converted ? tr(", {0} diubah ke JPEG", r.converted) : ""}.</li>}
                         {r.notes.map((n, i) => <li key={i}>• {n}</li>)}
                       </ul>
                     )}
-                    {r && r.notes.length === 0 && r.images > 0 && <p className="text-[11px] text-slate-500 dark:text-slate-400">• {r.images} gambar dioptimasi{r.converted ? `, ${r.converted} diubah ke JPEG` : ""}.</p>}
+                    {r && r.notes.length === 0 && r.images > 0 && <p className="text-[11px] text-slate-500 dark:text-slate-400">{tr("• {0} gambar dioptimasi", r.images)}{r.converted ? tr(", {0} diubah ke JPEG", r.converted) : ""}.</p>}
                   </div>
                 );
               })}
@@ -229,7 +230,7 @@ export const DocCompress: React.FC = () => {
         )}
 
         <div className={card}>
-          <p className={cap}>Tingkat Kompresi</p>
+          <p className={cap}>{tr("Tingkat Kompresi")}</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="dc-presets">
             {(["low", "medium", "high"] as const).map((p) => (
               <button key={p} type="button" data-testid={`dc-preset-${p}`} onClick={() => choosePreset(p)}
@@ -239,20 +240,20 @@ export const DocCompress: React.FC = () => {
             ))}
             <button type="button" data-testid="dc-preset-custom" onClick={() => setPreset("custom")}
               className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all", preset === "custom" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300")}>
-              Kustom
+              {tr("Kustom")}
             </button>
           </div>
           <div className="grid sm:grid-cols-2 gap-5">
-            <Slider label="Kualitas gambar (JPEG/WEBP)" value={quality} min={20} max={95} suffix="%" testId="dc-quality" onChange={(v) => { setQuality(v); setPreset("custom"); }} />
-            <Slider label="Dimensi gambar maks" value={maxDim} min={480} max={4096} step={32} suffix=" px" testId="dc-maxdim" onChange={(v) => { setMaxDim(v); setPreset("custom"); }} />
+            <Slider label={tr("Kualitas gambar (JPEG/WEBP)")} value={quality} min={20} max={95} suffix="%" testId="dc-quality" onChange={(v) => { setQuality(v); setPreset("custom"); }} />
+            <Slider label={tr("Dimensi gambar maks")} value={maxDim} min={480} max={4096} step={32} suffix={tr(" px")} testId="dc-maxdim" onChange={(v) => { setMaxDim(v); setPreset("custom"); }} />
           </div>
           {hasImageish && (
-            <GamatoCheckbox checked={pngToJpeg} onChange={setPngToJpeg} testId="dc-png2jpg" label={<span className="text-sm text-slate-600 dark:text-slate-300">Ubah PNG tanpa transparansi menjadi JPEG <span className="text-slate-400">(penghemat terbesar; PNG ber-transparansi tidak pernah diubah)</span></span>} />
+            <GamatoCheckbox checked={pngToJpeg} onChange={setPngToJpeg} testId="dc-png2jpg" label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Ubah PNG tanpa transparansi menjadi JPEG")} <span className="text-slate-400">{tr("(penghemat terbesar; PNG ber-transparansi tidak pernah diubah)")}</span></span>} />
           )}
           {hasPdf && (
             <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
-              <GamatoCheckbox checked={pdfRaster} onChange={setPdfRaster} testId="dc-pdf-raster" label={<span className="text-sm text-slate-600 dark:text-slate-300">Mode agresif PDF <span className="text-slate-400">— setiap halaman jadi gambar JPEG (cocok untuk PDF hasil scan; teks tidak bisa diseleksi/dicari)</span></span>} />
-              {pdfRaster && <Slider label="Resolusi halaman" value={rasterDpi} min={72} max={220} step={4} suffix=" dpi" testId="dc-dpi" onChange={setRasterDpi} />}
+              <GamatoCheckbox checked={pdfRaster} onChange={setPdfRaster} testId="dc-pdf-raster" label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Mode agresif PDF")} <span className="text-slate-400">{tr("— setiap halaman jadi gambar JPEG (cocok untuk PDF hasil scan; teks tidak bisa diseleksi/dicari)")}</span></span>} />
+              {pdfRaster && <Slider label={tr("Resolusi halaman")} value={rasterDpi} min={72} max={220} step={4} suffix={tr(" dpi")} testId="dc-dpi" onChange={setRasterDpi} />}
             </div>
           )}
         </div>
@@ -263,26 +264,26 @@ export const DocCompress: React.FC = () => {
           <div className={card} data-testid="dc-summary">
             <div className="flex items-center justify-between text-sm">
               <div className="text-center flex-1">
-                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">Sebelum</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">{tr("Sebelum")}</p>
                 <p className="font-bold text-slate-700 dark:text-slate-200">{fmtSize(totals.o)}</p>
               </div>
               <div className="text-indigo-500 font-bold text-lg px-3">→</div>
               <div className="text-center flex-1">
-                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">Sesudah</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">{tr("Sesudah")}</p>
                 <p className="font-bold text-green-600 dark:text-green-400" data-testid="dc-total-after">{fmtSize(totals.c)}</p>
               </div>
               <div className="text-center flex-1">
-                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">Hemat</p>
+                <p className="text-slate-400 dark:text-slate-500 text-xs mb-1">{tr("Hemat")}</p>
                 <p className="font-bold text-indigo-600 dark:text-indigo-300" data-testid="dc-total-pct">{totals.pct}%</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
               {done.length === 1 ? (
-                <Btn data-testid="dc-download" onClick={() => downloadOne(done[0])} className="flex-1"><Download className="w-4 h-4" />Unduh {done[0].result!.name}</Btn>
+                <Btn data-testid="dc-download" onClick={() => downloadOne(done[0])} className="flex-1"><Download className="w-4 h-4" />{tr("Unduh {0}", done[0].result!.name)}</Btn>
               ) : (
                 <>
-                  <Btn data-testid="dc-download-zip" onClick={downloadAllZip} className="flex-1"><Package className="w-4 h-4" />Unduh Semua (ZIP)</Btn>
-                  <Btn variant="secondary" onClick={() => done.forEach((d, i) => setTimeout(() => downloadOne(d), i * 250))}><Download className="w-4 h-4" />Unduh Satu per Satu</Btn>
+                  <Btn data-testid="dc-download-zip" onClick={downloadAllZip} className="flex-1"><Package className="w-4 h-4" />{tr("Unduh Semua (ZIP)")}</Btn>
+                  <Btn variant="secondary" onClick={() => done.forEach((d, i) => setTimeout(() => downloadOne(d), i * 250))}><Download className="w-4 h-4" />{tr("Unduh Satu per Satu")}</Btn>
                 </>
               )}
             </div>
@@ -291,24 +292,24 @@ export const DocCompress: React.FC = () => {
 
         <div className="flex gap-3">
           <Btn data-testid="dc-run" onClick={run} disabled={running || pending === 0} className="flex-1 py-4 text-base">
-            {running ? <><Loader2 className="w-4 h-4 animate-spin" />Mengompres…</> : <><Zap className="w-4 h-4" />Kompres {pending > 0 ? `${pending} ` : ""}Berkas</>}
+            {running ? <><Loader2 className="w-4 h-4 animate-spin" />{tr("Mengompres…")}</> : <><Zap className="w-4 h-4" />{tr("Kompres")} {pending > 0 ? `${pending} ` : ""}{tr("Berkas")}</>}
           </Btn>
           {running && (
-            <Btn data-testid="dc-cancel" variant="danger" onClick={() => { cancelRef.current.cancelled = true; }}><X className="w-4 h-4" />Batal</Btn>
+            <Btn data-testid="dc-cancel" variant="danger" onClick={() => { cancelRef.current.cancelled = true; }}><X className="w-4 h-4" />{tr("Batal")}</Btn>
           )}
         </div>
       </div>
 
       <ToolInfoPanel
         icon={<Shrink className="w-5 h-5" />}
-        label="Kompres Dokumen"
-        desc="PDF, Office, gambar & arsip"
+        label={tr("Kompres Dokumen")}
+        desc={tr("PDF, Office, gambar & arsip")}
         points={[
-          "PDF: gambar JPEG dikompres ulang, struktur dipadatkan. Mode agresif untuk PDF hasil scan.",
-          "DOCX/XLSX/PPTX/ODT/EPUB: gambar di dalam dokumen dikompres ulang, ZIP ditulis ulang maksimal.",
-          "Hasil tidak pernah lebih besar dari aslinya — kalau tidak ada yang bisa dihemat, berkas asli dipertahankan.",
-          "DOC/XLS/PPT lama & berkas teks dibungkus ZIP (format biner lama tidak bisa dipadatkan aman di browser).",
-          "Semua proses di perangkatmu — berkas tidak diunggah ke server mana pun.",
+          tr("PDF: gambar JPEG dikompres ulang, struktur dipadatkan. Mode agresif untuk PDF hasil scan."),
+          tr("DOCX/XLSX/PPTX/ODT/EPUB: gambar di dalam dokumen dikompres ulang, ZIP ditulis ulang maksimal."),
+          tr("Hasil tidak pernah lebih besar dari aslinya — kalau tidak ada yang bisa dihemat, berkas asli dipertahankan."),
+          tr("DOC/XLS/PPT lama & berkas teks dibungkus ZIP (format biner lama tidak bisa dipadatkan aman di browser)."),
+          tr("Semua proses di perangkatmu — berkas tidak diunggah ke server mana pun."),
         ]}
         info={info && info.tone !== "info" ? info.msg : null}
         infoTone={info?.tone === "error" ? "error" : "success"}

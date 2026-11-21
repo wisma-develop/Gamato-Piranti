@@ -20,15 +20,16 @@ import {
 import { ACCEPT, DEFAULT_TEXT_OPTIONS, buildTextSource, loadPrintSource, type LoadedSource, type TextOptions } from "@/lib/printSources";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
+import { tr } from "@/i18n";
 
 type TabId = "sumber" | "halaman" | "layout" | "kertas" | "tampilan" | "tambahan";
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "sumber", label: "Berkas", icon: <FilePlus2 className="w-4 h-4" /> },
-  { id: "halaman", label: "Halaman & Salinan", icon: <Layers className="w-4 h-4" /> },
-  { id: "layout", label: "Tata Letak", icon: <Settings2 className="w-4 h-4" /> },
-  { id: "kertas", label: "Kertas & Margin", icon: <Frame className="w-4 h-4" /> },
-  { id: "tampilan", label: "Warna & Skala", icon: <Palette className="w-4 h-4" /> },
-  { id: "tambahan", label: "Header & Watermark", icon: <Type className="w-4 h-4" /> },
+  { id: "sumber", label: tr("Berkas"), icon: <FilePlus2 className="w-4 h-4" /> },
+  { id: "halaman", label: tr("Halaman & Salinan"), icon: <Layers className="w-4 h-4" /> },
+  { id: "layout", label: tr("Tata Letak"), icon: <Settings2 className="w-4 h-4" /> },
+  { id: "kertas", label: tr("Kertas & Margin"), icon: <Frame className="w-4 h-4" /> },
+  { id: "tampilan", label: tr("Warna & Skala"), icon: <Palette className="w-4 h-4" /> },
+  { id: "tambahan", label: tr("Header & Watermark"), icon: <Type className="w-4 h-4" /> },
 ];
 
 const card = "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4";
@@ -84,7 +85,7 @@ const SheetThumb: React.FC<{ index: number; active: boolean; onClick: () => void
     return () => { cancel = true; clearTimeout(t); };
   }, [visible, version, index, render]);
   return (
-    <button ref={wrapRef} type="button" onClick={onClick} data-testid="sheet-thumb" aria-label={`Lembar ${index + 1}`} className={cn("shrink-0 rounded-md border-2 bg-white overflow-hidden", active ? "border-indigo-500 shadow-md" : "border-slate-300 dark:border-slate-600 hover:border-indigo-300")} style={{ width: 62, height: 62 / aspect }}>
+    <button ref={wrapRef} type="button" onClick={onClick} data-testid="sheet-thumb" aria-label={tr("Lembar {0}", index + 1)} className={cn("shrink-0 rounded-md border-2 bg-white overflow-hidden", active ? "border-indigo-500 shadow-md" : "border-slate-300 dark:border-slate-600 hover:border-indigo-300")} style={{ width: 62, height: 62 / aspect }}>
       <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block" }} />
     </button>
   );
@@ -115,7 +116,7 @@ export const PrintCenter: React.FC = () => {
   const allPages: PrintPageSource[] = useMemo(() => sources.flatMap((x) => x.pages), [sources]);
   const plan = useMemo(() => planPrint(allPages.map((p) => p.ref), s), [allPages, s]);
   const sel = paperSize(s);
-  const title = sources.length ? sources[0].name.replace(/\.[^.]+$/, "") + (sources.length > 1 ? ` (+${sources.length - 1})` : "") : "Dokumen";
+  const title = sources.length ? sources[0].name.replace(/\.[^.]+$/, "") + (sources.length > 1 ? ` (+${sources.length - 1})` : "") : tr("Dokumen");
   const ctxInfo = useCallback((guidesOn: boolean): RenderContext => ({ title, fileLabel: sources.map((x) => x.name).join(", "), uniqueSheets: plan.sheets.length, guides: guidesOn }), [title, sources, plan.sheets.length]);
 
   const version = useMemo(() => JSON.stringify([s, allPages.length, plan.sheets.length, title]), [s, allPages.length, plan.sheets.length, title]);
@@ -156,7 +157,7 @@ export const PrintCenter: React.FC = () => {
         canvasRef.current.height = c.height;
         canvasRef.current.getContext("2d")!.drawImage(c, 0, 0);
       } catch (e: any) {
-        if (!cancelled) setInfo({ msg: `Pratinjau gagal: ${e?.message ?? e}`, tone: "error" });
+        if (!cancelled) setInfo({ msg: tr("Pratinjau gagal: {0}", e?.message ?? e), tone: "error" });
       } finally {
         if (!cancelled) setPreviewing(false);
       }
@@ -167,18 +168,18 @@ export const PrintCenter: React.FC = () => {
   /* ── sources ── */
   const addFiles = async (files: File[]) => {
     setInfo(null);
-    setBusy("Membaca berkas…");
+    setBusy(tr("Membaca berkas…"));
     const added: LoadedSource[] = [];
     const errors: string[] = [];
     for (const f of files) {
       try { added.push(await loadPrintSource(f, textOpts)); }
-      catch (e: any) { errors.push(e?.message ?? `Gagal membaca ${f.name}`); }
+      catch (e: any) { errors.push(e?.message ?? tr("Gagal membaca {0}", f.name)); }
     }
     setBusy(null);
     if (added.length) {
       setSources((x) => [...x, ...added]);
       setCur(0);
-      if (added.length === files.length) setInfo({ msg: `${added.reduce((a, b) => a + b.pages.length, 0)} halaman siap dicetak.`, tone: "success" });
+      if (added.length === files.length) setInfo({ msg: tr("{0} halaman siap dicetak.", added.reduce((a, b) => a + b.pages.length, 0)), tone: "success" });
       if (tab === "sumber" && sourcesRef.current.length === 0) setTab("halaman");
     }
     if (errors.length) setInfo({ msg: errors.join(" "), tone: "error" });
@@ -187,11 +188,11 @@ export const PrintCenter: React.FC = () => {
   const addPasted = async () => {
     if (!pasteText.trim()) return;
     try {
-      const src = await buildTextSource(`Teks ${sources.length + 1}`, pasteText, textOpts);
+      const src = await buildTextSource(tr("Teks {0}", sources.length + 1), pasteText, textOpts);
       setSources((x) => [...x, src]);
       setPasteText("");
-      setInfo({ msg: "Teks ditambahkan.", tone: "success" });
-    } catch (e: any) { setInfo({ msg: e?.message ?? "Gagal.", tone: "error" }); }
+      setInfo({ msg: tr("Teks ditambahkan."), tone: "success" });
+    } catch (e: any) { setInfo({ msg: e?.message ?? tr("Gagal."), tone: "error" }); }
   };
 
   const removeSource = (id: string) => {
@@ -241,10 +242,10 @@ export const PrintCenter: React.FC = () => {
   const doPrint = async () => {
     if (!plan.sheets.length) return;
     setInfo(null);
-    setBusy("Menyiapkan lembar cetak…");
+    setBusy(tr("Menyiapkan lembar cetak…"));
     let urls: string[] = [];
     try {
-      const r = await renderAll((f) => setBusy(`Menyiapkan lembar cetak… ${Math.round(f * 100)}%`));
+      const r = await renderAll((f) => setBusy(tr("Menyiapkan lembar cetak… {0}%", Math.round(f * 100))));
       urls = r.urls;
       const hook = (window as any).__GP_PRINT_HOOK__;
       let seqUrls = plan.sequence.map((i) => urls[i]);
@@ -254,7 +255,7 @@ export const PrintCenter: React.FC = () => {
         seqUrls = plan.sequence.map((i) => dataUrls[i]);
         hook({ html: buildPrintHtml(seqUrls, plan.paperW, plan.paperH, title), sheets: plan.sequence.length, paperW: plan.paperW, paperH: plan.paperH });
         urls.forEach((u) => URL.revokeObjectURL(u));
-        setInfo({ msg: `Dokumen cetak disiapkan (${plan.sequence.length} lembar).`, tone: "success" });
+        setInfo({ msg: tr("Dokumen cetak disiapkan ({0} lembar).", plan.sequence.length), tone: "success" });
         return;
       }
       const html = buildPrintHtml(seqUrls, plan.paperW, plan.paperH, title);
@@ -280,10 +281,10 @@ export const PrintCenter: React.FC = () => {
       setBusy(null);
       win.focus();
       win.print();
-      setInfo({ msg: "Dialog cetak browser dibuka. Pilih printer, lalu cetak. (Ukuran kertas & margin sudah diatur dari sini.)", tone: "info" });
+      setInfo({ msg: tr("Dialog cetak browser dibuka. Pilih printer, lalu cetak. (Ukuran kertas & margin sudah diatur dari sini.)"), tone: "info" });
     } catch (e: any) {
       urls.forEach((u) => URL.revokeObjectURL(u));
-      setInfo({ msg: `Gagal menyiapkan cetak: ${e?.message ?? e}`, tone: "error" });
+      setInfo({ msg: tr("Gagal menyiapkan cetak: {0}", e?.message ?? e), tone: "error" });
     } finally {
       setBusy(null);
     }
@@ -292,12 +293,12 @@ export const PrintCenter: React.FC = () => {
   const doPdf = async () => {
     if (!plan.sheets.length) return;
     setInfo(null);
-    setBusy("Membuat PDF…");
+    setBusy(tr("Membuat PDF…"));
     try {
-      const r = await renderAll((f) => setBusy(`Membuat PDF… ${Math.round(f * 100)}%`));
+      const r = await renderAll((f) => setBusy(tr("Membuat PDF… {0}%", Math.round(f * 100))));
       const pdf = await PDFDocument.create();
       pdf.setTitle(title);
-      pdf.setCreator("Gamato Piranti — Cetak File & Dokumen");
+      pdf.setCreator(tr("Gamato Piranti — Cetak File & Dokumen"));
       const imgs = [];
       for (const b of r.blobs) {
         const bytes = new Uint8Array(await b.arrayBuffer());
@@ -311,9 +312,9 @@ export const PrintCenter: React.FC = () => {
       }
       r.urls.forEach((u) => URL.revokeObjectURL(u));
       downloadBlob(new Blob([(await pdf.save()) as BlobPart], { type: "application/pdf" }), `${title.replace(/[\\/:*?"<>|]+/g, "_")}-siap-cetak.pdf`);
-      setInfo({ msg: `PDF siap cetak (${plan.sequence.length} lembar, ${plan.paperW.toFixed(0)}×${plan.paperH.toFixed(0)} mm) diunduh.`, tone: "success" });
+      setInfo({ msg: tr("PDF siap cetak ({0} lembar, {1}×{2} mm) diunduh.", plan.sequence.length, plan.paperW.toFixed(0), plan.paperH.toFixed(0)), tone: "success" });
     } catch (e: any) {
-      setInfo({ msg: `Gagal membuat PDF: ${e?.message ?? e}`, tone: "error" });
+      setInfo({ msg: tr("Gagal membuat PDF: {0}", e?.message ?? e), tone: "error" });
     } finally {
       setBusy(null);
     }
@@ -328,14 +329,14 @@ export const PrintCenter: React.FC = () => {
 
   return (
     <div className="grid lg:grid-cols-[minmax(0,1fr)_400px] gap-6 items-start" data-testid="print-root">
-      <GamatoDesktopRecommended toolName="Pusat Cetak" className="lg:col-span-full" />
+      <GamatoDesktopRecommended toolName={tr("Pusat Cetak")} className="lg:col-span-full" />
       <input ref={openRef} type="file" multiple accept={ACCEPT} className="hidden" data-testid="print-file" onChange={(e) => { const f = Array.from(e.target.files ?? []); e.target.value = ""; if (f.length) addFiles(f); }} />
 
       {/* ───────── LEFT: preview ───────── */}
       <div className="space-y-3 min-w-0 lg:sticky lg:top-20" ref={hostRef}>
         {!hasPages ? (
           <div className="space-y-4">
-            <Dropzone onFiles={addFiles} accept={ACCEPT} multiple isDragging={isDragging} setIsDragging={setIsDragging} label="Unggah berkas yang ingin dicetak" sublabel="PDF, gambar, DOCX, XLSX, PPTX, CSV, TXT, kode — bisa banyak sekaligus" icon={<Printer className="w-8 h-8" />} />
+            <Dropzone onFiles={addFiles} accept={ACCEPT} multiple isDragging={isDragging} setIsDragging={setIsDragging} label={tr("Unggah berkas yang ingin dicetak")} sublabel={tr("PDF, gambar, DOCX, XLSX, PPTX, CSV, TXT, kode — bisa banyak sekaligus")} icon={<Printer className="w-8 h-8" />} />
             {busy && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-indigo-600"><Loader2 className="w-4 h-4 animate-spin" />{busy}</div>}
             {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
           </div>
@@ -343,14 +344,14 @@ export const PrintCenter: React.FC = () => {
           <>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Btn variant="secondary" className="px-2.5 py-2" disabled={curSafe <= 0} onClick={() => setCur(curSafe - 1)} data-testid="sheet-prev" aria-label="Lembar sebelumnya"><ChevronLeft className="w-4 h-4" /></Btn>
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 px-2 tabular-nums" data-testid="sheet-indicator">Lembar {plan.sheets.length ? curSafe + 1 : 0} / {plan.sheets.length}</span>
-                <Btn variant="secondary" className="px-2.5 py-2" disabled={curSafe >= plan.sheets.length - 1} onClick={() => setCur(curSafe + 1)} data-testid="sheet-next" aria-label="Lembar berikutnya"><ChevronRight className="w-4 h-4" /></Btn>
+                <Btn variant="secondary" className="px-2.5 py-2" disabled={curSafe <= 0} onClick={() => setCur(curSafe - 1)} data-testid="sheet-prev" aria-label={tr("Lembar sebelumnya")}><ChevronLeft className="w-4 h-4" /></Btn>
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 px-2 tabular-nums" data-testid="sheet-indicator">{tr("Lembar")} {plan.sheets.length ? curSafe + 1 : 0} / {plan.sheets.length}</span>
+                <Btn variant="secondary" className="px-2.5 py-2" disabled={curSafe >= plan.sheets.length - 1} onClick={() => setCur(curSafe + 1)} data-testid="sheet-next" aria-label={tr("Lembar berikutnya")}><ChevronRight className="w-4 h-4" /></Btn>
               </div>
               <div className="flex items-center gap-3">
-                <GamatoCheckbox checked={guides} onChange={setGuides} label="Garis margin" testId="chk-guides" />
-                <GamatoSelect compact wrapperClassName="w-28" value={String(zoom)} onChange={(e) => setZoom(e.target.value === "fit" ? "fit" : parseInt(e.target.value))} aria-label="Zoom" data-testid="zoom-select">
-                  <option value="fit">Pas layar</option>
+                <GamatoCheckbox checked={guides} onChange={setGuides} label={tr("Garis margin")} testId="chk-guides" />
+                <GamatoSelect compact wrapperClassName="w-28" value={String(zoom)} onChange={(e) => setZoom(e.target.value === "fit" ? "fit" : parseInt(e.target.value))} aria-label={tr("Zoom")} data-testid="zoom-select">
+                  <option value="fit">{tr("Pas layar")}</option>
                   {[50, 75, 100, 125, 150].map((z) => <option key={z} value={z}>{z}%</option>)}
                 </GamatoSelect>
               </div>
@@ -370,9 +371,9 @@ export const PrintCenter: React.FC = () => {
             )}
 
             <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-500 dark:text-slate-400" data-testid="summary">
-              <span className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1">{plan.paperW.toFixed(0)} × {plan.paperH.toFixed(0)} mm · {plan.landscape ? "Lanskap" : "Potret"}</span>
-              <span className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1" data-testid="sum-pages">{plan.selected.length} dari {totalPages} halaman</span>
-              <span className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1 font-semibold text-indigo-600 dark:text-indigo-300" data-testid="sum-sheets">{sheetsPhysical} lembar kertas{s.copies > 1 ? ` (${plan.sheets.length} × ${s.copies} salinan)` : ""}</span>
+              <span className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1">{tr("{0} × {1} mm ·", plan.paperW.toFixed(0), plan.paperH.toFixed(0))}{" "}{plan.landscape ? tr("Lanskap") : tr("Potret")}</span>
+              <span className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1" data-testid="sum-pages">{tr("{0} dari {1} halaman", plan.selected.length, totalPages)}</span>
+              <span className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-1 font-semibold text-indigo-600 dark:text-indigo-300" data-testid="sum-sheets">{tr("{0} lembar kertas", sheetsPhysical)}{s.copies > 1 ? tr(" ({0} × {1} salinan)", plan.sheets.length, s.copies) : ""}</span>
             </div>
             {busy && <div className="flex items-center justify-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300" data-testid="print-busy"><Loader2 className="w-4 h-4 animate-spin" />{busy}</div>}
             {info && <GamatoInlineAlert message={info.msg} tone={info.tone} />}
@@ -384,9 +385,9 @@ export const PrintCenter: React.FC = () => {
       <div className="space-y-4 min-w-0">
         {hasPages && (
           <div className="grid grid-cols-2 gap-2">
-            <Btn className="col-span-2 py-3.5 text-base bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" onClick={doPrint} disabled={!!busy || !plan.sheets.length} data-testid="btn-print"><Printer className="w-4 h-4" /> Cetak ({sheetsPhysical} lembar)</Btn>
-            <Btn variant="secondary" onClick={doPdf} disabled={!!busy || !plan.sheets.length} data-testid="btn-pdf"><Download className="w-4 h-4" /> Unduh PDF siap cetak</Btn>
-            <Btn variant="secondary" onClick={() => openRef.current?.click()} disabled={!!busy} data-testid="btn-add-more"><Plus className="w-4 h-4" /> Tambah berkas</Btn>
+            <Btn className="col-span-2 py-3.5 text-base bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" onClick={doPrint} disabled={!!busy || !plan.sheets.length} data-testid="btn-print"><Printer className="w-4 h-4" />{" "}{tr("Cetak ({0} lembar)", sheetsPhysical)}</Btn>
+            <Btn variant="secondary" onClick={doPdf} disabled={!!busy || !plan.sheets.length} data-testid="btn-pdf"><Download className="w-4 h-4" /> {tr("Unduh PDF siap cetak")}</Btn>
+            <Btn variant="secondary" onClick={() => openRef.current?.click()} disabled={!!busy} data-testid="btn-add-more"><Plus className="w-4 h-4" /> {tr("Tambah berkas")}</Btn>
           </div>
         )}
         <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
@@ -394,36 +395,36 @@ export const PrintCenter: React.FC = () => {
         {tab === "sumber" && (
           <div className="space-y-4">
             <div className={card} data-testid="source-list">
-              <p className={cap}>Berkas ({sources.length})</p>
-              {sources.length === 0 && <p className="text-xs text-slate-400">Belum ada berkas. Unggah di area kiri atau tempel teks di bawah.</p>}
+              <p className={cap}>{tr("Berkas ({0})", sources.length)}</p>
+              {sources.length === 0 && <p className="text-xs text-slate-400">{tr("Belum ada berkas. Unggah di area kiri atau tempel teks di bawah.")}</p>}
               {sources.map((x, i) => (
                 <div key={x.id} data-testid="source-item" className="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2">
                   <span className="text-indigo-500 shrink-0">{KIND_ICON[x.kind]}</span>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate text-slate-800 dark:text-slate-100">{x.name}</p><p className="text-[11px] text-slate-400">{x.pages.length} halaman</p></div>
-                  <button type="button" className="p-1 text-slate-400 hover:text-indigo-600 disabled:opacity-30" disabled={i === 0} onClick={() => moveSource(x.id, -1)} aria-label="Naik"><ChevronUp className="w-4 h-4" /></button>
-                  <button type="button" className="p-1 text-slate-400 hover:text-indigo-600 disabled:opacity-30" disabled={i === sources.length - 1} onClick={() => moveSource(x.id, 1)} aria-label="Turun"><ChevronDown className="w-4 h-4" /></button>
-                  <button type="button" className="p-1 text-slate-400 hover:text-red-500" onClick={() => removeSource(x.id)} aria-label="Hapus" data-testid="source-remove"><X className="w-4 h-4" /></button>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate text-slate-800 dark:text-slate-100">{x.name}</p><p className="text-[11px] text-slate-400">{tr("{0} halaman", x.pages.length)}</p></div>
+                  <button type="button" className="p-1 text-slate-400 hover:text-indigo-600 disabled:opacity-30" disabled={i === 0} onClick={() => moveSource(x.id, -1)} aria-label={tr("Naik")}><ChevronUp className="w-4 h-4" /></button>
+                  <button type="button" className="p-1 text-slate-400 hover:text-indigo-600 disabled:opacity-30" disabled={i === sources.length - 1} onClick={() => moveSource(x.id, 1)} aria-label={tr("Turun")}><ChevronDown className="w-4 h-4" /></button>
+                  <button type="button" className="p-1 text-slate-400 hover:text-red-500" onClick={() => removeSource(x.id)} aria-label={tr("Hapus")} data-testid="source-remove"><X className="w-4 h-4" /></button>
                 </div>
               ))}
               {notes.map((x) => <p key={x.id} className="text-[11px] text-amber-600 dark:text-amber-400 flex gap-1.5"><AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" />{x.name}: {x.note}</p>)}
-              <Btn variant="secondary" className="w-full text-xs" onClick={() => openRef.current?.click()}><Plus className="w-3.5 h-3.5" /> Tambah berkas</Btn>
+              <Btn variant="secondary" className="w-full text-xs" onClick={() => openRef.current?.click()}><Plus className="w-3.5 h-3.5" /> {tr("Tambah berkas")}</Btn>
             </div>
             <div className={card}>
-              <p className={cap}>Ketik / Tempel Teks</p>
-              <Textarea rows={4} value={pasteText} onChange={(e) => setPasteText(e.target.value)} placeholder="Tempel teks yang ingin dicetak…" data-testid="paste-text" />
-              <Btn variant="secondary" className="w-full text-xs" disabled={!pasteText.trim()} onClick={addPasted} data-testid="paste-add">Tambahkan sebagai dokumen</Btn>
+              <p className={cap}>{tr("Ketik / Tempel Teks")}</p>
+              <Textarea rows={4} value={pasteText} onChange={(e) => setPasteText(e.target.value)} placeholder={tr("Tempel teks yang ingin dicetak…")} data-testid="paste-text" />
+              <Btn variant="secondary" className="w-full text-xs" disabled={!pasteText.trim()} onClick={addPasted} data-testid="paste-add">{tr("Tambahkan sebagai dokumen")}</Btn>
               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <Select label="Font teks/kode" value={textOpts.family} onChange={(e) => setTextOpts({ ...textOpts, family: e.target.value as TextOptions["family"] })} data-testid="text-family">
-                  <option value="mono">Monospace (kode)</option>
-                  <option value="sans">Sans-serif</option>
-                  <option value="serif">Serif</option>
+                <Select label={tr("Font teks/kode")} value={textOpts.family} onChange={(e) => setTextOpts({ ...textOpts, family: e.target.value as TextOptions["family"] })} data-testid="text-family">
+                  <option value="mono">{tr("Monospace (kode)")}</option>
+                  <option value="sans">{tr("Sans-serif")}</option>
+                  <option value="serif">{tr("Serif")}</option>
                 </Select>
-                <Select label="Ukuran font" value={String(textOpts.size)} onChange={(e) => setTextOpts({ ...textOpts, size: parseInt(e.target.value) })}>
-                  {[8, 9, 10, 11, 12, 14, 16].map((n) => <option key={n} value={n}>{n} pt</option>)}
+                <Select label={tr("Ukuran font")} value={String(textOpts.size)} onChange={(e) => setTextOpts({ ...textOpts, size: parseInt(e.target.value) })}>
+                  {[8, 9, 10, 11, 12, 14, 16].map((n) => <option key={n} value={n}>{tr("{0} pt", n)}</option>)}
                 </Select>
               </div>
-              <GamatoCheckbox checked={textOpts.lineNumbers} onChange={(v) => setTextOpts({ ...textOpts, lineNumbers: v })} label="Nomor baris" testId="text-linenum" />
-              <p className="text-[11px] text-slate-400">Berlaku untuk berkas teks/kode (TXT, MD, JSON, JS, PY, dll.).</p>
+              <GamatoCheckbox checked={textOpts.lineNumbers} onChange={(v) => setTextOpts({ ...textOpts, lineNumbers: v })} label={tr("Nomor baris")} testId="text-linenum" />
+              <p className="text-[11px] text-slate-400">{tr("Berlaku untuk berkas teks/kode (TXT, MD, JSON, JS, PY, dll.).")}</p>
             </div>
           </div>
         )}
@@ -431,21 +432,21 @@ export const PrintCenter: React.FC = () => {
         {tab === "halaman" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className={cap}>Halaman</p>
-              <Seg testId="range" value={s.rangeMode} onChange={(v) => patch({ rangeMode: v as PrintSettings["rangeMode"] })} options={[["all", "Semua"], ["odd", "Ganjil"], ["even", "Genap"], ["custom", "Kustom"]]} />
+              <p className={cap}>{tr("Halaman")}</p>
+              <Seg testId="range" value={s.rangeMode} onChange={(v) => patch({ rangeMode: v as PrintSettings["rangeMode"] })} options={[["all", tr("Semua")], ["odd", tr("Ganjil")], ["even", tr("Genap")], ["custom", tr("Kustom")]]} />
               {s.rangeMode === "custom" && (
                 <>
-                  <Input label="Rentang halaman" value={s.rangeText} onChange={(e) => patch({ rangeText: e.target.value })} placeholder="mis. 1-3, 5, 8-" data-testid="range-text" />
-                  {rangeInvalid && <p className="text-xs text-red-500">Rentang tidak valid (total {totalPages} halaman).</p>}
+                  <Input label={tr("Rentang halaman")} value={s.rangeText} onChange={(e) => patch({ rangeText: e.target.value })} placeholder={tr("mis. 1-3, 5, 8-")} data-testid="range-text" />
+                  {rangeInvalid && <p className="text-xs text-red-500">{tr("Rentang tidak valid (total {0} halaman).", totalPages)}</p>}
                 </>
               )}
-              <GamatoCheckbox checked={s.reverse} onChange={(v) => patch({ reverse: v })} label="Urutan terbalik (halaman terakhir dulu)" testId="chk-reverse" />
+              <GamatoCheckbox checked={s.reverse} onChange={(v) => patch({ reverse: v })} label={tr("Urutan terbalik (halaman terakhir dulu)")} testId="chk-reverse" />
             </div>
             <div className={card}>
-              <p className={cap}>Salinan</p>
-              <Input label="Jumlah salinan" type="number" min={1} max={999} value={s.copies} onChange={(e) => patch({ copies: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })} data-testid="copies" />
-              <GamatoCheckbox checked={s.collate} onChange={(v) => patch({ collate: v })} label="Susun (1,2,3 · 1,2,3)" testId="chk-collate" />
-              <p className="text-[11px] text-slate-400">Pilihan printer, jenis kertas, dan <b>cetak dua sisi (duplex)</b> diatur di dialog cetak browser setelah menekan “Cetak”.</p>
+              <p className={cap}>{tr("Salinan")}</p>
+              <Input label={tr("Jumlah salinan")} type="number" min={1} max={999} value={s.copies} onChange={(e) => patch({ copies: Math.max(1, Math.min(999, parseInt(e.target.value) || 1)) })} data-testid="copies" />
+              <GamatoCheckbox checked={s.collate} onChange={(v) => patch({ collate: v })} label={tr("Susun (1,2,3 · 1,2,3)")} testId="chk-collate" />
+              <p className="text-[11px] text-slate-400">{tr("Pilihan printer, jenis kertas, dan")} <b>{tr("cetak dua sisi (duplex)")}</b> {tr("diatur di dialog cetak browser setelah menekan “Cetak”.")}</p>
             </div>
           </div>
         )}
@@ -453,20 +454,20 @@ export const PrintCenter: React.FC = () => {
         {tab === "layout" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className={cap}>Orientasi</p>
-              <Seg testId="orient" value={s.orientation} onChange={(v) => patch({ orientation: v as PrintSettings["orientation"] })} options={[["auto", "Otomatis"], ["portrait", "Potret"], ["landscape", "Lanskap"]]} />
+              <p className={cap}>{tr("Orientasi")}</p>
+              <Seg testId="orient" value={s.orientation} onChange={(v) => patch({ orientation: v as PrintSettings["orientation"] })} options={[["auto", tr("Otomatis")], ["portrait", tr("Potret")], ["landscape", tr("Lanskap")]]} />
             </div>
             <div className={card}>
-              <p className={cap}>Halaman per Lembar</p>
+              <p className={cap}>{tr("Halaman per Lembar")}</p>
               <Seg testId="nup" value={String(s.pagesPerSheet)} onChange={(v) => patch({ pagesPerSheet: parseInt(v) as PrintSettings["pagesPerSheet"] })} options={[["1", "1"], ["2", "2"], ["4", "4"], ["6", "6"], ["9", "9"], ["16", "16"]]} />
               {s.pagesPerSheet > 1 && !s.booklet && (
                 <>
-                  <Seg testId="fill" value={s.fillOrder} onChange={(v) => patch({ fillOrder: v as PrintSettings["fillOrder"] })} options={[["rows", "Isi per baris →"], ["cols", "Isi per kolom ↓"]]} />
-                  <Slider label="Celah antar halaman" value={s.cellGap} min={0} max={20} step={0.5} suffix=" mm" onChange={(v) => patch({ cellGap: v })} />
+                  <Seg testId="fill" value={s.fillOrder} onChange={(v) => patch({ fillOrder: v as PrintSettings["fillOrder"] })} options={[["rows", tr("Isi per baris →")], ["cols", tr("Isi per kolom ↓")]]} />
+                  <Slider label={tr("Celah antar halaman")} value={s.cellGap} min={0} max={20} step={0.5} suffix={tr(" mm")} onChange={(v) => patch({ cellGap: v })} />
                 </>
               )}
-              <GamatoCheckbox checked={s.booklet} onChange={(v) => patch({ booklet: v })} label="Mode buklet (lipat tengah / saddle-stitch)" testId="chk-booklet" />
-              {s.booklet && <p className="text-[11px] text-slate-500 dark:text-slate-400">Halaman diurutkan agar setelah dicetak <b>dua sisi (flip di sisi pendek)</b> lalu dilipat jadi buklet. Kertas otomatis lanskap, 2 halaman per sisi.</p>}
+              <GamatoCheckbox checked={s.booklet} onChange={(v) => patch({ booklet: v })} label={tr("Mode buklet (lipat tengah / saddle-stitch)")} testId="chk-booklet" />
+              {s.booklet && <p className="text-[11px] text-slate-500 dark:text-slate-400">{tr("Halaman diurutkan agar setelah dicetak")} <b>{tr("dua sisi (flip di sisi pendek)")}</b> {tr("lalu dilipat jadi buklet. Kertas otomatis lanskap, 2 halaman per sisi.")}</p>}
             </div>
           </div>
         )}
@@ -474,30 +475,30 @@ export const PrintCenter: React.FC = () => {
         {tab === "kertas" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className={cap}>Ukuran Kertas</p>
+              <p className={cap}>{tr("Ukuran Kertas")}</p>
               <Select label="Kertas" value={s.paper} onChange={(e) => patch({ paper: e.target.value })} data-testid="paper-select">
                 {PAPERS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
               </Select>
               {s.paper === "custom" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Lebar (mm)" type="number" min={20} value={s.customW} onChange={(e) => patch({ customW: parseFloat(e.target.value) || 210 })} data-testid="custom-w" />
-                  <Input label="Tinggi (mm)" type="number" min={20} value={s.customH} onChange={(e) => patch({ customH: parseFloat(e.target.value) || 297 })} data-testid="custom-h" />
+                  <Input label={tr("Lebar (mm)")} type="number" min={20} value={s.customW} onChange={(e) => patch({ customW: parseFloat(e.target.value) || 210 })} data-testid="custom-w" />
+                  <Input label={tr("Tinggi (mm)")} type="number" min={20} value={s.customH} onChange={(e) => patch({ customH: parseFloat(e.target.value) || 297 })} data-testid="custom-h" />
                 </div>
               )}
-              <p className="text-[11px] text-slate-400">Ukuran terpilih: {sel.w} × {sel.h} mm.</p>
+              <p className="text-[11px] text-slate-400">{tr("Ukuran terpilih: {0} × {1} mm.", sel.w, sel.h)}</p>
             </div>
             <div className={card}>
-              <p className={cap}>Margin</p>
-              <Seg testId="margin" value={s.marginMode} onChange={(v) => patch({ marginMode: v as PrintSettings["marginMode"] })} options={[["default", "Default (10 mm)"], ["none", "Tanpa"], ["min", "Minimum"], ["custom", "Kustom"]]} />
+              <p className={cap}>{tr("Margin")}</p>
+              <Seg testId="margin" value={s.marginMode} onChange={(v) => patch({ marginMode: v as PrintSettings["marginMode"] })} options={[["default", tr("Default (10 mm)")], ["none", tr("Tanpa")], ["min", tr("Minimum")], ["custom", tr("Kustom")]]} />
               {s.marginMode === "custom" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <Input label="Atas (mm)" type="number" min={0} value={s.marginTop} onChange={(e) => patch({ marginTop: Math.max(0, parseFloat(e.target.value) || 0) })} data-testid="m-top" />
-                  <Input label="Bawah (mm)" type="number" min={0} value={s.marginBottom} onChange={(e) => patch({ marginBottom: Math.max(0, parseFloat(e.target.value) || 0) })} />
-                  <Input label="Kiri (mm)" type="number" min={0} value={s.marginLeft} onChange={(e) => patch({ marginLeft: Math.max(0, parseFloat(e.target.value) || 0) })} data-testid="m-left" />
-                  <Input label="Kanan (mm)" type="number" min={0} value={s.marginRight} onChange={(e) => patch({ marginRight: Math.max(0, parseFloat(e.target.value) || 0) })} />
+                  <Input label={tr("Atas (mm)")} type="number" min={0} value={s.marginTop} onChange={(e) => patch({ marginTop: Math.max(0, parseFloat(e.target.value) || 0) })} data-testid="m-top" />
+                  <Input label={tr("Bawah (mm)")} type="number" min={0} value={s.marginBottom} onChange={(e) => patch({ marginBottom: Math.max(0, parseFloat(e.target.value) || 0) })} />
+                  <Input label={tr("Kiri (mm)")} type="number" min={0} value={s.marginLeft} onChange={(e) => patch({ marginLeft: Math.max(0, parseFloat(e.target.value) || 0) })} data-testid="m-left" />
+                  <Input label={tr("Kanan (mm)")} type="number" min={0} value={s.marginRight} onChange={(e) => patch({ marginRight: Math.max(0, parseFloat(e.target.value) || 0) })} />
                 </div>
               )}
-              <Slider label="Jilid / binding (tambahan margin kiri)" value={s.gutter} min={0} max={30} step={0.5} suffix=" mm" onChange={(v) => patch({ gutter: v })} testId="gutter" />
+              <Slider label={tr("Jilid / binding (tambahan margin kiri)")} value={s.gutter} min={0} max={30} step={0.5} suffix={tr(" mm")} onChange={(v) => patch({ gutter: v })} testId="gutter" />
             </div>
           </div>
         )}
@@ -505,22 +506,22 @@ export const PrintCenter: React.FC = () => {
         {tab === "tampilan" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className={cap}>Skala</p>
-              <Seg testId="scale" value={s.scaleMode} onChange={(v) => patch({ scaleMode: v as PrintSettings["scaleMode"] })} options={[["fit", "Pas halaman"], ["shrink", "Kecilkan jika besar"], ["actual", "Ukuran asli 100%"], ["custom", "Kustom %"]]} />
-              {s.scaleMode === "custom" && <Slider label="Skala" value={s.scalePct} min={10} max={300} step={1} suffix="%" onChange={(v) => patch({ scalePct: v })} testId="scale-pct" />}
-              <Seg testId="align" value={s.align} onChange={(v) => patch({ align: v as PrintSettings["align"] })} options={[["center", "Tengah"], ["top", "Rata atas"]]} />
-              <GamatoCheckbox checked={s.autoRotate} onChange={(v) => patch({ autoRotate: v })} label="Putar halaman otomatis agar lebih pas" testId="chk-autorotate" />
+              <p className={cap}>{tr("Skala")}</p>
+              <Seg testId="scale" value={s.scaleMode} onChange={(v) => patch({ scaleMode: v as PrintSettings["scaleMode"] })} options={[["fit", tr("Pas halaman")], ["shrink", tr("Kecilkan jika besar")], ["actual", tr("Ukuran asli 100%")], ["custom", tr("Kustom %")]]} />
+              {s.scaleMode === "custom" && <Slider label={tr("Skala")} value={s.scalePct} min={10} max={300} step={1} suffix="%" onChange={(v) => patch({ scalePct: v })} testId="scale-pct" />}
+              <Seg testId="align" value={s.align} onChange={(v) => patch({ align: v as PrintSettings["align"] })} options={[["center", tr("Tengah")], ["top", tr("Rata atas")]]} />
+              <GamatoCheckbox checked={s.autoRotate} onChange={(v) => patch({ autoRotate: v })} label={tr("Putar halaman otomatis agar lebih pas")} testId="chk-autorotate" />
             </div>
             <div className={card}>
-              <p className={cap}>Warna</p>
-              <Seg testId="color" value={s.color} onChange={(v) => patch({ color: v as PrintSettings["color"] })} options={[["color", "Berwarna"], ["gray", "Skala abu-abu"], ["bw", "Hitam putih"]]} />
-              {s.color === "bw" && <Slider label="Ambang hitam-putih" value={s.bwThreshold} min={30} max={230} onChange={(v) => patch({ bwThreshold: v })} testId="bw-thr" />}
-              <Slider label="Kecerahan" value={s.brightness} min={-60} max={60} onChange={(v) => patch({ brightness: v })} />
+              <p className={cap}>{tr("Warna")}</p>
+              <Seg testId="color" value={s.color} onChange={(v) => patch({ color: v as PrintSettings["color"] })} options={[["color", tr("Berwarna")], ["gray", tr("Skala abu-abu")], ["bw", tr("Hitam putih")]]} />
+              {s.color === "bw" && <Slider label={tr("Ambang hitam-putih")} value={s.bwThreshold} min={30} max={230} onChange={(v) => patch({ bwThreshold: v })} testId="bw-thr" />}
+              <Slider label={tr("Kecerahan")} value={s.brightness} min={-60} max={60} onChange={(v) => patch({ brightness: v })} />
               <Slider label="Kontras" value={s.contrast} min={-60} max={60} onChange={(v) => patch({ contrast: v })} />
-              <Select label="Resolusi cetak" value={String(s.dpi)} onChange={(e) => patch({ dpi: parseInt(e.target.value) as PrintSettings["dpi"] })} data-testid="dpi">
-                <option value="150">150 dpi (cepat, draf)</option>
-                <option value="200">200 dpi (standar)</option>
-                <option value="300">300 dpi (tajam, foto)</option>
+              <Select label={tr("Resolusi cetak")} value={String(s.dpi)} onChange={(e) => patch({ dpi: parseInt(e.target.value) as PrintSettings["dpi"] })} data-testid="dpi">
+                <option value="150">{tr("150 dpi (cepat, draf)")}</option>
+                <option value="200">{tr("200 dpi (standar)")}</option>
+                <option value="300">{tr("300 dpi (tajam, foto)")}</option>
               </Select>
             </div>
           </div>
@@ -529,56 +530,56 @@ export const PrintCenter: React.FC = () => {
         {tab === "tambahan" && (
           <div className="space-y-4">
             <div className={card}>
-              <p className={cap}>Header & Footer</p>
+              <p className={cap}>{tr("Header & Footer")}</p>
               <div className="flex gap-5">
-                <GamatoCheckbox checked={s.headerOn} onChange={(v) => patch({ headerOn: v })} label="Header" testId="chk-header" />
-                <GamatoCheckbox checked={s.footerOn} onChange={(v) => patch({ footerOn: v })} label="Footer" testId="chk-footer" />
+                <GamatoCheckbox checked={s.headerOn} onChange={(v) => patch({ headerOn: v })} label={tr("Header")} testId="chk-header" />
+                <GamatoCheckbox checked={s.footerOn} onChange={(v) => patch({ footerOn: v })} label={tr("Footer")} testId="chk-footer" />
               </div>
               {s.headerOn && (
                 <div className="grid grid-cols-3 gap-2">
-                  <Input label="Kiri" value={s.headerLeft} onChange={(e) => patch({ headerLeft: e.target.value })} data-testid="h-left" />
-                  <Input label="Tengah" value={s.headerCenter} onChange={(e) => patch({ headerCenter: e.target.value })} />
-                  <Input label="Kanan" value={s.headerRight} onChange={(e) => patch({ headerRight: e.target.value })} />
+                  <Input label={tr("Kiri")} value={s.headerLeft} onChange={(e) => patch({ headerLeft: e.target.value })} data-testid="h-left" />
+                  <Input label={tr("Tengah")} value={s.headerCenter} onChange={(e) => patch({ headerCenter: e.target.value })} />
+                  <Input label={tr("Kanan")} value={s.headerRight} onChange={(e) => patch({ headerRight: e.target.value })} />
                 </div>
               )}
               {s.footerOn && (
                 <div className="grid grid-cols-3 gap-2">
-                  <Input label="Kiri" value={s.footerLeft} onChange={(e) => patch({ footerLeft: e.target.value })} />
-                  <Input label="Tengah" value={s.footerCenter} onChange={(e) => patch({ footerCenter: e.target.value })} data-testid="f-center" />
-                  <Input label="Kanan" value={s.footerRight} onChange={(e) => patch({ footerRight: e.target.value })} />
+                  <Input label={tr("Kiri")} value={s.footerLeft} onChange={(e) => patch({ footerLeft: e.target.value })} />
+                  <Input label={tr("Tengah")} value={s.footerCenter} onChange={(e) => patch({ footerCenter: e.target.value })} data-testid="f-center" />
+                  <Input label={tr("Kanan")} value={s.footerRight} onChange={(e) => patch({ footerRight: e.target.value })} />
                 </div>
               )}
-              <p className="text-[11px] text-slate-400">Variabel: {"{title}"} {"{file}"} {"{date}"} {"{time}"} {"{page}"} {"{pages}"}. Header/footer digambar di area margin — beri margin ≥ 8 mm.</p>
+              <p className="text-[11px] text-slate-400">{tr("Variabel:")} {tr("{title}")} {tr("{file}")} {tr("{date}")} {tr("{time}")} {tr("{page}")} {tr("{pages}")}{tr(". Header/footer digambar di area margin — beri margin ≥ 8 mm.")}</p>
             </div>
             <div className={card}>
-              <p className={cap}>Watermark</p>
-              <Input label="Teks watermark" value={s.watermark} onChange={(e) => patch({ watermark: e.target.value })} placeholder="mis. DRAFT / RAHASIA" data-testid="wm-text" />
-              <GamatoCheckbox checked={s.watermarkIcon} onChange={(v) => patch({ watermarkIcon: v })} label="Tambahkan ikon asli Gamato Piranti" testId="wm-icon" />
+              <p className={cap}>{tr("Watermark")}</p>
+              <Input label={tr("Teks watermark")} value={s.watermark} onChange={(e) => patch({ watermark: e.target.value })} placeholder={tr("mis. DRAFT / RAHASIA")} data-testid="wm-text" />
+              <GamatoCheckbox checked={s.watermarkIcon} onChange={(v) => patch({ watermarkIcon: v })} label={tr("Tambahkan ikon asli Gamato Piranti")} testId="wm-icon" />
               {(s.watermark || s.watermarkIcon) && (
                 <>
-                  <Slider label="Kepekatan" value={Math.round(s.watermarkOpacity * 100)} min={3} max={80} suffix="%" onChange={(v) => patch({ watermarkOpacity: v / 100 })} />
-                  <Slider label="Ukuran" value={s.watermarkSize} min={4} max={40} suffix="%" onChange={(v) => patch({ watermarkSize: v })} />
-                  <Slider label="Sudut" value={s.watermarkAngle} min={-90} max={90} suffix="°" onChange={(v) => patch({ watermarkAngle: v })} />
-                  {s.watermark && <div className="flex items-center gap-3"><Label>Warna teks</Label><GamatoColorPicker value={s.watermarkColor} onChange={(hex) => patch({ watermarkColor: hex })} label="Warna watermark" testId="pc-wm-color" /></div>}
+                  <Slider label={tr("Kepekatan")} value={Math.round(s.watermarkOpacity * 100)} min={3} max={80} suffix="%" onChange={(v) => patch({ watermarkOpacity: v / 100 })} />
+                  <Slider label={tr("Ukuran")} value={s.watermarkSize} min={4} max={40} suffix="%" onChange={(v) => patch({ watermarkSize: v })} />
+                  <Slider label={tr("Sudut")} value={s.watermarkAngle} min={-90} max={90} suffix="°" onChange={(v) => patch({ watermarkAngle: v })} />
+                  {s.watermark && <div className="flex items-center gap-3"><Label>{tr("Warna teks")}</Label><GamatoColorPicker value={s.watermarkColor} onChange={(hex) => patch({ watermarkColor: hex })} label={tr("Warna watermark")} testId="pc-wm-color" /></div>}
                 </>
               )}
             </div>
             <div className={card}>
-              <p className={cap}>Lainnya</p>
-              <GamatoCheckbox checked={s.pageBorder} onChange={(v) => patch({ pageBorder: v })} label="Bingkai tipis di sekitar tiap halaman" testId="chk-border" />
-              <GamatoCheckbox checked={s.mirror} onChange={(v) => patch({ mirror: v })} label="Cermin horizontal (untuk kertas transfer/iron-on)" testId="chk-mirror" />
+              <p className={cap}>{tr("Lainnya")}</p>
+              <GamatoCheckbox checked={s.pageBorder} onChange={(v) => patch({ pageBorder: v })} label={tr("Bingkai tipis di sekitar tiap halaman")} testId="chk-border" />
+              <GamatoCheckbox checked={s.mirror} onChange={(v) => patch({ mirror: v })} label={tr("Cermin horizontal (untuk kertas transfer/iron-on)")} testId="chk-mirror" />
             </div>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<Info className="w-5 h-5" />}
-          label="Cetak File & Dokumen"
-          desc="Pengaturan setara dialog cetak browser"
+          label={tr("Cetak File & Dokumen")}
+          desc={tr("Pengaturan setara dialog cetak browser")}
           points={[
-            "Pratinjau persis hasil cetak — digambar oleh mesin Gamato Piranti, bukan oleh browser.",
-            "“Cetak” membuka dialog cetak browser dengan ukuran kertas sudah terkunci; “Unduh PDF siap cetak” bisa dibawa ke percetakan.",
-            "Semua diproses di perangkatmu — berkasmu tidak diunggah. Hasil tanpa stempel Gamato.",
+            tr("Pratinjau persis hasil cetak — digambar oleh mesin Gamato Piranti, bukan oleh browser."),
+            tr("“Cetak” membuka dialog cetak browser dengan ukuran kertas sudah terkunci; “Unduh PDF siap cetak” bisa dibawa ke percetakan."),
+            tr("Semua diproses di perangkatmu — berkasmu tidak diunggah. Hasil tanpa stempel Gamato."),
           ]}
         />
       </div>

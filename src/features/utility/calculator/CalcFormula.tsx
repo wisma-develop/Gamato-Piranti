@@ -2,13 +2,14 @@ import React, { useMemo, useState } from "react";
 import { Sigma } from "lucide-react";
 import { Input, Textarea, Btn } from "@/components/ui/primitives";
 import { evaluateFormula, extractVariables } from "@/lib/formulaEvaluator";
+import { tr } from "@/i18n";
 
 const EXAMPLES = [
-  { label: "Luas Persegi Panjang", code: "p * l" },
-  { label: "Keliling Lingkaran", code: "2 * pi * r" },
-  { label: "Kecepatan", code: "jarak / waktu" },
-  { label: "Bunga Majemuk", code: "modal * (1 + bunga)^tahun" },
-  { label: "Konversi Suhu C→F", code: "(celsius * 9/5) + 32" },
+  { label: tr("Luas Persegi Panjang"), code: "p * l" },
+  { label: tr("Keliling Lingkaran"), code: "2 * pi * r" },
+  { label: tr("Kecepatan"), code: "jarak / waktu" },
+  { label: tr("Bunga Majemuk"), code: tr("modal * (1 + bunga)^tahun") },
+  { label: tr("Konversi Suhu C→F"), code: "(celsius * 9/5) + 32" },
 ];
 
 export const CalcFormula: React.FC = () => {
@@ -33,13 +34,13 @@ export const CalcFormula: React.FC = () => {
       for (const v of variables) {
         const raw = values[v];
         const num = parseFloat(raw ?? "");
-        if (raw === undefined || raw === "" || isNaN(num)) throw new Error(`Isi nilai untuk variabel "${v}".`);
+        if (raw === undefined || raw === "" || isNaN(num)) throw new Error(tr("Isi nilai untuk variabel \"{0}\".", v));
         vars[v] = num;
       }
       const res = evaluateFormula(formula, vars);
       setResult(String(res));
     } catch (err: any) {
-      setError(err?.message || "Rumus tidak valid.");
+      setError(err?.message || tr("Rumus tidak valid."));
     }
   };
 
@@ -54,7 +55,7 @@ export const CalcFormula: React.FC = () => {
           setResult(null);
           setError(null);
         }}
-        placeholder="contoh: p * l atau 2 * pi * r"
+        placeholder={tr("contoh: p * l atau 2 * pi * r")}
         className="font-mono text-sm"
       />
       <div className="flex flex-wrap gap-2">
@@ -80,7 +81,7 @@ export const CalcFormula: React.FC = () => {
           {variables.map((v) => (
             <Input
               key={v}
-              label={`Nilai ${v}`}
+              label={tr("Nilai {0}", v)}
               value={values[v] ?? ""}
               onChange={(e) => setValues((s) => ({ ...s, [v]: e.target.value }))}
               placeholder="0"
@@ -91,18 +92,18 @@ export const CalcFormula: React.FC = () => {
 
       <Btn onClick={run} className="w-full gap-2">
         <Sigma className="w-4 h-4" />
-        Hitung
+        {tr("Hitung")}
       </Btn>
 
       {result !== null && (
         <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100">
-          Hasil: <span className="font-bold">{result}</span>
+          {tr("Hasil:")} <span className="font-bold">{result}</span>
         </div>
       )}
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <p className="text-xs text-slate-400 dark:text-slate-500">
-        Operator yang didukung: + − * / ^ % dan kurung (). Fungsi: sqrt, abs, sin, cos, tan, log, ln, round, floor, ceil, min, max, pow. Konstanta: pi, e.
+        {tr("Operator yang didukung: + − * / ^ % dan kurung (). Fungsi: sqrt, abs, sin, cos, tan, log, ln, round, floor, ceil, min, max, pow. Konstanta: pi, e.")}
       </p>
     </div>
   );

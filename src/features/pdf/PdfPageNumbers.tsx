@@ -8,12 +8,13 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 type Position = "bottom-center" | "bottom-right" | "bottom-left" | "top-center" | "top-right" | "top-left";
 
 export const PdfPageNumbers: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [format, setFormat] = useState("{n} / {total}");
+  const [format, setFormat] = useState(tr("{n} / {total}"));
   const [startAt, setStartAt] = useState(1);
   const [fontSize, setFontSize] = useState(11);
   const [color, setColor] = useState("#334155");
@@ -56,9 +57,9 @@ export const PdfPageNumbers: React.FC = () => {
 
       await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-numbered.pdf");
-      setInfo(`Nomor halaman ditambahkan ke ${total} halaman.`);
+      setInfo(tr("Nomor halaman ditambahkan ke {0} halaman.", total));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal menambahkan nomor halaman."));
+      setInfo("" + (err?.message || tr("Gagal menambahkan nomor halaman.")));
     } finally {
       setIsWorking(false);
     }
@@ -71,8 +72,8 @@ export const PdfPageNumbers: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -84,7 +85,7 @@ export const PdfPageNumbers: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -94,41 +95,41 @@ export const PdfPageNumbers: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <Input label="Format" value={format} onChange={(e) => setFormat(e.target.value)} placeholder="{n} / {total}" />
+          <Input label={tr("Format")} value={format} onChange={(e) => setFormat(e.target.value)} placeholder={tr("{n} / {total}")} />
           <p className="text-xs text-slate-400 dark:text-slate-500 -mt-2">
-            Gunakan <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{"{n}"}</code> untuk nomor halaman dan{" "}
-            <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{"{total}"}</code> untuk total halaman. Contoh: "Halaman {"{n}"}"
+            {tr("Gunakan")} <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{"{n}"}</code> {tr("untuk nomor halaman dan")}{" "}
+            <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{"{total}"}</code> {tr("untuk total halaman. Contoh: \"Halaman")} {"{n}"}"
           </p>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Mulai dari" type="number" value={startAt} onChange={(e) => setStartAt(parseInt(e.target.value) || 1)} />
-            <Input label="Ukuran Font (pt)" type="number" min={6} max={40} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 11)} />
+            <Input label={tr("Mulai dari")} type="number" value={startAt} onChange={(e) => setStartAt(parseInt(e.target.value) || 1)} />
+            <Input label={tr("Ukuran Font (pt)")} type="number" min={6} max={40} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 11)} />
           </div>
           <div>
-            <Label>Warna</Label>
+            <Label>{tr("Warna")}</Label>
             <GamatoColorPicker value={color} onChange={setColor} className="mt-1.5" />
           </div>
-          <Select label="Posisi" value={position} onChange={(e) => setPosition(e.target.value as Position)}>
-            <option value="bottom-center">Bawah Tengah</option>
-            <option value="bottom-right">Bawah Kanan</option>
-            <option value="bottom-left">Bawah Kiri</option>
-            <option value="top-center">Atas Tengah</option>
-            <option value="top-right">Atas Kanan</option>
-            <option value="top-left">Atas Kiri</option>
+          <Select label={tr("Posisi")} value={position} onChange={(e) => setPosition(e.target.value as Position)}>
+            <option value="bottom-center">{tr("Bawah Tengah")}</option>
+            <option value="bottom-right">{tr("Bawah Kanan")}</option>
+            <option value="bottom-left">{tr("Bawah Kiri")}</option>
+            <option value="top-center">{tr("Atas Tengah")}</option>
+            <option value="top-right">{tr("Atas Kanan")}</option>
+            <option value="top-left">{tr("Atas Kiri")}</option>
           </Select>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Tambahkan Nomor Halaman
+              {tr("Tambahkan Nomor Halaman")}
             </>
           )}
         </Btn>
@@ -136,9 +137,9 @@ export const PdfPageNumbers: React.FC = () => {
 
       <ToolInfoPanel
         icon={<ListOrdered className="w-5 h-5" />}
-        label="Nomor Halaman"
-        desc="Tambahkan ke semua halaman"
-        points={["Format bebas diatur, bisa mulai dari angka berapa saja.", "Posisi bisa dipilih di 6 titik berbeda."]}
+        label={tr("Nomor Halaman")}
+        desc={tr("Tambahkan ke semua halaman")}
+        points={[tr("Format bebas diatur, bisa mulai dari angka berapa saja."), tr("Posisi bisa dipilih di 6 titik berbeda.")]}
       />
     </div>
   );

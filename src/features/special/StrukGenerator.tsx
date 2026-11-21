@@ -32,16 +32,17 @@ import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { tr } from "@/i18n";
 
 type StrukItem = { id: string; name: string; qty: string; price: string };
 
 let itemCounter = 0;
-const newItemId = () => `struk-item-${Date.now()}-${itemCounter++}`;
+const newItemId = () => tr("struk-item-{0}-{1}", Date.now(), itemCounter++);
 
 function defaultItems(): StrukItem[] {
   return [
-    { id: newItemId(), name: "Kopi Susu Gula Aren", qty: "2", price: "18000" },
-    { id: newItemId(), name: "Roti Bakar Cokelat Keju", qty: "1", price: "15000" },
+    { id: newItemId(), name: tr("Kopi Susu Gula Aren"), qty: "2", price: "18000" },
+    { id: newItemId(), name: tr("Roti Bakar Cokelat Keju"), qty: "1", price: "15000" },
   ];
 }
 
@@ -89,7 +90,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   const taxPct = parseFloat(sanitizeNumberString(data.taxPct || "0")) || 0;
   const amountPaid = parseFloat(sanitizeNumberString(data.amountPaid || "0")) || 0;
   const { subtotal, discountAmount, taxAmount, total, change } = computeStrukTotals(data.items, discountPct, taxPct, amountPaid);
-  const items: StrukItem[] = data.items.length ? data.items : [{ id: "placeholder", name: "Belum ada item", qty: "0", price: "0" }];
+  const items: StrukItem[] = data.items.length ? data.items : [{ id: "placeholder", name: tr("Belum ada item"), qty: "0", price: "0" }];
   const hasSignature = !!(data.signatureImage || data.signerName.trim());
 
   // ── Measurement pass (uses real ctx.measureText so narrow-paper wrapping is exact) ──
@@ -176,7 +177,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
 
   ctx.textAlign = "center";
   ctx.font = `700 20px '${data.fontFamily}', sans-serif`;
-  ctx.fillText(data.companyName || "Nama Usaha", W / 2, dy + 18);
+  ctx.fillText(data.companyName || tr("Nama Usaha"), W / 2, dy + 18);
   dy += 24;
 
   ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
@@ -195,10 +196,10 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   ctx.textAlign = "left";
   ctx.font = `400 13px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#334155";
-  ctx.fillText(`No. Transaksi: ${data.transactionNo || "-"}`, contentX, dy + 10);
+  ctx.fillText(tr("No. Transaksi: {0}", data.transactionNo || "-"), contentX, dy + 10);
   dy += 17;
   if (data.cashierName) {
-    ctx.fillText(`Kasir: ${data.cashierName}`, contentX, dy + 10);
+    ctx.fillText(tr("Kasir: {0}", data.cashierName), contentX, dy + 10);
     dy += 17;
   }
   ctx.fillText(`${formatDateID(data.date) || "-"}, ${nowTimeHHMM()}`, contentX, dy + 10);
@@ -247,9 +248,9 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
     dy += 20;
   };
 
-  totalsLine("Subtotal", formatIDR(subtotal));
-  if (discountPct > 0) totalsLine(`Diskon (${discountPct}%)`, `- ${formatIDR(discountAmount)}`);
-  if (taxPct > 0) totalsLine(`Pajak/PPN (${taxPct}%)`, formatIDR(taxAmount));
+  totalsLine(tr("Subtotal"), formatIDR(subtotal));
+  if (discountPct > 0) totalsLine(tr("Diskon ({0}%)", discountPct), `- ${formatIDR(discountAmount)}`);
+  if (taxPct > 0) totalsLine(tr("Pajak/PPN ({0}%)", taxPct), formatIDR(taxAmount));
 
   dy += 8;
   ctx.textAlign = "left";
@@ -262,11 +263,11 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
   dy += 34;
 
   if (amountPaid > 0) {
-    totalsLine("Bayar", formatIDR(amountPaid));
+    totalsLine(tr("Bayar"), formatIDR(amountPaid));
     ctx.textAlign = "left";
     ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = change >= 0 ? "#64748b" : "#dc2626";
-    ctx.fillText(change >= 0 ? "Kembalian" : "Kurang Bayar", contentX, dy + 10);
+    ctx.fillText(change >= 0 ? tr("Kembalian") : tr("Kurang Bayar"), contentX, dy + 10);
     ctx.textAlign = "right";
     ctx.font = `600 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = change >= 0 ? "#0f172a" : "#dc2626";
@@ -279,7 +280,7 @@ function renderStrukToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElemen
     ctx.textAlign = "center";
     ctx.font = `400 12px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#94a3b8";
-    ctx.fillText("Tanda Tangan", W / 2, dy + 10);
+    ctx.fillText(tr("Tanda Tangan"), W / 2, dy + 10);
     dy += 14;
     if (signatureImg) drawImageContain(ctx, signatureImg, W / 2 - 70, dy, 140, 40);
     dy += 50;
@@ -322,11 +323,11 @@ type StrukFormData = {
 type TabId = "usaha" | "transaksi" | "item" | "diskon" | "ttd";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "usaha", label: "Identitas Usaha", icon: <Building2 className="w-3.5 h-3.5" /> },
-  { id: "transaksi", label: "Info Transaksi", icon: <ClipboardList className="w-3.5 h-3.5" /> },
-  { id: "item", label: "Item Belanja", icon: <ListOrdered className="w-3.5 h-3.5" /> },
-  { id: "diskon", label: "Diskon & Bayar", icon: <Percent className="w-3.5 h-3.5" /> },
-  { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
+  { id: "usaha", label: tr("Identitas Usaha"), icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "transaksi", label: tr("Info Transaksi"), icon: <ClipboardList className="w-3.5 h-3.5" /> },
+  { id: "item", label: tr("Item Belanja"), icon: <ListOrdered className="w-3.5 h-3.5" /> },
+  { id: "diskon", label: tr("Diskon & Bayar"), icon: <Percent className="w-3.5 h-3.5" /> },
+  { id: "ttd", label: tr("Tanda Tangan"), icon: <PenLine className="w-3.5 h-3.5" /> },
 ];
 
 const DRAFT_KEY = "gamato.draft.struk";
@@ -345,8 +346,8 @@ export function StrukGenerator() {
   const draft = useDraft<StrukFormData, { logo: DraftImage | null }>(DRAFT_KEY);
   const [logoFile, setLogoFile, logoDraft] = useDraftFile(draft?.extra?.logo);
   const history = useHistoryState<StrukFormData>(() => mergeDraft<StrukFormData>({
-    companyName: "Nama Usaha",
-    companyAddress: "Jl. Contoh Alamat No. 123, Kota",
+    companyName: tr("Nama Usaha"),
+    companyAddress: tr("Jl. Contoh Alamat No. 123, Kota"),
     companyPhone: "0812-3456-7890",
     paperWidth: "58",
     transactionNo: `TRX-${Date.now().toString().slice(-8)}`,
@@ -356,7 +357,7 @@ export function StrukGenerator() {
     discountPct: "0",
     taxPct: "0",
     amountPaid: "",
-    footerMessage: "Terima kasih atas kunjungan Anda!",
+    footerMessage: tr("Terima kasih atas kunjungan Anda!"),
     fontFamily: DEFAULT_FONT_FAMILY,
     signatureImage: null,
     signerName: "",
@@ -373,7 +374,7 @@ export function StrukGenerator() {
     history.set((prev) => ({ ...prev, items: prev.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }), { commit: !opts?.continuous });
     if (opts?.continuous) scheduleCommit();
   };
-  const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), name: "Item baru", qty: "1", price: "0" }] }));
+  const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), name: tr("Item baru"), qty: "1", price: "0" }] }));
   const removeItem = (id: string) => history.set((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
 
   const { customFonts, isFontLoading, fontError, addCustomFont, removeCustomFont } = useCustomFonts();
@@ -444,9 +445,9 @@ export function StrukGenerator() {
       withExportScale(exportScale, () => renderStrukToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       downloadBlob(blob, `${sanitizeFileName(form.transactionNo) || "struk"}.png`);
-      setInfo("Struk berhasil diunduh sebagai PNG.");
+      setInfo(tr("Struk berhasil diunduh sebagai PNG."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat struk.");
+      setInfo(err?.message || tr("Gagal membuat struk."));
     } finally {
       setIsGenerating(false);
     }
@@ -471,9 +472,9 @@ export function StrukGenerator() {
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(form.transactionNo) || "struk"}.pdf`);
-      setInfo("Struk berhasil diunduh sebagai PDF.");
+      setInfo(tr("Struk berhasil diunduh sebagai PDF."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat PDF.");
+      setInfo(err?.message || tr("Gagal membuat PDF."));
     } finally {
       setIsGenerating(false);
     }
@@ -484,9 +485,9 @@ export function StrukGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { widthMm: form.paperWidth === "58" ? 58 : 80, title: `Struk ${form.transactionNo}` });
+      printCanvasImage(canvas, { widthMm: form.paperWidth === "58" ? 58 : 80, title: tr("Struk {0}", form.transactionNo) });
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuka dialog cetak.");
+      setInfo(err?.message || tr("Gagal membuka dialog cetak."));
     }
   };
 
@@ -498,9 +499,9 @@ export function StrukGenerator() {
       if (!canvas) return;
       const jobBytes = buildReceiptPrintJob(canvas);
       await printViaWebUsb(jobBytes);
-      setInfo("Struk berhasil dikirim ke printer USB.");
+      setInfo(tr("Struk berhasil dikirim ke printer USB."));
     } catch (err: any) {
-      setInfo(err instanceof WebUsbPrintError ? err.message : "Gagal mencetak langsung. Gunakan 'Cetak (Dialog Browser)' sebagai alternatif.");
+      setInfo(err instanceof WebUsbPrintError ? err.message : tr("Gagal mencetak langsung. Gunakan 'Cetak (Dialog Browser)' sebagai alternatif."));
     } finally {
       setIsPrinting(false);
     }
@@ -511,19 +512,19 @@ export function StrukGenerator() {
       <AutosaveBar autosave={autosave} what="struk" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Struk</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Struk")}</span>
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
         <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
         {tab === "usaha" && (
-          <PanelCard title="Identitas Usaha" subtitle="Tampil di kop struk">
+          <PanelCard title={tr("Identitas Usaha")} subtitle={tr("Tampil di kop struk")}>
             <div className="space-y-3">
-              <LogoUpload file={logoFile} onChange={setLogoFile} label="Logo Usaha" />
-              <Input label="Nama Usaha" value={form.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
-              <Textarea label="Alamat" rows={2} value={form.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
-              <Input label="Telepon" value={form.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+              <LogoUpload file={logoFile} onChange={setLogoFile} label={tr("Logo Usaha")} />
+              <Input label={tr("Nama Usaha")} value={form.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+              <Textarea label={tr("Alamat")} rows={2} value={form.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+              <Input label={tr("Telepon")} value={form.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
               <FontPicker
                 value={form.fontFamily}
                 onChange={(family) => updateField("fontFamily", family)}
@@ -534,7 +535,7 @@ export function StrukGenerator() {
                 onRemoveCustomFont={handleRemoveCustomFont}
               />
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Lebar Kertas</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{tr("Lebar Kertas")}</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(["58", "80"] as const).map((w) => (
                     <button
@@ -547,9 +548,7 @@ export function StrukGenerator() {
                           ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
                           : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"
                       )}
-                    >
-                      {w}mm
-                    </button>
+                    >{tr("{0}mm", w)}</button>
                   ))}
                 </div>
               </div>
@@ -559,36 +558,36 @@ export function StrukGenerator() {
         )}
 
         {tab === "transaksi" && (
-          <PanelCard title="Info Transaksi" subtitle="Nomor, kasir, dan tanggal">
+          <PanelCard title={tr("Info Transaksi")} subtitle={tr("Nomor, kasir, dan tanggal")}>
             <div className="space-y-3">
-              <Input label="No. Transaksi" value={form.transactionNo} onChange={(e) => updateField("transactionNo", e.target.value, { continuous: true })} />
-              <Input label="Nama Kasir (opsional)" value={form.cashierName} onChange={(e) => updateField("cashierName", e.target.value, { continuous: true })} />
-              <Input label="Tanggal" type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} />
+              <Input label={tr("No. Transaksi")} value={form.transactionNo} onChange={(e) => updateField("transactionNo", e.target.value, { continuous: true })} />
+              <Input label={tr("Nama Kasir (opsional)")} value={form.cashierName} onChange={(e) => updateField("cashierName", e.target.value, { continuous: true })} />
+              <Input label={tr("Tanggal")} type="date" value={form.date} onChange={(e) => updateField("date", e.target.value)} />
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
           </PanelCard>
         )}
 
         {tab === "item" && (
-          <PanelCard title="Item Belanja" subtitle="Tambah baris sebanyak yang dibutuhkan">
+          <PanelCard title={tr("Item Belanja")} subtitle={tr("Tambah baris sebanyak yang dibutuhkan")}>
             <div className="space-y-3">
               {form.items.map((item) => (
                 <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Input value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value }, { continuous: true })} placeholder="Nama barang" className="flex-1" />
+                    <Input value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value }, { continuous: true })} placeholder={tr("Nama barang")} className="flex-1" />
                     <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
-                    <MoneyInput label="Harga (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
+                    <MoneyInput label={tr("Qty")} value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
+                    <MoneyInput label={tr("Harga (Rp)")} value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix={tr("Rp")} />
                   </div>
                 </div>
               ))}
               <Btn onClick={addItem} variant="secondary" className="w-full gap-2 text-sm">
                 <Plus className="w-4 h-4" />
-                Tambah Item
+                {tr("Tambah Item")}
               </Btn>
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -596,16 +595,16 @@ export function StrukGenerator() {
         )}
 
         {tab === "diskon" && (
-          <PanelCard title="Diskon, Pajak & Pembayaran" subtitle="Opsional">
+          <PanelCard title={tr("Diskon, Pajak & Pembayaran")} subtitle={tr("Opsional")}>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Diskon (%)" value={form.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
-                <Input label="Pajak (%)" value={form.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+                <Input label={tr("Diskon (%)")} value={form.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+                <Input label={tr("Pajak (%)")} value={form.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
               </div>
-              <MoneyInput label="Jumlah Dibayar (Rp)" value={form.amountPaid} onChange={(v) => updateField("amountPaid", v, { continuous: true })} placeholder="Kosongkan bila tidak perlu ditampilkan" prefix="Rp" />
-              <Textarea label="Pesan Footer" rows={2} value={form.footerMessage} onChange={(e) => updateField("footerMessage", e.target.value, { continuous: true })} />
+              <MoneyInput label={tr("Jumlah Dibayar (Rp)")} value={form.amountPaid} onChange={(v) => updateField("amountPaid", v, { continuous: true })} placeholder={tr("Kosongkan bila tidak perlu ditampilkan")} prefix={tr("Rp")} />
+              <Textarea label={tr("Pesan Footer")} rows={2} value={form.footerMessage} onChange={(e) => updateField("footerMessage", e.target.value, { continuous: true })} />
               <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
-                Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
+                {tr("Total saat ini:")} <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
               </div>
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -613,14 +612,14 @@ export function StrukGenerator() {
         )}
 
         {tab === "ttd" && (
-          <PanelCard title="Tanda Tangan (Opsional)" subtitle="Untuk struk yang perlu paraf kasir/penanggung jawab">
+          <PanelCard title={tr("Tanda Tangan (Opsional)")} subtitle={tr("Untuk struk yang perlu paraf kasir/penanggung jawab")}>
             <div className="space-y-3">
-              <Input label="Nama Penanda Tangan" value={form.signerName} onChange={(e) => updateField("signerName", e.target.value, { continuous: true })} placeholder="Kosongkan bila tidak perlu" />
+              <Input label={tr("Nama Penanda Tangan")} value={form.signerName} onChange={(e) => updateField("signerName", e.target.value, { continuous: true })} placeholder={tr("Kosongkan bila tidak perlu")} />
               <SignaturePad
                 value={form.signatureImage}
                 onChange={(dataUrl) => updateField("signatureImage", dataUrl)}
-                label="Tanda Tangan"
-                hint="Gambar manual atau upload foto/scan. Isi salah satu (nama atau tanda tangan) untuk menampilkan bagian ini di struk."
+                label={tr("Tanda Tangan")}
+                hint={tr("Gambar manual atau upload foto/scan. Isi salah satu (nama atau tanda tangan) untuk menampilkan bagian ini di struk.")}
               />
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -631,7 +630,7 @@ export function StrukGenerator() {
       <PreviewJumpFab targetId="struk-preview" />
 
       <div id="struk-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Langsung")}</p>
         <div className="flex justify-center bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
           <div className="rounded-xl overflow-hidden shadow-lg bg-white" style={{ maxWidth: form.paperWidth === "58" ? 300 : 380 }}>
             <canvas ref={canvasRef} className="w-full h-auto block" />
@@ -647,37 +646,37 @@ export function StrukGenerator() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Btn onClick={downloadPng} disabled={isGenerating} variant="secondary" className="gap-2">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Unduh PNG
+            {tr("Unduh PNG")}
           </Btn>
           <Btn onClick={downloadPdf} disabled={isGenerating} variant="secondary" className="gap-2">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
-            Unduh PDF
+            {tr("Unduh PDF")}
           </Btn>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Btn onClick={printDialog} className="gap-2">
             <Printer className="w-4 h-4" />
-            Cetak (Dialog Browser)
+            {tr("Cetak (Dialog Browser)")}
           </Btn>
-          <Btn onClick={printDirectUsb} disabled={!webUsbOk || isPrinting} variant="secondary" className="gap-2" title={webUsbOk ? "Eksperimental — kirim langsung ke printer thermal USB" : "Tidak didukung di browser ini"}>
+          <Btn onClick={printDirectUsb} disabled={!webUsbOk || isPrinting} variant="secondary" className="gap-2" title={webUsbOk ? tr("Eksperimental — kirim langsung ke printer thermal USB") : tr("Tidak didukung di browser ini")}>
             {isPrinting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Usb className="w-4 h-4" />}
-            Cetak Langsung USB
+            {tr("Cetak Langsung USB")}
           </Btn>
         </div>
 
         <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl px-4 py-3 text-xs text-amber-800 dark:text-amber-300 space-y-1">
           <p>
-            <strong>Cetak (Dialog Browser)</strong> bekerja dengan printer apa pun yang sudah terpasang di sistem — baik tersambung USB maupun sudah dipasangkan (paired) via Bluetooth.
+            <strong>{tr("Cetak (Dialog Browser)")}</strong> {tr("bekerja dengan printer apa pun yang sudah terpasang di sistem — baik tersambung USB maupun sudah dipasangkan (paired) via Bluetooth.")}
           </p>
           <p>
-            <strong>Cetak Langsung USB</strong> bersifat eksperimental (Chrome/Edge desktop saja) dan hanya berhasil pada sebagian printer thermal generik ESC/POS — gagal jika printer sudah terpasang sebagai printer sistem.
-            {!webUsbOk && " Browser ini tidak mendukung WebUSB, gunakan Cetak (Dialog Browser)."}
+            <strong>{tr("Cetak Langsung USB")}</strong> {tr("bersifat eksperimental (Chrome/Edge desktop saja) dan hanya berhasil pada sebagian printer thermal generik ESC/POS — gagal jika printer sudah terpasang sebagai printer sistem.")}
+            {!webUsbOk && tr(" Browser ini tidak mendukung WebUSB, gunakan Cetak (Dialog Browser).")}
           </p>
         </div>
 
         <div className="text-center">
-          <SectionBadge>Diproses langsung di perangkatmu</SectionBadge>
+          <SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge>
         </div>
       </div>
     </div>

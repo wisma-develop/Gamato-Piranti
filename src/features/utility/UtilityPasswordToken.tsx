@@ -4,6 +4,7 @@ import { Label, Input, Select, Btn } from "@/components/ui/primitives";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { PanelCard } from "@/components/ui/PanelCard";
 import { cryptoRandomInt, bytesToBase64, copyToClipboard } from "@/lib/utilityHelpers";
+import { tr } from "@/i18n";
 
 export const UtilityPasswordToken: React.FC = () => {
   const [pwLength, setPwLength] = useState(16);
@@ -63,20 +64,20 @@ export const UtilityPasswordToken: React.FC = () => {
   };
 
   return (
-    <PanelCard title="Password & Token Generator" subtitle="Berbasis Web Crypto API — aman dan acak">
+    <PanelCard title={tr("Password & Token Generator")} subtitle={tr("Berbasis Web Crypto API — aman dan acak")}>
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="space-y-4">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Password Generator</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Password Generator")}</p>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Panjang Password" type="number" min={6} max={128} value={pwLength} onChange={(e) => setPwLength(parseInt(e.target.value) || 16)} />
+            <Input label={tr("Panjang Password")} type="number" min={6} max={128} value={pwLength} onChange={(e) => setPwLength(parseInt(e.target.value) || 16)} />
             <div>
-              <Label>Karakter</Label>
+              <Label>{tr("Karakter")}</Label>
               <div className="mt-2 space-y-1.5">
                 {([
-                  ["Huruf Besar", pwUpper, setPwUpper],
-                  ["Huruf Kecil", pwLower, setPwLower],
-                  ["Angka", pwNumber, setPwNumber],
-                  ["Simbol", pwSymbol, setPwSymbol],
+                  [tr("Huruf Besar"), pwUpper, setPwUpper],
+                  [tr("Huruf Kecil"), pwLower, setPwLower],
+                  [tr("Angka"), pwNumber, setPwNumber],
+                  [tr("Simbol"), pwSymbol, setPwSymbol],
                 ] as const).map(([l, v, setter], i) => (
                   <GamatoCheckbox key={i} checked={v} onChange={setter} label={l} />
                 ))}
@@ -84,42 +85,42 @@ export const UtilityPasswordToken: React.FC = () => {
             </div>
           </div>
           <Btn onClick={generatePassword} className="w-full gap-2">
-            <KeyRound className="w-4 h-4" />Buat Password
+            <KeyRound className="w-4 h-4" />{tr("Buat Password")}
           </Btn>
           {pwOutput && (
             <div className="space-y-2">
               <div className="bg-slate-900 text-green-400 font-mono text-sm rounded-xl px-4 py-3 break-all">{pwOutput}</div>
               <Btn onClick={() => copyToClipboard(pwOutput)} variant="secondary" className="w-full gap-2">
-                <Copy className="w-4 h-4" />Salin Password
+                <Copy className="w-4 h-4" />{tr("Salin Password")}
               </Btn>
             </div>
           )}
         </div>
         <div className="space-y-4">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Token Generator</p>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Token Generator")}</p>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Panjang (byte)" type="number" min={4} max={128} value={tokenBytes} onChange={(e) => setTokenBytes(parseInt(e.target.value) || 32)} />
-            <Select label="Format" value={tokenFormat} onChange={(e) => setTokenFormat(e.target.value as any)}>
-              <option value="hex">Hex</option>
-              <option value="base64">Base64</option>
-              <option value="urlsafe">URL-safe Base64</option>
+            <Input label={tr("Panjang (byte)")} type="number" min={4} max={128} value={tokenBytes} onChange={(e) => setTokenBytes(parseInt(e.target.value) || 32)} />
+            <Select label={tr("Format")} value={tokenFormat} onChange={(e) => setTokenFormat(e.target.value as any)}>
+              <option value="hex">{tr("Hex")}</option>
+              <option value="base64">{tr("Base64")}</option>
+              <option value="urlsafe">{tr("URL-safe Base64")}</option>
             </Select>
           </div>
           <Btn onClick={generateToken} className="w-full gap-2">
-            <KeyRound className="w-4 h-4" />Buat Token
+            <KeyRound className="w-4 h-4" />{tr("Buat Token")}
           </Btn>
           {tokenOutput && (
             <div className="space-y-2">
               <div className="bg-slate-900 text-emerald-400 font-mono text-xs rounded-xl px-4 py-3 break-all">{tokenOutput}</div>
               <Btn onClick={() => copyToClipboard(tokenOutput)} variant="secondary" className="w-full gap-2">
-                <Copy className="w-4 h-4" />Salin Token
+                <Copy className="w-4 h-4" />{tr("Salin Token")}
               </Btn>
             </div>
           )}
         </div>
       </div>
       <p className="text-xs text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800 pt-4">
-        Gamato Piranti tidak mengirim password/token ke server mana pun. Simpan dengan aman di password manager.
+        {tr("Gamato Piranti tidak mengirim password/token ke server mana pun. Simpan dengan aman di password manager.")}
       </p>
     </PanelCard>
   );

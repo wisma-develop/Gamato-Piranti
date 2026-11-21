@@ -16,6 +16,7 @@ import { useVideoFile } from "@/hooks/useVideoFile";
 import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { exportSegmentedVideo, getSupportedExportFormats, isVideoExportSupported, formatTime, type ExportFormat } from "@/lib/videoEngine";
+import { tr } from "@/i18n";
 
 const fmtBytes = (n: number): string => (n >= 1048576 ? `${(n / 1048576).toFixed(2)} MB` : `${(n / 1024).toFixed(0)} KB`);
 const card = "bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4";
@@ -24,10 +25,10 @@ const cap = "text-xs font-bold uppercase tracking-widest text-slate-400 dark:tex
 interface Settings { height: number; fps: number; vKbps: number; aKbps: number; audio: boolean }
 
 const PRESETS: { id: string; label: string; desc: string; s: Settings }[] = [
-  { id: "light", label: "Ringan", desc: "Kualitas tinggi — 1080p maks, 2500 kbps", s: { height: 1080, fps: 30, vKbps: 2500, aKbps: 128, audio: true } },
-  { id: "balanced", label: "Seimbang", desc: "720p, 1200 kbps — cocok untuk kebanyakan video", s: { height: 720, fps: 30, vKbps: 1200, aKbps: 96, audio: true } },
-  { id: "chat", label: "WhatsApp / Chat", desc: "480p, 24 fps, 500 kbps — kecil & tetap enak ditonton", s: { height: 480, fps: 24, vKbps: 500, aKbps: 64, audio: true } },
-  { id: "tiny", label: "Sangat kecil", desc: "360p, 15 fps, 250 kbps — ukuran minimum", s: { height: 360, fps: 15, vKbps: 250, aKbps: 32, audio: true } },
+  { id: "light", label: tr("Ringan"), desc: tr("Kualitas tinggi — 1080p maks, 2500 kbps"), s: { height: 1080, fps: 30, vKbps: 2500, aKbps: 128, audio: true } },
+  { id: "balanced", label: tr("Seimbang"), desc: tr("720p, 1200 kbps — cocok untuk kebanyakan video"), s: { height: 720, fps: 30, vKbps: 1200, aKbps: 96, audio: true } },
+  { id: "chat", label: tr("WhatsApp / Chat"), desc: tr("480p, 24 fps, 500 kbps — kecil & tetap enak ditonton"), s: { height: 480, fps: 24, vKbps: 500, aKbps: 64, audio: true } },
+  { id: "tiny", label: tr("Sangat kecil"), desc: tr("360p, 15 fps, 250 kbps — ukuran minimum"), s: { height: 360, fps: 15, vKbps: 250, aKbps: 32, audio: true } },
 ];
 
 const Slider: React.FC<{ label: string; value: number; min: number; max: number; step?: number; suffix?: string; onChange: (v: number) => void; testId?: string }> = ({ label, value, min, max, step = 1, suffix = "", onChange, testId }) => (
@@ -160,7 +161,7 @@ export function VideoCompress() {
       resultUrlRef.current = url;
       setResult({ blob: fin.blob, url, fmt: fin.fmt, w: outDims.w, h: outDims.h, test: mode === "test", segSec: b - a, settings: { ...s, vKbps: effVKbps } });
     } catch (e: any) {
-      if (e?.message !== "Dibatalkan.") setError(e?.message ?? "Kompresi gagal.");
+      if (e?.message !== "Dibatalkan.") setError(e?.message ?? tr("Kompresi gagal."));
     } finally {
       setRunning(null);
       setPacking(false);
@@ -175,21 +176,21 @@ export function VideoCompress() {
   return (
     <div className="space-y-5">
       <GamatoDesktopRecommended toolName="Kompres Video" />
-      {!supported && <GamatoInlineAlert tone="error" message="Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Gunakan Chrome, Edge, atau Firefox terbaru." />}
+      {!supported && <GamatoInlineAlert tone="error" message={tr("Browser ini tidak mendukung perekaman video (MediaRecorder/captureStream). Gunakan Chrome, Edge, atau Firefox terbaru.")} />}
 
       {!meta ? (
         <div className="max-w-3xl mx-auto space-y-4">
-          <Dropzone onFiles={handleFiles} accept="video/*" multiple={false} isDragging={isDragging} setIsDragging={setIsDragging} label="Unggah video untuk dikompres" sublabel="MP4, WebM, MOV — diproses di perangkatmu" icon={<Shrink className="w-8 h-8" />} />
-          {isLoading && <div className="flex items-center justify-center gap-2 text-sm text-indigo-600"><Loader2 className="w-4 h-4 animate-spin" /> Membaca video…</div>}
+          <Dropzone onFiles={handleFiles} accept="video/*" multiple={false} isDragging={isDragging} setIsDragging={setIsDragging} label={tr("Unggah video untuk dikompres")} sublabel={tr("MP4, WebM, MOV — diproses di perangkatmu")} icon={<Shrink className="w-8 h-8" />} />
+          {isLoading && <div className="flex items-center justify-center gap-2 text-sm text-indigo-600"><Loader2 className="w-4 h-4 animate-spin" /> {tr("Membaca video…")}</div>}
           {loadError && <GamatoInlineAlert tone="error" message={loadError} />}
           <ToolInfoPanel
             icon={<Shrink className="w-5 h-5" />}
-            label="Kompres Video"
-            desc="Perkecil ukuran video dengan kontrol penuh"
+            label={tr("Kompres Video")}
+            desc={tr("Perkecil ukuran video dengan kontrol penuh")}
             points={[
-              "Atur resolusi, frame rate, bitrate video & audio — atau cukup tentukan target ukuran file (MB).",
-              "Tombol “Uji 5 detik” memberi gambaran kualitas & ukuran akhir tanpa menunggu seluruh video.",
-              "Video tidak diunggah ke server. Pengkodean berjalan real-time di browser, jadi lama proses ≈ durasi video.",
+              tr("Atur resolusi, frame rate, bitrate video & audio — atau cukup tentukan target ukuran file (MB)."),
+              tr("Tombol “Uji 5 detik” memberi gambaran kualitas & ukuran akhir tanpa menunggu seluruh video."),
+              tr("Video tidak diunggah ke server. Pengkodean berjalan real-time di browser, jadi lama proses ≈ durasi video."),
             ]}
           />
         </div>
@@ -200,12 +201,12 @@ export function VideoCompress() {
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate" data-testid="vc-name">{meta.file.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="vc-meta">{meta.width}×{meta.height} · {formatTime(meta.duration)} · {fmtBytes(meta.file.size)} · ≈ {Math.round((meta.file.size * 8) / meta.duration / 1000)} kbps</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="vc-meta">{tr("{0}×{1} · {2} · {3} · ≈ {4} kbps", meta.width, meta.height, formatTime(meta.duration), fmtBytes(meta.file.size), Math.round((meta.file.size * 8) / meta.duration / 1000))}</p>
                 </div>
-                <Btn variant="ghost" className="text-xs py-1.5" onClick={() => { reset(); clearResult(); }} disabled={!!running}><X className="w-3.5 h-3.5" /> Ganti video</Btn>
+                <Btn variant="ghost" className="text-xs py-1.5" onClick={() => { reset(); clearResult(); }} disabled={!!running}><X className="w-3.5 h-3.5" /> {tr("Ganti video")}</Btn>
               </div>
-              <GamatoPlayer src={meta.url} label="Video asli" />
-              <GamatoCheckbox checked={useTrim} onChange={setUseTrim} label="Kompres sebagian saja (potong)" testId="vc-trim-chk" />
+              <GamatoPlayer src={meta.url} label={tr("Video asli")} />
+              <GamatoCheckbox checked={useTrim} onChange={setUseTrim} label={tr("Kompres sebagian saja (potong)")} testId="vc-trim-chk" />
               {useTrim && (
                 <div className="space-y-2">
                   <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(a, b) => { setTrimStart(a); setTrimEnd(b); }} />
@@ -217,11 +218,11 @@ export function VideoCompress() {
             {running && (
               <div className="rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-500/10 p-4 space-y-2" data-testid="vc-progress">
                 <div className="flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-200">
-                  <Loader2 className="w-4 h-4 animate-spin" /> {packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : running === "test" ? "Menguji 5 detik pertama…" : "Mengompres…"} {Math.round(progress * 100)}%
-                  {eta != null && <span className="font-normal text-xs text-indigo-500 ml-auto">sisa ± {eta < 90 ? `${Math.round(eta)} dtk` : `${Math.round(eta / 60)} mnt`}</span>}
+                  <Loader2 className="w-4 h-4 animate-spin" /> {packing ? tr("Mengemas ke {0}…", container === "asli" ? tr("format asli") : container.toUpperCase()) : running === "test" ? tr("Menguji 5 detik pertama…") : tr("Mengompres…")} {Math.round(progress * 100)}%
+                  {eta != null && <span className="font-normal text-xs text-indigo-500 ml-auto">{tr("sisa ±")} {eta < 90 ? `${Math.round(eta)} dtk` : `${Math.round(eta / 60)} mnt`}</span>}
                 </div>
                 <div className="h-2 rounded-full bg-indigo-100 dark:bg-indigo-900 overflow-hidden"><div className="h-full bg-indigo-500 transition-all" style={{ width: `${progress * 100}%` }} /></div>
-                <p className="text-[11px] text-indigo-600/80 dark:text-indigo-300/80">Jangan tutup atau pindah tab — pengkodean berjalan real-time.</p>
+                <p className="text-[11px] text-indigo-600/80 dark:text-indigo-300/80">{tr("Jangan tutup atau pindah tab — pengkodean berjalan real-time.")}</p>
               </div>
             )}
             {error && <GamatoInlineAlert tone="error" message={error} />}
@@ -230,31 +231,31 @@ export function VideoCompress() {
               <div className={card} data-testid="vc-result">
                 <div className="flex flex-wrap items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <p className="font-bold text-sm text-slate-900 dark:text-slate-100">{result.test ? "Hasil uji 5 detik" : "Kompresi selesai"}</p>
-                  <span className="text-xs text-slate-500">{result.w}×{result.h} · {result.fmt.label}</span>
+                  <p className="font-bold text-sm text-slate-900 dark:text-slate-100">{result.test ? tr("Hasil uji 5 detik") : tr("Kompresi selesai")}</p>
+                  <span className="text-xs text-slate-500">{tr("{0}×{1} · {2}", result.w, result.h, result.fmt.label)}</span>
                 </div>
                 {!result.test && (
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">Asli</div><div className="font-bold" data-testid="vc-orig">{fmtBytes(meta.file.size)}</div></div>
-                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">Hasil</div><div className="font-bold" data-testid="vc-new">{fmtBytes(result.blob.size)}</div></div>
-                    <div className={cn("rounded-xl p-3", result.blob.size < meta.file.size ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-amber-50 dark:bg-amber-500/10")}><div className="text-[11px] text-slate-400">Hemat</div><div className="font-bold" data-testid="vc-saved">{Math.round((1 - result.blob.size / meta.file.size) * 100)}%</div></div>
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">{tr("Asli")}</div><div className="font-bold" data-testid="vc-orig">{fmtBytes(meta.file.size)}</div></div>
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3"><div className="text-[11px] text-slate-400">{tr("Hasil")}</div><div className="font-bold" data-testid="vc-new">{fmtBytes(result.blob.size)}</div></div>
+                    <div className={cn("rounded-xl p-3", result.blob.size < meta.file.size ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-amber-50 dark:bg-amber-500/10")}><div className="text-[11px] text-slate-400">{tr("Hemat")}</div><div className="font-bold" data-testid="vc-saved">{Math.round((1 - result.blob.size / meta.file.size) * 100)}%</div></div>
                   </div>
                 )}
                 {result.test && projected != null && (
-                  <p className="text-sm text-slate-700 dark:text-slate-200" data-testid="vc-projected">Perkiraan ukuran seluruh video dengan pengaturan ini: <b>≈ {fmtBytes(projected)}</b> (asli {fmtBytes(meta.file.size)}).</p>
+                  <p className="text-sm text-slate-700 dark:text-slate-200" data-testid="vc-projected">{tr("Perkiraan ukuran seluruh video dengan pengaturan ini:")} <b>≈ {fmtBytes(projected)}</b>{" "}{tr("(asli {0}).", fmtBytes(meta.file.size))}</p>
                 )}
                 {!result.test && result.blob.size >= meta.file.size && (
-                  <p className="text-xs text-amber-600 flex items-start gap-1.5"><AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> Hasil tidak lebih kecil dari video asli (video asli sudah sangat terkompresi). Turunkan bitrate/resolusi atau gunakan target ukuran.</p>
+                  <p className="text-xs text-amber-600 flex items-start gap-1.5"><AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {tr("Hasil tidak lebih kecil dari video asli (video asli sudah sangat terkompresi). Turunkan bitrate/resolusi atau gunakan target ukuran.")}</p>
                 )}
-                <GamatoPlayer src={result.url} label="Hasil" compact />
-                {!result.test && <Btn className="w-full py-3" onClick={() => downloadBlob(result.blob, `${baseName}-kompres.${result.fmt.ext}`)} data-testid="vc-download"><Download className="w-4 h-4" /> Unduh video terkompres</Btn>}
+                <GamatoPlayer src={result.url} label={tr("Hasil")} compact />
+                {!result.test && <Btn className="w-full py-3" onClick={() => downloadBlob(result.blob, `${baseName}-kompres.${result.fmt.ext}`)} data-testid="vc-download"><Download className="w-4 h-4" /> {tr("Unduh video terkompres")}</Btn>}
               </div>
             )}
           </div>
 
           <div className="space-y-4 min-w-0">
             <div className={card}>
-              <p className={cap}>Tingkat Kompresi</p>
+              <p className={cap}>{tr("Tingkat Kompresi")}</p>
               <div className="space-y-2">
                 {PRESETS.map((p) => (
                   <button key={p.id} type="button" data-testid={`vp-${p.id}`} disabled={!!running} onClick={() => pickPreset(p.id)} className={cn("w-full text-left rounded-xl border-2 px-3 py-2", !custom && presetId === p.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
@@ -263,59 +264,59 @@ export function VideoCompress() {
                   </button>
                 ))}
                 <button type="button" data-testid="vp-custom" disabled={!!running} onClick={() => setCustom(true)} className={cn("w-full text-left rounded-xl border-2 px-3 py-2", custom ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 hover:border-slate-300")}>
-                  <div className="text-sm font-bold text-slate-800 dark:text-slate-100">Kustom</div>
-                  <div className="text-[11px] text-slate-500">Atur resolusi, fps, dan bitrate sendiri</div>
+                  <div className="text-sm font-bold text-slate-800 dark:text-slate-100">{tr("Kustom")}</div>
+                  <div className="text-[11px] text-slate-500">{tr("Atur resolusi, fps, dan bitrate sendiri")}</div>
                 </button>
               </div>
             </div>
 
             {custom && (
               <div className={card} data-testid="vc-custom">
-                <p className={cap}>Pengaturan Kustom</p>
-                <Select label="Resolusi (tinggi)" value={String(s.height)} onChange={(e) => setS({ ...s, height: parseInt(e.target.value) })} data-testid="vc-height">
-                  <option value="0">Asli ({meta.height}p)</option>
-                  {[1080, 720, 540, 480, 360, 240].filter((h) => h < meta.height).map((h) => <option key={h} value={h}>{h}p</option>)}
+                <p className={cap}>{tr("Pengaturan Kustom")}</p>
+                <Select label={tr("Resolusi (tinggi)")} value={String(s.height)} onChange={(e) => setS({ ...s, height: parseInt(e.target.value) })} data-testid="vc-height">
+                  <option value="0">{tr("Asli ({0}p)", meta.height)}</option>
+                  {[1080, 720, 540, 480, 360, 240].filter((h) => h < meta.height).map((h) => <option key={h} value={h}>{tr("{0}p", h)}</option>)}
                 </Select>
-                <Select label="Frame rate" value={String(s.fps)} onChange={(e) => setS({ ...s, fps: parseInt(e.target.value) })} data-testid="vc-fps">
-                  {[30, 24, 20, 15, 10].map((f) => <option key={f} value={f}>{f} fps</option>)}
+                <Select label={tr("Frame rate")} value={String(s.fps)} onChange={(e) => setS({ ...s, fps: parseInt(e.target.value) })} data-testid="vc-fps">
+                  {[30, 24, 20, 15, 10].map((f) => <option key={f} value={f}>{tr("{0} fps", f)}</option>)}
                 </Select>
-                <Slider label="Bitrate video" value={s.vKbps} min={80} max={8000} step={10} suffix=" kbps" onChange={(v) => setS({ ...s, vKbps: v })} testId="vc-vk" />
-                <GamatoCheckbox checked={s.audio} onChange={(v) => setS({ ...s, audio: v })} label="Sertakan audio" testId="vc-audio-chk" />
-                {s.audio && <Select label="Bitrate audio" value={String(s.aKbps)} onChange={(e) => setS({ ...s, aKbps: parseInt(e.target.value) })}>{[32, 48, 64, 96, 128, 192].map((k) => <option key={k} value={k}>{k} kbps</option>)}</Select>}
+                <Slider label={tr("Bitrate video")} value={s.vKbps} min={80} max={8000} step={10} suffix={tr(" kbps")} onChange={(v) => setS({ ...s, vKbps: v })} testId="vc-vk" />
+                <GamatoCheckbox checked={s.audio} onChange={(v) => setS({ ...s, audio: v })} label={tr("Sertakan audio")} testId="vc-audio-chk" />
+                {s.audio && <Select label={tr("Bitrate audio")} value={String(s.aKbps)} onChange={(e) => setS({ ...s, aKbps: parseInt(e.target.value) })}>{[32, 48, 64, 96, 128, 192].map((k) => <option key={k} value={k}>{tr("{0} kbps", k)}</option>)}</Select>}
               </div>
             )}
 
             <div className={card}>
-              <p className={cap}>Target Ukuran</p>
-              <GamatoCheckbox checked={targetMode} onChange={setTargetMode} label="Tentukan ukuran file maksimal" testId="vc-target-chk" />
+              <p className={cap}>{tr("Target Ukuran")}</p>
+              <GamatoCheckbox checked={targetMode} onChange={setTargetMode} label={tr("Tentukan ukuran file maksimal")} testId="vc-target-chk" />
               {targetMode && (
                 <>
-                  <Input label="Ukuran maksimal (MB)" type="number" min={0.2} step={0.5} value={targetMb} onChange={(e) => setTargetMb(Math.max(0.2, parseFloat(e.target.value) || 10))} data-testid="vc-target-mb" />
-                  <p className="text-[11px] text-slate-400">Bitrate video dihitung otomatis dari durasi ({formatTime(segDur)}) → ≈ {effVKbps} kbps. Bitrate video di preset/kustom diabaikan.</p>
+                  <Input label={tr("Ukuran maksimal (MB)")} type="number" min={0.2} step={0.5} value={targetMb} onChange={(e) => setTargetMb(Math.max(0.2, parseFloat(e.target.value) || 10))} data-testid="vc-target-mb" />
+                  <p className="text-[11px] text-slate-400">{tr("Bitrate video dihitung otomatis dari durasi ({0}) → ≈ {1} kbps. Bitrate video di preset/kustom diabaikan.", formatTime(segDur), effVKbps)}</p>
                 </>
               )}
               <VideoContainerPicker value={container} onChange={setContainer} disabled={!!running} />
               {packNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{packNote}</p>}
               {container === "asli" && formats.length > 1 && (
-                <Select label="Format keluaran" value={String(formatIdx)} onChange={(e) => setFormatIdx(parseInt(e.target.value))} data-testid="vc-format">
+                <Select label={tr("Format keluaran")} value={String(formatIdx)} onChange={(e) => setFormatIdx(parseInt(e.target.value))} data-testid="vc-format">
                   {formats.map((f, i) => <option key={f.mimeType} value={i}>{f.label} (.{f.ext})</option>)}
                 </Select>
               )}
             </div>
 
             <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 text-sm space-y-1" data-testid="vc-estimate">
-              <div className="flex justify-between"><span className="text-slate-500">Resolusi hasil</span><b>{outDims.w}×{outDims.h} @ {s.fps} fps</b></div>
-              <div className="flex justify-between"><span className="text-slate-500">Bitrate</span><b>{effVKbps}{s.audio ? ` + ${s.aKbps}` : ""} kbps</b></div>
-              <div className="flex justify-between"><span className="text-slate-500">Perkiraan ukuran</span><b data-testid="vc-est">≈ {fmtBytes(estBytes)}</b></div>
-              <div className="flex justify-between"><span className="text-slate-500 flex items-center gap-1"><Timer className="w-3 h-3" /> Perkiraan waktu</span><b>≈ {segDur < 90 ? `${Math.round(segDur)} dtk` : `${Math.round(segDur / 60)} mnt`}</b></div>
+              <div className="flex justify-between"><span className="text-slate-500">{tr("Resolusi hasil")}</span><b>{tr("{0}×{1} @ {2} fps", outDims.w, outDims.h, s.fps)}</b></div>
+              <div className="flex justify-between"><span className="text-slate-500">{tr("Bitrate")}</span><b>{effVKbps}{s.audio ? ` + ${s.aKbps}` : ""} {tr("kbps")}</b></div>
+              <div className="flex justify-between"><span className="text-slate-500">{tr("Perkiraan ukuran")}</span><b data-testid="vc-est">≈ {fmtBytes(estBytes)}</b></div>
+              <div className="flex justify-between"><span className="text-slate-500 flex items-center gap-1"><Timer className="w-3 h-3" /> {tr("Perkiraan waktu")}</span><b>≈ {segDur < 90 ? `${Math.round(segDur)} dtk` : `${Math.round(segDur / 60)} mnt`}</b></div>
             </div>
 
             {running ? (
-              <Btn variant="danger" className="w-full py-3" onClick={() => { cancelRef.current.cancelled = true; }} data-testid="vc-cancel"><X className="w-4 h-4" /> Batalkan</Btn>
+              <Btn variant="danger" className="w-full py-3" onClick={() => { cancelRef.current.cancelled = true; }} data-testid="vc-cancel"><X className="w-4 h-4" /> {tr("Batalkan")}</Btn>
             ) : (
               <div className="grid grid-cols-1 gap-2">
-                <Btn className="w-full py-3.5 text-base bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" disabled={!supported || !fmt || segDur <= 0} onClick={() => run("full")} data-testid="vc-run"><Shrink className="w-4 h-4" /> Kompres video</Btn>
-                <Btn variant="secondary" className="w-full text-xs py-2" disabled={!supported || !fmt || segDur <= 0} onClick={() => run("test")} data-testid="vc-test"><FlaskConical className="w-3.5 h-3.5" /> Uji 5 detik dulu</Btn>
+                <Btn className="w-full py-3.5 text-base bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-700" disabled={!supported || !fmt || segDur <= 0} onClick={() => run("full")} data-testid="vc-run"><Shrink className="w-4 h-4" /> {tr("Kompres video")}</Btn>
+                <Btn variant="secondary" className="w-full text-xs py-2" disabled={!supported || !fmt || segDur <= 0} onClick={() => run("test")} data-testid="vc-test"><FlaskConical className="w-3.5 h-3.5" /> {tr("Uji 5 detik dulu")}</Btn>
               </div>
             )}
           </div>

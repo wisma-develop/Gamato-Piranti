@@ -14,11 +14,12 @@ import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { tr } from "@/i18n";
 
 type CropBox = { x: number; y: number; w: number; h: number };
 
 const ASPECT_PRESETS = [
-  { id: "original", label: "Asli", ratio: null as number | null },
+  { id: "original", label: tr("Asli"), ratio: null as number | null },
   { id: "1:1", label: "1:1", ratio: 1 },
   { id: "9:16", label: "9:16", ratio: 9 / 16 },
   { id: "16:9", label: "16:9", ratio: 16 / 9 },
@@ -141,7 +142,7 @@ export function VideoCrop() {
 
       setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
-      setExportError(err?.message || "Gagal meng-crop video.");
+      setExportError(err?.message || tr("Gagal meng-crop video."));
     } finally {
       setIsExporting(false);
       setPacking(false);
@@ -165,8 +166,8 @@ export function VideoCrop() {
             onFiles={handleFiles}
             accept="video/*"
             multiple={false}
-            label={isLoading ? "Memuat video…" : "Drop video di sini"}
-            sublabel="MP4, WebM, MOV — diproses langsung di browser"
+            label={isLoading ? tr("Memuat video…") : tr("Drop video di sini")}
+            sublabel={tr("MP4, WebM, MOV — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -191,7 +192,7 @@ export function VideoCrop() {
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Rasio Crop</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{tr("Rasio Crop")}</p>
                 <div className="flex flex-wrap gap-2">
                   {ASPECT_PRESETS.map((p) => (
                     <button
@@ -211,32 +212,30 @@ export function VideoCrop() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Ukuran Crop</p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tr("Ukuran Crop")}</p>
                   <span className="text-xs font-mono text-slate-400">{Math.round(scale * 100)}%</span>
                 </div>
-                <GamatoSlider min={0.2} max={1} step={0.01} value={scale} onChange={(v) => applyPreset(presetId, v)} aria-label="Ukuran crop" />
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Geser kotak di video untuk mengatur posisi crop.</p>
+                <GamatoSlider min={0.2} max={1} step={0.01} value={scale} onChange={(v) => applyPreset(presetId, v)} aria-label={tr("Ukuran crop")} />
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{tr("Geser kotak di video untuk mengatur posisi crop.")}</p>
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Rentang Waktu</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{tr("Rentang Waktu")}</p>
                 <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(s, e) => { setTrimStart(s); setTrimEnd(e); }} playhead={playhead} />
               </div>
 
               {cropBox && (
-                <div className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2">
-                  Ukuran hasil: {Math.round(cropBox.w)}×{Math.round(cropBox.h)}px · Durasi: {formatTime(trimEnd - trimStart)}
-                </div>
+                <div className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2">{tr("Ukuran hasil: {0}×{1}px · Durasi: {2}", Math.round(cropBox.w), Math.round(cropBox.h), formatTime(trimEnd - trimStart))}</div>
               )}
             </div>
 
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Hasil")}</p>
                 <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
-                  Unduh Video ({resultFormat?.label})
+                  {tr("Unduh Video (")}{resultFormat?.label})
                 </Btn>
               </div>
             )}
@@ -251,37 +250,35 @@ export function VideoCrop() {
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{meta.file.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {meta.width}×{meta.height} · {formatTime(meta.duration)}
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr("{0}×{1} · {2}", meta.width, meta.height, formatTime(meta.duration))}</p>
             {isExporting && (
               <div className="space-y-1.5">
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? tr("Mengemas ke {0}…", container === "asli" ? tr("format asli") : container.toUpperCase()) : tr("Memproses…")} {Math.round(progress * 100)}%</p>
               </div>
             )}
             <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
             {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
             <Btn onClick={runExport} disabled={isExporting || !cropBox || !format} className="w-full gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CropIcon className="w-4 h-4" />}
-              {isExporting ? "Memproses…" : "Crop & Ekspor"}
+              {isExporting ? tr("Memproses…") : tr("Crop & Ekspor")}
             </Btn>
             <button type="button" onClick={reset} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Video
+              {tr("Ganti Video")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<CropIcon className="w-5 h-5" />}
-          label="Crop & Resize Video"
-          desc="Pas-kan video untuk Reels, TikTok, atau Feed"
+          label={tr("Crop & Resize Video")}
+          desc={tr("Pas-kan video untuk Reels, TikTok, atau Feed")}
           points={[
-            "Pilih rasio siap pakai (1:1, 9:16, 16:9, dst), lalu geser kotak crop langsung di atas video.",
-            "Ekspor berjalan real-time — durasi proses kira-kira sama dengan panjang video hasil.",
-            format ? `Format ekspor terbaik di browser ini: ${format.label}.` : "Browser ini tampaknya tidak mendukung ekspor video.",
+            tr("Pilih rasio siap pakai (1:1, 9:16, 16:9, dst), lalu geser kotak crop langsung di atas video."),
+            tr("Ekspor berjalan real-time — durasi proses kira-kira sama dengan panjang video hasil."),
+            format ? tr("Format ekspor terbaik di browser ini: {0}.", format.label) : tr("Browser ini tampaknya tidak mendukung ekspor video."),
           ]}
         />
       </div>

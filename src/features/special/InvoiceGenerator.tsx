@@ -32,18 +32,19 @@ import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { tr } from "@/i18n";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
 type InvoiceItem = { id: string; desc: string; qty: string; price: string };
 
 let itemCounter = 0;
-const newItemId = () => `inv-item-${Date.now()}-${itemCounter++}`;
+const newItemId = () => tr("inv-item-{0}-{1}", Date.now(), itemCounter++);
 
 function defaultItems(): InvoiceItem[] {
   return [
-    { id: newItemId(), desc: "Jasa Desain Logo", qty: "1", price: "1500000" },
-    { id: newItemId(), desc: "Jasa Pengembangan Website", qty: "1", price: "5000000" },
+    { id: newItemId(), desc: tr("Jasa Desain Logo"), qty: "1", price: "1500000" },
+    { id: newItemId(), desc: tr("Jasa Pengembangan Website"), qty: "1", price: "5000000" },
   ];
 }
 
@@ -104,13 +105,13 @@ type InvoiceData = {
 type TabId = "perusahaan" | "detail" | "klien" | "bank" | "item" | "diskon" | "ttd";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "perusahaan", label: "Identitas Perusahaan", icon: <Building2 className="w-3.5 h-3.5" /> },
-  { id: "detail", label: "Detail Invoice", icon: <ClipboardList className="w-3.5 h-3.5" /> },
-  { id: "klien", label: "Ditagihkan Kepada", icon: <Users className="w-3.5 h-3.5" /> },
-  { id: "bank", label: "Info Pembayaran", icon: <Landmark className="w-3.5 h-3.5" /> },
-  { id: "item", label: "Item / Layanan", icon: <ListOrdered className="w-3.5 h-3.5" /> },
-  { id: "diskon", label: "Diskon & Catatan", icon: <Percent className="w-3.5 h-3.5" /> },
-  { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
+  { id: "perusahaan", label: tr("Identitas Perusahaan"), icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "detail", label: tr("Detail Invoice"), icon: <ClipboardList className="w-3.5 h-3.5" /> },
+  { id: "klien", label: tr("Ditagihkan Kepada"), icon: <Users className="w-3.5 h-3.5" /> },
+  { id: "bank", label: tr("Info Pembayaran"), icon: <Landmark className="w-3.5 h-3.5" /> },
+  { id: "item", label: tr("Item / Layanan"), icon: <ListOrdered className="w-3.5 h-3.5" /> },
+  { id: "diskon", label: tr("Diskon & Catatan"), icon: <Percent className="w-3.5 h-3.5" /> },
+  { id: "ttd", label: tr("Tanda Tangan"), icon: <PenLine className="w-3.5 h-3.5" /> },
 ];
 
 function computeTotals(items: InvoiceItem[], discountPct: number, taxPct: number) {
@@ -137,7 +138,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   const { subtotal, discountAmount, taxAmount, total } = computeTotals(data.items, discountPct, taxPct);
   const totalsRows = 1 + (discountPct > 0 ? 1 : 0) + (taxPct > 0 ? 1 : 0);
 
-  const items: InvoiceItem[] = data.items.length ? data.items : [{ id: "placeholder", desc: "Belum ada item", qty: "0", price: "0" }];
+  const items: InvoiceItem[] = data.items.length ? data.items : [{ id: "placeholder", desc: tr("Belum ada item"), qty: "0", price: "0" }];
   const hasNotes = !!data.notes.trim();
   const notesLines = Math.min(estimateLineCount(data.notes), 3);
   const hasSignature = !!(data.signatureImage || data.signerName.trim() || data.signerTitle.trim());
@@ -180,7 +181,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   ctx.textAlign = "left";
   ctx.fillStyle = "#0f172a";
   ctx.font = `700 24px '${data.fontFamily}', sans-serif`;
-  ctx.fillText(data.companyName || "Nama Perusahaan", textX, yHeaderTop + 22);
+  ctx.fillText(data.companyName || tr("Nama Perusahaan"), textX, yHeaderTop + 22);
   ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   const compAddrMaxW = contentRight - 360 - textX;
@@ -196,11 +197,11 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
   ctx.fillText(`No. ${data.invoiceNo || "-"}`, contentRight, yHeaderTop + 58);
-  ctx.fillText(`Tanggal: ${formatDateID(data.invoiceDate) || "-"}`, contentRight, yHeaderTop + 78);
-  ctx.fillText(`Jatuh Tempo: ${formatDateID(data.dueDate) || "-"}`, contentRight, yHeaderTop + 98);
+  ctx.fillText(tr("Tanggal: {0}", formatDateID(data.invoiceDate) || "-"), contentRight, yHeaderTop + 78);
+  ctx.fillText(tr("Jatuh Tempo: {0}", formatDateID(data.dueDate) || "-"), contentRight, yHeaderTop + 98);
 
   if (data.status) {
-    const label = data.status === "lunas" ? "LUNAS" : "BELUM LUNAS";
+    const label = data.status === "lunas" ? tr("LUNAS") : tr("BELUM LUNAS");
     const badgeColor = data.status === "lunas" ? "#16a34a" : "#dc2626";
     ctx.font = `700 14px '${data.fontFamily}', sans-serif`;
     const badgeW = ctx.measureText(label).width + 30;
@@ -310,9 +311,9 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
     ty += TOTALS_ROW_H;
   };
 
-  totalsLine("Subtotal", formatIDR(subtotal));
-  if (discountPct > 0) totalsLine(`Diskon (${discountPct}%)`, `- ${formatIDR(discountAmount)}`);
-  if (taxPct > 0) totalsLine(`Pajak / PPN (${taxPct}%)`, formatIDR(taxAmount));
+  totalsLine(tr("Subtotal"), formatIDR(subtotal));
+  if (discountPct > 0) totalsLine(tr("Diskon ({0}%)", discountPct), `- ${formatIDR(discountAmount)}`);
+  if (taxPct > 0) totalsLine(tr("Pajak / PPN ({0}%)", taxPct), formatIDR(taxAmount));
 
   ctx.fillStyle = data.accentColor;
   roundRect(ctx, totalsX, yTotalBoxTop, totalsBoxW, TOTAL_BOX_H, 12);
@@ -343,7 +344,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
     ctx.textAlign = "center";
     ctx.font = `400 14px '${data.fontFamily}', sans-serif`;
     ctx.fillStyle = "#64748b";
-    ctx.fillText("Hormat kami,", sigCenterX, ySignatureTop + SIG_LABEL_Y);
+    ctx.fillText(tr("Hormat kami,"), sigCenterX, ySignatureTop + SIG_LABEL_Y);
 
     if (signatureImg) {
       drawImageContain(ctx, signatureImg, sigCenterX - sigColW / 2, ySignatureTop + SIG_IMG_TOP_Y, sigColW, SIG_IMG_H);
@@ -365,7 +366,7 @@ function renderInvoiceToCanvas(canvas: HTMLCanvasElement, logoImg: HTMLImageElem
   ctx.textAlign = "center";
   ctx.font = `italic 400 14px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Terima kasih atas kepercayaan Anda.", W / 2, yThankYou);
+  ctx.fillText(tr("Terima kasih atas kepercayaan Anda."), W / 2, yThankYou);
 }
 
 const DRAFT_KEY = "gamato.draft.invoice";
@@ -377,8 +378,8 @@ export function InvoiceGenerator() {
   const draft = useDraft<InvoiceData, { logo: DraftImage | null }>(DRAFT_KEY);
   const [logoFile, setLogoFile, logoDraft] = useDraftFile(draft?.extra?.logo);
   const history = useHistoryState<InvoiceData>(() => mergeDraft<InvoiceData>({
-    companyName: "Nama Usaha / Perusahaan",
-    companyAddress: "Jl. Contoh Alamat No. 123, Kota",
+    companyName: tr("Nama Usaha / Perusahaan"),
+    companyAddress: tr("Jl. Contoh Alamat No. 123, Kota"),
     companyPhone: "0812-3456-7890",
     companyEmail: "halo@usaha.com",
     invoiceNo: `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-001`,
@@ -394,7 +395,7 @@ export function InvoiceGenerator() {
     items: defaultItems(),
     discountPct: "0",
     taxPct: "11",
-    notes: "Pembayaran dapat dilakukan melalui transfer bank sesuai info pembayaran di atas.",
+    notes: tr("Pembayaran dapat dilakukan melalui transfer bank sesuai info pembayaran di atas."),
     accentColor: ACCENT_PRESETS[0],
     fontFamily: DEFAULT_FONT_FAMILY,
     signatureImage: null,
@@ -413,7 +414,7 @@ export function InvoiceGenerator() {
     history.set((prev) => ({ ...prev, items: prev.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) }), { commit: !opts?.continuous });
     if (opts?.continuous) scheduleCommit();
   };
-  const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), desc: "Item baru", qty: "1", price: "0" }] }));
+  const addItem = () => history.set((prev) => ({ ...prev, items: [...prev.items, { id: newItemId(), desc: tr("Item baru"), qty: "1", price: "0" }] }));
   const removeItem = (id: string) => history.set((prev) => ({ ...prev, items: prev.items.filter((it) => it.id !== id) }));
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -460,9 +461,9 @@ export function InvoiceGenerator() {
       withExportScale(exportScale, () => renderInvoiceToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       downloadBlob(blob, `${sanitizeFileName(data.invoiceNo) || "invoice"}.png`);
-      setInfo("Invoice berhasil diunduh sebagai PNG.");
+      setInfo(tr("Invoice berhasil diunduh sebagai PNG."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat invoice.");
+      setInfo(err?.message || tr("Gagal membuat invoice."));
     } finally {
       setIsGenerating(false);
     }
@@ -487,9 +488,9 @@ export function InvoiceGenerator() {
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(data.invoiceNo) || "invoice"}.pdf`);
-      setInfo("Invoice berhasil diunduh sebagai PDF.");
+      setInfo(tr("Invoice berhasil diunduh sebagai PDF."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat PDF.");
+      setInfo(err?.message || tr("Gagal membuat PDF."));
     } finally {
       setIsGenerating(false);
     }
@@ -500,9 +501,9 @@ export function InvoiceGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { title: `Invoice ${data.invoiceNo}` });
+      printCanvasImage(canvas, { title: tr("Invoice {0}", data.invoiceNo) });
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuka dialog cetak.");
+      setInfo(err?.message || tr("Gagal membuka dialog cetak."));
     }
   };
 
@@ -512,21 +513,21 @@ export function InvoiceGenerator() {
       <GamatoDesktopRecommended toolName="Invoice" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Invoice</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Invoice")}</span>
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
         <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
         {tab === "perusahaan" && (
-          <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop invoice">
+          <PanelCard title={tr("Identitas Perusahaan")} subtitle={tr("Tampil di kop invoice")}>
             <div className="space-y-3">
               <LogoUpload file={logoFile} onChange={setLogoFile} />
-              <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
-              <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+              <Input label={tr("Nama Perusahaan / Usaha")} value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+              <Textarea label={tr("Alamat")} rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
-                <Input label="Email" value={data.companyEmail} onChange={(e) => updateField("companyEmail", e.target.value, { continuous: true })} />
+                <Input label={tr("Telepon")} value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+                <Input label={tr("Email")} value={data.companyEmail} onChange={(e) => updateField("companyEmail", e.target.value, { continuous: true })} />
               </div>
               <FontPicker
                 value={data.fontFamily}
@@ -538,7 +539,7 @@ export function InvoiceGenerator() {
                 onRemoveCustomFont={handleRemoveCustomFont}
               />
               <div>
-                <Label>Warna Aksen</Label>
+                <Label>{tr("Warna Aksen")}</Label>
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                   {ACCENT_PRESETS.map((c) => (
                     <button
@@ -559,17 +560,17 @@ export function InvoiceGenerator() {
         )}
 
         {tab === "detail" && (
-          <PanelCard title="Detail Invoice" subtitle="Nomor, tanggal, dan status pembayaran">
+          <PanelCard title={tr("Detail Invoice")} subtitle={tr("Nomor, tanggal, dan status pembayaran")}>
             <div className="space-y-3">
-              <Input label="No. Invoice" value={data.invoiceNo} onChange={(e) => updateField("invoiceNo", e.target.value, { continuous: true })} />
+              <Input label={tr("No. Invoice")} value={data.invoiceNo} onChange={(e) => updateField("invoiceNo", e.target.value, { continuous: true })} />
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Tanggal" type="date" value={data.invoiceDate} onChange={(e) => updateField("invoiceDate", e.target.value)} />
-                <Input label="Jatuh Tempo" type="date" value={data.dueDate} onChange={(e) => updateField("dueDate", e.target.value)} />
+                <Input label={tr("Tanggal")} type="date" value={data.invoiceDate} onChange={(e) => updateField("invoiceDate", e.target.value)} />
+                <Input label={tr("Jatuh Tempo")} type="date" value={data.dueDate} onChange={(e) => updateField("dueDate", e.target.value)} />
               </div>
-              <Select label="Status Pembayaran" value={data.status} onChange={(e) => updateField("status", e.target.value as InvoiceData["status"])}>
-                <option value="">Tanpa status</option>
-                <option value="belum">Belum Lunas</option>
-                <option value="lunas">Lunas</option>
+              <Select label={tr("Status Pembayaran")} value={data.status} onChange={(e) => updateField("status", e.target.value as InvoiceData["status"])}>
+                <option value="">{tr("Tanpa status")}</option>
+                <option value="belum">{tr("Belum Lunas")}</option>
+                <option value="lunas">{tr("Lunas")}</option>
               </Select>
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -577,47 +578,47 @@ export function InvoiceGenerator() {
         )}
 
         {tab === "klien" && (
-          <PanelCard title="Ditagihkan Kepada" subtitle="Data klien / pelanggan">
+          <PanelCard title={tr("Ditagihkan Kepada")} subtitle={tr("Data klien / pelanggan")}>
             <div className="space-y-3">
-              <Input label="Nama Klien" value={data.clientName} onChange={(e) => updateField("clientName", e.target.value, { continuous: true })} placeholder="PT Contoh Sejahtera" />
-              <Textarea label="Alamat" rows={2} value={data.clientAddress} onChange={(e) => updateField("clientAddress", e.target.value, { continuous: true })} />
-              <Input label="Telepon" value={data.clientPhone} onChange={(e) => updateField("clientPhone", e.target.value, { continuous: true })} />
+              <Input label={tr("Nama Klien")} value={data.clientName} onChange={(e) => updateField("clientName", e.target.value, { continuous: true })} placeholder={tr("PT Contoh Sejahtera")} />
+              <Textarea label={tr("Alamat")} rows={2} value={data.clientAddress} onChange={(e) => updateField("clientAddress", e.target.value, { continuous: true })} />
+              <Input label={tr("Telepon")} value={data.clientPhone} onChange={(e) => updateField("clientPhone", e.target.value, { continuous: true })} />
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
           </PanelCard>
         )}
 
         {tab === "bank" && (
-          <PanelCard title="Info Pembayaran" subtitle="Opsional — kosongkan bila tidak perlu ditampilkan">
+          <PanelCard title={tr("Info Pembayaran")} subtitle={tr("Opsional — kosongkan bila tidak perlu ditampilkan")}>
             <div className="space-y-3">
-              <Input label="Nama Bank" value={data.bankName} onChange={(e) => updateField("bankName", e.target.value, { continuous: true })} placeholder="Bank Central Asia" />
-              <Input label="No. Rekening" value={data.bankAccount} onChange={(e) => updateField("bankAccount", e.target.value, { continuous: true })} placeholder="1234567890" />
-              <Input label="Atas Nama" value={data.bankHolder} onChange={(e) => updateField("bankHolder", e.target.value, { continuous: true })} />
+              <Input label={tr("Nama Bank")} value={data.bankName} onChange={(e) => updateField("bankName", e.target.value, { continuous: true })} placeholder={tr("Bank Central Asia")} />
+              <Input label={tr("No. Rekening")} value={data.bankAccount} onChange={(e) => updateField("bankAccount", e.target.value, { continuous: true })} placeholder="1234567890" />
+              <Input label={tr("Atas Nama")} value={data.bankHolder} onChange={(e) => updateField("bankHolder", e.target.value, { continuous: true })} />
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
           </PanelCard>
         )}
 
         {tab === "item" && (
-          <PanelCard title="Item / Layanan" subtitle="Tambah baris sebanyak yang dibutuhkan">
+          <PanelCard title={tr("Item / Layanan")} subtitle={tr("Tambah baris sebanyak yang dibutuhkan")}>
             <div className="space-y-3">
               {data.items.map((item) => (
                 <div key={item.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <Input value={item.desc} onChange={(e) => updateItem(item.id, { desc: e.target.value }, { continuous: true })} placeholder="Deskripsi item" className="flex-1" />
+                    <Input value={item.desc} onChange={(e) => updateItem(item.id, { desc: e.target.value }, { continuous: true })} placeholder={tr("Deskripsi item")} className="flex-1" />
                     <button type="button" onClick={() => removeItem(item.id)} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <MoneyInput label="Qty" value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
-                    <MoneyInput label="Harga Satuan (Rp)" value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix="Rp" />
+                    <MoneyInput label={tr("Qty")} value={item.qty} onChange={(v) => updateItem(item.id, { qty: v }, { continuous: true })} placeholder="1" />
+                    <MoneyInput label={tr("Harga Satuan (Rp)")} value={item.price} onChange={(v) => updateItem(item.id, { price: v }, { continuous: true })} placeholder="0" prefix={tr("Rp")} />
                   </div>
                 </div>
               ))}
               <Btn onClick={addItem} variant="secondary" className="w-full gap-2 text-sm">
                 <Plus className="w-4 h-4" />
-                Tambah Item
+                {tr("Tambah Item")}
               </Btn>
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -625,15 +626,15 @@ export function InvoiceGenerator() {
         )}
 
         {tab === "diskon" && (
-          <PanelCard title="Diskon, Pajak & Catatan" subtitle="Opsional">
+          <PanelCard title={tr("Diskon, Pajak & Catatan")} subtitle={tr("Opsional")}>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Diskon (%)" value={data.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
-                <Input label="Pajak / PPN (%)" value={data.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+                <Input label={tr("Diskon (%)")} value={data.discountPct} onChange={(e) => updateField("discountPct", sanitizeNumberString(e.target.value), { continuous: true })} />
+                <Input label={tr("Pajak / PPN (%)")} value={data.taxPct} onChange={(e) => updateField("taxPct", sanitizeNumberString(e.target.value), { continuous: true })} />
               </div>
-              <Textarea label="Catatan" rows={2} value={data.notes} onChange={(e) => updateField("notes", e.target.value, { continuous: true })} />
+              <Textarea label={tr("Catatan")} rows={2} value={data.notes} onChange={(e) => updateField("notes", e.target.value, { continuous: true })} />
               <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
-                Total saat ini: <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
+                {tr("Total saat ini:")} <span className="font-bold text-slate-800 dark:text-slate-100">{formatIDR(totals.total)}</span>
               </div>
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -641,15 +642,15 @@ export function InvoiceGenerator() {
         )}
 
         {tab === "ttd" && (
-          <PanelCard title="Tanda Tangan Pengesah" subtitle="Opsional — tampil sebagai blok 'Hormat kami,' di kanan bawah invoice">
+          <PanelCard title={tr("Tanda Tangan Pengesah")} subtitle={tr("Opsional — tampil sebagai blok 'Hormat kami,' di kanan bawah invoice")}>
             <div className="space-y-3">
-              <Input label="Nama Penandatangan" value={data.signerName} onChange={(e) => updateField("signerName", e.target.value, { continuous: true })} placeholder="Nama lengkap" />
-              <Input label="Jabatan (opsional)" value={data.signerTitle} onChange={(e) => updateField("signerTitle", e.target.value, { continuous: true })} placeholder="Manajer Keuangan" />
+              <Input label={tr("Nama Penandatangan")} value={data.signerName} onChange={(e) => updateField("signerName", e.target.value, { continuous: true })} placeholder={tr("Nama lengkap")} />
+              <Input label={tr("Jabatan (opsional)")} value={data.signerTitle} onChange={(e) => updateField("signerTitle", e.target.value, { continuous: true })} placeholder={tr("Manajer Keuangan")} />
               <SignaturePad
                 value={data.signatureImage}
                 onChange={(dataUrl) => updateField("signatureImage", dataUrl)}
-                label="Tanda Tangan"
-                hint="Gambar manual atau upload foto/scan tanda tangan. Kosongkan bila ingin dicetak dulu lalu ditandatangani manual."
+                label={tr("Tanda Tangan")}
+                hint={tr("Gambar manual atau upload foto/scan tanda tangan. Kosongkan bila ingin dicetak dulu lalu ditandatangani manual.")}
               />
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -660,7 +661,7 @@ export function InvoiceGenerator() {
       <PreviewJumpFab targetId="invoice-preview" />
 
       <div id="invoice-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Langsung")}</p>
         <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-white">
           <canvas ref={canvasRef} className="w-full h-auto block" />
         </div>
@@ -674,20 +675,20 @@ export function InvoiceGenerator() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Btn onClick={downloadPng} disabled={isGenerating} variant="secondary" className="gap-2">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Unduh PNG
+            {tr("Unduh PNG")}
           </Btn>
           <Btn onClick={downloadPdf} disabled={isGenerating} className="gap-2">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
-            Unduh PDF
+            {tr("Unduh PDF")}
           </Btn>
           <Btn onClick={printNow} variant="secondary" className="gap-2">
             <Printer className="w-4 h-4" />
-            Cetak
+            {tr("Cetak")}
           </Btn>
         </div>
 
         <div className="text-center">
-          <SectionBadge>Diproses langsung di perangkatmu</SectionBadge>
+          <SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge>
         </div>
       </div>
     </div>

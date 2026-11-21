@@ -14,6 +14,7 @@ import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { msgStarts, tr } from "@/i18n";
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const makeId = () => Math.random().toString(36).slice(2, 9);
@@ -83,7 +84,7 @@ export const PdfEdit: React.FC = () => {
       y: 0.4,
       w: type === "text" ? 0.3 : 0.25,
       h: type === "text" ? 0.06 : 0.1,
-      text: type === "text" ? "Teks baru" : "",
+      text: type === "text" ? tr("Teks baru") : "",
       fontSize: 16,
       color: type === "text" ? "#0f172a" : "#fde047",
       opacity: type === "text" ? 100 : 55,
@@ -153,9 +154,9 @@ export const PdfEdit: React.FC = () => {
 
       await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-edited.pdf");
-      setInfo(`${elements.length} elemen berhasil ditambahkan ke PDF.`);
+      setInfo(tr("{0} elemen berhasil ditambahkan ke PDF.", elements.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal menerapkan perubahan."));
+      setInfo("" + (err?.message || tr("Gagal menerapkan perubahan.")));
     } finally {
       setIsWorking(false);
     }
@@ -171,8 +172,8 @@ export const PdfEdit: React.FC = () => {
             onFiles={addFiles}
             accept="application/pdf"
             multiple={false}
-            label="Drop file PDF di sini"
-            sublabel="atau klik untuk browse"
+            label={tr("Drop file PDF di sini")}
+            sublabel={tr("atau klik untuk browse")}
             icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -218,23 +219,23 @@ export const PdfEdit: React.FC = () => {
               </div>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 px-5 py-2 border-t border-slate-100 dark:border-slate-800">
-              Kiri: pratinjau halaman asli. Kanan: geser elemen untuk mengatur posisi.
+              {tr("Kiri: pratinjau halaman asli. Kanan: geser elemen untuk mengatur posisi.")}
             </p>
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleApply} disabled={isWorking || !file || !elements.length} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Terapkan &amp; Unduh
+              {tr("Terapkan & Unduh")}
             </>
           )}
         </Btn>
@@ -243,15 +244,15 @@ export const PdfEdit: React.FC = () => {
       <div className="space-y-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Elemen</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Elemen")}</p>
             <div className="flex items-center gap-2">
               <UndoRedoBar canUndo={elementsHistory.canUndo} canRedo={elementsHistory.canRedo} onUndo={elementsHistory.undo} onRedo={elementsHistory.redo} hideLabel />
               <div className="flex gap-1.5">
               <button type="button" onClick={() => addElement("text")} disabled={!file} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
-                <Type className="w-3.5 h-3.5" /> Teks
+                <Type className="w-3.5 h-3.5" /> {tr("Teks")}
               </button>
               <button type="button" onClick={() => addElement("box")} disabled={!file} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 disabled:opacity-40">
-                <Square className="w-3.5 h-3.5" /> Kotak
+                <Square className="w-3.5 h-3.5" /> {tr("Kotak")}
               </button>
               </div>
             </div>
@@ -267,8 +268,7 @@ export const PdfEdit: React.FC = () => {
                 }}
                 className={cn("w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left", selectedId === el.id ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300")}
               >
-                <span className="truncate flex-1">
-                  Hal.{el.page} — {el.type === "text" ? el.text || "(teks)" : "Kotak"}
+                <span className="truncate flex-1">{tr("Hal.{0} —", el.page)}{" "}{el.type === "text" ? el.text || tr("(teks)") : tr("Kotak")}
                 </span>
                 <Trash2
                   className="w-3.5 h-3.5 text-slate-400 hover:text-red-500 shrink-0 ml-2"
@@ -279,42 +279,42 @@ export const PdfEdit: React.FC = () => {
                 />
               </button>
             ))}
-            {!elements.length && <p className="text-xs text-slate-400 dark:text-slate-500">Belum ada elemen. Tambah Teks atau Kotak di atas.</p>}
+            {!elements.length && <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Belum ada elemen. Tambah Teks atau Kotak di atas.")}</p>}
           </div>
         </div>
 
         {selected && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Edit Elemen</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Edit Elemen")}</p>
             {selected.type === "text" && (
               <>
-                <Textarea label="Isi Teks" rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
-                <Input label="Ukuran Font (pt)" type="number" min={6} max={72} value={selected.fontSize} onChange={(e) => updateSelected({ fontSize: parseInt(e.target.value) || 16 }, { continuous: true })} />
+                <Textarea label={tr("Isi Teks")} rows={2} value={selected.text} onChange={(e) => updateSelected({ text: e.target.value }, { continuous: true })} />
+                <Input label={tr("Ukuran Font (pt)")} type="number" min={6} max={72} value={selected.fontSize} onChange={(e) => updateSelected({ fontSize: parseInt(e.target.value) || 16 }, { continuous: true })} />
               </>
             )}
-            <GamatoColorPicker label="Warna" value={selected.color} onChange={(hex) => updateSelected({ color: hex }, { continuous: true })} />
+            <GamatoColorPicker label={tr("Warna")} value={selected.color} onChange={(hex) => updateSelected({ color: hex }, { continuous: true })} />
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <Label>Opacity</Label>
+                <Label>{tr("Opacity")}</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{selected.opacity}%</span>
               </div>
-              <GamatoSlider min={5} max={100} value={selected.opacity} onChange={(v) => updateSelected({ opacity: v }, { continuous: true })} aria-label="Opacity" />
+              <GamatoSlider min={5} max={100} value={selected.opacity} onChange={(v) => updateSelected({ opacity: v }, { continuous: true })} aria-label={tr("Opacity")} />
             </div>
             {selected.type === "box" && (
               <>
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <Label>Lebar</Label>
+                    <Label>{tr("Lebar")}</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(selected.w * 100)}%</span>
                   </div>
-                  <GamatoSlider min={5} max={90} value={Math.round(selected.w * 100)} onChange={(v) => updateSelected({ w: v / 100 }, { continuous: true })} aria-label="Lebar" />
+                  <GamatoSlider min={5} max={90} value={Math.round(selected.w * 100)} onChange={(v) => updateSelected({ w: v / 100 }, { continuous: true })} aria-label={tr("Lebar")} />
                 </div>
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <Label>Tinggi</Label>
+                    <Label>{tr("Tinggi")}</Label>
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(selected.h * 100)}%</span>
                   </div>
-                  <GamatoSlider min={2} max={90} value={Math.round(selected.h * 100)} onChange={(v) => updateSelected({ h: v / 100 }, { continuous: true })} aria-label="Tinggi" />
+                  <GamatoSlider min={2} max={90} value={Math.round(selected.h * 100)} onChange={(v) => updateSelected({ h: v / 100 }, { continuous: true })} aria-label={tr("Tinggi")} />
                 </div>
               </>
             )}
@@ -323,9 +323,9 @@ export const PdfEdit: React.FC = () => {
 
         <ToolInfoPanel
           icon={<PenSquare className="w-5 h-5" />}
-          label="Edit PDF"
-          desc="Tambah teks & kotak"
-          points={["Tambahkan teks bebas atau kotak warna (untuk menandai/menutup area) ke halaman manapun.", "Geser langsung di area pratinjau untuk mengatur posisi."]}
+          label={tr("Edit PDF")}
+          desc={tr("Tambah teks & kotak")}
+          points={[tr("Tambahkan teks bebas atau kotak warna (untuk menandai/menutup area) ke halaman manapun."), tr("Geser langsung di area pratinjau untuk mengatur posisi.")]}
         />
       </div>
     </div>

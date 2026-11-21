@@ -21,49 +21,50 @@ import { GamatoTooltip } from "@/components/ui/GamatoTooltip";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { useHistoryState, useDebouncedCommit } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { tr } from "@/i18n";
 
 const DOT_STYLES: { id: DotType; label: string }[] = [
-  { id: "square", label: "Kotak" },
-  { id: "dots", label: "Bulat" },
-  { id: "rounded", label: "Membulat" },
-  { id: "classy", label: "Classy" },
-  { id: "classy-rounded", label: "Classy+" },
-  { id: "extra-rounded", label: "Ekstra Bulat" },
+  { id: "square", label: tr("Kotak") },
+  { id: "dots", label: tr("Bulat") },
+  { id: "rounded", label: tr("Membulat") },
+  { id: "classy", label: tr("Classy") },
+  { id: "classy-rounded", label: tr("Classy+") },
+  { id: "extra-rounded", label: tr("Ekstra Bulat") },
 ];
 
 const CORNER_SQUARE_STYLES: { id: CornerSquareType; label: string }[] = [
-  { id: "square", label: "Kotak" },
-  { id: "dot", label: "Bulat" },
-  { id: "extra-rounded", label: "Membulat" },
+  { id: "square", label: tr("Kotak") },
+  { id: "dot", label: tr("Bulat") },
+  { id: "extra-rounded", label: tr("Membulat") },
 ];
 
 const CORNER_DOT_STYLES: { id: CornerDotType; label: string }[] = [
-  { id: "square", label: "Kotak" },
-  { id: "dot", label: "Bulat" },
+  { id: "square", label: tr("Kotak") },
+  { id: "dot", label: tr("Bulat") },
 ];
 
 const ERROR_CORRECTION_OPTIONS: { id: "auto" | "L" | "M" | "Q" | "H"; label: string }[] = [
-  { id: "auto", label: "Otomatis" },
-  { id: "L", label: "L · 7%" },
-  { id: "M", label: "M · 15%" },
-  { id: "Q", label: "Q · 25%" },
-  { id: "H", label: "H · 30%" },
+  { id: "auto", label: tr("Otomatis") },
+  { id: "L", label: tr("L · 7%") },
+  { id: "M", label: tr("M · 15%") },
+  { id: "Q", label: tr("Q · 25%") },
+  { id: "H", label: tr("H · 30%") },
 ];
 
 const LOGO_SHAPE_OPTIONS: { id: QrLogoShape; label: string }[] = [
-  { id: "rounded", label: "Rounded" },
-  { id: "circle", label: "Bulat" },
-  { id: "square", label: "Kotak" },
-  { id: "none", label: "Asli" },
+  { id: "rounded", label: tr("Rounded") },
+  { id: "circle", label: tr("Bulat") },
+  { id: "square", label: tr("Kotak") },
+  { id: "none", label: tr("Asli") },
 ];
 
 type LogoMode = "auto" | "gallery" | "upload" | "none";
 
 const LOGO_MODE_OPTIONS: { id: LogoMode; label: string; icon: typeof Wand2 }[] = [
-  { id: "auto", label: "Otomatis", icon: Wand2 },
-  { id: "gallery", label: "Galeri Ikon", icon: Sparkles },
-  { id: "upload", label: "Upload Sendiri", icon: ImagePlus },
-  { id: "none", label: "Tanpa Logo", icon: Square },
+  { id: "auto", label: tr("Otomatis"), icon: Wand2 },
+  { id: "gallery", label: tr("Galeri Ikon"), icon: Sparkles },
+  { id: "upload", label: tr("Upload Sendiri"), icon: ImagePlus },
+  { id: "none", label: tr("Tanpa Logo"), icon: Square },
 ];
 
 function relativeLuminance(hex: string): number {
@@ -402,7 +403,7 @@ export function QrCodeGenerator() {
       setTimeout(() => setCopyState("idle"), 1500);
     } catch {
       setCopyState("error");
-      setCopyError("Salin gambar tidak didukung di browser ini. Gunakan tombol unduh sebagai gantinya.");
+      setCopyError(tr("Salin gambar tidak didukung di browser ini. Gunakan tombol unduh sebagai gantinya."));
       setTimeout(() => setCopyState("idle"), 2500);
     }
   };
@@ -430,12 +431,12 @@ export function QrCodeGenerator() {
         {/* LEFT: Controls */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor QR Code</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor QR Code")}</p>
             <UndoRedoBar canUndo={qrHistory.canUndo} canRedo={qrHistory.canRedo} onUndo={qrHistory.undo} onRedo={qrHistory.redo} />
           </div>
 
           {/* Isi QR — template selector, grouped by category, + the active template's form */}
-          <CollapsibleSection title="Isi QR" subtitle="Pilih jenis konten lalu isi datanya" badge={`${QR_TEMPLATES.length} Tipe`} defaultOpen>
+          <CollapsibleSection title={tr("Isi QR")} subtitle={tr("Pilih jenis konten lalu isi datanya")} badge={tr("{0} Tipe", QR_TEMPLATES.length)} defaultOpen>
             <div className="space-y-4">
               {QR_TEMPLATE_CATEGORIES.map((cat) => (
                 <div key={cat}>
@@ -463,7 +464,7 @@ export function QrCodeGenerator() {
           </CollapsibleSection>
 
           {/* Style presets */}
-          <CollapsibleSection title="Gaya Instan" subtitle="Sentuh sekali, langsung jadi" icon={<Sparkles className="w-4 h-4" />} badge={`${QR_STYLE_PRESETS.length} Preset`} defaultOpen>
+          <CollapsibleSection title={tr("Gaya Instan")} subtitle={tr("Sentuh sekali, langsung jadi")} icon={<Sparkles className="w-4 h-4" />} badge={tr("{0} Preset", QR_STYLE_PRESETS.length)} defaultOpen>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {QR_STYLE_PRESETS.map((p) => (
                 <button key={p.name} type="button" onClick={() => applyPreset(p)}
@@ -481,9 +482,9 @@ export function QrCodeGenerator() {
           </CollapsibleSection>
 
           {/* Warna & Bentuk */}
-          <CollapsibleSection title="Warna & Bentuk" subtitle="Titik, sudut, latar, dan bentuk QR" icon={<Palette className="w-4 h-4" />}>
+          <CollapsibleSection title={tr("Warna & Bentuk")} subtitle={tr("Titik, sudut, latar, dan bentuk QR")} icon={<Palette className="w-4 h-4" />}>
             <div>
-              <Label>Bentuk Titik (Dots)</Label>
+              <Label>{tr("Bentuk Titik (Dots)")}</Label>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {DOT_STYLES.map((s) => (
                   <button key={s.id} type="button" onClick={() => setDotsType(s.id)} className={pillClass(dotsType === s.id)}>{s.label}</button>
@@ -493,7 +494,7 @@ export function QrCodeGenerator() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Bentuk Sudut Luar</Label>
+                <Label>{tr("Bentuk Sudut Luar")}</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {CORNER_SQUARE_STYLES.map((s) => (
                     <button key={s.id} type="button" onClick={() => setCornersSquareType(s.id)} className={pillClass(cornersSquareType === s.id)}>{s.label}</button>
@@ -501,7 +502,7 @@ export function QrCodeGenerator() {
                 </div>
               </div>
               <div>
-                <Label>Bentuk Sudut Dalam</Label>
+                <Label>{tr("Bentuk Sudut Dalam")}</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {CORNER_DOT_STYLES.map((s) => (
                     <button key={s.id} type="button" onClick={() => setCornersDotType(s.id)} className={pillClass(cornersDotType === s.id)}>{s.label}</button>
@@ -511,29 +512,29 @@ export function QrCodeGenerator() {
             </div>
 
             <div>
-              <Label>Bentuk Keseluruhan</Label>
+              <Label>{tr("Bentuk Keseluruhan")}</Label>
               <div className="flex gap-1.5 mt-1.5">
                 <button type="button" onClick={() => setShape("square")} className={cn(pillClass(shape === "square"), "flex items-center gap-1.5")}>
-                  <Square className="w-3.5 h-3.5" />Persegi
+                  <Square className="w-3.5 h-3.5" />{tr("Persegi")}
                 </button>
                 <button type="button" onClick={() => setShape("circle")} className={cn(pillClass(shape === "circle"), "flex items-center gap-1.5")}>
-                  <CircleIcon className="w-3.5 h-3.5" />Lingkaran
+                  <CircleIcon className="w-3.5 h-3.5" />{tr("Lingkaran")}
                 </button>
               </div>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-x-5 gap-y-5 pt-1 border-t border-slate-100 dark:border-slate-800">
-              <ColorModeControl label="Warna Titik" value={dots} onChange={setDots} className="pt-4" testId="dots" />
-              <ColorModeControl label="Warna Sudut Luar" value={cornersSquare} onChange={setCornersSquare} className="pt-4" testId="cornersSquare" />
-              <ColorModeControl label="Warna Sudut Dalam" value={cornersDot} onChange={setCornersDot} className="pt-4" testId="cornersDot" />
+              <ColorModeControl label={tr("Warna Titik")} value={dots} onChange={setDots} className="pt-4" testId="dots" />
+              <ColorModeControl label={tr("Warna Sudut Luar")} value={cornersSquare} onChange={setCornersSquare} className="pt-4" testId="cornersSquare" />
+              <ColorModeControl label={tr("Warna Sudut Dalam")} value={cornersDot} onChange={setCornersDot} className="pt-4" testId="cornersDot" />
               <div className="pt-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label>Warna Latar</Label>
-                  <GamatoCheckbox checked={bgTransparent} onChange={setBgTransparent} label={<span className="text-[11px]">Transparan</span>} testId="bgTransparent-checkbox" />
+                  <Label>{tr("Warna Latar")}</Label>
+                  <GamatoCheckbox checked={bgTransparent} onChange={setBgTransparent} label={<span className="text-[11px]">{tr("Transparan")}</span>} testId="bgTransparent-checkbox" />
                 </div>
                 {bgTransparent ? (
                   <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 px-3 py-2.5 text-[11px] text-slate-400 dark:text-slate-500" style={{ backgroundImage: "repeating-conic-gradient(#e5e7eb 0% 25%, transparent 0% 50%)", backgroundSize: "10px 10px" }}>
-                    Latar dibiarkan transparan (cocok untuk ditempel di atas desain lain).
+                    {tr("Latar dibiarkan transparan (cocok untuk ditempel di atas desain lain).")}
                   </div>
                 ) : (
                   <ColorModeControl label="" value={background} onChange={setBackground} testId="background" />
@@ -544,45 +545,45 @@ export function QrCodeGenerator() {
             {!bgTransparent && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <Label>Kelengkungan Latar</Label>
+                  <Label>{tr("Kelengkungan Latar")}</Label>
                   <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{Math.round(bgRound * 100)}%</span>
                 </div>
-                <GamatoSlider min={0} max={1} step={0.05} value={bgRound} onChange={setBgRound} aria-label="Kelengkungan latar belakang" />
+                <GamatoSlider min={0} max={1} step={0.05} value={bgRound} onChange={setBgRound} aria-label={tr("Kelengkungan latar belakang")} />
               </div>
             )}
 
             {lowContrast && (
               <div className="flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-3 py-2.5">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span>Kontras warna titik &amp; latar cukup rendah — bisa mempersulit pemindaian. Coba warna yang lebih kontras untuk hasil paling aman.</span>
+                <span>{tr("Kontras warna titik & latar cukup rendah — bisa mempersulit pemindaian. Coba warna yang lebih kontras untuk hasil paling aman.")}</span>
               </div>
             )}
           </CollapsibleSection>
 
           {/* Ukuran & Kualitas */}
-          <CollapsibleSection title="Ukuran & Kualitas" subtitle="Dimensi, margin, dan ketahanan pindai" icon={<Ruler className="w-4 h-4" />}>
+          <CollapsibleSection title={tr("Ukuran & Kualitas")} subtitle={tr("Dimensi, margin, dan ketahanan pindai")} icon={<Ruler className="w-4 h-4" />}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <Label>Ukuran</Label>
-                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{size}px</span>
+                  <Label>{tr("Ukuran")}</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tr("{0}px", size)}</span>
                 </div>
-                <GamatoSlider min={200} max={600} step={10} value={size} onChange={setSize} aria-label="Ukuran QR" />
+                <GamatoSlider min={200} max={600} step={10} value={size} onChange={setSize} aria-label={tr("Ukuran QR")} />
               </div>
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <Label>Margin</Label>
-                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{margin}px</span>
+                  <Label>{tr("Margin")}</Label>
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{tr("{0}px", margin)}</span>
                 </div>
-                <GamatoSlider min={0} max={40} step={2} value={margin} onChange={setMargin} aria-label="Margin QR" />
+                <GamatoSlider min={0} max={40} step={2} value={margin} onChange={setMargin} aria-label={tr("Margin QR")} />
               </div>
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">File diekspor pada resolusi {renderScale}× lebih tinggi dari angka di atas supaya hasilnya tetap tajam saat dicetak atau di-zoom.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{tr("File diekspor pada resolusi {0}× lebih tinggi dari angka di atas supaya hasilnya tetap tajam saat dicetak atau di-zoom.", renderScale)}</p>
 
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
-                <Label>Tingkat Koreksi Error</Label>
-                <GamatoTooltip label="Level lebih tinggi = QR lebih tahan kotor/rusak, tapi kepadatan modul bertambah. Otomatis memakai H saat logo aktif.">
+                <Label>{tr("Tingkat Koreksi Error")}</Label>
+                <GamatoTooltip label={tr("Level lebih tinggi = QR lebih tahan kotor/rusak, tapi kepadatan modul bertambah. Otomatis memakai H saat logo aktif.")}>
                   <span className="text-slate-300 dark:text-slate-600 text-xs cursor-help">ⓘ</span>
                 </GamatoTooltip>
               </div>
@@ -595,7 +596,7 @@ export function QrCodeGenerator() {
           </CollapsibleSection>
 
           {/* Logo Tengah — auto / gallery / upload / none */}
-          <CollapsibleSection title="Logo Tengah" subtitle="Otomatis menyesuaikan tipe QR, atau pilih sendiri" icon={<ImagePlus className="w-4 h-4" />} defaultOpen>
+          <CollapsibleSection title={tr("Logo Tengah")} subtitle={tr("Otomatis menyesuaikan tipe QR, atau pilih sendiri")} icon={<ImagePlus className="w-4 h-4" />} defaultOpen>
             <div className="flex flex-wrap gap-1.5">
               {LOGO_MODE_OPTIONS.map((o) => {
                 const Icon = o.icon;
@@ -614,12 +615,12 @@ export function QrCodeGenerator() {
                   <>
                     <img src={buildAutoIconDataUrl(activeAutoIcon.id) ?? undefined} alt={activeAutoIcon.label} className="w-11 h-11 rounded-lg shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Ikon otomatis: {activeAutoIcon.label}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">Menyesuaikan otomatis saat kamu ganti tipe QR di atas.</p>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tr("Ikon otomatis: {0}", activeAutoIcon.label)}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Menyesuaikan otomatis saat kamu ganti tipe QR di atas.")}</p>
                     </div>
                   </>
                 ) : (
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Tipe QR ini belum punya ikon otomatis — pilih dari Galeri atau Upload sendiri.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Tipe QR ini belum punya ikon otomatis — pilih dari Galeri atau Upload sendiri.")}</p>
                 )}
               </div>
             )}
@@ -634,7 +635,7 @@ export function QrCodeGenerator() {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{activeGalleryIcon ? `Dipilih: ${activeGalleryIcon.label}` : "Pilih salah satu ikon di atas."}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{activeGalleryIcon ? tr("Dipilih: {0}", activeGalleryIcon.label) : tr("Pilih salah satu ikon di atas.")}</p>
               </div>
             )}
 
@@ -643,14 +644,14 @@ export function QrCodeGenerator() {
                 <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-5 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all group">
                   {logoFile && logoDataUrl ? (
                     <div className="flex items-center gap-4 w-full pr-14">
-                      <img src={logoDataUrl} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
-                      <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium">Logo terpasang — klik untuk ganti</span>
+                      <img src={logoDataUrl} alt={tr("Logo")} className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
+                      <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium">{tr("Logo terpasang — klik untuk ganti")}</span>
                     </div>
                   ) : (
                     <div className="text-center">
                       <div className="flex justify-center mb-2 text-slate-400 dark:text-slate-500"><Upload className="w-7 h-7" /></div>
-                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload Logo <span className="text-indigo-600 dark:text-indigo-400">PNG/JPG</span></p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Akan tampil di tengah QR code</p>
+                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{tr("Upload Logo")} <span className="text-indigo-600 dark:text-indigo-400">{tr("PNG/JPG")}</span></p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{tr("Akan tampil di tengah QR code")}</p>
                     </div>
                   )}
                   <input type="file" className="hidden" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)} />
@@ -658,7 +659,7 @@ export function QrCodeGenerator() {
                 {logoFile && (
                   <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLogoFile(null); }}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-red-500 font-semibold hover:text-red-700">
-                    Hapus
+                    {tr("Hapus")}
                   </button>
                 )}
               </div>
@@ -667,7 +668,7 @@ export function QrCodeGenerator() {
             {logoMode !== "none" && logoDataUrl && (
               <div className="space-y-4 pt-1 border-t border-slate-100 dark:border-slate-800">
                 <div>
-                  <Label>Bentuk Bingkai Logo</Label>
+                  <Label>{tr("Bentuk Bingkai Logo")}</Label>
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
                     {LOGO_SHAPE_OPTIONS.map((o) => (
                       <button key={o.id} type="button" data-testid={`logo-shape-${o.id}`} onClick={() => setLogoShape(o.id)} className={pillClass(logoShape === o.id)}>
@@ -676,54 +677,54 @@ export function QrCodeGenerator() {
                     ))}
                   </div>
                   {logoShape === "none" && (
-                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Mode "Asli" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar &amp; logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">{tr("Mode \"Asli\" memakai gambar apa adanya tanpa bantalan bersih di sekitarnya — di ukuran besar & logo yang ramai, ini bisa menurunkan keterbacaan. Kecilkan ukuran logo atau pakai bentuk lain bila QR sulit dipindai.")}</p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Ukuran Logo</span>
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("Ukuran Logo")}</span>
                       <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{Math.round(logoSizeRatio * 100)}%</span>
                     </div>
-                    <GamatoSlider min={0.15} max={0.45} step={0.01} value={logoSizeRatio} onChange={setLogoSizeRatio} aria-label="Ukuran logo" />
+                    <GamatoSlider min={0.15} max={0.45} step={0.01} value={logoSizeRatio} onChange={setLogoSizeRatio} aria-label={tr("Ukuran logo")} />
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">Margin Logo</span>
-                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{logoMargin}px</span>
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{tr("Margin Logo")}</span>
+                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{tr("{0}px", logoMargin)}</span>
                     </div>
-                    <GamatoSlider min={0} max={20} step={1} value={logoMargin} onChange={setLogoMargin} aria-label="Margin logo" />
+                    <GamatoSlider min={0} max={20} step={1} value={logoMargin} onChange={setLogoMargin} aria-label={tr("Margin logo")} />
                   </div>
                 </div>
-                <GamatoCheckbox checked={logoHideBackgroundDots} onChange={setLogoHideBackgroundDots} label="Sembunyikan titik QR di belakang logo" />
+                <GamatoCheckbox checked={logoHideBackgroundDots} onChange={setLogoHideBackgroundDots} label={tr("Sembunyikan titik QR di belakang logo")} />
               </div>
             )}
           </CollapsibleSection>
 
           {/* Frame / label */}
-          <CollapsibleSection title="Bingkai & Label Teks" subtitle='Tambahkan banner "SCAN ME" di atas/bawah' icon={<FrameIcon className="w-4 h-4" />}>
+          <CollapsibleSection title={tr("Bingkai & Label Teks")} subtitle={tr("Tambahkan banner \"SCAN ME\" di atas/bawah")} icon={<FrameIcon className="w-4 h-4" />}>
             <div className="flex items-center justify-between -mt-1">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aktifkan bingkai</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{tr("Aktifkan bingkai")}</span>
               <GamatoCheckbox checked={frameEnabled} onChange={setFrameEnabled} testId="frame-enabled-checkbox" />
             </div>
             {frameEnabled && (
               <div className="space-y-4">
-                <Input id="qr-frame-text" label="Teks Label" value={frameText} onChange={(e) => setFrameText(e.target.value)} placeholder="SCAN ME" maxLength={40} />
+                <Input id="qr-frame-text" label={tr("Teks Label")} value={frameText} onChange={(e) => setFrameText(e.target.value)} placeholder={tr("SCAN ME")} maxLength={40} />
                 <div>
-                  <Label>Posisi</Label>
+                  <Label>{tr("Posisi")}</Label>
                   <div className="flex gap-1.5 mt-1.5">
                     {(["top", "bottom"] as const).map((pos) => (
                       <button key={pos} type="button" onClick={() => setFramePosition(pos)} className={pillClass(framePosition === pos)}>
-                        {pos === "top" ? "Atas" : "Bawah"}
+                        {pos === "top" ? tr("Atas") : tr("Bawah")}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <GamatoColorPicker label="Warna Latar Label" value={frameBgColor} onChange={setFrameBgColor} />
-                  <GamatoColorPicker label="Warna Teks Label" value={frameTextColor} onChange={setFrameTextColor} />
+                  <GamatoColorPicker label={tr("Warna Latar Label")} value={frameBgColor} onChange={setFrameBgColor} />
+                  <GamatoColorPicker label={tr("Warna Teks Label")} value={frameTextColor} onChange={setFrameTextColor} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Bingkai disertakan pada unduhan PNG/JPEG/WEBP. Format SVG tetap diunduh tanpa bingkai.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Bingkai disertakan pada unduhan PNG/JPEG/WEBP. Format SVG tetap diunduh tanpa bingkai.")}</p>
               </div>
             )}
           </CollapsibleSection>
@@ -732,9 +733,9 @@ export function QrCodeGenerator() {
         {/* RIGHT: Preview */}
         <div className="lg:sticky lg:top-24 space-y-4">
           <div className="flex items-center justify-center gap-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Preview Real-time</p>
-            <GamatoTooltip label="Muat ulang preview bila tidak muncul" side="top">
-              <button type="button" onClick={refreshPreview} aria-label="Segarkan pratinjau" title="Segarkan pratinjau" className="p-1.5 -m-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Preview Real-time")}</p>
+            <GamatoTooltip label={tr("Muat ulang preview bila tidak muncul")} side="top">
+              <button type="button" onClick={refreshPreview} aria-label={tr("Segarkan pratinjau")} title={tr("Segarkan pratinjau")} className="p-1.5 -m-1.5 rounded-lg text-slate-300 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             </GamatoTooltip>
@@ -751,7 +752,7 @@ export function QrCodeGenerator() {
             >
               {frameEnabled && framePosition === "top" && (
                 <div className="rounded-t-2xl px-5 py-2.5 text-center font-bold text-sm truncate" style={{ backgroundColor: frameBgColor, color: frameTextColor }}>
-                  {frameText.trim() || "SCAN ME"}
+                  {frameText.trim() || tr("SCAN ME")}
                 </div>
               )}
               {/* The QR container div is ALWAYS mounted (never conditionally
@@ -770,38 +771,38 @@ export function QrCodeGenerator() {
               </div>
               {frameEnabled && framePosition === "bottom" && (
                 <div className="rounded-b-2xl px-5 py-2.5 text-center font-bold text-sm truncate" style={{ backgroundColor: frameBgColor, color: frameTextColor }}>
-                  {frameText.trim() || "SCAN ME"}
+                  {frameText.trim() || tr("SCAN ME")}
                 </div>
               )}
             </div>
             {!payload.trim() && (
               <div className="w-56 h-56 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center">
-                <p className="text-sm text-slate-400 dark:text-slate-500 text-center px-6">Isi form di kiri untuk melihat preview QR</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center px-6">{tr("Isi form di kiri untuk melihat preview QR")}</p>
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <Btn onClick={() => download("png")} disabled={!payload.trim()} className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-lg shadow-indigo-600/20">
-              <Download className="w-4 h-4" />PNG
+              <Download className="w-4 h-4" />{tr("PNG")}
             </Btn>
             <Btn onClick={() => download("svg")} disabled={!payload.trim()} variant="secondary" className="py-3">
-              <Download className="w-4 h-4" />SVG
+              <Download className="w-4 h-4" />{tr("SVG")}
             </Btn>
             <Btn onClick={() => download("jpeg")} disabled={!payload.trim()} variant="secondary" className="py-3 text-sm">
-              JPEG
+              {tr("JPEG")}
             </Btn>
             <Btn onClick={() => download("webp")} disabled={!payload.trim()} variant="secondary" className="py-3 text-sm">
-              WEBP
+              {tr("WEBP")}
             </Btn>
           </div>
 
           <Btn onClick={copyToClipboard} disabled={!payload.trim()} variant="secondary" className="w-full py-3">
-            {copyState === "copied" ? <><Check className="w-4 h-4 text-emerald-500" />Tersalin!</> : <><ClipboardCopy className="w-4 h-4" />Salin ke Clipboard</>}
+            {copyState === "copied" ? <><Check className="w-4 h-4 text-emerald-500" />{tr("Tersalin!")}</> : <><ClipboardCopy className="w-4 h-4" />{tr("Salin ke Clipboard")}</>}
           </Btn>
           {copyError && copyState === "error" && <p className="text-xs text-center text-amber-600 dark:text-amber-400">{copyError}</p>}
 
-          <div className="text-center"><SectionBadge>Diproses langsung di perangkatmu</SectionBadge></div>
+          <div className="text-center"><SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge></div>
         </div>
       </div>
     </div>

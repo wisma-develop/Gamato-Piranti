@@ -14,6 +14,7 @@ import { xlsxToCsv, xlsxToPdf, xlsxToJson, xlsxToTsv, dataTextToXlsx, dataTextTo
 import { audioFileToWav, audioFileToCompressed } from "./converters/audioConvert";
 import { convertVideoFile, extractAudioFromVideoFile, videoToGifFile, getVideoOutputExt } from "./converters/videoConvert";
 import { filesToZip } from "./converters/archiveConvert";
+import { tr } from "@/i18n";
 
 const DATA_FORMATS = new Set(["json", "csv", "tsv", "xml", "yaml"]);
 const IMAGE_FORMATS = new Set(["png", "jpg", "webp", "bmp", "gif", "svg", "ico"]);
@@ -43,7 +44,7 @@ async function convertFromDataFormatText(text: string, source: DataFormat, targe
   }
   if (target === "xlsx") return { blob: await dataTextToXlsx(text, source), filename: withExt(title, "xlsx") };
   if (target === "pdf") return { blob: await dataTextToPdfTable(text, source, title), filename: withExt(title, "pdf") };
-  throw new Error(`Kombinasi ${source} → ${target} belum didukung.`);
+  throw new Error(tr("Kombinasi {0} → {1} belum didukung.", source, target));
 }
 
 export async function convertText(text: string, source: string, target: string, opts: { title?: string } = {}): Promise<ConvertOutput> {
@@ -75,7 +76,7 @@ export async function convertText(text: string, source: string, target: string, 
     if (target === "html") return { blob: await markdownToHtmlBlob(text), filename: withExt(title, "html") };
   }
 
-  throw new Error(`Kombinasi ${source} → ${target} belum didukung dalam mode teks.`);
+  throw new Error(tr("Kombinasi {0} → {1} belum didukung dalam mode teks.", source, target));
 }
 
 export async function convertFile(
@@ -170,11 +171,11 @@ export async function convertFile(
     }
   }
 
-  throw new Error(`Kombinasi ${source} → ${target} belum didukung.`);
+  throw new Error(tr("Kombinasi {0} → {1} belum didukung.", source, target));
 }
 
 export async function convertFilesToZip(files: File[], title: string): Promise<ConvertOutput> {
-  if (!files.length) throw new Error("Pilih setidaknya satu file untuk digabung ke ZIP.");
+  if (!files.length) throw new Error(tr("Pilih setidaknya satu file untuk digabung ke ZIP."));
   const blob = await filesToZip(files);
   return { blob, filename: withExt(title || "berkas-gamato-piranti", "zip") };
 }

@@ -36,18 +36,19 @@ import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { tr } from "@/i18n";
 
 type Side = "front" | "back";
 type TabId = "template" | "data" | "ukuran" | "latar" | "elemen" | "peran" | "massal";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "template", label: "Template", icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { id: "data", label: "Data Peserta", icon: <Contact className="w-3.5 h-3.5" /> },
-  { id: "ukuran", label: "Ukuran & Lubang", icon: <Ruler className="w-3.5 h-3.5" /> },
-  { id: "latar", label: "Latar Belakang", icon: <Palette className="w-3.5 h-3.5" /> },
-  { id: "elemen", label: "Elemen", icon: <Layers className="w-3.5 h-3.5" /> },
-  { id: "peran", label: "Warna Peran", icon: <Paintbrush className="w-3.5 h-3.5" /> },
-  { id: "massal", label: "Massal (Bulk)", icon: <Users className="w-3.5 h-3.5" /> },
+  { id: "template", label: tr("Template"), icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { id: "data", label: tr("Data Peserta"), icon: <Contact className="w-3.5 h-3.5" /> },
+  { id: "ukuran", label: tr("Ukuran & Lubang"), icon: <Ruler className="w-3.5 h-3.5" /> },
+  { id: "latar", label: tr("Latar Belakang"), icon: <Palette className="w-3.5 h-3.5" /> },
+  { id: "elemen", label: tr("Elemen"), icon: <Layers className="w-3.5 h-3.5" /> },
+  { id: "peran", label: tr("Warna Peran"), icon: <Paintbrush className="w-3.5 h-3.5" /> },
+  { id: "massal", label: tr("Massal (Bulk)"), icon: <Users className="w-3.5 h-3.5" /> },
 ];
 
 interface Studio { design: NametagDesign; rec: NtRecord }
@@ -69,12 +70,12 @@ function ToggleRow<T extends string>({ options, value, onChange }: { options: { 
 }
 
 const elLabel = (el: NtElement): string =>
-  el.kind === "text" ? (el.bind ? NT_FIELD_LABEL[el.bind] : el.text || "Teks Kosong")
-  : el.kind === "image" ? "Gambar / Logo"
-  : el.kind === "photo" ? "Foto Peserta"
-  : el.kind === "qr" ? "QR Code"
-  : el.kind === "barcode" ? "Barcode"
-  : `Bentuk · ${el.shape === "rect" ? "Kotak" : el.shape === "circle" ? "Lingkaran" : "Garis"}`;
+  el.kind === "text" ? (el.bind ? NT_FIELD_LABEL[el.bind] : el.text || tr("Teks Kosong"))
+  : el.kind === "image" ? tr("Gambar / Logo")
+  : el.kind === "photo" ? tr("Foto Peserta")
+  : el.kind === "qr" ? tr("QR Code")
+  : el.kind === "barcode" ? tr("Barcode")
+  : tr("Bentuk · {0}", el.shape === "rect" ? tr("Kotak") : el.shape === "circle" ? tr("Lingkaran") : "Garis");
 
 const elIcon = (el: NtElement) =>
   el.kind === "text" ? <Type className="w-3.5 h-3.5" /> : el.kind === "image" ? <ImageIcon className="w-3.5 h-3.5" /> : el.kind === "photo" ? <UserSquare2 className="w-3.5 h-3.5" />
@@ -129,18 +130,18 @@ export function NametagGenerator() {
 
   // ── element CRUD ──
   const addEl = (el: NtElement) => { updateSide((side) => ({ ...side, elements: [...side.elements, el] })); setSelectedId(el.id); };
-  const addText = () => addEl(makeText({ text: "Teks baru", fontSize: 12 }));
+  const addText = () => addEl(makeText({ text: tr("Teks baru"), fontSize: 12 }));
   const addShape = (shape: "rect" | "circle" | "line") => addEl(makeShape({ shape, ...(shape === "line" ? { widthPct: 30, heightPct: 0.8 } : {}) }));
   const addPhoto = () => addEl(makePhoto());
   const addQr = () => addEl(makeQr());
   const addBarcode = () => addEl(makeBarcode());
   const addImageFile = async (file: File | null) => {
     if (!file) return;
-    try { addEl(makeImage({ src: await fileToDataUrl(file) })); } catch { setInfo({ type: "error", text: "Gagal memuat gambar." }); }
+    try { addEl(makeImage({ src: await fileToDataUrl(file) })); } catch { setInfo({ type: "error", text: tr("Gagal memuat gambar.") }); }
   };
   const replaceImage = async (id: string, file: File | null) => {
     if (!file) return;
-    try { updateElement(id, { src: await fileToDataUrl(file) }); } catch { setInfo({ type: "error", text: "Gagal memuat gambar." }); }
+    try { updateElement(id, { src: await fileToDataUrl(file) }); } catch { setInfo({ type: "error", text: tr("Gagal memuat gambar.") }); }
   };
   const removeEl = (id: string) => { updateSide((side) => ({ ...side, elements: side.elements.filter((e) => e.id !== id) })); if (selectedId === id) setSelectedId(null); };
   const dupEl = (id: string) => {
@@ -165,7 +166,7 @@ export function NametagGenerator() {
   const bgPatch = (p: Record<string, unknown>, o?: { continuous?: boolean }) => updateSide((side) => ({ ...side, background: { ...side.background, ...p } as NtSide["background"] }), o);
   const setBgImageFile = async (file: File | null) => {
     if (!file) return;
-    try { bgPatch({ src: await fileToDataUrl(file) }); } catch { setInfo({ type: "error", text: "Gagal memuat gambar latar." }); }
+    try { bgPatch({ src: await fileToDataUrl(file) }); } catch { setInfo({ type: "error", text: tr("Gagal memuat gambar latar.") }); }
   };
 
   // ── template / size / photo / roles ──
@@ -176,7 +177,7 @@ export function NametagGenerator() {
   };
   const uploadSamplePhoto = async (file: File | null) => {
     if (!file) return;
-    try { updateRec({ photo: await ingestPhoto(file) }); } catch { setInfo({ type: "error", text: "Foto tidak bisa dibaca." }); }
+    try { updateRec({ photo: await ingestPhoto(file) }); } catch { setInfo({ type: "error", text: tr("Foto tidak bisa dibaca.") }); }
   };
   const setRoles = (roles: NametagDesign["roles"], o?: { continuous?: boolean }) => updateDesign({ roles }, o);
   const addRoleNamed = (role: string) => {
@@ -236,12 +237,12 @@ export function NametagGenerator() {
   const baseName = sanitizeFileName(shown.name?.replace(/\u200B/g, "") || "name-tag");
   const wrapExport = async (fn: () => Promise<void>) => {
     setInfo(null); setIsExporting(true);
-    try { await fn(); } catch (err: any) { setInfo({ type: "error", text: err?.message || "Ekspor gagal." }); } finally { setIsExporting(false); }
+    try { await fn(); } catch (err: any) { setInfo({ type: "error", text: err?.message || tr("Ekspor gagal.") }); } finally { setIsExporting(false); }
   };
 
   const downloadPng = () => wrapExport(async () => {
     downloadBlob(await canvasToBlob(await fresh(activeSide)), `${baseName}-${activeSide === "front" ? "depan" : "belakang"}.png`);
-    setInfo({ type: "success", text: `Name tag diunduh sebagai PNG (${exportPpm === 24 ? "600" : "300"} dpi).` });
+    setInfo({ type: "success", text: tr("Name tag diunduh sebagai PNG ({0} dpi).", exportPpm === 24 ? "600" : "300") });
   });
   const downloadPdf = (mode: "current" | "both") => wrapExport(async () => {
     const pdf = await PDFDocument.create();
@@ -251,8 +252,8 @@ export function NametagGenerator() {
       pdf.addPage([wPt, hPt]).drawImage(img, { x: 0, y: 0, width: wPt, height: hPt });
     }
     await stampGamatoBranding(pdf);
-    downloadBlob(new Blob([(await pdf.save()) as BlobPart], { type: "application/pdf" }), `${baseName}-name-tag${mode === "both" ? "" : `-${activeSide === "front" ? "depan" : "belakang"}`}.pdf`);
-    setInfo({ type: "success", text: `Name tag diunduh sebagai PDF${mode === "both" ? " (2 halaman)" : ""}.` });
+    downloadBlob(new Blob([(await pdf.save()) as BlobPart], { type: "application/pdf" }), tr("{0}-name-tag{1}.pdf", baseName, mode === "both" ? "" : `-${activeSide === "front" ? "depan" : "belakang"}`));
+    setInfo({ type: "success", text: tr("Name tag diunduh sebagai PDF{0}.", mode === "both" ? tr(" (2 halaman)") : "") });
   });
   const downloadTent = () => wrapExport(async () => {
     const r = await exportNtSheet({
@@ -260,13 +261,13 @@ export function NametagGenerator() {
       sheet: { paper: "a4", landscape: false, marginMm: 8, gapMm: 0, cropMarks: true, duplexMirror: false, tentFold: true },
     });
     downloadBlob(r.blob, `${baseName}-meja-nama-lipat.pdf`);
-    setInfo({ type: "success", text: "PDF meja nama lipat diunduh — cetak, lipat di garis putus-putus, berdirikan." });
+    setInfo({ type: "success", text: tr("PDF meja nama lipat diunduh — cetak, lipat di garis putus-putus, berdirikan.") });
   });
   const printCurrent = () => wrapExport(async () => {
-    printCanvasImage(await fresh(activeSide), { widthMm: sizeMM.wMM, title: `Name Tag — ${shown.name || "Gamato Piranti"}` });
+    printCanvasImage(await fresh(activeSide), { widthMm: sizeMM.wMM, title: tr("Name Tag — {0}", shown.name || tr("Gamato Piranti")) });
   });
   const printBoth = () => wrapExport(async () => {
-    printCanvasPages([await fresh("front"), await fresh("back")], { title: `Name Tag — ${shown.name || "Gamato Piranti"}`, pageSizeMm: { w: sizeMM.wMM, h: sizeMM.hMM } });
+    printCanvasPages([await fresh("front"), await fresh("back")], { title: tr("Name Tag — {0}", shown.name || tr("Gamato Piranti")), pageSizeMm: { w: sizeMM.wMM, h: sizeMM.hMM } });
   });
 
   const alignOptions: { value: "left" | "center" | "right"; label: string; icon: React.ReactNode }[] = [
@@ -290,13 +291,13 @@ export function NametagGenerator() {
         <GamatoDesktopRecommended toolName="Name Tag Studio" />
 
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Name Tag</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Name Tag")}</span>
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-2 shadow-sm">
           <ToggleRow value={activeSide} onChange={(v) => { setActiveSide(v); setSelectedId(null); }}
-            options={[{ value: "front", label: "Sisi Depan", icon: <Tag className="w-4 h-4" /> }, { value: "back", label: "Sisi Belakang", icon: <FlipHorizontal2 className="w-4 h-4" /> }]} />
+            options={[{ value: "front", label: tr("Sisi Depan"), icon: <Tag className="w-4 h-4" /> }, { value: "back", label: tr("Sisi Belakang"), icon: <FlipHorizontal2 className="w-4 h-4" /> }]} />
         </div>
 
         <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
@@ -307,7 +308,7 @@ export function NametagGenerator() {
         </div>
 
         {tab === "template" && (
-          <PanelCard title="Template Siap Pakai" subtitle="Setiap template punya ukuran sendiri — warna peran & ukuran kustom Anda tetap dipertahankan">
+          <PanelCard title={tr("Template Siap Pakai")} subtitle={tr("Setiap template punya ukuran sendiri — warna peran & ukuran kustom Anda tetap dipertahankan")}>
             <div className="grid grid-cols-2 gap-2.5">
               {NT_TEMPLATES.map((t) => (
                 <button key={t.id} type="button" data-testid={`nt-tpl-${t.id}`} onClick={() => applyTemplate(t.id)}
@@ -325,14 +326,14 @@ export function NametagGenerator() {
         )}
 
         {tab === "data" && (
-          <PanelCard title="Data Peserta" subtitle="Sumber teks untuk elemen yang ditautkan — untuk satu name tag (massal ada di tab Massal)">
+          <PanelCard title={tr("Data Peserta")} subtitle={tr("Sumber teks untuk elemen yang ditautkan — untuk satu name tag (massal ada di tab Massal)")}>
             <div className="grid sm:grid-cols-2 gap-3">
               {NT_FIELD_KEYS.map((f) => (
                 <Input key={f} label={NT_FIELD_LABEL[f]} value={rec[f]} onChange={(e) => updateRec({ [f]: e.target.value }, { continuous: true })} data-testid={`nt-data-${f}`} />
               ))}
             </div>
             <div>
-              <Label>Pilih peran cepat</Label>
+              <Label>{tr("Pilih peran cepat")}</Label>
               <div className="flex flex-wrap gap-1.5 mt-1" data-testid="nt-role-chips">
                 {design.roles.map((r) => (
                   <button key={r.role} type="button" onClick={() => updateRec({ role: r.role })} aria-pressed={rec.role.toLowerCase() === r.role.toLowerCase()}
@@ -344,11 +345,11 @@ export function NametagGenerator() {
               </div>
             </div>
             <div>
-              <Label>Foto contoh (untuk elemen Foto)</Label>
+              <Label>{tr("Foto contoh (untuk elemen Foto)")}</Label>
               <div className="flex items-center gap-3 mt-1">
-                {rec.photo ? <img src={rec.photo} alt="Foto contoh" className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700" /> : <div className="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-300"><UserSquare2 className="w-6 h-6" /></div>}
+                {rec.photo ? <img src={rec.photo} alt={tr("Foto contoh")} className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700" /> : <div className="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-300"><UserSquare2 className="w-6 h-6" /></div>}
                 <label className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
-                  <ImageIcon className="w-3.5 h-3.5" />{rec.photo ? "Ganti foto" : "Unggah foto"}
+                  <ImageIcon className="w-3.5 h-3.5" />{rec.photo ? tr("Ganti foto") : tr("Unggah foto")}
                   <input type="file" accept="image/*" className="hidden" data-testid="nt-sample-photo" onChange={(e) => { void uploadSamplePhoto(e.target.files?.[0] ?? null); e.target.value = ""; }} />
                 </label>
                 {rec.photo && <Btn variant="ghost" className="!py-1.5" onClick={() => updateRec({ photo: undefined })}><Trash2 className="w-4 h-4" /></Btn>}
@@ -360,7 +361,7 @@ export function NametagGenerator() {
 
         {tab === "ukuran" && (
           <>
-            <PanelCard title="Ukuran Name Tag" subtitle="Elemen menyesuaikan otomatis (posisi berbasis persentase)">
+            <PanelCard title={tr("Ukuran Name Tag")} subtitle={tr("Elemen menyesuaikan otomatis (posisi berbasis persentase)")}>
               <div className="grid grid-cols-2 gap-2">
                 {NT_SIZES.map((s) => (
                   <button key={s.id} type="button" onClick={() => updateDesign({ sizeId: s.id as NtSizeId })} data-testid={`nt-size-${s.id}`}
@@ -373,27 +374,27 @@ export function NametagGenerator() {
               </div>
               {design.sizeId === "custom" && (
                 <div className="grid grid-cols-2 gap-3 pt-1">
-                  <Input label="Lebar (mm)" type="number" min={30} max={300} value={design.customWMM} onChange={(e) => updateDesign({ customWMM: Number(e.target.value) || 90 }, { continuous: true })} />
-                  <Input label="Tinggi (mm)" type="number" min={20} max={300} value={design.customHMM} onChange={(e) => updateDesign({ customHMM: Number(e.target.value) || 55 }, { continuous: true })} />
+                  <Input label={tr("Lebar (mm)")} type="number" min={30} max={300} value={design.customWMM} onChange={(e) => updateDesign({ customWMM: Number(e.target.value) || 90 }, { continuous: true })} />
+                  <Input label={tr("Tinggi (mm)")} type="number" min={20} max={300} value={design.customHMM} onChange={(e) => updateDesign({ customHMM: Number(e.target.value) || 55 }, { continuous: true })} />
                 </div>
               )}
             </PanelCard>
-            <PanelCard title="Lubang Tali (Lanyard)" subtitle="Panduan lubang tampil di pratinjau (garis putus-putus merah) — tidak ikut tercetak kecuali penanda dinyalakan">
+            <PanelCard title={tr("Lubang Tali (Lanyard)")} subtitle={tr("Panduan lubang tampil di pratinjau (garis putus-putus merah) — tidak ikut tercetak kecuali penanda dinyalakan")}>
               <ToggleRow value={design.hole.shape} onChange={(v) => updateHole({ shape: v })}
-                options={[{ value: "none", label: "Tanpa" }, { value: "slot", label: "Slot 14×3,5" }, { value: "circle", label: "Bulat Ø5" }]} />
+                options={[{ value: "none", label: tr("Tanpa") }, { value: "slot", label: tr("Slot 14×3,5") }, { value: "circle", label: tr("Bulat Ø5") }]} />
               {design.hole.shape !== "none" && (
                 <>
-                  <ToggleRow value={design.hole.edge} onChange={(v) => updateHole({ edge: v })} options={[{ value: "top", label: "Di atas" }, { value: "left", label: "Di kiri" }]} />
-                  <SliderField label="Jarak pusat lubang dari tepi" unit=" mm" min={2} max={30} step={0.5} value={design.hole.offsetMM} onChange={(v) => updateHole({ offsetMM: v }, { continuous: true })} />
-                  <GamatoCheckbox checked={design.hole.mark} onChange={(v) => updateHole({ mark: v })} testId="nt-hole-mark" label={<span className="text-sm text-slate-600 dark:text-slate-300">Cetak garis penanda lubang (panduan melubangi)</span>} />
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Jaga agar teks & QR tidak menutupi area lubang.</p>
+                  <ToggleRow value={design.hole.edge} onChange={(v) => updateHole({ edge: v })} options={[{ value: "top", label: tr("Di atas") }, { value: "left", label: tr("Di kiri") }]} />
+                  <SliderField label={tr("Jarak pusat lubang dari tepi")} unit={tr(" mm")} min={2} max={30} step={0.5} value={design.hole.offsetMM} onChange={(v) => updateHole({ offsetMM: v }, { continuous: true })} />
+                  <GamatoCheckbox checked={design.hole.mark} onChange={(v) => updateHole({ mark: v })} testId="nt-hole-mark" label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Cetak garis penanda lubang (panduan melubangi)")}</span>} />
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Jaga agar teks & QR tidak menutupi area lubang.")}</p>
                 </>
               )}
             </PanelCard>
-            <PanelCard title="Kualitas Ekspor" subtitle="Berlaku untuk PNG, PDF, dan cetak dari tombol di samping pratinjau">
+            <PanelCard title={tr("Kualitas Ekspor")} subtitle={tr("Berlaku untuk PNG, PDF, dan cetak dari tombol di samping pratinjau")}>
               <GamatoSelect value={String(exportPpm)} onChange={(e) => setExportPpm(Number(e.target.value) as 12 | 24)} data-testid="nt-quality">
-                <option value="12">Standar — 300 dpi (cepat, cukup untuk cetak biasa)</option>
-                <option value="24">Tinggi — 600 dpi (paling tajam, berkas lebih besar)</option>
+                <option value="12">{tr("Standar — 300 dpi (cepat, cukup untuk cetak biasa)")}</option>
+                <option value="24">{tr("Tinggi — 600 dpi (paling tajam, berkas lebih besar)")}</option>
               </GamatoSelect>
               <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
             </PanelCard>
@@ -401,31 +402,31 @@ export function NametagGenerator() {
         )}
 
         {tab === "latar" && (
-          <PanelCard title={`Latar Belakang — ${activeSide === "front" ? "Sisi Depan" : "Sisi Belakang"}`} subtitle="Warna solid, gradasi, atau gambar kustom">
+          <PanelCard title={tr("Latar Belakang — {0}", activeSide === "front" ? tr("Sisi Depan") : tr("Sisi Belakang"))} subtitle={tr("Warna solid, gradasi, atau gambar kustom")}>
             <ToggleRow value={currentSide.background.type} onChange={setBgType}
-              options={[{ value: "solid", label: "Warna", icon: <Palette className="w-3.5 h-3.5" /> }, { value: "gradient", label: "Gradasi", icon: <Layers className="w-3.5 h-3.5" /> }, { value: "image", label: "Gambar", icon: <ImageIcon className="w-3.5 h-3.5" /> }]} />
-            {currentSide.background.type === "solid" && <GamatoColorPicker label="Warna Latar" value={currentSide.background.color} onChange={(c) => bgPatch({ color: c })} />}
+              options={[{ value: "solid", label: tr("Warna"), icon: <Palette className="w-3.5 h-3.5" /> }, { value: "gradient", label: tr("Gradasi"), icon: <Layers className="w-3.5 h-3.5" /> }, { value: "image", label: tr("Gambar"), icon: <ImageIcon className="w-3.5 h-3.5" /> }]} />
+            {currentSide.background.type === "solid" && <GamatoColorPicker label={tr("Warna Latar")} value={currentSide.background.color} onChange={(c) => bgPatch({ color: c })} />}
             {currentSide.background.type === "gradient" && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <GamatoColorPicker label="Warna Awal" value={currentSide.background.from} onChange={(c) => bgPatch({ from: c })} />
-                  <GamatoColorPicker label="Warna Akhir" value={currentSide.background.to} onChange={(c) => bgPatch({ to: c })} />
+                  <GamatoColorPicker label={tr("Warna Awal")} value={currentSide.background.from} onChange={(c) => bgPatch({ from: c })} />
+                  <GamatoColorPicker label={tr("Warna Akhir")} value={currentSide.background.to} onChange={(c) => bgPatch({ to: c })} />
                 </div>
-                <SliderField label="Sudut Gradasi" unit="°" min={0} max={360} value={currentSide.background.angle} onChange={(v) => bgPatch({ angle: v }, { continuous: true })} />
+                <SliderField label={tr("Sudut Gradasi")} unit="°" min={0} max={360} value={currentSide.background.angle} onChange={(v) => bgPatch({ angle: v }, { continuous: true })} />
               </div>
             )}
             {currentSide.background.type === "image" && (
               <div className="space-y-4">
                 <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-600 dark:text-slate-300">
-                  <ImageIcon className="w-4 h-4" />{currentSide.background.src ? "Ganti Gambar Latar" : "Unggah Gambar Latar"}
+                  <ImageIcon className="w-4 h-4" />{currentSide.background.src ? tr("Ganti Gambar Latar") : tr("Unggah Gambar Latar")}
                   <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setBgImageFile(e.target.files?.[0] ?? null)} />
                 </label>
                 {currentSide.background.src && (
                   <>
-                    <ToggleRow value={currentSide.background.fit} onChange={(v) => bgPatch({ fit: v })} options={[{ value: "cover", label: "Penuhi (Cover)" }, { value: "contain", label: "Sesuaikan (Contain)" }]} />
+                    <ToggleRow value={currentSide.background.fit} onChange={(v) => bgPatch({ fit: v })} options={[{ value: "cover", label: tr("Penuhi (Cover)") }, { value: "contain", label: tr("Sesuaikan (Contain)") }]} />
                     <div className="grid grid-cols-2 gap-3 items-end">
-                      <GamatoColorPicker label="Warna Overlay" value={currentSide.background.overlayColor} onChange={(c) => bgPatch({ overlayColor: c })} />
-                      <SliderField label="Opasitas Overlay" unit="%" min={0} max={100} value={Math.round(currentSide.background.overlayOpacity * 100)} onChange={(v) => bgPatch({ overlayOpacity: v / 100 }, { continuous: true })} />
+                      <GamatoColorPicker label={tr("Warna Overlay")} value={currentSide.background.overlayColor} onChange={(c) => bgPatch({ overlayColor: c })} />
+                      <SliderField label={tr("Opasitas Overlay")} unit="%" min={0} max={100} value={Math.round(currentSide.background.overlayOpacity * 100)} onChange={(v) => bgPatch({ overlayOpacity: v / 100 }, { continuous: true })} />
                     </div>
                   </>
                 )}
@@ -436,48 +437,48 @@ export function NametagGenerator() {
         )}
 
         {tab === "peran" && (
-          <PanelCard title="Warna per Peran" subtitle="Pita, blok, dan teks yang diberi tanda “ikuti warna peran” otomatis berganti warna sesuai peran tiap orang">
+          <PanelCard title={tr("Warna per Peran")} subtitle={tr("Pita, blok, dan teks yang diberi tanda “ikuti warna peran” otomatis berganti warna sesuai peran tiap orang")}>
             <div className="space-y-2" data-testid="nt-roles">
               {design.roles.map((r, i) => (
                 <div key={i} className="flex items-center gap-2" data-testid="nt-role-row">
-                  <Input value={r.role} onChange={(e) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, role: e.target.value } : x)), { continuous: true })} aria-label={`Nama peran ${i + 1}`} className="!py-2" />
-                  <GamatoColorPicker compact label={`Warna ${r.role || "peran"}`} value={r.color} onChange={(c) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, color: c } : x)))} />
-                  <button type="button" aria-label="Hapus peran" onClick={() => setRoles(design.roles.filter((_, k) => k !== i))} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
+                  <Input value={r.role} onChange={(e) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, role: e.target.value } : x)), { continuous: true })} aria-label={tr("Nama peran {0}", i + 1)} className="!py-2" />
+                  <GamatoColorPicker compact label={tr("Warna {0}", r.role || "peran")} value={r.color} onChange={(c) => setRoles(design.roles.map((x, k) => (k === i ? { ...x, color: c } : x)))} />
+                  <button type="button" aria-label={tr("Hapus peran")} onClick={() => setRoles(design.roles.filter((_, k) => k !== i))} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
             </div>
             <div className="flex flex-wrap gap-2">
-              <Btn variant="secondary" onClick={() => addRoleNamed(`Peran ${design.roles.length + 1}`)} data-testid="nt-role-add"><Plus className="w-4 h-4" />Tambah peran</Btn>
-              <Btn variant="ghost" onClick={() => updateDesign({ roles: defaultRoles(), roleFallback: "#475569" })}>Setel ulang bawaan</Btn>
+              <Btn variant="secondary" onClick={() => addRoleNamed(tr("Peran {0}", design.roles.length + 1))} data-testid="nt-role-add"><Plus className="w-4 h-4" />{tr("Tambah peran")}</Btn>
+              <Btn variant="ghost" onClick={() => updateDesign({ roles: defaultRoles(), roleFallback: "#475569" })}>{tr("Setel ulang bawaan")}</Btn>
             </div>
-            <GamatoColorPicker label="Warna cadangan (peran tak dikenal / kosong)" value={design.roleFallback} onChange={(c) => updateDesign({ roleFallback: c })} />
-            <p className="text-xs text-slate-400 dark:text-slate-500">Pencocokan peran tidak peka huruf besar/kecil dan mengabaikan spasi ganda. Di tab Elemen, centang “Ikuti warna peran” pada bentuk/teks/foto yang ingin berubah warna.</p>
+            <GamatoColorPicker label={tr("Warna cadangan (peran tak dikenal / kosong)")} value={design.roleFallback} onChange={(c) => updateDesign({ roleFallback: c })} />
+            <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Pencocokan peran tidak peka huruf besar/kecil dan mengabaikan spasi ganda. Di tab Elemen, centang “Ikuti warna peran” pada bentuk/teks/foto yang ingin berubah warna.")}</p>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
           </PanelCard>
         )}
 
         {tab === "elemen" && (
           <>
-            <PanelCard title={`Elemen — ${activeSide === "front" ? "Sisi Depan" : "Sisi Belakang"}`} subtitle="Tambah, seret, dan atur lapisan bebas">
+            <PanelCard title={tr("Elemen — {0}", activeSide === "front" ? tr("Sisi Depan") : tr("Sisi Belakang"))} subtitle={tr("Tambah, seret, dan atur lapisan bebas")}>
               <div className="grid grid-cols-3 gap-2">
-                <Btn variant="secondary" onClick={addText} className="text-xs gap-1.5" data-testid="nt-add-text"><Type className="w-3.5 h-3.5" />Teks</Btn>
-                <Btn variant="secondary" onClick={addPhoto} className="text-xs gap-1.5" data-testid="nt-add-photo"><UserSquare2 className="w-3.5 h-3.5" />Foto</Btn>
-                <Btn variant="secondary" onClick={addQr} className="text-xs gap-1.5" data-testid="nt-add-qr"><QrCode className="w-3.5 h-3.5" />QR</Btn>
-                <Btn variant="secondary" onClick={addBarcode} className="text-xs gap-1.5" data-testid="nt-add-barcode"><Barcode className="w-3.5 h-3.5" />Barcode</Btn>
+                <Btn variant="secondary" onClick={addText} className="text-xs gap-1.5" data-testid="nt-add-text"><Type className="w-3.5 h-3.5" />{tr("Teks")}</Btn>
+                <Btn variant="secondary" onClick={addPhoto} className="text-xs gap-1.5" data-testid="nt-add-photo"><UserSquare2 className="w-3.5 h-3.5" />{tr("Foto")}</Btn>
+                <Btn variant="secondary" onClick={addQr} className="text-xs gap-1.5" data-testid="nt-add-qr"><QrCode className="w-3.5 h-3.5" />{tr("QR")}</Btn>
+                <Btn variant="secondary" onClick={addBarcode} className="text-xs gap-1.5" data-testid="nt-add-barcode"><Barcode className="w-3.5 h-3.5" />{tr("Barcode")}</Btn>
                 <label className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all">
-                  <ImageIcon className="w-3.5 h-3.5" />Logo
+                  <ImageIcon className="w-3.5 h-3.5" />{tr("Logo")}
                   <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { void addImageFile(e.target.files?.[0] ?? null); e.target.value = ""; }} />
                 </label>
                 <div className="flex gap-1">
-                  {([["rect", "Kotak", <Square key="r" className="w-4 h-4" />], ["circle", "Lingkaran", <Circle key="c" className="w-4 h-4" />], ["line", "Garis", <LineIcon key="l" className="w-4 h-4" />]] as const).map(([k, t, ic]) => (
-                    <button key={k} type="button" onClick={() => addShape(k)} title={t} aria-label={`Tambah ${t}`} data-testid={`nt-add-${k}`}
+                  {([["rect", tr("Kotak"), <Square key="r" className="w-4 h-4" />], ["circle", tr("Lingkaran"), <Circle key="c" className="w-4 h-4" />], ["line", "Garis", <LineIcon key="l" className="w-4 h-4" />]] as const).map(([k, t, ic]) => (
+                    <button key={k} type="button" onClick={() => addShape(k)} title={t} aria-label={tr("Tambah {0}", t)} data-testid={`nt-add-${k}`}
                       className="flex-1 inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800">{ic}</button>
                   ))}
                 </div>
               </div>
 
               {currentSide.elements.length === 0 ? (
-                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">Belum ada elemen di sisi ini.</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">{tr("Belum ada elemen di sisi ini.")}</p>
               ) : (
                 <div className="space-y-1.5" data-testid="nt-elements">
                   {currentSide.elements.map((el, idx) => (
@@ -485,9 +486,9 @@ export function NametagGenerator() {
                       className={cn("flex items-center gap-2 px-3 py-2 rounded-xl border-2 cursor-pointer transition-all", selectedId === el.id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-transparent bg-slate-50 dark:bg-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700")}>
                       <span className="text-slate-400 dark:text-slate-500 shrink-0">{elIcon(el)}</span>
                       <span className="flex-1 min-w-0 text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">{elLabel(el)}</span>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); moveEl(el.id, -1); }} disabled={idx === 0} className="p-1 rounded text-slate-400 hover:text-indigo-600 disabled:opacity-30" title="Ke belakang"><ChevronUp className="w-3.5 h-3.5" /></button>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); moveEl(el.id, 1); }} disabled={idx === currentSide.elements.length - 1} className="p-1 rounded text-slate-400 hover:text-indigo-600 disabled:opacity-30" title="Ke depan"><ChevronDown className="w-3.5 h-3.5" /></button>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); dupEl(el.id); }} className="p-1 rounded text-slate-400 hover:text-indigo-600" title="Duplikat"><Copy className="w-3.5 h-3.5" /></button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); moveEl(el.id, -1); }} disabled={idx === 0} className="p-1 rounded text-slate-400 hover:text-indigo-600 disabled:opacity-30" title={tr("Ke belakang")}><ChevronUp className="w-3.5 h-3.5" /></button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); moveEl(el.id, 1); }} disabled={idx === currentSide.elements.length - 1} className="p-1 rounded text-slate-400 hover:text-indigo-600 disabled:opacity-30" title={tr("Ke depan")}><ChevronDown className="w-3.5 h-3.5" /></button>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); dupEl(el.id); }} className="p-1 rounded text-slate-400 hover:text-indigo-600" title={tr("Duplikat")}><Copy className="w-3.5 h-3.5" /></button>
                       <button type="button" onClick={(e) => { e.stopPropagation(); removeEl(el.id); }} className="p-1 rounded text-slate-400 hover:text-red-500" title="Hapus" data-testid="nt-el-del"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   ))}
@@ -496,7 +497,7 @@ export function NametagGenerator() {
             </PanelCard>
 
             {selected && (
-              <PanelCard title="Pengaturan Elemen" subtitle="Seret elemen langsung di pratinjau untuk mengatur posisi">
+              <PanelCard title={tr("Pengaturan Elemen")} subtitle={tr("Seret elemen langsung di pratinjau untuk mengatur posisi")}>
                 {selected.kind === "text" && <TextPanel el={selected} onChange={(p, o) => updateElement(selected.id, p, o)} customFonts={customFonts} isFontLoading={isFontLoading} fontError={fontError} onUploadFont={addCustomFont} onRemoveCustomFont={handleRemoveCustomFont} alignOptions={alignOptions} />}
                 {selected.kind === "shape" && <ShapePanel el={selected} onChange={(p, o) => updateElement(selected.id, p, o)} />}
                 {selected.kind === "image" && <ImagePanel el={selected} onChange={(p, o) => updateElement(selected.id, p, o)} onReplaceFile={(f) => replaceImage(selected.id, f)} />}
@@ -514,13 +515,13 @@ export function NametagGenerator() {
       <PreviewJumpFab targetId="nametag-preview" />
       <div id="nametag-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
-          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret elemen untuk atur posisi</span>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Langsung")}</p>
+          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />{tr("Seret elemen untuk atur posisi")}</span>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-1.5 shadow-sm">
           <ToggleRow value={activeSide} onChange={(v) => { setActiveSide(v); setSelectedId(null); }}
-            options={[{ value: "front", label: "Depan", icon: <Tag className="w-3.5 h-3.5" /> }, { value: "back", label: "Belakang", icon: <FlipHorizontal2 className="w-3.5 h-3.5" /> }]} />
+            options={[{ value: "front", label: tr("Depan"), icon: <Tag className="w-3.5 h-3.5" /> }, { value: "back", label: tr("Belakang"), icon: <FlipHorizontal2 className="w-3.5 h-3.5" /> }]} />
         </div>
 
         <div className="flex justify-center">
@@ -542,22 +543,22 @@ export function NametagGenerator() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500" data-testid="nt-size-info">{sizeMM.wMM} × {sizeMM.hMM} mm · {Math.round(sizeMM.wMM * PX_PER_MM * (exportPpm / PX_PER_MM))}×{Math.round(sizeMM.hMM * PX_PER_MM * (exportPpm / PX_PER_MM))}px saat ekspor</p>
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500" data-testid="nt-size-info">{tr("{0} × {1} mm · {2}×{3}px saat ekspor", sizeMM.wMM, sizeMM.hMM, Math.round(sizeMM.wMM * PX_PER_MM * (exportPpm / PX_PER_MM)), Math.round(sizeMM.hMM * PX_PER_MM * (exportPpm / PX_PER_MM)))}</p>
 
         {info && <GamatoInlineAlert message={info.text} tone={info.type} />}
 
         <div className="grid grid-cols-2 gap-3">
           <Btn onClick={downloadPng} disabled={isExporting} className="gap-2" data-testid="nt-png">
-            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} PNG ({activeSide === "front" ? "Depan" : "Belakang"})
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {tr("PNG (")}{activeSide === "front" ? tr("Depan") : tr("Belakang")})
           </Btn>
-          <Btn onClick={() => downloadPdf("current")} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-pdf"><Download className="w-4 h-4" /> PDF (Sisi Ini)</Btn>
-          <Btn onClick={() => downloadPdf("both")} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-pdf-both"><Layers className="w-4 h-4" /> PDF (2 Sisi)</Btn>
-          <Btn onClick={downloadTent} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-tent"><Tag className="w-4 h-4" /> PDF Lipat (Tent)</Btn>
-          <Btn onClick={printCurrent} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-print-one"><Printer className="w-4 h-4" /> Cetak Sisi Ini</Btn>
-          <Btn onClick={printBoth} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-print-both"><Printer className="w-4 h-4" /> Cetak 2 Sisi</Btn>
+          <Btn onClick={() => downloadPdf("current")} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-pdf"><Download className="w-4 h-4" /> {tr("PDF (Sisi Ini)")}</Btn>
+          <Btn onClick={() => downloadPdf("both")} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-pdf-both"><Layers className="w-4 h-4" /> {tr("PDF (2 Sisi)")}</Btn>
+          <Btn onClick={downloadTent} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-tent"><Tag className="w-4 h-4" /> {tr("PDF Lipat (Tent)")}</Btn>
+          <Btn onClick={printCurrent} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-print-one"><Printer className="w-4 h-4" /> {tr("Cetak Sisi Ini")}</Btn>
+          <Btn onClick={printBoth} disabled={isExporting} variant="secondary" className="gap-2" data-testid="nt-print-both"><Printer className="w-4 h-4" /> {tr("Cetak 2 Sisi")}</Btn>
         </div>
 
-        <div className="text-center"><SectionBadge>Diproses langsung di perangkatmu</SectionBadge></div>
+        <div className="text-center"><SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge></div>
       </div>
     </div>
   );
@@ -580,12 +581,12 @@ function CommonControls<T extends NtElement>({ el, onChange }: { el: T; onChange
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Rotasi" unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
+        <SliderField label={tr("Rotasi")} unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
         <SliderField label="Opasitas" unit="%" min={0} max={100} value={Math.round(el.opacity * 100)} onChange={(v) => onChange({ opacity: v / 100 }, { continuous: true })} />
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Posisi X" unit="%" min={0} max={100} step={0.5} value={el.xPct} onChange={(v) => onChange({ xPct: v }, { continuous: true })} />
-        <SliderField label="Posisi Y" unit="%" min={0} max={100} step={0.5} value={el.yPct} onChange={(v) => onChange({ yPct: v }, { continuous: true })} />
+        <SliderField label={tr("Posisi X")} unit="%" min={0} max={100} step={0.5} value={el.xPct} onChange={(v) => onChange({ xPct: v }, { continuous: true })} />
+        <SliderField label={tr("Posisi Y")} unit="%" min={0} max={100} step={0.5} value={el.yPct} onChange={(v) => onChange({ yPct: v }, { continuous: true })} />
       </div>
     </>
   );
@@ -600,51 +601,51 @@ function TextPanel({ el, onChange, customFonts, isFontLoading, fontError, onUplo
   return (
     <div className="space-y-4">
       <div>
-        <Label>Sumber Teks</Label>
+        <Label>{tr("Sumber Teks")}</Label>
         <GamatoSelect value={el.bind ?? ""} onChange={(e) => onChange({ bind: (e.target.value || null) as NtTextEl["bind"] })} data-testid="nt-bind-select">
-          <option value="">Teks Bebas</option>
-          {NT_FIELD_KEYS.map((f) => <option key={f} value={f}>{`Tertaut: ${NT_FIELD_LABEL[f]}`}</option>)}
+          <option value="">{tr("Teks Bebas")}</option>
+          {NT_FIELD_KEYS.map((f) => <option key={f} value={f}>{tr("Tertaut: {0}", NT_FIELD_LABEL[f])}</option>)}
         </GamatoSelect>
       </div>
-      <Textarea label={el.bind ? "Teks Cadangan (jika data kosong)" : "Isi Teks"} rows={2} value={el.text} onChange={(e) => onChange({ text: e.target.value }, { continuous: true })} />
+      <Textarea label={el.bind ? tr("Teks Cadangan (jika data kosong)") : tr("Isi Teks")} rows={2} value={el.text} onChange={(e) => onChange({ text: e.target.value }, { continuous: true })} />
       <div className="grid grid-cols-2 gap-3 items-start">
         <FontPicker hideUpload value={el.fontFamily} onChange={(family) => onChange({ fontFamily: family })} customFonts={customFonts} isFontLoading={isFontLoading} fontError={fontError} onUpload={onUploadFont} onRemoveCustomFont={onRemoveCustomFont} />
-        <Input label="Ukuran (pt)" type="number" min={4} max={160} step={0.5} value={el.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 11 }, { continuous: true })} />
+        <Input label={tr("Ukuran (pt)")} type="number" min={4} max={160} step={0.5} value={el.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 11 }, { continuous: true })} />
       </div>
       <FontPicker hideSelect value={el.fontFamily} onChange={(family) => onChange({ fontFamily: family })} customFonts={customFonts} isFontLoading={isFontLoading} fontError={fontError} onUpload={onUploadFont} onRemoveCustomFont={onRemoveCustomFont} />
 
-      <GamatoColorPicker label="Warna Teks" value={el.color} onChange={(c) => onChange({ color: c })} />
-      <GamatoCheckbox checked={el.colorFromRole} onChange={(v) => onChange({ colorFromRole: v })} testId="nt-text-role" label={<span className="text-sm text-slate-600 dark:text-slate-300">Ikuti warna peran (menggantikan warna di atas)</span>} />
+      <GamatoColorPicker label={tr("Warna Teks")} value={el.color} onChange={(c) => onChange({ color: c })} />
+      <GamatoCheckbox checked={el.colorFromRole} onChange={(v) => onChange({ colorFromRole: v })} testId="nt-text-role" label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Ikuti warna peran (menggantikan warna di atas)")}</span>} />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Gaya</Label>
+          <Label>{tr("Gaya")}</Label>
           <div className="grid grid-cols-3 gap-2">
-            <button type="button" onClick={() => onChange({ bold: !el.bold })} aria-pressed={el.bold} aria-label="Tebal" className={styleBtn(el.bold)}><Bold className="w-4 h-4" /></button>
-            <button type="button" onClick={() => onChange({ italic: !el.italic })} aria-pressed={el.italic} aria-label="Miring" className={styleBtn(el.italic)}><Italic className="w-4 h-4" /></button>
-            <button type="button" onClick={() => onChange({ uppercase: !el.uppercase })} aria-pressed={el.uppercase} aria-label="Huruf besar" className={styleBtn(el.uppercase)}><CaseUpper className="w-4 h-4" /></button>
+            <button type="button" onClick={() => onChange({ bold: !el.bold })} aria-pressed={el.bold} aria-label={tr("Tebal")} className={styleBtn(el.bold)}><Bold className="w-4 h-4" /></button>
+            <button type="button" onClick={() => onChange({ italic: !el.italic })} aria-pressed={el.italic} aria-label={tr("Miring")} className={styleBtn(el.italic)}><Italic className="w-4 h-4" /></button>
+            <button type="button" onClick={() => onChange({ uppercase: !el.uppercase })} aria-pressed={el.uppercase} aria-label={tr("Huruf besar")} className={styleBtn(el.uppercase)}><CaseUpper className="w-4 h-4" /></button>
           </div>
         </div>
         <div>
-          <Label>Perataan</Label>
+          <Label>{tr("Perataan")}</Label>
           <div className="grid grid-cols-3 gap-2">
-            {alignOptions.map((opt) => <button key={opt.value} type="button" onClick={() => onChange({ align: opt.value })} aria-pressed={el.align === opt.value} aria-label={`Rata ${opt.value}`} className={styleBtn(el.align === opt.value)}>{opt.icon}</button>)}
+            {alignOptions.map((opt) => <button key={opt.value} type="button" onClick={() => onChange({ align: opt.value })} aria-pressed={el.align === opt.value} aria-label={tr("Rata {0}", opt.value)} className={styleBtn(el.align === opt.value)}>{opt.icon}</button>)}
           </div>
         </div>
       </div>
 
       <div>
-        <Label>Jika teks terlalu panjang</Label>
+        <Label>{tr("Jika teks terlalu panjang")}</Label>
         <GamatoSelect value={el.fit} onChange={(e) => onChange({ fit: e.target.value as NtTextEl["fit"] })} data-testid="nt-fit">
-          <option value="none">Apa adanya (bisa meluap)</option>
-          <option value="shrink">Kecilkan otomatis — 1 baris</option>
-          <option value="wrap">Bungkus ke beberapa baris + kecilkan bila perlu</option>
+          <option value="none">{tr("Apa adanya (bisa meluap)")}</option>
+          <option value="shrink">{tr("Kecilkan otomatis — 1 baris")}</option>
+          <option value="wrap">{tr("Bungkus ke beberapa baris + kecilkan bila perlu")}</option>
         </GamatoSelect>
-        {el.fit === "wrap" && <div className="mt-3"><SliderField label="Maksimum baris" unit=" baris" min={1} max={4} value={el.maxLines} onChange={(v) => onChange({ maxLines: v })} /></div>}
+        {el.fit === "wrap" && <div className="mt-3"><SliderField label={tr("Maksimum baris")} unit={tr(" baris")} min={1} max={4} value={el.maxLines} onChange={(v) => onChange({ maxLines: v })} /></div>}
       </div>
 
-      <SliderField label="Lebar Kotak Teks" unit="%" min={10} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-      <SliderField label="Jarak Antar Huruf" unit="pt" min={0} max={10} step={0.5} value={el.letterSpacing} onChange={(v) => onChange({ letterSpacing: v }, { continuous: true })} />
+      <SliderField label={tr("Lebar Kotak Teks")} unit="%" min={10} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+      <SliderField label={tr("Jarak Antar Huruf")} unit="pt" min={0} max={10} step={0.5} value={el.letterSpacing} onChange={(v) => onChange({ letterSpacing: v }, { continuous: true })} />
       <CommonControls el={el} onChange={onChange as PatchFn<NtElement>} />
     </div>
   );
@@ -653,30 +654,30 @@ function TextPanel({ el, onChange, customFonts, isFontLoading, fontError, onUplo
 function ShapePanel({ el, onChange }: { el: NtShapeEl; onChange: PatchFn<NtShapeEl> }) {
   return (
     <div className="space-y-4">
-      <ToggleRow value={el.shape} onChange={(v) => onChange({ shape: v })} options={[{ value: "rect", label: "Kotak", icon: <Square className="w-3.5 h-3.5" /> }, { value: "circle", label: "Lingkaran", icon: <Circle className="w-3.5 h-3.5" /> }, { value: "line", label: "Garis", icon: <LineIcon className="w-3.5 h-3.5" /> }]} />
+      <ToggleRow value={el.shape} onChange={(v) => onChange({ shape: v })} options={[{ value: "rect", label: tr("Kotak"), icon: <Square className="w-3.5 h-3.5" /> }, { value: "circle", label: tr("Lingkaran"), icon: <Circle className="w-3.5 h-3.5" /> }, { value: "line", label: tr("Garis"), icon: <LineIcon className="w-3.5 h-3.5" /> }]} />
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Lebar" unit="%" min={1} max={150} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-        <SliderField label="Tinggi" unit="%" min={0.2} max={150} step={0.1} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
+        <SliderField label={tr("Lebar")} unit="%" min={1} max={150} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+        <SliderField label={tr("Tinggi")} unit="%" min={0.2} max={150} step={0.1} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
       </div>
-      <GamatoCheckbox checked={el.hasFill} onChange={(v) => onChange({ hasFill: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Isi warna</span>} />
+      <GamatoCheckbox checked={el.hasFill} onChange={(v) => onChange({ hasFill: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Isi warna")}</span>} />
       {el.hasFill && (
         <>
-          <GamatoColorPicker label="Warna Isi" value={el.fill} onChange={(c) => onChange({ fill: c })} />
-          <GamatoCheckbox checked={el.fillFromRole} onChange={(v) => onChange({ fillFromRole: v })} testId="nt-shape-role" label={<span className="text-sm text-slate-600 dark:text-slate-300">Ikuti warna peran (pita/blok berganti per orang)</span>} />
+          <GamatoColorPicker label={tr("Warna Isi")} value={el.fill} onChange={(c) => onChange({ fill: c })} />
+          <GamatoCheckbox checked={el.fillFromRole} onChange={(v) => onChange({ fillFromRole: v })} testId="nt-shape-role" label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Ikuti warna peran (pita/blok berganti per orang)")}</span>} />
         </>
       )}
       {el.shape !== "line" && (
         <>
-          <GamatoCheckbox checked={el.hasStroke} onChange={(v) => onChange({ hasStroke: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Garis tepi</span>} />
+          <GamatoCheckbox checked={el.hasStroke} onChange={(v) => onChange({ hasStroke: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Garis tepi")}</span>} />
           {el.hasStroke && (
             <div className="grid grid-cols-2 gap-3 items-end">
-              <GamatoColorPicker label="Warna Tepi" value={el.stroke} onChange={(c) => onChange({ stroke: c })} />
-              <SliderField label="Tebal" unit="px" min={1} max={20} value={el.strokeWidth} onChange={(v) => onChange({ strokeWidth: v }, { continuous: true })} />
+              <GamatoColorPicker label={tr("Warna Tepi")} value={el.stroke} onChange={(c) => onChange({ stroke: c })} />
+              <SliderField label={tr("Tebal")} unit="px" min={1} max={20} value={el.strokeWidth} onChange={(v) => onChange({ strokeWidth: v }, { continuous: true })} />
             </div>
           )}
         </>
       )}
-      {el.shape === "rect" && <SliderField label="Sudut Membulat" unit="px" min={0} max={120} value={el.radius} onChange={(v) => onChange({ radius: v }, { continuous: true })} />}
+      {el.shape === "rect" && <SliderField label={tr("Sudut Membulat")} unit="px" min={0} max={120} value={el.radius} onChange={(v) => onChange({ radius: v }, { continuous: true })} />}
       <CommonControls el={el} onChange={onChange as PatchFn<NtElement>} />
     </div>
   );
@@ -686,15 +687,15 @@ function ImagePanel({ el, onChange, onReplaceFile }: { el: NtImageEl; onChange: 
   return (
     <div className="space-y-4">
       <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-3 cursor-pointer hover:border-indigo-400 text-sm font-semibold text-slate-600 dark:text-slate-300">
-        <ImageIcon className="w-4 h-4" />Ganti gambar
+        <ImageIcon className="w-4 h-4" />{tr("Ganti gambar")}
         <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { onReplaceFile(e.target.files?.[0] ?? null); e.target.value = ""; }} />
       </label>
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Lebar" unit="%" min={2} max={150} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-        <SliderField label="Tinggi" unit="%" min={2} max={150} step={0.5} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
+        <SliderField label={tr("Lebar")} unit="%" min={2} max={150} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+        <SliderField label={tr("Tinggi")} unit="%" min={2} max={150} step={0.5} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
       </div>
-      <GamatoCheckbox checked={el.rounded} onChange={(v) => onChange({ rounded: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Sudut membulat</span>} />
-      <GamatoCheckbox checked={el.circle} onChange={(v) => onChange({ circle: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Potong bulat</span>} />
+      <GamatoCheckbox checked={el.rounded} onChange={(v) => onChange({ rounded: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Sudut membulat")}</span>} />
+      <GamatoCheckbox checked={el.circle} onChange={(v) => onChange({ circle: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Potong bulat")}</span>} />
       <CommonControls el={el} onChange={onChange as PatchFn<NtElement>} />
     </div>
   );
@@ -703,18 +704,18 @@ function ImagePanel({ el, onChange, onReplaceFile }: { el: NtImageEl; onChange: 
 function PhotoPanel({ el, onChange }: { el: NtPhotoEl; onChange: PatchFn<NtPhotoEl> }) {
   return (
     <div className="space-y-4">
-      <p className="text-xs text-slate-500 dark:text-slate-400 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3">Bingkai foto per orang. Foto contoh di tab <b>Data Peserta</b>; untuk banyak orang, unggah foto di tab <b>Massal</b> (dicocokkan lewat nama berkas / nama).</p>
-      <ToggleRow value={el.shape} onChange={(v) => onChange({ shape: v })} options={[{ value: "circle", label: "Bulat" }, { value: "rounded", label: "Membulat" }, { value: "square", label: "Kotak" }]} />
+      <p className="text-xs text-slate-500 dark:text-slate-400 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3">{tr("Bingkai foto per orang. Foto contoh di tab")} <b>{tr("Data Peserta")}</b>{tr("; untuk banyak orang, unggah foto di tab")} <b>{tr("Massal")}</b> {tr("(dicocokkan lewat nama berkas / nama).")}</p>
+      <ToggleRow value={el.shape} onChange={(v) => onChange({ shape: v })} options={[{ value: "circle", label: tr("Bulat") }, { value: "rounded", label: tr("Membulat") }, { value: "square", label: tr("Kotak") }]} />
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Lebar" unit="%" min={5} max={100} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-        <SliderField label="Tinggi" unit="%" min={5} max={100} step={0.5} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
+        <SliderField label={tr("Lebar")} unit="%" min={5} max={100} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+        <SliderField label={tr("Tinggi")} unit="%" min={5} max={100} step={0.5} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
       </div>
-      <SliderField label="Titik fokus potong (atas ↔ bawah)" unit="%" min={0} max={100} value={el.focusY} onChange={(v) => onChange({ focusY: v }, { continuous: true })} />
-      <SliderField label="Tebal bingkai" unit="px" min={0} max={30} value={el.borderWidth} onChange={(v) => onChange({ borderWidth: v }, { continuous: true })} />
+      <SliderField label={tr("Titik fokus potong (atas ↔ bawah)")} unit="%" min={0} max={100} value={el.focusY} onChange={(v) => onChange({ focusY: v }, { continuous: true })} />
+      <SliderField label={tr("Tebal bingkai")} unit="px" min={0} max={30} value={el.borderWidth} onChange={(v) => onChange({ borderWidth: v }, { continuous: true })} />
       {el.borderWidth > 0 && (
         <>
-          <GamatoColorPicker label="Warna Bingkai" value={el.borderColor} onChange={(c) => onChange({ borderColor: c })} />
-          <GamatoCheckbox checked={el.borderFromRole} onChange={(v) => onChange({ borderFromRole: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Bingkai ikuti warna peran</span>} />
+          <GamatoColorPicker label={tr("Warna Bingkai")} value={el.borderColor} onChange={(c) => onChange({ borderColor: c })} />
+          <GamatoCheckbox checked={el.borderFromRole} onChange={(v) => onChange({ borderFromRole: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Bingkai ikuti warna peran")}</span>} />
         </>
       )}
       <CommonControls el={el} onChange={onChange as PatchFn<NtElement>} />
@@ -722,7 +723,7 @@ function PhotoPanel({ el, onChange }: { el: NtPhotoEl; onChange: PatchFn<NtPhoto
   );
 }
 
-const TOKENS = ["{id}", "{nama}", "{peran}", "{instansi}", "{grup}", "{acara}", "{catatan}"];
+const TOKENS = ["{id}", tr("{nama}"), tr("{peran}"), tr("{instansi}"), tr("{grup}"), tr("{acara}"), tr("{catatan}")];
 
 function PayloadField({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
   return (
@@ -731,7 +732,7 @@ function PayloadField({ value, onChange, label }: { value: string; onChange: (v:
       <div className="flex flex-wrap gap-1.5">
         {TOKENS.map((t) => <button key={t} type="button" onClick={() => onChange(value + t)} className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[11px] font-mono text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/20">{t}</button>)}
       </div>
-      <p className="text-[11px] text-slate-400 dark:text-slate-500">Token diganti otomatis dengan data tiap orang. Contoh: <span className="font-mono">https://acara.id/hadir/{"{id}"}</span> atau teks bebas seperti <span className="font-mono">{"{nama}"} · {"{id}"}</span>.</p>
+      <p className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Token diganti otomatis dengan data tiap orang. Contoh:")} <span className="font-mono">{tr("https://acara.id/hadir/{0}", tr("{id}"))}</span> {tr("atau teks bebas seperti")} <span className="font-mono">{tr("{nama}")} · {tr("{id}")}</span>.</p>
     </div>
   );
 }
@@ -739,21 +740,21 @@ function PayloadField({ value, onChange, label }: { value: string; onChange: (v:
 function QrPanel({ el, onChange }: { el: NtQrEl; onChange: PatchFn<NtQrEl> }) {
   return (
     <div className="space-y-4">
-      <PayloadField label="Isi QR" value={el.payload} onChange={(v) => onChange({ payload: v }, { continuous: true })} />
-      <SliderField label="Ukuran QR (lebar kartu)" unit="%" min={8} max={80} step={0.5} value={el.sizePct} onChange={(v) => onChange({ sizePct: v }, { continuous: true })} />
-      <ToggleRow value={el.style} onChange={(v) => onChange({ style: v })} options={[{ value: "square", label: "Kotak" }, { value: "dots", label: "Titik" }]} />
+      <PayloadField label={tr("Isi QR")} value={el.payload} onChange={(v) => onChange({ payload: v }, { continuous: true })} />
+      <SliderField label={tr("Ukuran QR (lebar kartu)")} unit="%" min={8} max={80} step={0.5} value={el.sizePct} onChange={(v) => onChange({ sizePct: v }, { continuous: true })} />
+      <ToggleRow value={el.style} onChange={(v) => onChange({ style: v })} options={[{ value: "square", label: tr("Kotak") }, { value: "dots", label: tr("Titik") }]} />
       <div className="grid grid-cols-2 gap-3">
-        <GamatoColorPicker label="Warna QR" value={el.fg} onChange={(c) => onChange({ fg: c })} />
-        <GamatoColorPicker label="Warna Alas" value={el.bg} onChange={(c) => onChange({ bg: c })} />
+        <GamatoColorPicker label={tr("Warna QR")} value={el.fg} onChange={(c) => onChange({ fg: c })} />
+        <GamatoColorPicker label={tr("Warna Alas")} value={el.bg} onChange={(c) => onChange({ bg: c })} />
       </div>
-      <GamatoCheckbox checked={el.plate} onChange={(v) => onChange({ plate: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Alas berwarna + tepi putih (disarankan agar mudah dipindai)</span>} />
+      <GamatoCheckbox checked={el.plate} onChange={(v) => onChange({ plate: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Alas berwarna + tepi putih (disarankan agar mudah dipindai)")}</span>} />
       <div>
-        <Label>Tingkat koreksi galat</Label>
+        <Label>{tr("Tingkat koreksi galat")}</Label>
         <GamatoSelect value={el.ecc} onChange={(e) => onChange({ ecc: e.target.value as NtQrEl["ecc"] })}>
-          <option value="L">L — paling ringkas</option><option value="M">M — seimbang (disarankan)</option><option value="Q">Q — tahan lecet</option><option value="H">H — paling tahan</option>
+          <option value="L">{tr("L — paling ringkas")}</option><option value="M">{tr("M — seimbang (disarankan)")}</option><option value="Q">{tr("Q — tahan lecet")}</option><option value="H">{tr("H — paling tahan")}</option>
         </GamatoSelect>
       </div>
-      <p className="text-[11px] text-slate-400 dark:text-slate-500">Pakai kontras tinggi (gelap di atas terang) dan jangan perkecil di bawah ±15 mm agar terbaca ponsel.</p>
+      <p className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Pakai kontras tinggi (gelap di atas terang) dan jangan perkecil di bawah ±15 mm agar terbaca ponsel.")}</p>
       <CommonControls el={el} onChange={onChange as PatchFn<NtElement>} />
     </div>
   );
@@ -762,13 +763,13 @@ function QrPanel({ el, onChange }: { el: NtQrEl; onChange: PatchFn<NtQrEl> }) {
 function BarcodePanel({ el, onChange }: { el: NtBarcodeEl; onChange: PatchFn<NtBarcodeEl> }) {
   return (
     <div className="space-y-4">
-      <PayloadField label="Isi Barcode (CODE 128)" value={el.payload} onChange={(v) => onChange({ payload: v }, { continuous: true })} />
+      <PayloadField label={tr("Isi Barcode (CODE 128)")} value={el.payload} onChange={(v) => onChange({ payload: v }, { continuous: true })} />
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Lebar" unit="%" min={10} max={100} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-        <SliderField label="Tinggi" unit="%" min={2} max={40} step={0.5} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
+        <SliderField label={tr("Lebar")} unit="%" min={10} max={100} step={0.5} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+        <SliderField label={tr("Tinggi")} unit="%" min={2} max={40} step={0.5} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
       </div>
-      <GamatoColorPicker label="Warna Garis" value={el.color} onChange={(c) => onChange({ color: c })} />
-      <GamatoCheckbox checked={el.plate} onChange={(v) => onChange({ plate: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">Alas putih di belakang barcode</span>} />
+      <GamatoColorPicker label={tr("Warna Garis")} value={el.color} onChange={(c) => onChange({ color: c })} />
+      <GamatoCheckbox checked={el.plate} onChange={(v) => onChange({ plate: v })} label={<span className="text-sm text-slate-600 dark:text-slate-300">{tr("Alas putih di belakang barcode")}</span>} />
       <CommonControls el={el} onChange={onChange as PatchFn<NtElement>} />
     </div>
   );

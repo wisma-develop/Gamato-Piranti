@@ -30,7 +30,9 @@ import { PreviewJumpFab } from "@/components/ui/PreviewJumpFab";
 import { ExportQuality } from "@/components/ui/ExportQuality";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { msgStarts, tr } from "@/i18n";
 
+import { LOCALE } from "@/i18n";
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type TextLayer = {
@@ -81,11 +83,11 @@ const newLayerId = () => `layer-${Date.now()}-${layerCounter++}`;
 
 function defaultLayers(): Layer[] {
   return [
-    { id: newLayerId(), kind: "text", name: "Judul", text: "SERTIFIKAT PENGHARGAAN", xPct: 50, yPct: 21, fontSize: 46, fontFamily: "Playfair Display", color: "#1e293b", bold: true, italic: false, align: "center" },
-    { id: newLayerId(), kind: "text", name: "Pengantar", text: "Dengan bangga diberikan kepada", xPct: 50, yPct: 36, fontSize: 20, fontFamily: "Alan Sans", color: "#64748b", bold: false, italic: false, align: "center" },
-    { id: newLayerId(), kind: "text", name: "Nama Penerima", text: "{nama}", xPct: 50, yPct: 52, fontSize: 68, fontFamily: "Great Vibes", color: "#4f46e5", bold: false, italic: false, align: "center" },
-    { id: newLayerId(), kind: "text", name: "Keterangan", text: "Atas partisipasi dan dedikasinya dalam kegiatan ini", xPct: 50, yPct: 67, fontSize: 18, fontFamily: "Alan Sans", color: "#475569", bold: false, italic: false, align: "center" },
-    { id: newLayerId(), kind: "text", name: "Footer", text: "Diberikan pada {tanggal} · No. {nomor}", xPct: 50, yPct: 87, fontSize: 14, fontFamily: "Alan Sans", color: "#94a3b8", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: tr("Judul"), text: tr("SERTIFIKAT PENGHARGAAN"), xPct: 50, yPct: 21, fontSize: 46, fontFamily: "Playfair Display", color: "#1e293b", bold: true, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: tr("Pengantar"), text: tr("Dengan bangga diberikan kepada"), xPct: 50, yPct: 36, fontSize: 20, fontFamily: "Alan Sans", color: "#64748b", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: tr("Nama Penerima"), text: tr("{nama}"), xPct: 50, yPct: 52, fontSize: 68, fontFamily: "Great Vibes", color: "#4f46e5", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: tr("Keterangan"), text: tr("Atas partisipasi dan dedikasinya dalam kegiatan ini"), xPct: 50, yPct: 67, fontSize: 18, fontFamily: "Alan Sans", color: "#475569", bold: false, italic: false, align: "center" },
+    { id: newLayerId(), kind: "text", name: tr("Footer"), text: tr("Diberikan pada {tanggal} · No. {nomor}"), xPct: 50, yPct: 87, fontSize: 14, fontFamily: "Alan Sans", color: "#94a3b8", bold: false, italic: false, align: "center" },
   ];
 }
 
@@ -95,11 +97,15 @@ function applyPlaceholders(text: string, fields: Record<string, string>): string
     if (!key) continue;
     result = result.split(`{${key}}`).join(value);
   }
+  // Padanan token Inggris ({name} {number} {date}) → nilai token Indonesia
+  for (const [en, id] of [["name", "nama"], ["number", "nomor"], ["date", "tanggal"]] as const) {
+    if (fields[id] !== undefined) result = result.split(`{${en}}`).join(fields[id]);
+  }
   return result;
 }
 
 function todayLong() {
-  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" }).format(new Date());
+  return new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "long", year: "numeric" }).format(new Date());
 }
 
 /** Elegant procedural fallback design, used whenever no template image is uploaded. */
@@ -218,17 +224,17 @@ async function renderToCanvas(
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob(b => (b ? resolve(b) : reject(new Error("Gagal membuat gambar"))), "image/png");
+    canvas.toBlob(b => (b ? resolve(b) : reject(new Error(tr("Gagal membuat gambar")))), "image/png");
   });
 }
 
 type TabId = "template" | "lapisan" | "penerima" | "file";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "template", label: "Template Latar", icon: <ImageIcon className="w-3.5 h-3.5" /> },
-  { id: "lapisan", label: "Lapisan & Tanda Tangan", icon: <Layers className="w-3.5 h-3.5" /> },
-  { id: "penerima", label: "Daftar Penerima", icon: <Users className="w-3.5 h-3.5" /> },
-  { id: "file", label: "Ekspor & File", icon: <FileDown className="w-3.5 h-3.5" /> },
+  { id: "template", label: tr("Template Latar"), icon: <ImageIcon className="w-3.5 h-3.5" /> },
+  { id: "lapisan", label: tr("Lapisan & Tanda Tangan"), icon: <Layers className="w-3.5 h-3.5" /> },
+  { id: "penerima", label: tr("Daftar Penerima"), icon: <Users className="w-3.5 h-3.5" /> },
+  { id: "file", label: tr("Ekspor & File"), icon: <FileDown className="w-3.5 h-3.5" /> },
 ];
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -304,7 +310,7 @@ export function CertificateGenerator() {
         if (!cancelled) {
           setCsvRecipients([]);
           setCsvExtraColumns([]);
-          setCsvError("Gagal membaca file CSV. Pastikan file tidak rusak.");
+          setCsvError(tr("Gagal membaca file CSV. Pastikan file tidak rusak."));
         }
       }
     })();
@@ -328,7 +334,7 @@ export function CertificateGenerator() {
   const previewRecipient = recipients[0];
   const previewFields: Record<string, string> = useMemo(() => {
     const base: Record<string, string> = previewRecipient ? { ...previewRecipient.fields } : {};
-    if (!base.nama || !base.nama.trim()) base.nama = previewRecipient?.nama || "Nama Contoh";
+    if (!base.nama || !base.nama.trim()) base.nama = previewRecipient?.nama || tr("Nama Contoh");
     if (!base.nomor || !base.nomor.trim()) base.nomor = "1";
     if (!base.tanggal || !base.tanggal.trim()) base.tanggal = todayLong();
     return base;
@@ -379,7 +385,7 @@ export function CertificateGenerator() {
 
   const addLayer = () => {
     const id = newLayerId();
-    setLayers(prev => [...prev, { id, kind: "text", name: `Teks ${prev.length + 1}`, text: "Teks baru", xPct: 50, yPct: 50, fontSize: 24, fontFamily: DEFAULT_FONT_FAMILY, color: "#1e293b", bold: false, italic: false, align: "center" }]);
+    setLayers(prev => [...prev, { id, kind: "text", name: tr("Teks {0}", prev.length + 1), text: tr("Teks baru"), xPct: 50, yPct: 50, fontSize: 24, fontFamily: DEFAULT_FONT_FAMILY, color: "#1e293b", bold: false, italic: false, align: "center" }]);
     setSelectedLayerId(id);
     setTab("lapisan");
   };
@@ -387,7 +393,7 @@ export function CertificateGenerator() {
   const addSignatureLayer = () => {
     const id = newLayerId();
     const count = layers.filter(l => l.kind === "image").length;
-    setLayers(prev => [...prev, { id, kind: "image", name: count > 0 ? `Tanda Tangan ${count + 1}` : "Tanda Tangan", src: "", xPct: 78, yPct: 84, widthPct: 20 }]);
+    setLayers(prev => [...prev, { id, kind: "image", name: count > 0 ? tr("Tanda Tangan {0}", count + 1) : tr("Tanda Tangan"), src: "", xPct: 78, yPct: 84, widthPct: 20 }]);
     setSelectedLayerId(id);
     setTab("lapisan");
   };
@@ -448,16 +454,16 @@ export function CertificateGenerator() {
       await renderToCanvas(offscreen, templateImg, layers, previewFields, imageCacheRef.current, { scale: exportScale });
       const blob = await canvasToBlob(offscreen);
       downloadBlob(blob, `${sanitizeFileName(previewName) || "sertifikat"}.png`);
-      setInfo("Contoh sertifikat berhasil diunduh.");
+      setInfo(tr("Contoh sertifikat berhasil diunduh."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat sertifikat.");
+      setInfo(err?.message || tr("Gagal membuat sertifikat."));
     } finally {
       setIsGenerating(false);
     }
   };
 
   const downloadZip = async () => {
-    if (!recipients.length) { setInfo("Isi daftar nama penerima terlebih dahulu untuk unduhan massal."); return; }
+    if (!recipients.length) { setInfo(tr("Isi daftar nama penerima terlebih dahulu untuk unduhan massal.")); return; }
     setInfo(null);
     setIsGenerating(true);
     setProgress({ done: 0, total: recipients.length });
@@ -474,9 +480,9 @@ export function CertificateGenerator() {
       }
       const zipBlob = await zip.generateAsync({ type: "blob" });
       downloadBlob(zipBlob, "sertifikat-gamato-piranti.zip");
-      setInfo(`${items.length} sertifikat berhasil dibuat dan diunduh sebagai ZIP.`);
+      setInfo(tr("{0} sertifikat berhasil dibuat dan diunduh sebagai ZIP.", items.length));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat sertifikat massal.");
+      setInfo(err?.message || tr("Gagal membuat sertifikat massal."));
     } finally {
       setIsGenerating(false);
       setProgress(null);
@@ -484,7 +490,7 @@ export function CertificateGenerator() {
   };
 
   const downloadPdf = async () => {
-    if (!recipients.length) { setInfo("Isi daftar nama penerima terlebih dahulu untuk unduhan massal."); return; }
+    if (!recipients.length) { setInfo(tr("Isi daftar nama penerima terlebih dahulu untuk unduhan massal.")); return; }
     setInfo(null);
     setIsGenerating(true);
     setProgress({ done: 0, total: recipients.length });
@@ -503,9 +509,9 @@ export function CertificateGenerator() {
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), "sertifikat-gamato-piranti.pdf");
-      setInfo(`${items.length} sertifikat berhasil digabung menjadi satu PDF.`);
+      setInfo(tr("{0} sertifikat berhasil digabung menjadi satu PDF.", items.length));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat PDF gabungan.");
+      setInfo(err?.message || tr("Gagal membuat PDF gabungan."));
     } finally {
       setIsGenerating(false);
       setProgress(null);
@@ -522,31 +528,31 @@ export function CertificateGenerator() {
           <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
           {tab === "template" && (
-            <PanelCard title="Template Latar" subtitle="Unggah desain sendiri, atau pakai template bawaan">
+            <PanelCard title={tr("Template Latar")} subtitle={tr("Unggah desain sendiri, atau pakai template bawaan")}>
               <div className="space-y-3">
                 {templateFile ? (
                   <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5">
                     <ImageIcon className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0" />
                     <span className="text-sm text-slate-600 dark:text-slate-300 truncate flex-1">{templateFile.name}</span>
-                    <button type="button" onClick={() => setTemplateFile(null)} className="text-xs font-semibold text-red-500 hover:text-red-700 shrink-0">Hapus</button>
+                    <button type="button" onClick={() => setTemplateFile(null)} className="text-xs font-semibold text-red-500 hover:text-red-700 shrink-0">{tr("Hapus")}</button>
                   </div>
                 ) : (
                   <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-500 dark:text-slate-400">
                     <Upload className="w-4 h-4" />
-                    Unggah Template (PNG/JPG)
+                    {tr("Unggah Template (PNG/JPG)")}
                     <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e => setTemplateFile(e.target.files?.[0] ?? null)} />
                   </label>
                 )}
-                <p className="text-xs text-slate-400 dark:text-slate-500">Tanpa template, sertifikat memakai desain bawaan bergaya klasik dengan bingkai emas.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Tanpa template, sertifikat memakai desain bawaan bergaya klasik dengan bingkai emas.")}</p>
               </div>
               <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
             </PanelCard>
           )}
 
           {tab === "lapisan" && (
-            <PanelCard title="Lapisan Teks & Tanda Tangan" subtitle="Klik salah satu untuk diedit, atau seret langsung di pratinjau">
+            <PanelCard title={tr("Lapisan Teks & Tanda Tangan")} subtitle={tr("Klik salah satu untuk diedit, atau seret langsung di pratinjau")}>
               <div className="flex items-center justify-between -mt-1">
-                <span className="text-[11px] text-slate-400 dark:text-slate-500">Ctrl+Z untuk urungkan, Ctrl+Y untuk ulangi</span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Ctrl+Z untuk urungkan, Ctrl+Y untuk ulangi")}</span>
                 <UndoRedoBar
                   canUndo={layersHistory.canUndo}
                   canRedo={layersHistory.canRedo}
@@ -569,7 +575,7 @@ export function CertificateGenerator() {
                     {layer.kind === "image" ? <Images className="w-3.5 h-3.5 shrink-0" /> : <Type className="w-3.5 h-3.5 shrink-0" />}
                     <span className="flex-1 truncate">{layer.name}</span>
                     {layer.kind === "image" && !layer.src && (
-                      <span className="text-[10px] font-bold uppercase tracking-wide text-amber-500 shrink-0">Kosong</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-amber-500 shrink-0">{tr("Kosong")}</span>
                     )}
                     <span
                       role="button"
@@ -582,23 +588,23 @@ export function CertificateGenerator() {
                   </button>
                 ))}
                 <div className="grid grid-cols-2 gap-2">
-                  <Btn onClick={addLayer} variant="secondary" className="w-full gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" />Lapisan Teks</Btn>
-                  <Btn onClick={addSignatureLayer} variant="secondary" className="w-full gap-1.5 text-xs"><PenLine className="w-3.5 h-3.5" />Tanda Tangan</Btn>
+                  <Btn onClick={addLayer} variant="secondary" className="w-full gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" />{tr("Lapisan Teks")}</Btn>
+                  <Btn onClick={addSignatureLayer} variant="secondary" className="w-full gap-1.5 text-xs"><PenLine className="w-3.5 h-3.5" />{tr("Tanda Tangan")}</Btn>
                 </div>
               </div>
 
               {selectedLayer && selectedLayer.kind === "text" && (
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
-                  <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
+                  <Input label={tr("Nama Lapisan")} value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
                   <Textarea
-                    label="Isi Teks"
+                    label={tr("Isi Teks")}
                     rows={2}
                     value={selectedLayer.text}
                     onChange={e => updateLayer(selectedLayer.id, { text: e.target.value }, { continuous: true })}
-                    placeholder="Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis"
+                    placeholder={tr("Gunakan {nama}, {nomor}, atau {tanggal} sebagai placeholder otomatis")}
                   />
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 -mt-2">
-                    Placeholder: <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{'{nama}'}</code> <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{'{nomor}'}</code> <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{'{tanggal}'}</code>
+                    {tr("Placeholder:")} <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{tr("{nama}")}</code> <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{tr("{nomor}")}</code> <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">{tr("{tanggal}")}</code>
                     {recipientMode === "csv" && csvExtraColumns.length > 0 && (
                       <>
                         {" "}{csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1">{`{${col}}`}</code>)}
@@ -617,7 +623,7 @@ export function CertificateGenerator() {
                       onUpload={addCustomFont}
                       onRemoveCustomFont={handleRemoveCustomFont}
                     />
-                    <Input label="Ukuran (px)" type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 }, { continuous: true })} />
+                    <Input label={tr("Ukuran (px)")} type="number" min={8} max={200} value={selectedLayer.fontSize} onChange={e => updateLayer(selectedLayer.id, { fontSize: Number(e.target.value) || 24 }, { continuous: true })} />
                   </div>
 
                   <FontPicker
@@ -632,17 +638,17 @@ export function CertificateGenerator() {
                   />
 
                   <div className="space-y-3">
-                    <GamatoColorPicker label="Warna" value={selectedLayer.color} onChange={(hex) => updateLayer(selectedLayer.id, { color: hex }, { continuous: true })} />
+                    <GamatoColorPicker label={tr("Warna")} value={selectedLayer.color} onChange={(hex) => updateLayer(selectedLayer.id, { color: hex }, { continuous: true })} />
                     <div>
-                      <Label>Format Teks</Label>
+                      <Label>{tr("Format Teks")}</Label>
                       {/* shrink-0 + flex-wrap: mencegah tombol/ikon "diperas" hilang saat ruang sidebar sempit */}
                       <div className="flex flex-wrap items-center gap-1.5 mt-1">
                         <button
                           type="button"
                           onClick={() => updateLayer(selectedLayer.id, { bold: !selectedLayer.bold })}
                           aria-pressed={selectedLayer.bold}
-                          aria-label="Tebal (bold)"
-                          title="Tebal (bold)"
+                          aria-label={tr("Tebal (bold)")}
+                          title={tr("Tebal (bold)")}
                           className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.bold ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
                         >
                           <Bold className="w-4 h-4 shrink-0" strokeWidth={2.5} />
@@ -651,17 +657,17 @@ export function CertificateGenerator() {
                           type="button"
                           onClick={() => updateLayer(selectedLayer.id, { italic: !selectedLayer.italic })}
                           aria-pressed={selectedLayer.italic}
-                          aria-label="Miring (italic)"
-                          title="Miring (italic)"
+                          aria-label={tr("Miring (italic)")}
+                          title={tr("Miring (italic)")}
                           className={cn("shrink-0 inline-flex items-center justify-center p-2.5 rounded-lg border-2 transition-colors", selectedLayer.italic ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600")}
                         >
                           <Italic className="w-4 h-4 shrink-0" strokeWidth={2.5} />
                         </button>
                         <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
                         {([
-                          ["left", AlignLeft, "Rata kiri"],
-                          ["center", AlignCenter, "Rata tengah"],
-                          ["right", AlignRight, "Rata kanan"],
+                          ["left", AlignLeft, tr("Rata kiri")],
+                          ["center", AlignCenter, tr("Rata tengah")],
+                          ["right", AlignRight, tr("Rata kanan")],
                         ] as const).map(([val, Icon, titleText]) => (
                           <button
                             key={val}
@@ -681,12 +687,12 @@ export function CertificateGenerator() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
-                      <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label="Posisi X" />
+                      <div className="flex justify-between mb-1"><Label>{tr("Posisi X")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label={tr("Posisi X")} />
                     </div>
                     <div>
-                      <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
-                      <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label="Posisi Y" />
+                      <div className="flex justify-between mb-1"><Label>{tr("Posisi Y")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label={tr("Posisi Y")} />
                     </div>
                   </div>
                 </div>
@@ -694,26 +700,26 @@ export function CertificateGenerator() {
 
               {selectedLayer && selectedLayer.kind === "image" && (
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
-                  <Input label="Nama Lapisan" value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
+                  <Input label={tr("Nama Lapisan")} value={selectedLayer.name} onChange={e => updateLayer(selectedLayer.id, { name: e.target.value }, { continuous: true })} />
                   <SignaturePad
                     key={selectedLayer.id}
                     value={selectedLayer.src || null}
                     onChange={(dataUrl) => updateLayer(selectedLayer.id, { src: dataUrl || "" })}
-                    label="Tanda Tangan / Stempel"
-                    hint="Gambar manual atau upload foto/scan. Seret langsung di pratinjau kanan untuk mengatur posisi."
+                    label={tr("Tanda Tangan / Stempel")}
+                    hint={tr("Gambar manual atau upload foto/scan. Seret langsung di pratinjau kanan untuk mengatur posisi.")}
                   />
                   <div>
-                    <div className="flex justify-between mb-1"><Label>Ukuran</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.widthPct.toFixed(0)}%</span></div>
-                    <GamatoSlider min={5} max={60} value={selectedLayer.widthPct} onChange={(v) => updateLayer(selectedLayer.id, { widthPct: v }, { continuous: true })} aria-label="Ukuran tanda tangan" />
+                    <div className="flex justify-between mb-1"><Label>{tr("Ukuran")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.widthPct.toFixed(0)}%</span></div>
+                    <GamatoSlider min={5} max={60} value={selectedLayer.widthPct} onChange={(v) => updateLayer(selectedLayer.id, { widthPct: v }, { continuous: true })} aria-label={tr("Ukuran tanda tangan")} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="flex justify-between mb-1"><Label>Posisi X</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
-                      <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label="Posisi X" />
+                      <div className="flex justify-between mb-1"><Label>{tr("Posisi X")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.xPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.xPct} onChange={(v) => updateLayer(selectedLayer.id, { xPct: v }, { continuous: true })} aria-label={tr("Posisi X")} />
                     </div>
                     <div>
-                      <div className="flex justify-between mb-1"><Label>Posisi Y</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
-                      <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label="Posisi Y" />
+                      <div className="flex justify-between mb-1"><Label>{tr("Posisi Y")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{selectedLayer.yPct.toFixed(0)}%</span></div>
+                      <GamatoSlider min={0} max={100} value={selectedLayer.yPct} onChange={(v) => updateLayer(selectedLayer.id, { yPct: v }, { continuous: true })} aria-label={tr("Posisi Y")} />
                     </div>
                   </div>
                 </div>
@@ -723,7 +729,7 @@ export function CertificateGenerator() {
           )}
 
           {tab === "penerima" && (
-            <PanelCard title="Daftar Penerima" subtitle="Satu sertifikat akan dibuat untuk setiap nama pada daftar">
+            <PanelCard title={tr("Daftar Penerima")} subtitle={tr("Satu sertifikat akan dibuat untuk setiap nama pada daftar")}>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -733,7 +739,7 @@ export function CertificateGenerator() {
                     recipientMode === "manual" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
                   )}
                 >
-                  <PenLine className="w-3.5 h-3.5" /> Tulis Manual
+                  <PenLine className="w-3.5 h-3.5" /> {tr("Tulis Manual")}
                 </button>
                 <button
                   type="button"
@@ -743,7 +749,7 @@ export function CertificateGenerator() {
                     recipientMode === "csv" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
                   )}
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5" /> Upload CSV
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> {tr("Upload CSV")}
                 </button>
               </div>
 
@@ -752,7 +758,7 @@ export function CertificateGenerator() {
                   rows={6}
                   value={recipientsText}
                   onChange={e => setRecipientsText(e.target.value)}
-                  placeholder={"Budi Santoso\nSiti Aminah\nAhmad Fauzi\n..."}
+                  placeholder={tr("Budi Santoso\nSiti Aminah\nAhmad Fauzi\n...")}
                 />
               ) : (
                 <div className="space-y-3">
@@ -761,7 +767,7 @@ export function CertificateGenerator() {
                     onClick={downloadCsvTemplate}
                     className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-xl py-2.5 transition-colors"
                   >
-                    <FileDown className="w-3.5 h-3.5" /> Unduh Template CSV
+                    <FileDown className="w-3.5 h-3.5" /> {tr("Unduh Template CSV")}
                   </button>
 
                   <label className="flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all">
@@ -769,13 +775,13 @@ export function CertificateGenerator() {
                       <div className="flex items-center gap-3 w-full">
                         <FileSpreadsheet className="w-6 h-6 text-indigo-500 shrink-0" />
                         <span className="flex-1 text-sm text-slate-600 dark:text-slate-300 font-medium truncate">{csvFile.name}</span>
-                        <button type="button" onClick={e => { e.preventDefault(); setCsvFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0">Hapus</button>
+                        <button type="button" onClick={e => { e.preventDefault(); setCsvFile(null); }} className="text-sm text-red-500 font-semibold hover:text-red-700 shrink-0">{tr("Hapus")}</button>
                       </div>
                     ) : (
                       <div className="text-center">
                         <div className="flex justify-center mb-1.5 text-slate-400 dark:text-slate-500"><Upload className="w-6 h-6" /></div>
-                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Upload File <span className="text-indigo-600 dark:text-indigo-400">.CSV</span></p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Kolom wajib: nama. Kolom lain jadi placeholder tambahan.</p>
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{tr("Upload File")} <span className="text-indigo-600 dark:text-indigo-400">{tr(".CSV")}</span></p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{tr("Kolom wajib: nama. Kolom lain jadi placeholder tambahan.")}</p>
                       </div>
                     )}
                     <input type="file" accept=".csv,text/csv" className="hidden" onChange={e => setCsvFile(e.target.files?.[0] ?? null)} />
@@ -788,8 +794,8 @@ export function CertificateGenerator() {
                   )}
                   {csvExtraColumns.length > 0 && (
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Placeholder tambahan dari CSV: {csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1 mr-1">{`{${col}}`}</code>)}
-                      — bisa dipakai di lapisan teks manapun.
+                      {tr("Placeholder tambahan dari CSV:")} {csvExtraColumns.map(col => <code key={col} className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 rounded px-1 mr-1">{`{${col}}`}</code>)}
+                      {tr("— bisa dipakai di lapisan teks manapun.")}
                     </p>
                   )}
                 </div>
@@ -797,16 +803,16 @@ export function CertificateGenerator() {
 
               <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-2">
                 <Users className="w-3.5 h-3.5" />
-                <span>{recipients.length} nama siap dicetak</span>
+                <span>{tr("{0} nama siap dicetak", recipients.length)}</span>
               </div>
               <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
             </PanelCard>
           )}
 
           {tab === "file" && (
-            <PanelCard title="Ekspor & Nama File" subtitle="Kualitas gambar dan penamaan file hasil unduhan">
+            <PanelCard title={tr("Ekspor & Nama File")} subtitle={tr("Kualitas gambar dan penamaan file hasil unduhan")}>
               <ExportQuality value={exportScale} onChange={setExportScale} baseWidth={resolveCanvasSize(templateImg).w} baseHeight={resolveCanvasSize(templateImg).h} />
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 pt-1">Nama file (unduhan ZIP/PDF semua penerima)</p>
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 pt-1">{tr("Nama file (unduhan ZIP/PDF semua penerima)")}</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -816,7 +822,7 @@ export function CertificateGenerator() {
                     fileNameMode === "recipient" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
                   )}
                 >
-                  Sesuai Nama Penerima
+                  {tr("Sesuai Nama Penerima")}
                 </button>
                 <button
                   type="button"
@@ -826,12 +832,12 @@ export function CertificateGenerator() {
                     fileNameMode === "system" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
                   )}
                 >
-                  Default Sistem
+                  {tr("Default Sistem")}
                 </button>
               </div>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-                Contoh nama file: <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">
-                  {fileNameMode === "recipient" ? (sanitizeFileName(recipients[0]?.nama || "budi-santoso") || "budi-santoso") : "sertifikat-001"}.png
+                {tr("Contoh nama file:")} <code className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded px-1">
+                  {fileNameMode === "recipient" ? (sanitizeFileName(recipients[0]?.nama || "budi-santoso") || "budi-santoso") : "sertifikat-001"}{tr(".png")}
                 </code>
               </p>
               <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
@@ -843,8 +849,8 @@ export function CertificateGenerator() {
         <PreviewJumpFab targetId="sertifikat-preview" />
         <div id="sertifikat-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
-            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret untuk atur posisi</span>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Langsung")}</p>
+            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />{tr("Seret untuk atur posisi")}</span>
           </div>
 
           <div
@@ -883,28 +889,28 @@ export function CertificateGenerator() {
             ))}
           </div>
 
-          {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Isi") ? "warning" : "success"} />}
+          {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Isi") ? "warning" : "success"} />}
 
           {progress && (
-            <div className="text-xs text-slate-500 dark:text-slate-400">Memproses {progress.done}/{progress.total}…</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">{tr("Memproses {0}/{1}…", progress.done, progress.total)}</div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Btn onClick={downloadSingle} disabled={isGenerating} variant="secondary" className="gap-2">
               {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              Unduh Contoh
+              {tr("Unduh Contoh")}
             </Btn>
             <Btn onClick={downloadZip} disabled={isGenerating || !recipients.length} className="gap-2">
               {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
-              Unduh Semua (ZIP)
+              {tr("Unduh Semua (ZIP)")}
             </Btn>
             <Btn onClick={downloadPdf} disabled={isGenerating || !recipients.length} variant="secondary" className="gap-2">
               {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              Unduh Semua (PDF)
+              {tr("Unduh Semua (PDF)")}
             </Btn>
           </div>
 
-          <div className="text-center"><SectionBadge>Diproses langsung di perangkatmu — bisa ratusan sertifikat sekaligus</SectionBadge></div>
+          <div className="text-center"><SectionBadge>{tr("Diproses langsung di perangkatmu — bisa ratusan sertifikat sekaligus")}</SectionBadge></div>
         </div>
       </div>
     </div>

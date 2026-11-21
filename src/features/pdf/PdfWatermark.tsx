@@ -13,6 +13,7 @@ import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 type Position = "center" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | "tile";
 type Mode = "text" | "icon" | "image";
@@ -21,12 +22,12 @@ type Mode = "text" | "icon" | "image";
 async function fileToPng(file: File): Promise<{ bytes: Uint8Array; w: number; h: number }> {
   const url = URL.createObjectURL(file);
   try {
-    const img = await new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("Gambar tidak bisa dibaca.")); i.src = url; });
+    const img = await new Promise<HTMLImageElement>((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error(tr("Gambar tidak bisa dibaca."))); i.src = url; });
     const c = document.createElement("canvas");
     c.width = img.naturalWidth || 1; c.height = img.naturalHeight || 1;
     c.getContext("2d")!.drawImage(img, 0, 0);
     const blob: Blob | null = await new Promise((r) => c.toBlob(r, "image/png"));
-    if (!blob) throw new Error("Gagal memproses gambar.");
+    if (!blob) throw new Error(tr("Gagal memproses gambar."));
     return { bytes: new Uint8Array(await blob.arrayBuffer()), w: c.width, h: c.height };
   } finally { URL.revokeObjectURL(url); }
 }
@@ -87,7 +88,7 @@ export const PdfWatermark: React.FC = () => {
         let ratio = 1;
         if (mode === "icon") {
           const bytes = await loadGamatoIconPng();
-          if (!bytes) throw new Error("Ikon Gamato Piranti tidak bisa dimuat.");
+          if (!bytes) throw new Error(tr("Ikon Gamato Piranti tidak bisa dimuat."));
           img = await pdfDoc.embedPng(bytes);
           ratio = img.width / img.height;
         } else {
@@ -135,7 +136,7 @@ export const PdfWatermark: React.FC = () => {
         });
         await stampGamatoBranding(pdfDoc);
         downloadBlob(new Blob([await pdfDoc.save() as BlobPart], { type: "application/pdf" }), "gamato-watermarked.pdf");
-        setInfo(`Watermark diterapkan ke ${pages.length} halaman.`);
+        setInfo(tr("Watermark diterapkan ke {0} halaman.", pages.length));
         return;
       }
 
@@ -176,9 +177,9 @@ export const PdfWatermark: React.FC = () => {
 
       await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save() as BlobPart], { type: "application/pdf" }), "gamato-watermarked.pdf");
-      setInfo(`Watermark diterapkan ke ${pages.length} halaman.`);
+      setInfo(tr("Watermark diterapkan ke {0} halaman.", pages.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal menambahkan watermark."));
+      setInfo("" + (err?.message || tr("Gagal menambahkan watermark.")));
     } finally {
       setIsWorking(false);
     }
@@ -192,8 +193,8 @@ export const PdfWatermark: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -205,7 +206,7 @@ export const PdfWatermark: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -217,9 +218,9 @@ export const PdfWatermark: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
           <div className="grid grid-cols-3 gap-2" data-testid="pwm-modes">
             {([
-              ["text", "Teks", <Type key="t" className="w-4 h-4" />],
-              ["icon", "Ikon Gamato", <Layers key="g" className="w-4 h-4" />],
-              ["image", "Gambar/Logo", <ImageIcon key="i" className="w-4 h-4" />],
+              ["text", tr("Teks"), <Type key="t" className="w-4 h-4" />],
+              ["icon", tr("Ikon Gamato"), <Layers key="g" className="w-4 h-4" />],
+              ["image", tr("Gambar/Logo"), <ImageIcon key="i" className="w-4 h-4" />],
             ] as const).map(([id, label, icon]) => (
               <button key={id} type="button" data-testid={`pwm-mode-${id}`} onClick={() => setMode(id)}
                 className={cn("flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all",
@@ -232,13 +233,13 @@ export const PdfWatermark: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
                 <img src="/gamato-piranti.png" alt="" className="w-10 h-10 object-contain" />
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">Memakai ikon asli Gamato Piranti sebagai gambar PDF — tajam saat di-zoom.</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-snug">{tr("Memakai ikon asli Gamato Piranti sebagai gambar PDF — tajam saat di-zoom.")}</p>
               </div>
-              <GamatoCheckbox checked={iconLabel} onChange={setIconLabel} label={<span className="text-sm text-slate-700 dark:text-slate-300">Tampilkan teks di samping ikon</span>} testId="pwm-icon-label" />
-              {iconLabel && <Input label="Teks di samping ikon" value={text} onChange={(e) => setText(e.target.value)} placeholder={GAMATO_NAME} />}
+              <GamatoCheckbox checked={iconLabel} onChange={setIconLabel} label={<span className="text-sm text-slate-700 dark:text-slate-300">{tr("Tampilkan teks di samping ikon")}</span>} testId="pwm-icon-label" />
+              {iconLabel && <Input label={tr("Teks di samping ikon")} value={text} onChange={(e) => setText(e.target.value)} placeholder={GAMATO_NAME} />}
               {iconLabel && (
                 <div>
-                  <Label>Warna teks</Label>
+                  <Label>{tr("Warna teks")}</Label>
                   <GamatoColorPicker value={color} onChange={setColor} className="mt-1.5" />
                 </div>
               )}
@@ -246,18 +247,18 @@ export const PdfWatermark: React.FC = () => {
           )}
           {mode === "image" && (
             <div>
-              <Label>Gambar / logo (PNG transparan disarankan)</Label>
+              <Label>{tr("Gambar / logo (PNG transparan disarankan)")}</Label>
               <input type="file" accept="image/*" data-testid="pwm-image" onChange={(e) => setImgFile(e.target.files?.[0] ?? null)} className="mt-1.5 text-sm text-slate-600 dark:text-slate-300" />
               {imgFile && <p className="text-xs text-slate-400 mt-1">{imgFile.name}</p>}
             </div>
           )}
           {mode === "text" && (
             <>
-              <Input label="Teks Watermark" value={text} onChange={(e) => setText(e.target.value)} placeholder="Contoh: RAHASIA, DRAFT, dst." />
+              <Input label={tr("Teks Watermark")} value={text} onChange={(e) => setText(e.target.value)} placeholder={tr("Contoh: RAHASIA, DRAFT, dst.")} />
               <div className="grid grid-cols-2 gap-4">
-                <Input label="Ukuran Font (pt)" type="number" min={10} max={150} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 48)} />
+                <Input label={tr("Ukuran Font (pt)")} type="number" min={10} max={150} value={fontSize} onChange={(e) => setFontSize(parseInt(e.target.value) || 48)} />
                 <div>
-                  <Label>Warna</Label>
+                  <Label>{tr("Warna")}</Label>
                   <GamatoColorPicker value={color} onChange={setColor} className="mt-1.5" />
                 </div>
               </div>
@@ -266,48 +267,48 @@ export const PdfWatermark: React.FC = () => {
           {mode !== "text" && (
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <Label>Ukuran (% lebar halaman)</Label>
+                <Label>{tr("Ukuran (% lebar halaman)")}</Label>
                 <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{imgSize}%</span>
               </div>
-              <GamatoSlider min={5} max={70} value={imgSize} onChange={setImgSize} aria-label="Ukuran ikon" />
+              <GamatoSlider min={5} max={70} value={imgSize} onChange={setImgSize} aria-label={tr("Ukuran ikon")} />
             </div>
           )}
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Opacity</Label>
+              <Label>{tr("Opacity")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{opacity}%</span>
             </div>
             <GamatoSlider min={5} max={100} value={opacity} onChange={setOpacity} aria-label="Opasitas" />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Rotasi</Label>
+              <Label>{tr("Rotasi")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{rotation}°</span>
             </div>
-            <GamatoSlider min={0} max={90} value={rotation} onChange={setRotation} aria-label="Rotasi" />
+            <GamatoSlider min={0} max={90} value={rotation} onChange={setRotation} aria-label={tr("Rotasi")} />
           </div>
-          <Select label="Posisi" value={position} onChange={(e) => setPosition(e.target.value as Position)}>
-            <option value="center">Tengah</option>
-            <option value="tile">Berulang (tile)</option>
-            <option value="top-left">Kiri Atas</option>
-            <option value="top-right">Kanan Atas</option>
-            <option value="bottom-left">Kiri Bawah</option>
-            <option value="bottom-right">Kanan Bawah</option>
+          <Select label={tr("Posisi")} value={position} onChange={(e) => setPosition(e.target.value as Position)}>
+            <option value="center">{tr("Tengah")}</option>
+            <option value="tile">{tr("Berulang (tile)")}</option>
+            <option value="top-left">{tr("Kiri Atas")}</option>
+            <option value="top-right">{tr("Kanan Atas")}</option>
+            <option value="bottom-left">{tr("Kiri Bawah")}</option>
+            <option value="bottom-right">{tr("Kanan Bawah")}</option>
           </Select>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file || (mode === "text" && !text.trim()) || (mode === "image" && !imgFile)} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Terapkan Watermark
+              {tr("Terapkan Watermark")}
             </>
           )}
         </Btn>
@@ -315,9 +316,9 @@ export const PdfWatermark: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Layers className="w-5 h-5" />}
-        label="Watermark PDF"
-        desc="Tempel ke semua halaman"
-        points={["Teks diterapkan sebagai teks vektor PDF asli; ikon Gamato & logo sebagai gambar PDF yang tajam.", "Bisa sekali tempel di satu posisi atau diulang (tile) ke seluruh halaman."]}
+        label={tr("Watermark PDF")}
+        desc={tr("Tempel ke semua halaman")}
+        points={[tr("Teks diterapkan sebagai teks vektor PDF asli; ikon Gamato & logo sebagai gambar PDF yang tajam."), tr("Bisa sekali tempel di satu posisi atau diulang (tile) ke seluruh halaman.")]}
       />
     </div>
   );

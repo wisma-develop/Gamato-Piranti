@@ -31,6 +31,7 @@ import { AutosaveBar } from "@/components/ui/AutosaveBar";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
+import { tr } from "@/i18n";
 
 const ACCENT_PRESETS = ["#4f46e5", "#0f766e", "#be123c", "#b45309", "#334155"];
 
@@ -56,9 +57,9 @@ type KwitansiData = {
 type TabId = "usaha" | "transaksi" | "ttd";
 
 const TABS: SettingsTabDef<TabId>[] = [
-  { id: "usaha", label: "Identitas Usaha", icon: <Building2 className="w-3.5 h-3.5" /> },
-  { id: "transaksi", label: "Detail Pembayaran", icon: <ReceiptText className="w-3.5 h-3.5" /> },
-  { id: "ttd", label: "Tanda Tangan", icon: <PenLine className="w-3.5 h-3.5" /> },
+  { id: "usaha", label: tr("Identitas Usaha"), icon: <Building2 className="w-3.5 h-3.5" /> },
+  { id: "transaksi", label: tr("Detail Pembayaran"), icon: <ReceiptText className="w-3.5 h-3.5" /> },
+  { id: "ttd", label: tr("Tanda Tangan"), icon: <PenLine className="w-3.5 h-3.5" /> },
 ];
 
 function renderKwitansiToCanvas(
@@ -99,7 +100,7 @@ function renderKwitansiToCanvas(
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = "#0f172a";
   ctx.font = `700 30px '${data.fontFamily}', sans-serif`;
-  ctx.fillText(data.companyName || "Nama Perusahaan", textX, y);
+  ctx.fillText(data.companyName || tr("Nama Perusahaan"), textX, y);
 
   ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
@@ -110,7 +111,7 @@ function renderKwitansiToCanvas(
   ctx.textAlign = "right";
   ctx.font = `400 15px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
-  ctx.fillText("No. Kwitansi", contentRight, y - 4);
+  ctx.fillText(tr("No. Kwitansi"), contentRight, y - 4);
   ctx.font = `700 20px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = data.accentColor;
   ctx.fillText(data.nomor || "-", contentRight, y + 22);
@@ -134,7 +135,7 @@ function renderKwitansiToCanvas(
   ctx.textAlign = "left";
   ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
-  ctx.fillText("Telah terima dari", labelColX, y);
+  ctx.fillText(tr("Telah terima dari"), labelColX, y);
   ctx.font = `600 21px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText(data.receivedFrom || "-", valueColX, y);
@@ -145,7 +146,7 @@ function renderKwitansiToCanvas(
   // Field: Uang sejumlah (terbilang)
   ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
-  ctx.fillText("Uang sejumlah", labelColX, y);
+  ctx.fillText(tr("Uang sejumlah"), labelColX, y);
   ctx.font = `italic 600 19px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   const amountWords = `"${amountNum > 0 ? terbilangRupiah(amountNum) : "-"}"`;
@@ -157,7 +158,7 @@ function renderKwitansiToCanvas(
   // Field: Untuk pembayaran
   ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
-  ctx.fillText("Untuk pembayaran", labelColX, y);
+  ctx.fillText(tr("Untuk pembayaran"), labelColX, y);
   ctx.font = `600 19px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   drawWrappedText(ctx, data.description || "-", valueColX, y, contentRight - valueColX, 27, 2);
@@ -179,7 +180,7 @@ function renderKwitansiToCanvas(
   ctx.textAlign = "left";
   ctx.font = `600 15px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
-  ctx.fillText("JUMLAH", boxX + 22, y + 28);
+  ctx.fillText(tr("JUMLAH"), boxX + 22, y + 28);
   ctx.font = `700 32px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#0f172a";
   ctx.fillText(formatIDR(amountNum), boxX + 22, y + 62);
@@ -191,7 +192,7 @@ function renderKwitansiToCanvas(
   ctx.textAlign = "left";
   ctx.font = `400 16px '${data.fontFamily}', sans-serif`;
   ctx.fillStyle = "#64748b";
-  ctx.fillText(`Tanggal Bayar: ${formatDateID(data.date) || "-"}`, contentX, y);
+  ctx.fillText(tr("Tanggal Bayar: {0}", formatDateID(data.date) || "-"), contentX, y);
 
   const sigX = contentRight - 190;
   ctx.textAlign = "center";
@@ -199,7 +200,7 @@ function renderKwitansiToCanvas(
   ctx.fillStyle = "#334155";
   const sigDateLine = [data.city, formatDateID(data.date)].filter(Boolean).join(", ");
   ctx.fillText(sigDateLine || "-", sigX, y);
-  ctx.fillText("Yang Menerima,", sigX, y + 28);
+  ctx.fillText(tr("Yang Menerima,"), sigX, y + 28);
   if (signatureImg) {
     // Signature image sits in the gap between the "Yang Menerima," label and
     // the signature line, scaled to fit without ever overlapping either.
@@ -220,8 +221,8 @@ export function KwitansiGenerator() {
   const draft = useDraft<KwitansiData, { logo: DraftImage | null }>(DRAFT_KEY);
   const [logoFile, setLogoFile, logoDraft] = useDraftFile(draft?.extra?.logo);
   const history = useHistoryState<KwitansiData>(() => mergeDraft<KwitansiData>({
-    companyName: "Nama Usaha / Perusahaan",
-    companyAddress: "Jl. Contoh Alamat No. 123, Kota",
+    companyName: tr("Nama Usaha / Perusahaan"),
+    companyAddress: tr("Jl. Contoh Alamat No. 123, Kota"),
     companyPhone: "0812-3456-7890",
     nomor: (() => {
       const now = new Date();
@@ -285,9 +286,9 @@ export function KwitansiGenerator() {
       withExportScale(exportScale, () => renderKwitansiToCanvas(canvas, logoImg, signatureImg, data));
       const blob = await canvasToBlob(canvas);
       downloadBlob(blob, `${sanitizeFileName(data.nomor) || "kwitansi"}.png`);
-      setInfo("Kwitansi berhasil diunduh sebagai PNG.");
+      setInfo(tr("Kwitansi berhasil diunduh sebagai PNG."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat kwitansi.");
+      setInfo(err?.message || tr("Gagal membuat kwitansi."));
     } finally {
       setIsGenerating(false);
     }
@@ -312,9 +313,9 @@ export function KwitansiGenerator() {
       await stampGamatoBranding(pdfDoc);
       const pdfBytes = await pdfDoc.save();
       downloadBlob(new Blob([pdfBytes], { type: "application/pdf" }), `${sanitizeFileName(data.nomor) || "kwitansi"}.pdf`);
-      setInfo("Kwitansi berhasil diunduh sebagai PDF.");
+      setInfo(tr("Kwitansi berhasil diunduh sebagai PDF."));
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuat PDF.");
+      setInfo(err?.message || tr("Gagal membuat PDF."));
     } finally {
       setIsGenerating(false);
     }
@@ -325,9 +326,9 @@ export function KwitansiGenerator() {
     try {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      printCanvasImage(canvas, { title: `Kwitansi ${data.nomor}` });
+      printCanvasImage(canvas, { title: tr("Kwitansi {0}", data.nomor) });
     } catch (err: any) {
-      setInfo(err?.message || "Gagal membuka dialog cetak.");
+      setInfo(err?.message || tr("Gagal membuka dialog cetak."));
     }
   };
 
@@ -336,19 +337,19 @@ export function KwitansiGenerator() {
       <AutosaveBar autosave={autosave} what="kwitansi" className="lg:col-span-full" />
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Kwitansi</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Kwitansi")}</span>
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
         <SettingsTabBar tabs={TABS} active={tab} onChange={setTab} />
 
         {tab === "usaha" && (
-          <PanelCard title="Identitas Perusahaan" subtitle="Tampil di kop kwitansi">
+          <PanelCard title={tr("Identitas Perusahaan")} subtitle={tr("Tampil di kop kwitansi")}>
             <div className="space-y-3">
               <LogoUpload file={logoFile} onChange={setLogoFile} />
-              <Input label="Nama Perusahaan / Usaha" value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
-              <Textarea label="Alamat" rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
-              <Input label="Telepon" value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
+              <Input label={tr("Nama Perusahaan / Usaha")} value={data.companyName} onChange={(e) => updateField("companyName", e.target.value, { continuous: true })} />
+              <Textarea label={tr("Alamat")} rows={2} value={data.companyAddress} onChange={(e) => updateField("companyAddress", e.target.value, { continuous: true })} />
+              <Input label={tr("Telepon")} value={data.companyPhone} onChange={(e) => updateField("companyPhone", e.target.value, { continuous: true })} />
               <FontPicker
                 value={data.fontFamily}
                 onChange={(family) => updateField("fontFamily", family)}
@@ -359,7 +360,7 @@ export function KwitansiGenerator() {
                 onRemoveCustomFont={handleRemoveCustomFont}
               />
               <div>
-                <Label>Warna Aksen</Label>
+                <Label>{tr("Warna Aksen")}</Label>
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                   {ACCENT_PRESETS.map((c) => (
                     <button
@@ -380,35 +381,35 @@ export function KwitansiGenerator() {
         )}
 
         {tab === "transaksi" && (
-          <PanelCard title="Detail Pembayaran" subtitle="Isi data transaksi yang akan tercetak">
+          <PanelCard title={tr("Detail Pembayaran")} subtitle={tr("Isi data transaksi yang akan tercetak")}>
             <div className="space-y-3">
-              <Input label="No. Kwitansi" value={data.nomor} onChange={(e) => updateField("nomor", e.target.value, { continuous: true })} />
-              <Input label="Telah Terima Dari" value={data.receivedFrom} onChange={(e) => updateField("receivedFrom", e.target.value, { continuous: true })} placeholder="Nama pembayar" />
+              <Input label={tr("No. Kwitansi")} value={data.nomor} onChange={(e) => updateField("nomor", e.target.value, { continuous: true })} />
+              <Input label={tr("Telah Terima Dari")} value={data.receivedFrom} onChange={(e) => updateField("receivedFrom", e.target.value, { continuous: true })} placeholder={tr("Nama pembayar")} />
               <MoneyInput
-                label="Jumlah (Rp)"
+                label={tr("Jumlah (Rp)")}
                 value={data.amount}
                 onChange={(v) => updateField("amount", v, { continuous: true })}
                 placeholder="1500000"
-                prefix="Rp"
+                prefix={tr("Rp")}
               />
-              <Textarea label="Untuk Pembayaran" rows={2} value={data.description} onChange={(e) => updateField("description", e.target.value, { continuous: true })} placeholder="Contoh: Pembayaran sewa ruko bulan Agustus 2026" />
+              <Textarea label={tr("Untuk Pembayaran")} rows={2} value={data.description} onChange={(e) => updateField("description", e.target.value, { continuous: true })} placeholder={tr("Contoh: Pembayaran sewa ruko bulan Agustus 2026")} />
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Tanggal" type="date" value={data.date} onChange={(e) => updateField("date", e.target.value)} />
-                <Input label="Kota" value={data.city} onChange={(e) => updateField("city", e.target.value, { continuous: true })} placeholder="Denpasar" />
+                <Input label={tr("Tanggal")} type="date" value={data.date} onChange={(e) => updateField("date", e.target.value)} />
+                <Input label={tr("Kota")} value={data.city} onChange={(e) => updateField("city", e.target.value, { continuous: true })} placeholder={tr("Denpasar")} />
               </div>
-              <Input label="Nama Penerima (opsional)" value={data.receiverName} onChange={(e) => updateField("receiverName", e.target.value, { continuous: true })} placeholder="Dikosongkan = garis tanda tangan kosong" />
+              <Input label={tr("Nama Penerima (opsional)")} value={data.receiverName} onChange={(e) => updateField("receiverName", e.target.value, { continuous: true })} placeholder={tr("Dikosongkan = garis tanda tangan kosong")} />
             </div>
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
           </PanelCard>
         )}
 
         {tab === "ttd" && (
-          <PanelCard title="Tanda Tangan Penerima" subtitle="Opsional — gambar manual atau upload foto/scan tanda tangan">
+          <PanelCard title={tr("Tanda Tangan Penerima")} subtitle={tr("Opsional — gambar manual atau upload foto/scan tanda tangan")}>
             <SignaturePad
               value={data.signatureImage}
               onChange={(dataUrl) => updateField("signatureImage", dataUrl)}
-              label="Tanda Tangan"
-              hint="Ditempatkan di atas garis 'Yang Menerima'. Kosongkan bila ingin dicetak dulu lalu ditandatangani manual."
+              label={tr("Tanda Tangan")}
+              hint={tr("Ditempatkan di atas garis 'Yang Menerima'. Kosongkan bila ingin dicetak dulu lalu ditandatangani manual.")}
             />
             <NextTabHint tabs={TABS} active={tab} onChange={setTab} />
           </PanelCard>
@@ -418,7 +419,7 @@ export function KwitansiGenerator() {
       <PreviewJumpFab targetId="kwitansi-preview" />
 
       <div id="kwitansi-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Langsung")}</p>
         <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-white">
           <canvas ref={canvasRef} className="w-full h-auto block" />
         </div>
@@ -432,20 +433,20 @@ export function KwitansiGenerator() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Btn onClick={downloadPng} disabled={isGenerating} variant="secondary" className="gap-2">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Unduh PNG
+            {tr("Unduh PNG")}
           </Btn>
           <Btn onClick={downloadPdf} disabled={isGenerating} className="gap-2">
             {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Receipt className="w-4 h-4" />}
-            Unduh PDF
+            {tr("Unduh PDF")}
           </Btn>
           <Btn onClick={printNow} variant="secondary" className="gap-2">
             <Printer className="w-4 h-4" />
-            Cetak
+            {tr("Cetak")}
           </Btn>
         </div>
 
         <div className="text-center">
-          <SectionBadge>Diproses langsung di perangkatmu</SectionBadge>
+          <SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge>
         </div>
       </div>
     </div>

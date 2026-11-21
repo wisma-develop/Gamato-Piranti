@@ -10,6 +10,7 @@ import { PDFDocument } from "pdf-lib";
 import { canvasToBlob } from "@/lib/canvas";
 import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { encodeGif } from "@/lib/gifEncoder";
+import { tr } from "@/i18n";
 
 export type ImageOutputFormat = "png" | "jpg" | "webp" | "bmp" | "ico" | "gif" | "pdf";
 
@@ -19,7 +20,7 @@ async function loadImage(file: File): Promise<HTMLImageElement> {
     const img = new Image();
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
-      img.onerror = () => reject(new Error("Gagal membaca gambar — file mungkin rusak atau formatnya tidak didukung browser."));
+      img.onerror = () => reject(new Error(tr("Gagal membaca gambar — file mungkin rusak atau formatnya tidak didukung browser.")));
       img.src = url;
     });
     return img;

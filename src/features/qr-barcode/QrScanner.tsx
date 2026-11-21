@@ -12,6 +12,7 @@ import { requestCamera, stopStream, PermissionError, type PermFailure } from "@/
 import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
 import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
 import { useMediaDevices } from "@/hooks/useMediaDevices";
+import { tr } from "@/i18n";
 
 type Mode = "upload" | "camera";
 
@@ -29,19 +30,19 @@ interface HistoryEntry extends ScanHit {}
 // Codabar, PDF417, Data Matrix, Aztec) for free with zero extra dependency
 // weight. Where it isn't, jsQR still covers QR codes reliably everywhere.
 const FORMAT_LABELS: Record<string, string> = {
-  qr_code: "QR Code",
+  qr_code: tr("QR Code"),
   code_128: "CODE 128",
   code_39: "CODE 39",
   code_93: "CODE 93",
-  codabar: "Codabar",
+  codabar: tr("Codabar"),
   ean_13: "EAN-13",
   ean_8: "EAN-8",
   upc_a: "UPC-A",
   upc_e: "UPC-E",
   itf: "ITF",
-  data_matrix: "Data Matrix",
+  data_matrix: tr("Data Matrix"),
   pdf417: "PDF417",
-  aztec: "Aztec",
+  aztec: tr("Aztec"),
 };
 
 function formatLabel(format: string): string {
@@ -147,7 +148,7 @@ export function QrScanner() {
         pushResult(hit);
       } else {
         setResult(null);
-        setError("Tidak ada QR code atau barcode yang terdeteksi pada gambar ini.");
+        setError(tr("Tidak ada QR code atau barcode yang terdeteksi pada gambar ini."));
       }
     })();
     return () => {
@@ -183,7 +184,7 @@ export function QrScanner() {
       const canvas = getScanCanvas();
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) {
-        setError("Browser ini tidak mendukung pemrosesan gambar (canvas 2D) yang dibutuhkan untuk memindai.");
+        setError(tr("Browser ini tidak mendukung pemrosesan gambar (canvas 2D) yang dibutuhkan untuk memindai."));
         stopCamera();
         return;
       }
@@ -215,7 +216,7 @@ export function QrScanner() {
       streamRef.current = null;
       setIsScanning(false);
       if (err instanceof PermissionError) setPermFail(err.failure);
-      else setError("Gagal memulai pratinjau kamera. Coba lagi atau pilih kamera lain.");
+      else setError(tr("Gagal memulai pratinjau kamera. Coba lagi atau pilih kamera lain."));
     }
   }, [pushResult, decodeFrame, getScanCanvas, stopCamera, cameraId, refreshCameras]);
 
@@ -256,7 +257,7 @@ export function QrScanner() {
             className={cn("flex items-center justify-center gap-2 rounded-2xl border-2 p-4 text-sm font-bold transition-all", mode === "upload" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300")}
           >
             <Upload className="w-4 h-4" />
-            Unggah Gambar
+            {tr("Unggah Gambar")}
           </button>
           <button
             type="button"
@@ -264,25 +265,25 @@ export function QrScanner() {
             className={cn("flex items-center justify-center gap-2 rounded-2xl border-2 p-4 text-sm font-bold transition-all", mode === "camera" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300")}
           >
             <Camera className="w-4 h-4" />
-            Kamera Langsung
+            {tr("Kamera Langsung")}
           </button>
         </div>
 
         {mode === "upload" ? (
           !file ? (
-            <Dropzone onFiles={handleFiles} accept="image/*" multiple={false} label="Drop gambar berisi QR code atau barcode" sublabel="JPG, PNG, WEBP" icon={<ScanLine className="w-8 h-8" />} />
+            <Dropzone onFiles={handleFiles} accept="image/*" multiple={false} label={tr("Drop gambar berisi QR code atau barcode")} sublabel={tr("JPG, PNG, WEBP")} icon={<ScanLine className="w-8 h-8" />} />
           ) : (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm space-y-3">
               <canvas ref={canvasRef} className="w-full h-auto rounded-xl max-h-[420px] object-contain mx-auto block" />
               <button type="button" onClick={() => { setFile(null); setResult(null); setError(null); }} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-                Ganti Gambar
+                {tr("Ganti Gambar")}
               </button>
             </div>
           )
         ) : (
           <>
           {cameras.length > 1 && (
-            <MediaDevicePicker label="Kamera" devices={cameras} value={cameraId} testId="qr-camera-picker"
+            <MediaDevicePicker label={tr("Kamera")} devices={cameras} value={cameraId} testId="qr-camera-picker"
               onChange={(id) => { setCameraId(id); if (isScanning) { stopCamera(); } }} />
           )}
           <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative">
@@ -291,14 +292,14 @@ export function QrScanner() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <Btn onClick={startCamera} className="gap-2">
                   <Camera className="w-4 h-4" />
-                  Mulai Kamera
+                  {tr("Mulai Kamera")}
                 </Btn>
               </div>
             )}
             {isScanning && (
               <>
                 <div className="absolute inset-x-0 top-0 flex justify-center pt-3 pointer-events-none">
-                  <span className="text-[11px] font-semibold text-white/90 bg-black/50 rounded-full px-3 py-1">Arahkan ke QR code / barcode…</span>
+                  <span className="text-[11px] font-semibold text-white/90 bg-black/50 rounded-full px-3 py-1">{tr("Arahkan ke QR code / barcode…")}</span>
                 </div>
                 <button type="button" onClick={stopCamera} className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-black/80">
                   <CameraOff className="w-4 h-4" />
@@ -315,7 +316,7 @@ export function QrScanner() {
         {result && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil Pindaian</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Hasil Pindaian")}</p>
               <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-100 dark:border-indigo-500/20 shrink-0">
                 {formatLabel(result.format)}
               </span>
@@ -324,12 +325,12 @@ export function QrScanner() {
             <div className="flex flex-wrap gap-2">
               <Btn onClick={() => copy(result.text)} variant="secondary" className="gap-2 text-xs">
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Disalin!" : "Salin Teks"}
+                {copied ? tr("Disalin!") : tr("Salin Teks")}
               </Btn>
               {url && (
                 <a href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Buka Link
+                  {tr("Buka Link")}
                 </a>
               )}
             </div>
@@ -340,7 +341,7 @@ export function QrScanner() {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-2">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
               <History className="w-3.5 h-3.5" />
-              Riwayat Sesi Ini
+              {tr("Riwayat Sesi Ini")}
             </p>
             <ul className="space-y-1.5">
               {history.slice(1).map((h, i) => (
@@ -357,19 +358,19 @@ export function QrScanner() {
       <div className="space-y-4 lg:sticky lg:top-24">
         <ToolInfoPanel
           icon={<ScanLine className="w-5 h-5" />}
-          label="QR & Barcode Scanner"
-          desc="Baca QR code dan barcode dari gambar atau kamera"
+          label={tr("QR & Barcode Scanner")}
+          desc={tr("Baca QR code dan barcode dari gambar atau kamera")}
           points={
             detectorSupported
               ? [
-                  "Mendukung QR code sekaligus barcode 1D/2D (CODE128, EAN, UPC, CODE39, ITF, Data Matrix, PDF417, dll) — didukung penuh oleh browser ini.",
-                  "Mode kamera memindai terus-menerus hingga kode terdeteksi.",
-                  "Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server.",
+                  tr("Mendukung QR code sekaligus barcode 1D/2D (CODE128, EAN, UPC, CODE39, ITF, Data Matrix, PDF417, dll) — didukung penuh oleh browser ini."),
+                  tr("Mode kamera memindai terus-menerus hingga kode terdeteksi."),
+                  tr("Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server."),
                 ]
               : [
-                  "Mendukung QR code penuh di semua browser. Untuk barcode 1D (CODE128, EAN, dll), gunakan Chrome/Edge terbaru agar deteksi barcode aktif, atau pakai alat Scan HID dengan scanner fisik.",
-                  "Mode kamera memindai terus-menerus hingga QR code terdeteksi.",
-                  "Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server.",
+                  tr("Mendukung QR code penuh di semua browser. Untuk barcode 1D (CODE128, EAN, dll), gunakan Chrome/Edge terbaru agar deteksi barcode aktif, atau pakai alat Scan HID dengan scanner fisik."),
+                  tr("Mode kamera memindai terus-menerus hingga QR code terdeteksi."),
+                  tr("Gambar & video kamera diproses langsung di browser, tidak pernah diunggah ke server."),
                 ]
           }
         />

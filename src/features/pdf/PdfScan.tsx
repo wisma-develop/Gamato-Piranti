@@ -14,6 +14,7 @@ import { requestCamera, stopStream, PermissionError, type PermFailure } from "@/
 import { GamatoPermissionNotice } from "@/components/ui/GamatoPermissionNotice";
 import { MediaDevicePicker } from "@/components/ui/MediaDevicePicker";
 import { useMediaDevices } from "@/hooks/useMediaDevices";
+import { msgStarts, tr } from "@/i18n";
 
 type ScanMode = "original" | "grayscale" | "bw";
 type InputMode = "upload" | "camera";
@@ -85,7 +86,7 @@ export const PdfScan: React.FC = () => {
       streamRef.current = null;
       setIsCameraOn(false);
       if (err instanceof PermissionError) setPermFail(err.failure);
-      else setCameraError("Gagal memulai pratinjau kamera. Coba lagi atau pilih kamera lain.");
+      else setCameraError(tr("Gagal memulai pratinjau kamera. Coba lagi atau pilih kamera lain."));
     }
   };
 
@@ -110,7 +111,7 @@ export const PdfScan: React.FC = () => {
       setFlash(true);
       setTimeout(() => setFlash(false), 180);
     } catch {
-      setCameraError("Gagal mengambil foto dari kamera. Coba lagi.");
+      setCameraError(tr("Gagal mengambil foto dari kamera. Coba lagi."));
     }
   };
 
@@ -171,9 +172,9 @@ export const PdfScan: React.FC = () => {
       }
       await stampGamatoBranding(pdfDoc);
       downloadBlob(new Blob([await pdfDoc.save()], { type: "application/pdf" }), "gamato-scan.pdf");
-      setInfo(`${items.length} halaman berhasil dijadikan PDF hasil scan.`);
+      setInfo(tr("{0} halaman berhasil dijadikan PDF hasil scan.", items.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal membuat PDF."));
+      setInfo("" + (err?.message || tr("Gagal membuat PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -190,7 +191,7 @@ export const PdfScan: React.FC = () => {
               inputMode === "upload" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300")}
           >
             <Upload className="w-4 h-4" />
-            Upload Gambar
+            {tr("Upload Gambar")}
           </button>
           <button
             type="button"
@@ -199,7 +200,7 @@ export const PdfScan: React.FC = () => {
               inputMode === "camera" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300")}
           >
             <Camera className="w-4 h-4" />
-            Ambil dari Kamera
+            {tr("Ambil dari Kamera")}
           </button>
         </div>
 
@@ -208,8 +209,8 @@ export const PdfScan: React.FC = () => {
             onFiles={addFiles}
             accept="image/*"
             multiple
-            label="Drop gambar dokumen di sini"
-            sublabel="Bisa beberapa halaman sekaligus — urutan bisa diatur"
+            label={tr("Drop gambar dokumen di sini")}
+            sublabel={tr("Bisa beberapa halaman sekaligus — urutan bisa diatur")}
             icon={<ImageIcon className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
             isDragging={isDragging}
             setIsDragging={setIsDragging}
@@ -217,7 +218,7 @@ export const PdfScan: React.FC = () => {
         ) : (
           <>
           {cameras.length > 1 && (
-            <MediaDevicePicker label="Kamera" devices={cameras} value={cameraId} testId="scan-camera-picker"
+            <MediaDevicePicker label={tr("Kamera")} devices={cameras} value={cameraId} testId="scan-camera-picker"
               onChange={(id) => { setCameraId(id); if (isCameraOn) stopCamera(); }} />
           )}
           <div className="bg-black rounded-2xl overflow-hidden shadow-sm relative">
@@ -227,14 +228,14 @@ export const PdfScan: React.FC = () => {
               <div className="absolute inset-0 flex items-center justify-center">
                 <Btn onClick={startCamera} className="gap-2">
                   <Camera className="w-4 h-4" />
-                  Mulai Kamera
+                  {tr("Mulai Kamera")}
                 </Btn>
               </div>
             ) : (
               <>
                 <div className="absolute inset-x-0 top-0 flex justify-between items-start p-3 pointer-events-none">
-                  <span className="text-[11px] font-semibold text-white/90 bg-black/50 rounded-full px-3 py-1">Posisikan dokumen dalam bingkai</span>
-                  {items.length > 0 && <span className="text-[11px] font-bold text-white bg-indigo-600 rounded-full px-2.5 py-1 pointer-events-auto">{items.length} halaman</span>}
+                  <span className="text-[11px] font-semibold text-white/90 bg-black/50 rounded-full px-3 py-1">{tr("Posisikan dokumen dalam bingkai")}</span>
+                  {items.length > 0 && <span className="text-[11px] font-bold text-white bg-indigo-600 rounded-full px-2.5 py-1 pointer-events-auto">{tr("{0} halaman", items.length)}</span>}
                 </div>
                 <button type="button" onClick={stopCamera} className="absolute top-12 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-black/80">
                   <CameraOff className="w-4 h-4" />
@@ -243,7 +244,7 @@ export const PdfScan: React.FC = () => {
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    aria-label="Ambil foto"
+                    aria-label={tr("Ambil foto")}
                     className="w-16 h-16 rounded-full bg-white border-4 border-indigo-500 shadow-lg active:scale-90 transition-transform"
                   />
                 </div>
@@ -258,15 +259,13 @@ export const PdfScan: React.FC = () => {
         {items.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-800">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{items.length} halaman</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("{0} halaman", items.length)}</p>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {items.map((item, i) => (
                 <div key={item.url} className="flex items-center gap-3 px-5 py-3">
                   <img src={item.url} alt="" className="w-12 h-12 object-cover rounded-lg border border-slate-200 dark:border-slate-700" style={{ filter: mode === "bw" ? "grayscale(1) contrast(1.8)" : mode === "grayscale" ? "grayscale(1)" : undefined }} />
-                  <p className="flex-1 text-sm text-slate-600 dark:text-slate-300 truncate">
-                    Halaman {i + 1} — {item.file.name}
-                  </p>
+                  <p className="flex-1 text-sm text-slate-600 dark:text-slate-300 truncate">{tr("Halaman {0} — {1}", i + 1, item.file.name)}</p>
                   <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="p-1.5 text-slate-400 hover:text-indigo-600 disabled:opacity-30">
                     <ArrowUp className="w-4 h-4" />
                   </button>
@@ -283,39 +282,39 @@ export const PdfScan: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <Select label="Gaya Scan" value={mode} onChange={(e) => setMode(e.target.value as ScanMode)}>
-            <option value="bw">Hitam-Putih Kontras (mirip scanner)</option>
-            <option value="grayscale">Grayscale</option>
-            <option value="original">Warna Asli</option>
+          <Select label={tr("Gaya Scan")} value={mode} onChange={(e) => setMode(e.target.value as ScanMode)}>
+            <option value="bw">{tr("Hitam-Putih Kontras (mirip scanner)")}</option>
+            <option value="grayscale">{tr("Grayscale")}</option>
+            <option value="original">{tr("Warna Asli")}</option>
           </Select>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Kecerahan</Label>
+              <Label>{tr("Kecerahan")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{brightness}%</span>
             </div>
-            <GamatoSlider min={50} max={180} value={brightness} onChange={setBrightness} aria-label="Kecerahan" />
+            <GamatoSlider min={50} max={180} value={brightness} onChange={setBrightness} aria-label={tr("Kecerahan")} />
           </div>
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <Label>Kontras</Label>
+              <Label>{tr("Kontras")}</Label>
               <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{contrast}%</span>
             </div>
             <GamatoSlider min={50} max={220} value={contrast} onChange={setContrast} aria-label="Kontras" />
           </div>
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleBuild} disabled={isWorking || !items.length} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Buat PDF Hasil Scan
+              {tr("Buat PDF Hasil Scan")}
             </>
           )}
         </Btn>
@@ -323,12 +322,12 @@ export const PdfScan: React.FC = () => {
 
       <ToolInfoPanel
         icon={<ScanLine className="w-5 h-5" />}
-        label="Scan PDF"
-        desc="Foto dokumen → PDF"
+        label={tr("Scan PDF")}
+        desc={tr("Foto dokumen → PDF")}
         points={[
-          "Ambil foto langsung lewat kamera browser (live, bisa berkali-kali tanpa buka ulang) atau upload gambar dokumen.",
-          "Filter otomatis membuat hasil terlihat seperti hasil scanner sungguhan.",
-          "Susun ulang urutan halaman sebelum digabung.",
+          tr("Ambil foto langsung lewat kamera browser (live, bisa berkali-kali tanpa buka ulang) atau upload gambar dokumen."),
+          tr("Filter otomatis membuat hasil terlihat seperti hasil scanner sungguhan."),
+          tr("Susun ulang urutan halaman sebelum digabung."),
         ]}
       />
     </div>

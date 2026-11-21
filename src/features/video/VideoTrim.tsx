@@ -13,6 +13,7 @@ import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { tr } from "@/i18n";
 
 type Mode = "trim" | "cut";
 type RemoveSegment = { id: string; start: number; end: number };
@@ -119,7 +120,7 @@ export function VideoTrim() {
 
       setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
-      setExportError(err?.message || "Gagal memotong video.");
+      setExportError(err?.message || tr("Gagal memotong video."));
     } finally {
       setIsExporting(false);
       setPacking(false);
@@ -143,8 +144,8 @@ export function VideoTrim() {
             onFiles={handleFiles}
             accept="video/*"
             multiple={false}
-            label={isLoading ? "Memuat video…" : "Drop video di sini"}
-            sublabel="MP4, WebM, MOV — diproses langsung di browser"
+            label={isLoading ? tr("Memuat video…") : tr("Drop video di sini")}
+            sublabel={tr("MP4, WebM, MOV — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -158,14 +159,14 @@ export function VideoTrim() {
                   onClick={() => setMode("trim")}
                   className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all", mode === "trim" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}
                 >
-                  Simpan Satu Bagian (Trim)
+                  {tr("Simpan Satu Bagian (Trim)")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("cut")}
                   className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all", mode === "cut" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}
                 >
-                  Buang Beberapa Bagian (Cut)
+                  {tr("Buang Beberapa Bagian (Cut)")}
                 </button>
               </div>
 
@@ -182,11 +183,11 @@ export function VideoTrim() {
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Hijau = disimpan, merah = dibuang.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Hijau = disimpan, merah = dibuang.")}</p>
                   {removeSegments.map((seg) => (
                     <div key={seg.id} className="flex items-center gap-2 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
                       <Input type="number" min={0} step={0.1} value={seg.start.toFixed(1)} onChange={(e) => updateRemoveSegment(seg.id, { start: parseFloat(e.target.value) || 0 })} className="text-xs py-1.5" />
-                      <span className="text-slate-400 text-xs">s/d</span>
+                      <span className="text-slate-400 text-xs">{tr("s/d")}</span>
                       <Input type="number" min={0} step={0.1} value={seg.end.toFixed(1)} onChange={(e) => updateRemoveSegment(seg.id, { end: parseFloat(e.target.value) || 0 })} className="text-xs py-1.5" />
                       <button type="button" onClick={() => removeRemoveSegment(seg.id)} className="p-2 text-slate-400 hover:text-red-500 shrink-0">
                         <Trash2 className="w-4 h-4" />
@@ -195,29 +196,29 @@ export function VideoTrim() {
                   ))}
                   <Btn onClick={addRemoveSegment} variant="secondary" className="w-full gap-2 text-sm">
                     <Plus className="w-4 h-4" />
-                    Tambah Bagian yang Dibuang
+                    {tr("Tambah Bagian yang Dibuang")}
                   </Btn>
                 </div>
               )}
 
               <div className="flex items-center justify-between text-sm bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-2.5">
-                <span className="text-slate-500 dark:text-slate-400">Durasi hasil</span>
+                <span className="text-slate-500 dark:text-slate-400">{tr("Durasi hasil")}</span>
                 <span className="font-bold text-slate-800 dark:text-slate-100 font-mono">{formatTime(resultDuration)}</span>
               </div>
 
               <button type="button" onClick={() => setIncludeAudio((v) => !v)} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-medium">
                 {includeAudio ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                {includeAudio ? "Audio disertakan" : "Audio dibisukan"}
+                {includeAudio ? tr("Audio disertakan") : tr("Audio dibisukan")}
               </button>
             </div>
 
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Hasil")}</p>
                 <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
-                  Unduh Video ({resultFormat?.label})
+                  {tr("Unduh Video (")}{resultFormat?.label})
                 </Btn>
               </div>
             )}
@@ -232,37 +233,35 @@ export function VideoTrim() {
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{meta.file.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {meta.width}×{meta.height} · {formatTime(meta.duration)}
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr("{0}×{1} · {2}", meta.width, meta.height, formatTime(meta.duration))}</p>
             {isExporting && (
               <div className="space-y-1.5">
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? tr("Mengemas ke {0}…", container === "asli" ? tr("format asli") : container.toUpperCase()) : tr("Memproses…")} {Math.round(progress * 100)}%</p>
               </div>
             )}
             <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
             {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
             <Btn onClick={runExport} disabled={isExporting || !keepSegments.length || !format} className="w-full gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scissors className="w-4 h-4" />}
-              {isExporting ? "Memproses…" : "Potong & Ekspor"}
+              {isExporting ? tr("Memproses…") : tr("Potong & Ekspor")}
             </Btn>
             <button type="button" onClick={reset} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Video
+              {tr("Ganti Video")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<Scissors className="w-5 h-5" />}
-          label="Potong Video"
-          desc="Trim & cut ringan langsung di browser"
+          label={tr("Potong Video")}
+          desc={tr("Trim & cut ringan langsung di browser")}
           points={[
-            "Ekspor berjalan real-time — video 1 menit butuh kira-kira 1 menit untuk diproses.",
-            format ? `Format ekspor terbaik di browser ini: ${format.label}.` : "Browser ini tampaknya tidak mendukung ekspor video — coba Chrome, Edge, atau Firefox terbaru.",
-            "Video tidak pernah diunggah ke server — semua pemrosesan terjadi di perangkatmu.",
+            tr("Ekspor berjalan real-time — video 1 menit butuh kira-kira 1 menit untuk diproses."),
+            format ? tr("Format ekspor terbaik di browser ini: {0}.", format.label) : tr("Browser ini tampaknya tidak mendukung ekspor video — coba Chrome, Edge, atau Firefox terbaru."),
+            tr("Video tidak pernah diunggah ke server — semua pemrosesan terjadi di perangkatmu."),
           ]}
         />
       </div>

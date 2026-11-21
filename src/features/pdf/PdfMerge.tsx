@@ -6,6 +6,7 @@ import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { msgOk, tr } from "@/i18n";
 
 export const PdfMerge: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -36,9 +37,9 @@ export const PdfMerge: React.FC = () => {
       }
       await stampGamatoBranding(doc);
       downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), "gamato-merged.pdf");
-      setInfo(`${files.length} PDF berhasil digabung.`);
+      setInfo(tr("{0} PDF berhasil digabung.", files.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses PDF."));
+      setInfo("" + (err?.message || tr("Gagal memproses PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -51,8 +52,8 @@ export const PdfMerge: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple
-          label="Drop file PDF di sini"
-          sublabel="Bisa pilih beberapa file — urutannya bisa diatur"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("Bisa pilih beberapa file — urutannya bisa diatur")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -61,8 +62,8 @@ export const PdfMerge: React.FC = () => {
         {files.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{files.length} file dipilih</p>
-              <span className="text-xs text-slate-400 dark:text-slate-500">Total: {totalSizeMb} MB</span>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("{0} file dipilih", files.length)}</p>
+              <span className="text-xs text-slate-400 dark:text-slate-500">{tr("Total: {0} MB", totalSizeMb)}</span>
             </div>
             <div className="divide-y divide-slate-100">
               {files.map((file, i) => (
@@ -70,7 +71,7 @@ export const PdfMerge: React.FC = () => {
                   <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
                   </div>
                   <button type="button" onClick={() => removeFile(i)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                     <Trash2 className="w-4 h-4" />
@@ -85,12 +86,12 @@ export const PdfMerge: React.FC = () => {
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Gabung PDF
+              {tr("Gabung PDF")}
             </>
           )}
         </Btn>
@@ -98,11 +99,11 @@ export const PdfMerge: React.FC = () => {
 
       <ToolInfoPanel
         icon={<Layers className="w-5 h-5" />}
-        label="Gabung PDF"
-        desc="Combine multiple PDFs"
-        points={["Gabungkan beberapa PDF jadi satu.", "Urutan mengikuti daftar file."]}
+        label={tr("Gabung PDF")}
+        desc={tr("Combine multiple PDFs")}
+        points={[tr("Gabungkan beberapa PDF jadi satu."), tr("Urutan mengikuti daftar file.")]}
         info={info}
-        infoTone={info?.includes("berhasil") ? "success" : "error"}
+        infoTone={msgOk(info) ? "success" : "error"}
       />
     </div>
   );

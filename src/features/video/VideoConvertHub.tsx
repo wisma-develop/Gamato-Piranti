@@ -25,13 +25,14 @@ import {
   sampleVideoFrames,
 } from "@/lib/videoEngine";
 import { encodeGif } from "@/lib/gifEncoder";
+import { tr } from "@/i18n";
 
 type Mode = "container" | "gif" | "audio";
 
 const MODES: { id: Mode; label: string; icon: React.ReactNode; desc: string }[] = [
-  { id: "container", label: "Format Video", icon: <FileVideo2 className="w-4 h-4" />, desc: "Ubah video ke MP4, MOV, atau WebM — cepat, langsung di browser" },
-  { id: "gif", label: "Ke GIF", icon: <ImageIcon className="w-4 h-4" />, desc: "Jadikan potongan video sebagai GIF bergerak" },
-  { id: "audio", label: "Ke Audio", icon: <AudioLines className="w-4 h-4" />, desc: "Ambil track suara saja dari video" },
+  { id: "container", label: tr("Format Video"), icon: <FileVideo2 className="w-4 h-4" />, desc: tr("Ubah video ke MP4, MOV, atau WebM — cepat, langsung di browser") },
+  { id: "gif", label: tr("Ke GIF"), icon: <ImageIcon className="w-4 h-4" />, desc: tr("Jadikan potongan video sebagai GIF bergerak") },
+  { id: "audio", label: tr("Ke Audio"), icon: <AudioLines className="w-4 h-4" />, desc: tr("Ambil track suara saja dari video") },
 ];
 
 const GIF_FPS_OPTIONS = [5, 10, 15];
@@ -127,11 +128,11 @@ export function VideoConvertHub() {
             return;
           } catch (fastErr: any) {
             if (!bestVideoFormat) throw fastErr;
-            setNote(`Jalur cepat tidak tersedia (${fastErr?.message || "tidak didukung"}). Memakai perekaman real-time…`);
+            setNote(tr("Jalur cepat tidak tersedia ({0}). Memakai perekaman real-time…", fastErr?.message || tr("tidak didukung")));
             setProgress(0);
           }
         }
-        if (!bestVideoFormat) throw new Error("Browser ini tidak mendukung ekspor video (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru.");
+        if (!bestVideoFormat) throw new Error(tr("Browser ini tidak mendukung ekspor video (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru."));
         const blob = await exportSegmentedVideo({
           sourceUrl: meta.url,
           segments: [{ start: trimStart, end: trimEnd }],
@@ -156,26 +157,26 @@ export function VideoConvertHub() {
         const blob = await encodeGif(frames, {
           onProgress: (f) => setProgress(0.65 + f * 0.35),
         });
-        setResult({ kind: "gif", url: URL.createObjectURL(blob), ext: "gif", label: "GIF", sizeBytes: blob.size });
+        setResult({ kind: "gif", url: URL.createObjectURL(blob), ext: "gif", label: tr("GIF"), sizeBytes: blob.size });
       } else {
         setNote(null);
         if (audioOut.format === "mp3") {
           try {
             const blob = await extractAudioToMp3(meta.file, { kbps: audioOut.kbps, start: trimStart, end: trimEnd, onProgress: setProgress });
-            setResult({ kind: "audio", url: URL.createObjectURL(blob), ext: "mp3", label: "MP3", sizeBytes: blob.size });
+            setResult({ kind: "audio", url: URL.createObjectURL(blob), ext: "mp3", label: tr("MP3"), sizeBytes: blob.size });
             return;
           } catch (mp3Err: any) {
             if (!bestAudioFormat) throw mp3Err;
-            setNote("Browser tidak bisa mendekode audio video ini untuk MP3, jadi hasil disimpan dalam format asli perekam.");
+            setNote(tr("Browser tidak bisa mendekode audio video ini untuk MP3, jadi hasil disimpan dalam format asli perekam."));
             setProgress(0);
           }
         }
-        if (!bestAudioFormat) throw new Error("Browser ini tidak mendukung ekstraksi audio (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru.");
+        if (!bestAudioFormat) throw new Error(tr("Browser ini tidak mendukung ekstraksi audio (MediaRecorder). Coba Chrome, Edge, atau Firefox terbaru."));
         const blob = await extractAudioFromVideo({ sourceUrl: meta.url, start: trimStart, end: trimEnd, onProgress: setProgress });
         setResult({ kind: "audio", url: URL.createObjectURL(blob), ext: bestAudioFormat.ext, label: bestAudioFormat.label, sizeBytes: blob.size });
       }
     } catch (err: any) {
-      setError(err?.message || "Gagal mengonversi video.");
+      setError(err?.message || tr("Gagal mengonversi video."));
     } finally {
       setIsProcessing(false);
     }
@@ -225,8 +226,8 @@ export function VideoConvertHub() {
             onFiles={handleFiles}
             accept="video/*"
             multiple={false}
-            label={isLoading ? "Memuat video…" : "Drop video di sini"}
-            sublabel="MP4, WebM, MOV — diproses langsung di browser"
+            label={isLoading ? tr("Memuat video…") : tr("Drop video di sini")}
+            sublabel={tr("MP4, WebM, MOV — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -235,14 +236,14 @@ export function VideoConvertHub() {
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <div>
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Rentang yang Dikonversi</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">{tr("Rentang yang Dikonversi")}</p>
                 <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(s, e) => { setTrimStart(s); setTrimEnd(e); clearResult(); }} playhead={playhead} />
               </div>
 
               {mode === "gif" && (
                 <div className="space-y-4 pt-1 border-t border-slate-100 dark:border-slate-800">
                   <div>
-                    <Label>Kecepatan (FPS)</Label>
+                    <Label>{tr("Kecepatan (FPS)")}</Label>
                     <div className="grid grid-cols-3 gap-2 mt-1">
                       {GIF_FPS_OPTIONS.map((fps) => (
                         <button
@@ -253,14 +254,12 @@ export function VideoConvertHub() {
                             "py-2 rounded-xl text-sm font-semibold border-2 transition-all",
                             gifFps === fps ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                           )}
-                        >
-                          {fps} fps
-                        </button>
+                        >{tr("{0} fps", fps)}</button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <Label>Lebar Maksimum</Label>
+                    <Label>{tr("Lebar Maksimum")}</Label>
                     <div className="grid grid-cols-4 gap-2 mt-1">
                       {GIF_WIDTH_OPTIONS.map((w) => (
                         <button
@@ -271,16 +270,12 @@ export function VideoConvertHub() {
                             "py-2 rounded-xl text-sm font-semibold border-2 transition-all",
                             gifMaxWidth === w ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
                           )}
-                        >
-                          {w}px
-                        </button>
+                        >{tr("{0}px", w)}</button>
                       ))}
                     </div>
                   </div>
                   <p className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    <Info className="w-3.5 h-3.5 shrink-0" />
-                    Perkiraan {estimatedGifFrames} frame akan diambil. GIF lebih lebar/lebih banyak frame = file lebih besar.
-                  </p>
+                    <Info className="w-3.5 h-3.5 shrink-0" />{tr("Perkiraan {0} frame akan diambil. GIF lebih lebar/lebih banyak frame = file lebih besar.", estimatedGifFrames)}</p>
                 </div>
               )}
 
@@ -297,10 +292,10 @@ export function VideoConvertHub() {
                 </>
               )}
               {mode === "container" && container === "asli" && !bestVideoFormat && (
-                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekspor video. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{tr("Browser ini tidak mendukung ekspor video. Coba Chrome, Edge, atau Firefox versi terbaru.")}</p>
               )}
               {mode === "audio" && audioOut.format === "asli" && !bestAudioFormat && (
-                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">Browser ini tidak mendukung ekstraksi audio. Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{tr("Browser ini tidak mendukung ekstraksi audio. Coba Chrome, Edge, atau Firefox versi terbaru.")}</p>
               )}
 
               {isProcessing && (
@@ -308,32 +303,32 @@ export function VideoConvertHub() {
                   <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(progress * 100)}%</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Memproses… {0}%", Math.round(progress * 100))}</p>
                 </div>
               )}
 
               <Btn onClick={runConvert} disabled={!canRun} className="w-full gap-2">
                 {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : activeModeInfo.icon}
-                {isProcessing ? "Memproses…" : `Konversi ${activeModeInfo.label}`}
+                {isProcessing ? tr("Memproses…") : tr("Konversi {0}", activeModeInfo.label)}
               </Btn>
               {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
               {result && (
                 <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                  {result.kind === "container" && <GamatoPlayer src={result.url} label={`Hasil (${result.label})`} />}
+                  {result.kind === "container" && <GamatoPlayer src={result.url} label={tr("Hasil ({0})", result.label)} />}
                   {result.kind === "gif" && (
                     <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <img src={result.url} alt="Hasil GIF" className="w-full h-auto" />
+                      <img src={result.url} alt={tr("Hasil GIF")} className="w-full h-auto" />
                     </div>
                   )}
-                  {result.kind === "audio" && <GamatoAudioPlayer src={result.url} label={`Hasil audio (${result.label})`} />}
+                  {result.kind === "audio" && <GamatoAudioPlayer src={result.url} label={tr("Hasil audio ({0})", result.label)} />}
                   <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 px-1">
                     <span>{result.label}</span>
                     <span>{formatBytes(result.sizeBytes)}</span>
                   </div>
                   <Btn onClick={downloadResult} variant="secondary" className="w-full gap-2 text-sm">
                     <Download className="w-4 h-4" />
-                    Unduh {result.kind === "gif" ? "GIF" : result.label}
+                    {tr("Unduh")} {result.kind === "gif" ? tr("GIF") : result.label}
                   </Btn>
                 </div>
               )}
@@ -348,42 +343,40 @@ export function VideoConvertHub() {
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 truncate">{meta.file.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {meta.width}×{meta.height} · {formatTime(meta.duration)}
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr("{0}×{1} · {2}", meta.width, meta.height, formatTime(meta.duration))}</p>
             <button type="button" onClick={reset} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Video
+              {tr("Ganti Video")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={activeModeInfo.icon}
-          label={`Konversi Video — ${activeModeInfo.label}`}
+          label={tr("Konversi Video — {0}", activeModeInfo.label)}
           desc={activeModeInfo.desc}
           points={
             mode === "container"
               ? [
-                  "Video diputar ulang dan direkam lewat encoder bawaan browser — bukan transcoding sungguhan seperti FFmpeg, tapi cukup untuk memperbaiki kontainer atau menyamakan format.",
-                  bestVideoFormat ? `Format terbaik di browser ini: ${bestVideoFormat.label}.` : "Browser ini tampaknya tidak mendukung ekspor video.",
-                  "Proses berjalan real-time (video 1 menit ≈ 1 menit proses), sama seperti alat Potong/Gabung Video lainnya.",
+                  tr("Video diputar ulang dan direkam lewat encoder bawaan browser — bukan transcoding sungguhan seperti FFmpeg, tapi cukup untuk memperbaiki kontainer atau menyamakan format."),
+                  bestVideoFormat ? tr("Format terbaik di browser ini: {0}.", bestVideoFormat.label) : tr("Browser ini tampaknya tidak mendukung ekspor video."),
+                  tr("Proses berjalan real-time (video 1 menit ≈ 1 menit proses), sama seperti alat Potong/Gabung Video lainnya."),
                 ]
               : mode === "gif"
               ? [
-                  "GIF dibuat langsung di browser (kuantisasi warna + kompresi LZW) tanpa server maupun library eksternal.",
-                  "Turunkan FPS atau lebar untuk file lebih kecil — GIF tidak sekompak video, jadi klip pendek (2–8 detik) hasilnya paling praktis.",
-                  `${estimatedGifFrames} frame akan diambil dari rentang ${formatTime(trimStart)}–${formatTime(trimEnd)}.`,
+                  tr("GIF dibuat langsung di browser (kuantisasi warna + kompresi LZW) tanpa server maupun library eksternal."),
+                  tr("Turunkan FPS atau lebar untuk file lebih kecil — GIF tidak sekompak video, jadi klip pendek (2–8 detik) hasilnya paling praktis."),
+                  tr("{0} frame akan diambil dari rentang {1}–{2}.", estimatedGifFrames, formatTime(trimStart), formatTime(trimEnd)),
                 ]
               : [
-                  "Audio diekstrak apa adanya dari track suara video.",
-                  bestAudioFormat ? `Format audio terbaik di browser ini: ${bestAudioFormat.label}.` : "Browser ini tampaknya tidak mendukung ekstraksi audio.",
-                  "Untuk audio yang sudah dalam bentuk file suara (bukan video), pakai Konversi Audio di menu Audio.",
+                  tr("Audio diekstrak apa adanya dari track suara video."),
+                  bestAudioFormat ? tr("Format audio terbaik di browser ini: {0}.", bestAudioFormat.label) : tr("Browser ini tampaknya tidak mendukung ekstraksi audio."),
+                  tr("Untuk audio yang sudah dalam bentuk file suara (bukan video), pakai Konversi Audio di menu Audio."),
                 ]
           }
         />
         {!videoExportOk && mode !== "gif" && (
           <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">
-            Browser ini mungkin tidak mendukung sebagian fitur ekspor (MediaRecorder/captureStream). GIF tetap bisa dipakai karena tidak bergantung pada API tersebut.
+            {tr("Browser ini mungkin tidak mendukung sebagian fitur ekspor (MediaRecorder/captureStream). GIF tetap bisa dipakai karena tidak bergantung pada API tersebut.")}
           </p>
         )}
       </div>

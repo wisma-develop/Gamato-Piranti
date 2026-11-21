@@ -13,6 +13,7 @@ import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, loadVideoMeta, exportMergedVideo, getBestExportFormat, type VideoMeta, type TransitionType, type ExportFormat } from "@/lib/videoEngine";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { tr } from "@/i18n";
 
 type MergeClip = { id: string; meta: VideoMeta; trimStart: number; trimEnd: number };
 
@@ -60,7 +61,7 @@ export function VideoMerge() {
         const meta = await loadVideoMeta(file);
         setClips((prev) => [...prev, { id: newClipId(), meta, trimStart: 0, trimEnd: meta.duration }]);
       } catch (err: any) {
-        setLoadError(err?.message || `Gagal memuat ${file.name}.`);
+        setLoadError(err?.message || tr("Gagal memuat {0}.", file.name));
       }
     }
   };
@@ -116,7 +117,7 @@ export function VideoMerge() {
 
       setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
-      setExportError(err?.message || "Gagal menggabungkan video.");
+      setExportError(err?.message || tr("Gagal menggabungkan video."));
     } finally {
       setIsExporting(false);
       setPacking(false);
@@ -139,8 +140,8 @@ export function VideoMerge() {
           onFiles={handleFiles}
           accept="video/*"
           multiple
-          label="Drop 2 video atau lebih di sini"
-          sublabel="Bisa tambah klip kapan saja — urutan bisa diatur di bawah"
+          label={tr("Drop 2 video atau lebih di sini")}
+          sublabel={tr("Bisa tambah klip kapan saja — urutan bisa diatur di bawah")}
           icon={<Upload className="w-8 h-8" />}
         />
 
@@ -152,9 +153,7 @@ export function VideoMerge() {
                   <span className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{clip.meta.file.name}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
-                      {clip.meta.width}×{clip.meta.height} · {formatTime(clip.meta.duration)}
-                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0}×{1} · {2}", clip.meta.width, clip.meta.height, formatTime(clip.meta.duration))}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <button type="button" onClick={() => moveClip(i, -1)} disabled={i === 0} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 disabled:opacity-30">
@@ -183,21 +182,21 @@ export function VideoMerge() {
         {clips.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Transisi Antar Klip</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{tr("Transisi Antar Klip")}</p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setTransition("cut")}
                   className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all", transition === "cut" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}
                 >
-                  Potong Langsung (Cut)
+                  {tr("Potong Langsung (Cut)")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setTransition("fade")}
                   className={cn("py-2.5 rounded-xl text-sm font-semibold border-2 transition-all", transition === "fade" ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300")}
                 >
-                  Crossfade (Fade)
+                  {tr("Crossfade (Fade)")}
                 </button>
               </div>
             </div>
@@ -205,20 +204,20 @@ export function VideoMerge() {
             {transition === "fade" && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Durasi Transisi</p>
-                  <span className="text-xs font-mono text-slate-400">{transitionDuration.toFixed(1)}s</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tr("Durasi Transisi")}</p>
+                  <span className="text-xs font-mono text-slate-400">{tr("{0}s", transitionDuration.toFixed(1))}</span>
                 </div>
-                <GamatoSlider min={0.2} max={2} step={0.1} value={transitionDuration} onChange={setTransitionDuration} aria-label="Durasi transisi" />
+                <GamatoSlider min={0.2} max={2} step={0.1} value={transitionDuration} onChange={setTransitionDuration} aria-label={tr("Durasi transisi")} />
               </div>
             )}
 
             <button type="button" onClick={() => setIncludeAudio((v) => !v)} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-medium">
               {includeAudio ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              {includeAudio ? "Audio disertakan" : "Audio dibisukan"}
+              {includeAudio ? tr("Audio disertakan") : tr("Audio dibisukan")}
             </button>
 
             <div className="flex items-center justify-between text-sm bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-2.5">
-              <span className="text-slate-500 dark:text-slate-400">Total durasi hasil</span>
+              <span className="text-slate-500 dark:text-slate-400">{tr("Total durasi hasil")}</span>
               <span className="font-bold text-slate-800 dark:text-slate-100 font-mono">{formatTime(totalDuration)}</span>
             </div>
           </div>
@@ -226,11 +225,11 @@ export function VideoMerge() {
 
         {resultUrl && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Hasil")}</p>
             <GamatoPlayer src={resultUrl} compact />
             <Btn onClick={downloadResult} className="w-full gap-2">
               <Download className="w-4 h-4" />
-              Unduh Video ({resultFormat?.label})
+              {tr("Unduh Video (")}{resultFormat?.label})
             </Btn>
           </div>
         )}
@@ -242,33 +241,33 @@ export function VideoMerge() {
       <div className="space-y-4 lg:sticky lg:top-24">
         {clips.length > 0 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{clips.length} klip dipilih</p>
-            {clips.length < 2 && <p className="text-xs text-amber-700 dark:text-amber-400">Tambah minimal 2 klip untuk digabung.</p>}
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("{0} klip dipilih", clips.length)}</p>
+            {clips.length < 2 && <p className="text-xs text-amber-700 dark:text-amber-400">{tr("Tambah minimal 2 klip untuk digabung.")}</p>}
             {isExporting && (
               <div className="space-y-1.5">
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? tr("Mengemas ke {0}…", container === "asli" ? tr("format asli") : container.toUpperCase()) : tr("Memproses…")} {Math.round(progress * 100)}%</p>
               </div>
             )}
             <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
             {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
             <Btn onClick={runExport} disabled={isExporting || clips.length < 2 || !format} className="w-full gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
-              {isExporting ? "Memproses…" : "Gabung & Ekspor"}
+              {isExporting ? tr("Memproses…") : tr("Gabung & Ekspor")}
             </Btn>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<Layers className="w-5 h-5" />}
-          label="Gabung & Transisi"
-          desc="Satukan beberapa klip jadi satu video"
+          label={tr("Gabung & Transisi")}
+          desc={tr("Satukan beberapa klip jadi satu video")}
           points={[
-            "Resolusi hasil mengikuti klip pertama — klip lain otomatis disesuaikan (letterbox) bila rasionya beda.",
-            "Crossfade memberi transisi halus antar klip; Cut langsung berpindah tanpa efek.",
-            format ? `Format ekspor terbaik di browser ini: ${format.label}.` : "Browser ini tampaknya tidak mendukung ekspor video.",
+            tr("Resolusi hasil mengikuti klip pertama — klip lain otomatis disesuaikan (letterbox) bila rasionya beda."),
+            tr("Crossfade memberi transisi halus antar klip; Cut langsung berpindah tanpa efek."),
+            format ? tr("Format ekspor terbaik di browser ini: {0}.", format.label) : tr("Browser ini tampaknya tidak mendukung ekspor video."),
           ]}
         />
       </div>

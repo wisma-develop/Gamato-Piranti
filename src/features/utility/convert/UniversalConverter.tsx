@@ -15,6 +15,7 @@ import { convertText, convertFile, convertFilesToZip, type ConvertOutput } from 
 import { listZipEntries, extractZipFile, extractAllAsZip, type ZipEntryInfo } from "./converters/archiveConvert";
 import { isVideoConvertSupported, VIDEO_GIF_MAX_SECONDS } from "./converters/videoConvert";
 import { isAudioCompressionSupported } from "./converters/audioConvert";
+import { tr } from "@/i18n";
 
 type TopMode = "upload" | "paste" | "bundle";
 
@@ -82,7 +83,7 @@ export const UniversalConverter: React.FC = () => {
       if (!detected) {
         setFile(null);
         setSourceFormat(null);
-        setError(`Format file ".${f.name.split(".").pop()}" belum dikenali oleh Universal Converter.`);
+        setError(tr("Format file \".{0}\" belum dikenali oleh Universal Converter.", f.name.split(".").pop() ?? ""));
         return;
       }
 
@@ -96,7 +97,7 @@ export const UniversalConverter: React.FC = () => {
           setZipEntries(entries.filter((e) => !e.isDirectory));
           setZipFile(f);
         } catch {
-          setError("Gagal membaca isi file ZIP — mungkin rusak atau terenkripsi.");
+          setError(tr("Gagal membaca isi file ZIP — mungkin rusak atau terenkripsi."));
         }
       }
     },
@@ -116,12 +117,12 @@ export const UniversalConverter: React.FC = () => {
     try {
       let output: ConvertOutput;
       if (topMode === "paste") {
-        if (!pasteText.trim()) throw new Error("Tempel atau ketik teks/data terlebih dahulu.");
+        if (!pasteText.trim()) throw new Error(tr("Tempel atau ketik teks/data terlebih dahulu."));
         output = await convertText(pasteText, pasteSourceId, targetId!, { title });
       } else if (topMode === "bundle") {
         output = await convertFilesToZip(bundleFiles, title);
       } else {
-        if (!file || !sourceFormat) throw new Error("Pilih file terlebih dahulu.");
+        if (!file || !sourceFormat) throw new Error(tr("Pilih file terlebih dahulu."));
         const usesRealtimeProgress = sourceFormat.id === "video" || ((sourceFormat.id === "audio" || sourceFormat.id === "wav") && targetId === "audioOut");
         output = await convertFile(file, sourceFormat.id, targetId!, {
           title,
@@ -129,9 +130,9 @@ export const UniversalConverter: React.FC = () => {
         });
       }
       setResult(output);
-      showToast("Konversi berhasil.", "success");
+      showToast(tr("Konversi berhasil."), "success");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Konversi gagal — periksa kembali file/data yang dimasukkan.");
+      setError(err instanceof Error ? err.message : tr("Konversi gagal — periksa kembali file/data yang dimasukkan."));
     } finally {
       setIsConverting(false);
       setProgress(null);
@@ -157,9 +158,9 @@ export const UniversalConverter: React.FC = () => {
     <div className="space-y-5">
       {/* Mode tabs */}
       <div className="flex flex-wrap gap-2">
-        <ModeTab active={topMode === "upload"} onClick={() => switchMode("upload")} icon={<Upload className="w-4 h-4" />} label="Unggah File" />
-        <ModeTab active={topMode === "paste"} onClick={() => switchMode("paste")} icon={<ClipboardPaste className="w-4 h-4" />} label="Tempel Teks / Data" />
-        <ModeTab active={topMode === "bundle"} onClick={() => switchMode("bundle")} icon={<FilesIcon className="w-4 h-4" />} label="Gabung ke ZIP" />
+        <ModeTab active={topMode === "upload"} onClick={() => switchMode("upload")} icon={<Upload className="w-4 h-4" />} label={tr("Unggah File")} />
+        <ModeTab active={topMode === "paste"} onClick={() => switchMode("paste")} icon={<ClipboardPaste className="w-4 h-4" />} label={tr("Tempel Teks / Data")} />
+        <ModeTab active={topMode === "bundle"} onClick={() => switchMode("bundle")} icon={<FilesIcon className="w-4 h-4" />} label={tr("Gabung ke ZIP")} />
       </div>
 
       {/* ── Upload mode ── */}
@@ -169,8 +170,8 @@ export const UniversalConverter: React.FC = () => {
             <Dropzone
               onFiles={handleFileSelected}
               multiple={false}
-              label="Drop file apa saja di sini"
-              sublabel="Gambar, dokumen, spreadsheet, data, audio, video — format terdeteksi otomatis"
+              label={tr("Drop file apa saja di sini")}
+              sublabel={tr("Gambar, dokumen, spreadsheet, data, audio, video — format terdeteksi otomatis")}
               icon={<Upload className="w-8 h-8" />}
               isDragging={isDragging}
               setIsDragging={setIsDragging}
@@ -181,8 +182,7 @@ export const UniversalConverter: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
                 <p className="text-xs text-slate-400">
-                  {sourceFormat?.label} · {(file.size / 1024).toFixed(1)} KB
-                </p>
+                  {sourceFormat?.label}{" "}{tr("· {0} KB", (file.size / 1024).toFixed(1))}</p>
               </div>
               <button
                 type="button"
@@ -193,7 +193,7 @@ export const UniversalConverter: React.FC = () => {
                   setTargetId(null);
                 }}
                 className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                aria-label="Ganti file"
+                aria-label={tr("Ganti file")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -207,19 +207,18 @@ export const UniversalConverter: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
             <p className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-              <FileArchive className="w-4 h-4" /> {zipEntries.length} file di dalam {zipFile.name}
-            </p>
+              <FileArchive className="w-4 h-4" />{" "}{tr("{0} file di dalam {1}", zipEntries.length, zipFile.name)}</p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={async () => {
                   const blob = await extractAllAsZip(zipFile);
                   downloadBlob(blob, sanitizeFileName(zipFile.name));
-                  showToast("ZIP diunduh.", "success");
+                  showToast(tr("ZIP diunduh."), "success");
                 }}
                 className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
               >
-                Unduh semua
+                {tr("Unduh semua")}
               </button>
               <button
                 type="button"
@@ -230,7 +229,7 @@ export const UniversalConverter: React.FC = () => {
                   setSourceFormat(null);
                 }}
                 className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
-                aria-label="Tutup"
+                aria-label={tr("Tutup")}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -247,7 +246,7 @@ export const UniversalConverter: React.FC = () => {
                     downloadBlob(blob, sanitizeFileName(entry.name.split("/").pop() || entry.name));
                   }}
                   className="shrink-0 ml-3 p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors"
-                  aria-label={`Unduh ${entry.name}`}
+                  aria-label={tr("Unduh {0}", entry.name)}
                 >
                   <Download className="w-4 h-4" />
                 </button>
@@ -262,7 +261,7 @@ export const UniversalConverter: React.FC = () => {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">Format Sumber</label>
+              <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">{tr("Format Sumber")}</label>
               <GamatoSelect
                 value={pasteSourceId}
                 onChange={(e) => {
@@ -283,7 +282,7 @@ export const UniversalConverter: React.FC = () => {
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
             rows={10}
-            placeholder={`Tempel atau ketik ${FORMATS[pasteSourceId].label} di sini…`}
+            placeholder={tr("Tempel atau ketik {0} di sini…", FORMATS[pasteSourceId].label)}
             className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-mono focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
           />
         </div>
@@ -295,14 +294,14 @@ export const UniversalConverter: React.FC = () => {
           <Dropzone
             onFiles={(files) => setBundleFiles((prev) => [...prev, ...files])}
             multiple
-            label="Drop beberapa file di sini"
-            sublabel="Semua file akan digabung jadi satu .zip"
+            label={tr("Drop beberapa file di sini")}
+            sublabel={tr("Semua file akan digabung jadi satu .zip")}
             icon={<FolderOpen className="w-8 h-8" />}
           />
           {bundleFiles.length > 0 && (
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
               <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{bundleFiles.length} file dipilih</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("{0} file dipilih", bundleFiles.length)}</p>
               </div>
               <div className="max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 {bundleFiles.map((f, i) => (
@@ -328,7 +327,7 @@ export const UniversalConverter: React.FC = () => {
       {!zipEntries && ((topMode === "upload" && sourceFormat) || topMode === "paste" || (topMode === "bundle" && bundleFiles.length > 0)) && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">Nama File Hasil</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">{tr("Nama File Hasil")}</label>
             <input
               value={title}
               onChange={(e) => setTitle(sanitizeFileName(e.target.value) || "hasil-konversi")}
@@ -339,15 +338,14 @@ export const UniversalConverter: React.FC = () => {
           {topMode === "bundle" ? (
             <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
               <FileArchive className="w-5 h-5 text-indigo-500" />
-              <span>
-                {bundleFiles.length} file <ArrowRight className="w-3.5 h-3.5 inline mx-1" /> satu file <strong>.zip</strong>
+              <span>{tr("{0} file", bundleFiles.length)}{" "}<ArrowRight className="w-3.5 h-3.5 inline mx-1" /> {tr("satu file")} <strong>{tr(".zip")}</strong>
               </span>
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Konversi ke</label>
+              <label className="block text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{tr("Konversi ke")}</label>
               {availableTargets.length === 0 ? (
-                <p className="text-sm text-slate-400">Tidak ada format tujuan yang tersedia untuk format ini.</p>
+                <p className="text-sm text-slate-400">{tr("Tidak ada format tujuan yang tersedia untuk format ini.")}</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {availableTargets.map((t) => (
@@ -372,20 +370,20 @@ export const UniversalConverter: React.FC = () => {
                 </div>
               )}
               {sourceFormat?.id === "video" && !isVideoConvertSupported() && (
-                <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Browser ini tidak mendukung konversi video (perlu MediaRecorder). Coba Chrome atau Edge terbaru.</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">{tr("Browser ini tidak mendukung konversi video (perlu MediaRecorder). Coba Chrome atau Edge terbaru.")}</p>
               )}
               {sourceFormat?.id === "gif" && (
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Hanya frame pertama dari GIF animasi yang dipakai sebagai gambar sumber.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">{tr("Hanya frame pertama dari GIF animasi yang dipakai sebagai gambar sumber.")}</p>
               )}
               {targetId === "videoGif" && (
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">GIF dibuat dari {VIDEO_GIF_MAX_SECONDS} detik pertama video (10fps, lebar maks. 480px) supaya ukuran file tetap wajar.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">{tr("GIF dibuat dari {0} detik pertama video (10fps, lebar maks. 480px) supaya ukuran file tetap wajar.", VIDEO_GIF_MAX_SECONDS)}</p>
               )}
               {targetId === "audioOut" && (
                 <>
                   {!isAudioCompressionSupported() && (
-                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">Browser ini tidak mendukung kompresi audio (perlu MediaRecorder + Opus). Coba Chrome, Edge, atau Firefox versi terbaru.</p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">{tr("Browser ini tidak mendukung kompresi audio (perlu MediaRecorder + Opus). Coba Chrome, Edge, atau Firefox versi terbaru.")}</p>
                   )}
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Proses berjalan secara real-time (durasi kompresi ≈ durasi audio) — biarkan tab ini terbuka & tidak dibisukan sampai selesai.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">{tr("Proses berjalan secara real-time (durasi kompresi ≈ durasi audio) — biarkan tab ini terbuka & tidak dibisukan sampai selesai.")}</p>
                 </>
               )}
             </div>
@@ -398,7 +396,7 @@ export const UniversalConverter: React.FC = () => {
               <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div className="h-full bg-indigo-600 transition-all duration-150" style={{ width: `${Math.round(progress * 100)}%` }} />
               </div>
-              <p className="text-xs text-slate-400 text-center">Memproses… {Math.round(progress * 100)}%</p>
+              <p className="text-xs text-slate-400 text-center">{tr("Memproses… {0}%", Math.round(progress * 100))}</p>
             </div>
           )}
 
@@ -411,11 +409,11 @@ export const UniversalConverter: React.FC = () => {
             >
               {isConverting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Mengonversi…
+                  <Loader2 className="w-4 h-4 animate-spin" /> {tr("Mengonversi…")}
                 </>
               ) : (
                 <>
-                  <ArrowRight className="w-4 h-4" /> Konversi Sekarang
+                  <ArrowRight className="w-4 h-4" /> {tr("Konversi Sekarang")}
                 </>
               )}
             </button>
@@ -425,8 +423,7 @@ export const UniversalConverter: React.FC = () => {
               onClick={downloadResult}
               className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
             >
-              <Download className="w-4 h-4" /> Unduh {result.filename}
-            </button>
+              <Download className="w-4 h-4" />{" "}{tr("Unduh {0}", result.filename)}</button>
           )}
         </div>
       )}

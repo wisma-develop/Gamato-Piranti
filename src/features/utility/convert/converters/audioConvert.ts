@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // ─── Audio converter — any browser-decodable audio -> WAV ──────────────────
 // True codec transcoding (e.g. anything -> MP3/AAC/OGG) needs a real encoder
 // library (ffmpeg.wasm or similar); none is available among this project's
@@ -15,7 +16,7 @@ export async function audioFileToWav(file: File): Promise<Blob> {
   try {
     audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
   } catch {
-    throw new Error("Browser tidak bisa membaca format audio ini. Coba file MP3, WAV, OGG, atau M4A.");
+    throw new Error(tr("Browser tidak bisa membaca format audio ini. Coba file MP3, WAV, OGG, atau M4A."));
   } finally {
     ctx.close().catch(() => {});
   }
@@ -89,7 +90,7 @@ export function isAudioCompressionSupported(): boolean {
 export async function audioFileToCompressed(file: File, onProgress?: (pct: number) => void): Promise<Blob> {
   const mimeType = bestCompressedAudioMime();
   if (!mimeType) {
-    throw new Error("Browser ini tidak mendukung encoder audio terkompresi (Opus). Coba Chrome, Edge, atau Firefox versi terbaru.");
+    throw new Error(tr("Browser ini tidak mendukung encoder audio terkompresi (Opus). Coba Chrome, Edge, atau Firefox versi terbaru."));
   }
 
   const url = URL.createObjectURL(file);
@@ -100,7 +101,7 @@ export async function audioFileToCompressed(file: File, onProgress?: (pct: numbe
   try {
     await new Promise<void>((resolve, reject) => {
       audio.onloadedmetadata = () => resolve();
-      audio.onerror = () => reject(new Error("Gagal memuat audio — file mungkin rusak atau formatnya tidak didukung browser."));
+      audio.onerror = () => reject(new Error(tr("Gagal memuat audio — file mungkin rusak atau formatnya tidak didukung browser.")));
     });
 
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -118,7 +119,7 @@ export async function audioFileToCompressed(file: File, onProgress?: (pct: numbe
     };
     const resultPromise = new Promise<Blob>((resolve, reject) => {
       recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType.split(";")[0] }));
-      recorder.onerror = (e: any) => reject(new Error(e?.error?.message || "Kompresi audio gagal."));
+      recorder.onerror = (e: any) => reject(new Error(e?.error?.message || tr("Kompresi audio gagal.")));
     });
 
     recorder.start(250);

@@ -7,6 +7,7 @@ import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfToExcel: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -36,16 +37,16 @@ export const PdfToExcel: React.FC = () => {
       }
 
       if (!grid.length) {
-        setInfo("Tidak ada teks yang terdeteksi — kemungkinan PDF ini hasil scan gambar. Coba alat OCR PDF terlebih dahulu.");
+        setInfo(tr("Tidak ada teks yang terdeteksi — kemungkinan PDF ini hasil scan gambar. Coba alat OCR PDF terlebih dahulu."));
         return;
       }
 
       const base = file.name.replace(/\.pdf$/i, "");
       const blob = await gridToXlsxBlob(grid);
       downloadBlob(blob, `${base}.xlsx`);
-      setInfo(`Berhasil dikonversi ke Excel (${grid.length} baris terdeteksi).`);
+      setInfo(tr("Berhasil dikonversi ke Excel ({0} baris terdeteksi).", grid.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal mengonversi PDF ke Excel."));
+      setInfo("" + (err?.message || tr("Gagal mengonversi PDF ke Excel.")));
     } finally {
       setIsWorking(false);
     }
@@ -58,8 +59,8 @@ export const PdfToExcel: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -71,7 +72,7 @@ export const PdfToExcel: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -80,18 +81,18 @@ export const PdfToExcel: React.FC = () => {
           </div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") || info.startsWith("Tidak") ? "warning" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") || msgStarts(info, "Tidak") ? "warning" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Mengekstrak data…
+              {tr("Mengekstrak data…")}
             </>
           ) : (
             <>
               <FileDown className="w-4 h-4" />
-              Konversi ke Excel
+              {tr("Konversi ke Excel")}
             </>
           )}
         </Btn>
@@ -99,11 +100,11 @@ export const PdfToExcel: React.FC = () => {
 
       <ToolInfoPanel
         icon={<BarChart3 className="w-5 h-5" />}
-        label="PDF ke Excel"
-        desc="Deteksi baris & kolom"
+        label={tr("PDF ke Excel")}
+        desc={tr("Deteksi baris & kolom")}
         points={[
-          "Kolom dideteksi otomatis dari jarak antar teks — cocok untuk tabel yang rapi.",
-          "Untuk tabel kompleks/PDF hasil scan, hasil mungkin perlu dirapikan manual setelah dibuka.",
+          tr("Kolom dideteksi otomatis dari jarak antar teks — cocok untuk tabel yang rapi."),
+          tr("Untuk tabel kompleks/PDF hasil scan, hasil mungkin perlu dirapikan manual setelah dibuka."),
         ]}
       />
     </div>

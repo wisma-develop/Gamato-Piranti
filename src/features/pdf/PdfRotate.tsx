@@ -7,6 +7,7 @@ import { parsePageSpec } from "@/lib/pdf";
 import { Input, Select, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { tr } from "@/i18n";
 
 export const PdfRotate: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -34,9 +35,9 @@ export const PdfRotate: React.FC = () => {
       target.forEach((idx) => src.getPage(idx).setRotation(degrees(rotateDegrees)));
       await stampGamatoBranding(src);
       downloadBlob(new Blob([await src.save()], { type: "application/pdf" }), "gamato-rotated.pdf");
-      setInfo(`${target.length} halaman diputar ${rotateDegrees}°.`);
+      setInfo(tr("{0} halaman diputar {1}°.", target.length, rotateDegrees));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses PDF."));
+      setInfo("" + (err?.message || tr("Gagal memproses PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -49,8 +50,8 @@ export const PdfRotate: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -62,7 +63,7 @@ export const PdfRotate: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -73,18 +74,18 @@ export const PdfRotate: React.FC = () => {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
           <div className="grid grid-cols-2 gap-4">
-            <Select label="Target Halaman" value={rotateSpec} onChange={(e) => setRotateSpec(e.target.value)}>
-              <option value="semua">Semua halaman</option>
-              <option value="pilih">Halaman tertentu</option>
+            <Select label={tr("Target Halaman")} value={rotateSpec} onChange={(e) => setRotateSpec(e.target.value)}>
+              <option value="semua">{tr("Semua halaman")}</option>
+              <option value="pilih">{tr("Halaman tertentu")}</option>
             </Select>
-            <Select label="Derajat Putar" value={rotateDegrees} onChange={(e) => setRotateDegrees(parseInt(e.target.value))}>
+            <Select label={tr("Derajat Putar")} value={rotateDegrees} onChange={(e) => setRotateDegrees(parseInt(e.target.value))}>
               <option value={90}>90°</option>
               <option value={180}>180°</option>
               <option value={270}>270°</option>
             </Select>
           </div>
           {rotateSpec === "pilih" && (
-            <Input label="Rentang Halaman" value={pageSpec} onChange={(e) => setPageSpec(e.target.value)} placeholder="contoh: 1-3,5" />
+            <Input label={tr("Rentang Halaman")} value={pageSpec} onChange={(e) => setPageSpec(e.target.value)} placeholder={tr("contoh: 1-3,5")} />
           )}
         </div>
 
@@ -92,12 +93,12 @@ export const PdfRotate: React.FC = () => {
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Putar Halaman
+              {tr("Putar Halaman")}
             </>
           )}
         </Btn>
@@ -105,9 +106,9 @@ export const PdfRotate: React.FC = () => {
 
       <ToolInfoPanel
         icon={<RotateCw className="w-5 h-5" />}
-        label="Putar Halaman"
-        desc="Rotasi halaman"
-        points={["Putar halaman yang miring.", "Bisa semua atau halaman tertentu."]}
+        label={tr("Putar Halaman")}
+        desc={tr("Rotasi halaman")}
+        points={[tr("Putar halaman yang miring."), tr("Bisa semua atau halaman tertentu.")]}
         info={info}
         infoTone={info?.includes("diputar") ? "success" : "error"}
       />

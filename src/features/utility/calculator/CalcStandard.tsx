@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 type Op = "+" | "-" | "×" | "÷";
 type KeyVariant = "num" | "op" | "action" | "equals";
@@ -18,7 +19,7 @@ function compute(a: number, b: number, op: Op): number {
 }
 
 function formatDisplay(n: number): string {
-  if (!isFinite(n)) return "Error";
+  if (!isFinite(n)) return tr("Error");
   if (Number.isInteger(n)) return n.toString();
   return parseFloat(n.toFixed(10)).toString();
 }
@@ -88,7 +89,7 @@ export const CalcStandard: React.FC = () => {
   };
 
   const KEYS: { label: string; onClick: () => void; variant: KeyVariant }[] = [
-    { label: "C", onClick: clearAll, variant: "action" },
+    { label: tr("C"), onClick: clearAll, variant: "action" },
     { label: "±", onClick: toggleSign, variant: "action" },
     { label: "%", onClick: percent, variant: "action" },
     { label: "÷", onClick: () => applyOp("÷"), variant: "op" },

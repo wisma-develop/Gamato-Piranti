@@ -6,6 +6,7 @@ import { stampGamatoBranding } from "@/lib/pdfBranding";
 import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { tr } from "@/i18n";
 
 export const PdfSplit: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -29,11 +30,11 @@ export const PdfSplit: React.FC = () => {
         const doc = await PDFDocument.create();
         doc.addPage((await doc.copyPages(src, [i]))[0]);
         await stampGamatoBranding(doc);
-        downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), `gamato-page-${i + 1}.pdf`);
+        downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), tr("gamato-page-{0}.pdf", i + 1));
       }
-      setInfo(`PDF dipecah menjadi ${src.getPageCount()} file.`);
+      setInfo(tr("PDF dipecah menjadi {0} file.", src.getPageCount()));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses PDF."));
+      setInfo("" + (err?.message || tr("Gagal memproses PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -46,8 +47,8 @@ export const PdfSplit: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -59,7 +60,7 @@ export const PdfSplit: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -72,12 +73,12 @@ export const PdfSplit: React.FC = () => {
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Pecah PDF
+              {tr("Pecah PDF")}
             </>
           )}
         </Btn>
@@ -85,9 +86,9 @@ export const PdfSplit: React.FC = () => {
 
       <ToolInfoPanel
         icon={<FileOutput className="w-5 h-5" />}
-        label="Pecah PDF"
-        desc="Tiap halaman jadi file"
-        points={["Setiap halaman jadi file terpisah.", "File diunduh satu per satu."]}
+        label={tr("Pecah PDF")}
+        desc={tr("Tiap halaman jadi file")}
+        points={[tr("Setiap halaman jadi file terpisah."), tr("File diunduh satu per satu.")]}
         info={info}
         infoTone={info?.includes("dipecah") ? "success" : "error"}
       />

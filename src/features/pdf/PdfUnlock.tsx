@@ -6,6 +6,7 @@ import { Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfUnlock: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -29,10 +30,10 @@ export const PdfUnlock: React.FC = () => {
       // any permission/print/copy restrictions the file was carrying.
       const bytes = await pdfDoc.save();
       downloadBlob(new Blob([bytes], { type: "application/pdf" }), "gamato-unlocked.pdf");
-      setInfo("Proteksi/batasan pada PDF berhasil dihapus.");
+      setInfo(tr("Proteksi/batasan pada PDF berhasil dihapus."));
     } catch (err: any) {
       setInfo(
-        "Gagal membuka proteksi. File ini kemungkinan memerlukan password untuk DIBUKA (bukan hanya dibatasi izinnya) — jenis proteksi ini belum bisa dibongkar oleh alat browser-native seperti Gamato Piranti."
+        tr("Gagal membuka proteksi. File ini kemungkinan memerlukan password untuk DIBUKA (bukan hanya dibatasi izinnya) — jenis proteksi ini belum bisa dibongkar oleh alat browser-native seperti Gamato Piranti.")
       );
     } finally {
       setIsWorking(false);
@@ -46,8 +47,8 @@ export const PdfUnlock: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -59,7 +60,7 @@ export const PdfUnlock: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -69,21 +70,21 @@ export const PdfUnlock: React.FC = () => {
         )}
 
         <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
-          Alat ini hanya bekerja untuk PDF yang <b>dibatasi izinnya</b> (mis. cetak/copy dinonaktifkan) tanpa password pembuka. PDF yang butuh password untuk <b>dibuka</b> tidak bisa dibongkar oleh alat browser-native.
+          {tr("Alat ini hanya bekerja untuk PDF yang")} <b>{tr("dibatasi izinnya")}</b> {tr("(mis. cetak/copy dinonaktifkan) tanpa password pembuka. PDF yang butuh password untuk")} <b>{tr("dibuka")}</b> {tr("tidak bisa dibongkar oleh alat browser-native.")}
         </div>
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Buka Proteksi
+              {tr("Buka Proteksi")}
             </>
           )}
         </Btn>
@@ -91,9 +92,9 @@ export const PdfUnlock: React.FC = () => {
 
       <ToolInfoPanel
         icon={<KeyRound className="w-5 h-5" />}
-        label="Unlock PDF"
-        desc="Hapus batasan izin"
-        points={["Menghapus batasan cetak/salin/edit dari PDF yang tidak butuh password pembuka.", "Tidak mendekripsi PDF yang benar-benar butuh password untuk dibuka."]}
+        label={tr("Unlock PDF")}
+        desc={tr("Hapus batasan izin")}
+        points={[tr("Menghapus batasan cetak/salin/edit dari PDF yang tidak butuh password pembuka."), tr("Tidak mendekripsi PDF yang benar-benar butuh password untuk dibuka.")]}
       />
     </div>
   );

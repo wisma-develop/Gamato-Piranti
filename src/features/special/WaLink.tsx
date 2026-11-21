@@ -11,6 +11,7 @@ import { useDialog, type DialogField } from "@/hooks/useDialog";
 import { cn } from "@/utils/cn";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { copyText } from "@/lib/permissions";
+import { msgStarts, tr } from "@/i18n";
 
 // ─── Template definitions ─────────────────────────────────────────────────
 // Each template opens a custom Gamato Piranti form dialog (instead of the
@@ -36,283 +37,283 @@ const clean = (v: string | undefined) => sanitizeText(v ?? "").trim();
 const TEMPLATE_GROUPS: WaTemplateGroup[] = [
   {
     id: "perkenalan",
-    label: "Perkenalan",
+    label: tr("Perkenalan"),
     icon: <Sparkles className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "salam",
-        label: "Salam Pembuka",
-        fields: [{ key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" }],
+        label: tr("Salam Pembuka"),
+        fields: [{ key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") }],
         build: (v) => {
           const nama = clean(v.nama);
-          return (nama ? `Halo ${nama}, ` : "Halo, ") + "apa kabar? Saya ingin menghubungi terkait sesuatu.";
+          return (nama ? `Halo ${nama}, ` : tr("Halo, ")) + tr("apa kabar? Saya ingin menghubungi terkait sesuatu.");
         },
       },
       {
         id: "perkenalan-bisnis",
-        label: "Perkenalan Bisnis",
+        label: tr("Perkenalan Bisnis"),
         fields: [
-          { key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" },
-          { key: "namaBisnis", label: "Nama Usaha/Bisnis", placeholder: "mis. Gamato Store", required: true },
-          { key: "layanan", label: "Produk/Layanan Utama", placeholder: "mis. jasa desain grafis", required: true },
+          { key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") },
+          { key: "namaBisnis", label: tr("Nama Usaha/Bisnis"), placeholder: tr("mis. Gamato Store"), required: true },
+          { key: "layanan", label: tr("Produk/Layanan Utama"), placeholder: tr("mis. jasa desain grafis"), required: true },
         ],
         build: (v) => {
           const nama = clean(v.nama);
-          return `${nama ? `Halo ${nama}, ` : "Halo, "}perkenalkan saya dari ${clean(v.namaBisnis)}. Kami menyediakan ${clean(v.layanan)}. Semoga bisa membantu kebutuhan Anda.`;
+          return tr("{0}perkenalkan saya dari {1}. Kami menyediakan {2}. Semoga bisa membantu kebutuhan Anda.", nama ? `Halo ${nama}, ` : tr("Halo, "), clean(v.namaBisnis), clean(v.layanan));
         },
       },
     ],
   },
   {
     id: "penjualan",
-    label: "Penjualan",
+    label: tr("Penjualan"),
     icon: <ShoppingBag className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "follow-up",
-        label: "Follow-up Order",
+        label: tr("Follow-up Order"),
         fields: [
-          { key: "invoice", label: "Nomor Invoice/Order", placeholder: "mis. INV-0012", required: true },
-          { key: "jumlah", label: "Jumlah Tagihan", placeholder: "mis. Rp250.000 (opsional)" },
+          { key: "invoice", label: tr("Nomor Invoice/Order"), placeholder: tr("mis. INV-0012"), required: true },
+          { key: "jumlah", label: tr("Jumlah Tagihan"), placeholder: tr("mis. Rp250.000 (opsional)") },
         ],
         build: (v) => {
           const amt = clean(v.jumlah);
-          return `Halo, ini tindak lanjut terkait invoice ${clean(v.invoice)}. ${amt ? `Total ${amt}. ` : ""}Mohon konfirmasi penerimaan atau bila ada pertanyaan.`;
+          return tr("Halo, ini tindak lanjut terkait invoice {0}. {1}Mohon konfirmasi penerimaan atau bila ada pertanyaan.", clean(v.invoice), amt ? tr("Total {0}. ", amt) : "");
         },
       },
       {
         id: "penawaran",
-        label: "Penawaran Produk",
+        label: tr("Penawaran Produk"),
         fields: [
-          { key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" },
-          { key: "produk", label: "Nama Produk/Jasa", placeholder: "mis. Paket Desain Logo", required: true },
-          { key: "harga", label: "Harga Penawaran", placeholder: "mis. Rp150.000", required: true },
+          { key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") },
+          { key: "produk", label: tr("Nama Produk/Jasa"), placeholder: tr("mis. Paket Desain Logo"), required: true },
+          { key: "harga", label: tr("Harga Penawaran"), placeholder: tr("mis. Rp150.000"), required: true },
         ],
         build: (v) => {
           const nama = clean(v.nama);
-          return `${nama ? `Halo ${nama}, ` : "Halo, "}kami ingin menawarkan ${clean(v.produk)} dengan harga spesial ${clean(v.harga)}. Tertarik untuk info lebih lanjut?`;
+          return tr("{0}kami ingin menawarkan {1} dengan harga spesial {2}. Tertarik untuk info lebih lanjut?", nama ? `Halo ${nama}, ` : tr("Halo, "), clean(v.produk), clean(v.harga));
         },
       },
       {
         id: "cart-reminder",
-        label: "Pengingat Keranjang",
+        label: tr("Pengingat Keranjang"),
         fields: [
-          { key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" },
-          { key: "produk", label: "Produk yang Diminati", placeholder: "mis. Sepatu Lari X1", required: true },
+          { key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") },
+          { key: "produk", label: tr("Produk yang Diminati"), placeholder: tr("mis. Sepatu Lari X1"), required: true },
         ],
         build: (v) => {
           const nama = clean(v.nama);
-          return `${nama ? `Halo ${nama}, ` : "Halo, "}kami lihat Anda sempat tertarik dengan ${clean(v.produk)}. Masih berminat? Kami bantu proses pemesanannya ya.`;
+          return tr("{0}kami lihat Anda sempat tertarik dengan {1}. Masih berminat? Kami bantu proses pemesanannya ya.", nama ? `Halo ${nama}, ` : tr("Halo, "), clean(v.produk));
         },
       },
     ],
   },
   {
     id: "pembayaran",
-    label: "Pembayaran",
+    label: tr("Pembayaran"),
     icon: <Wallet className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "konfirmasi-bayar",
-        label: "Konfirmasi Bayar",
-        fields: [{ key: "invoice", label: "Nomor Invoice/Kode", placeholder: "mis. INV-0012", required: true }],
-        build: (v) => `Halo, pembayaran untuk ${clean(v.invoice)} telah kami terima. Terima kasih! Jika ada yang perlu dibantu lagi, kabari ya.`,
+        label: tr("Konfirmasi Bayar"),
+        fields: [{ key: "invoice", label: tr("Nomor Invoice/Kode"), placeholder: tr("mis. INV-0012"), required: true }],
+        build: (v) => tr("Halo, pembayaran untuk {0} telah kami terima. Terima kasih! Jika ada yang perlu dibantu lagi, kabari ya.", clean(v.invoice)),
       },
       {
         id: "jatuh-tempo",
-        label: "Invoice Jatuh Tempo",
+        label: tr("Invoice Jatuh Tempo"),
         fields: [
-          { key: "invoice", label: "Nomor Invoice", placeholder: "mis. INV-0012", required: true },
-          { key: "tanggal", label: "Tanggal Jatuh Tempo", placeholder: "mis. 20 Maret 2026", required: true },
-          { key: "jumlah", label: "Jumlah Tagihan", placeholder: "mis. Rp500.000 (opsional)" },
+          { key: "invoice", label: tr("Nomor Invoice"), placeholder: tr("mis. INV-0012"), required: true },
+          { key: "tanggal", label: tr("Tanggal Jatuh Tempo"), placeholder: tr("mis. 20 Maret 2026"), required: true },
+          { key: "jumlah", label: tr("Jumlah Tagihan"), placeholder: tr("mis. Rp500.000 (opsional)") },
         ],
         build: (v) => {
           const amt = clean(v.jumlah);
-          return `Halo, invoice ${clean(v.invoice)} akan jatuh tempo pada ${clean(v.tanggal)}. ${amt ? `Jumlah tagihan ${amt}. ` : ""}Mohon segera diselesaikan sebelum tanggal tersebut. Terima kasih.`;
+          return tr("Halo, invoice {0} akan jatuh tempo pada {1}. {2}Mohon segera diselesaikan sebelum tanggal tersebut. Terima kasih.", clean(v.invoice), clean(v.tanggal), amt ? tr("Jumlah tagihan {0}. ", amt) : "");
         },
       },
       {
         id: "pengingat-bayar",
-        label: "Pengingat Belum Bayar",
+        label: tr("Pengingat Belum Bayar"),
         fields: [
-          { key: "invoice", label: "Nomor Invoice", placeholder: "mis. INV-0012", required: true },
-          { key: "batas", label: "Batas Waktu Baru", placeholder: "mis. 25 Maret 2026 (opsional)" },
+          { key: "invoice", label: tr("Nomor Invoice"), placeholder: tr("mis. INV-0012"), required: true },
+          { key: "batas", label: tr("Batas Waktu Baru"), placeholder: tr("mis. 25 Maret 2026 (opsional)") },
         ],
         build: (v) => {
           const batas = clean(v.batas);
-          return `Halo, kami belum menerima pembayaran untuk invoice ${clean(v.invoice)}. ${batas ? `Mohon diselesaikan sebelum ${batas}. ` : ""}Terima kasih atas perhatiannya.`;
+          return tr("Halo, kami belum menerima pembayaran untuk invoice {0}. {1}Terima kasih atas perhatiannya.", clean(v.invoice), batas ? tr("Mohon diselesaikan sebelum {0}. ", batas) : "");
         },
       },
     ],
   },
   {
     id: "pengiriman",
-    label: "Pengiriman",
+    label: tr("Pengiriman"),
     icon: <Truck className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "kirim-alamat",
-        label: "Kirim Alamat",
+        label: tr("Kirim Alamat"),
         fields: [
-          { key: "alamat", label: "Alamat/Tautan Lokasi", placeholder: "mis. Jl. Merdeka No. 10, Denpasar", required: true },
-          { key: "waktu", label: "Estimasi Waktu Tempuh", placeholder: "mis. 15 menit (opsional)" },
+          { key: "alamat", label: tr("Alamat/Tautan Lokasi"), placeholder: tr("mis. Jl. Merdeka No. 10, Denpasar"), required: true },
+          { key: "waktu", label: tr("Estimasi Waktu Tempuh"), placeholder: tr("mis. 15 menit (opsional)") },
         ],
         build: (v) => {
           const time = clean(v.waktu);
-          return `Halo, berikut alamat/lokasi tujuan: ${clean(v.alamat)}. ${time ? `Estimasi waktu: ${time}. ` : ""}Terima kasih.`;
+          return tr("Halo, berikut alamat/lokasi tujuan: {0}. {1}Terima kasih.", clean(v.alamat), time ? tr("Estimasi waktu: {0}. ", time) : "");
         },
       },
       {
         id: "info-resi",
-        label: "Info Resi Pengiriman",
+        label: tr("Info Resi Pengiriman"),
         fields: [
-          { key: "kurir", label: "Nama Kurir/Ekspedisi", placeholder: "mis. JNE / SiCepat", required: true },
-          { key: "resi", label: "Nomor Resi", placeholder: "mis. JX123456789ID", required: true },
-          { key: "estimasi", label: "Estimasi Tiba", placeholder: "mis. 2-3 hari kerja (opsional)" },
+          { key: "kurir", label: tr("Nama Kurir/Ekspedisi"), placeholder: tr("mis. JNE / SiCepat"), required: true },
+          { key: "resi", label: tr("Nomor Resi"), placeholder: tr("mis. JX123456789ID"), required: true },
+          { key: "estimasi", label: tr("Estimasi Tiba"), placeholder: tr("mis. 2-3 hari kerja (opsional)") },
         ],
         build: (v) => {
           const est = clean(v.estimasi);
-          return `Halo, pesanan Anda sudah dikirim via ${clean(v.kurir)} dengan nomor resi ${clean(v.resi)}. ${est ? `Estimasi tiba: ${est}. ` : ""}Terima kasih telah berbelanja.`;
+          return tr("Halo, pesanan Anda sudah dikirim via {0} dengan nomor resi {1}. {2}Terima kasih telah berbelanja.", clean(v.kurir), clean(v.resi), est ? tr("Estimasi tiba: {0}. ", est) : "");
         },
       },
     ],
   },
   {
     id: "reminder",
-    label: "Reminder",
+    label: tr("Reminder"),
     icon: <BellRing className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "reminder-janji",
-        label: "Reminder Janji Temu",
+        label: tr("Reminder Janji Temu"),
         fields: [
-          { key: "tanggal", label: "Tanggal", placeholder: "mis. 12/03/2026", required: true },
-          { key: "jam", label: "Jam", placeholder: "mis. 14:00 (opsional)" },
-          { key: "topik", label: "Topik/Agenda", placeholder: "mis. diskusi kontrak (opsional)" },
+          { key: "tanggal", label: tr("Tanggal"), placeholder: tr("mis. 12/03/2026"), required: true },
+          { key: "jam", label: tr("Jam"), placeholder: tr("mis. 14:00 (opsional)") },
+          { key: "topik", label: tr("Topik/Agenda"), placeholder: tr("mis. diskusi kontrak (opsional)") },
         ],
         build: (v) => {
           const jam = clean(v.jam), topik = clean(v.topik);
-          return `Halo, mengingatkan jadwal pada ${clean(v.tanggal)}${jam ? ` pukul ${jam}` : ""}${topik ? ` untuk ${topik}` : ""}. Terima kasih.`;
+          return tr("Halo, mengingatkan jadwal pada {0}{1}{2}. Terima kasih.", clean(v.tanggal), jam ? ` pukul ${jam}` : "", topik ? ` untuk ${topik}` : "");
         },
       },
       {
         id: "reminder-meeting",
-        label: "Reminder Meeting Online",
+        label: tr("Reminder Meeting Online"),
         fields: [
-          { key: "tanggal", label: "Tanggal", placeholder: "mis. 12/03/2026", required: true },
-          { key: "jam", label: "Jam", placeholder: "mis. 09:30", required: true },
-          { key: "link", label: "Link Meeting", placeholder: "mis. https://meet.google.com/xxx (opsional)" },
+          { key: "tanggal", label: tr("Tanggal"), placeholder: tr("mis. 12/03/2026"), required: true },
+          { key: "jam", label: tr("Jam"), placeholder: tr("mis. 09:30"), required: true },
+          { key: "link", label: tr("Link Meeting"), placeholder: tr("mis. https://meet.google.com/xxx (opsional)") },
         ],
         build: (v) => {
           const link = clean(v.link);
-          return `Halo, mengingatkan meeting online pada ${clean(v.tanggal)} pukul ${clean(v.jam)}. ${link ? `Link: ${link}. ` : ""}Sampai jumpa di sana!`;
+          return tr("Halo, mengingatkan meeting online pada {0} pukul {1}. {2}Sampai jumpa di sana!", clean(v.tanggal), clean(v.jam), link ? tr("Link: {0}. ", link) : "");
         },
       },
       {
         id: "reminder-deadline",
-        label: "Reminder Deadline",
+        label: tr("Reminder Deadline"),
         fields: [
-          { key: "tugas", label: "Nama Tugas/Proyek", placeholder: "mis. Revisi Desain Banner", required: true },
-          { key: "tenggat", label: "Batas Waktu", placeholder: "mis. besok pukul 17.00", required: true },
+          { key: "tugas", label: tr("Nama Tugas/Proyek"), placeholder: tr("mis. Revisi Desain Banner"), required: true },
+          { key: "tenggat", label: tr("Batas Waktu"), placeholder: tr("mis. besok pukul 17.00"), required: true },
         ],
-        build: (v) => `Halo, mengingatkan tenggat waktu untuk ${clean(v.tugas)} adalah ${clean(v.tenggat)}. Mohon dikirim tepat waktu ya, terima kasih.`,
+        build: (v) => tr("Halo, mengingatkan tenggat waktu untuk {0} adalah {1}. Mohon dikirim tepat waktu ya, terima kasih.", clean(v.tugas), clean(v.tenggat)),
       },
     ],
   },
   {
     id: "layanan",
-    label: "Layanan Pelanggan",
+    label: tr("Layanan Pelanggan"),
     icon: <HeartHandshake className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "terima-kasih",
-        label: "Ucapan Terima Kasih",
-        fields: [{ key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" }],
+        label: tr("Ucapan Terima Kasih"),
+        fields: [{ key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") }],
         build: (v) => {
           const nama = clean(v.nama);
-          return `${nama ? `Halo ${nama}, ` : "Halo, "}terima kasih banyak atas kepercayaan dan dukungan Anda. Kami sangat menghargainya!`;
+          return tr("{0}terima kasih banyak atas kepercayaan dan dukungan Anda. Kami sangat menghargainya!", nama ? `Halo ${nama}, ` : tr("Halo, "));
         },
       },
       {
         id: "tanggapan-komplain",
-        label: "Tanggapan Komplain",
+        label: tr("Tanggapan Komplain"),
         fields: [
-          { key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" },
-          { key: "masalah", label: "Ringkasan Kendala", placeholder: "mis. keterlambatan pengiriman", required: true },
+          { key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") },
+          { key: "masalah", label: tr("Ringkasan Kendala"), placeholder: tr("mis. keterlambatan pengiriman"), required: true },
         ],
         build: (v) => {
           const nama = clean(v.nama);
-          return `${nama ? `Halo ${nama}, ` : "Halo, "}mohon maaf atas ketidaknyamanan terkait ${clean(v.masalah)}. Tim kami akan segera menindaklanjuti dan menghubungi Anda kembali.`;
+          return tr("{0}mohon maaf atas ketidaknyamanan terkait {1}. Tim kami akan segera menindaklanjuti dan menghubungi Anda kembali.", nama ? `Halo ${nama}, ` : tr("Halo, "), clean(v.masalah));
         },
       },
       {
         id: "minta-feedback",
-        label: "Minta Feedback Layanan",
-        fields: [{ key: "nama", label: "Nama Penerima", placeholder: "mis. Budi (opsional)" }],
+        label: tr("Minta Feedback Layanan"),
+        fields: [{ key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi (opsional)") }],
         build: (v) => {
           const nama = clean(v.nama);
-          return `${nama ? `Halo ${nama}, ` : "Halo, "}terima kasih sudah menggunakan layanan kami. Bagaimana pengalaman Anda? Kami sangat terbuka untuk masukan.`;
+          return tr("{0}terima kasih sudah menggunakan layanan kami. Bagaimana pengalaman Anda? Kami sangat terbuka untuk masukan.", nama ? `Halo ${nama}, ` : tr("Halo, "));
         },
       },
     ],
   },
   {
     id: "formal",
-    label: "Formal & Lamaran",
+    label: tr("Formal & Lamaran"),
     icon: <Briefcase className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "lamaran-kerja",
-        label: "Lamaran Kerja",
+        label: tr("Lamaran Kerja"),
         fields: [
-          { key: "nama", label: "Nama Lengkap", placeholder: "mis. Budi Santoso", required: true },
-          { key: "posisi", label: "Posisi yang Dilamar", placeholder: "mis. Staff Admin", required: true },
-          { key: "perusahaan", label: "Nama Perusahaan", placeholder: "mis. PT Gamato Sejahtera", required: true },
+          { key: "nama", label: tr("Nama Lengkap"), placeholder: tr("mis. Budi Santoso"), required: true },
+          { key: "posisi", label: tr("Posisi yang Dilamar"), placeholder: tr("mis. Staff Admin"), required: true },
+          { key: "perusahaan", label: tr("Nama Perusahaan"), placeholder: tr("mis. PT Gamato Sejahtera"), required: true },
         ],
-        build: (v) => `Selamat siang, perkenalkan saya ${clean(v.nama)}. Saya bermaksud melamar posisi ${clean(v.posisi)} di ${clean(v.perusahaan)}. CV dan portofolio terlampir untuk dipertimbangkan. Terima kasih.`,
+        build: (v) => tr("Selamat siang, perkenalkan saya {0}. Saya bermaksud melamar posisi {1} di {2}. CV dan portofolio terlampir untuk dipertimbangkan. Terima kasih.", clean(v.nama), clean(v.posisi), clean(v.perusahaan)),
       },
       {
         id: "konfirmasi-interview",
-        label: "Konfirmasi Interview",
+        label: tr("Konfirmasi Interview"),
         fields: [
-          { key: "nama", label: "Nama Kandidat", placeholder: "mis. Budi Santoso", required: true },
-          { key: "tanggal", label: "Tanggal Interview", placeholder: "mis. 15 Maret 2026", required: true },
-          { key: "jam", label: "Jam", placeholder: "mis. 10:00", required: true },
-          { key: "lokasi", label: "Lokasi/Link", placeholder: "mis. Kantor Pusat / Google Meet (opsional)" },
+          { key: "nama", label: tr("Nama Kandidat"), placeholder: tr("mis. Budi Santoso"), required: true },
+          { key: "tanggal", label: tr("Tanggal Interview"), placeholder: tr("mis. 15 Maret 2026"), required: true },
+          { key: "jam", label: tr("Jam"), placeholder: tr("mis. 10:00"), required: true },
+          { key: "lokasi", label: tr("Lokasi/Link"), placeholder: tr("mis. Kantor Pusat / Google Meet (opsional)") },
         ],
         build: (v) => {
           const lokasi = clean(v.lokasi);
-          return `Halo ${clean(v.nama)}, kami mengundang Anda untuk interview pada ${clean(v.tanggal)} pukul ${clean(v.jam)}${lokasi ? ` di ${lokasi}` : ""}. Mohon konfirmasi kehadiran Anda. Terima kasih.`;
+          return tr("Halo {0}, kami mengundang Anda untuk interview pada {1} pukul {2}{3}. Mohon konfirmasi kehadiran Anda. Terima kasih.", clean(v.nama), clean(v.tanggal), clean(v.jam), lokasi ? ` di ${lokasi}` : "");
         },
       },
     ],
   },
   {
     id: "ucapan",
-    label: "Undangan & Ucapan",
+    label: tr("Undangan & Ucapan"),
     icon: <PartyPopper className="w-3.5 h-3.5" />,
     templates: [
       {
         id: "undangan-acara",
-        label: "Undangan Acara",
+        label: tr("Undangan Acara"),
         fields: [
-          { key: "acara", label: "Nama Acara", placeholder: "mis. Grand Opening Toko", required: true },
-          { key: "tanggal", label: "Tanggal", placeholder: "mis. 20 Maret 2026", required: true },
-          { key: "lokasi", label: "Lokasi", placeholder: "mis. Jl. Merdeka No. 10 (opsional)" },
+          { key: "acara", label: tr("Nama Acara"), placeholder: tr("mis. Grand Opening Toko"), required: true },
+          { key: "tanggal", label: tr("Tanggal"), placeholder: tr("mis. 20 Maret 2026"), required: true },
+          { key: "lokasi", label: tr("Lokasi"), placeholder: tr("mis. Jl. Merdeka No. 10 (opsional)") },
         ],
         build: (v) => {
           const lokasi = clean(v.lokasi);
-          return `Halo, kami mengundang Anda untuk hadir pada acara ${clean(v.acara)} yang akan diselenggarakan pada ${clean(v.tanggal)}${lokasi ? ` di ${lokasi}` : ""}. Kehadiran Anda sangat berarti bagi kami.`;
+          return tr("Halo, kami mengundang Anda untuk hadir pada acara {0} yang akan diselenggarakan pada {1}{2}. Kehadiran Anda sangat berarti bagi kami.", clean(v.acara), clean(v.tanggal), lokasi ? ` di ${lokasi}` : "");
         },
       },
       {
         id: "ucapan-selamat",
-        label: "Ucapan Selamat",
+        label: tr("Ucapan Selamat"),
         fields: [
-          { key: "nama", label: "Nama Penerima", placeholder: "mis. Budi", required: true },
-          { key: "momen", label: "Momen/Perayaan", placeholder: "mis. ulang tahun, kelulusan", required: true },
+          { key: "nama", label: tr("Nama Penerima"), placeholder: tr("mis. Budi"), required: true },
+          { key: "momen", label: tr("Momen/Perayaan"), placeholder: tr("mis. ulang tahun, kelulusan"), required: true },
         ],
-        build: (v) => `Selamat ${clean(v.momen)}, ${clean(v.nama)}! Semoga selalu diberikan kebahagiaan dan kesuksesan.`,
+        build: (v) => tr("Selamat {0}, {1}! Semoga selalu diberikan kebahagiaan dan kesuksesan.", clean(v.momen), clean(v.nama)),
       },
     ],
   },
@@ -340,9 +341,9 @@ export function WaLink() {
     }
     const values = await dialog.form({
       title: tpl.label,
-      description: "Isi data berikut untuk menyusun pesan otomatis.",
+      description: tr("Isi data berikut untuk menyusun pesan otomatis."),
       icon: <MessageCircle className="w-5 h-5" />,
-      submitLabel: "Terapkan ke Pesan",
+      submitLabel: tr("Terapkan ke Pesan"),
       fields: tpl.fields,
     });
     if (values === null) return; // dibatalkan pengguna
@@ -356,10 +357,10 @@ export function WaLink() {
     const msg = sanitizeText(waMessage);
     if (!phone) {
       setWaLink("");
-      setInfo("Isi nomor telepon terlebih dahulu.");
+      setInfo(tr("Isi nomor telepon terlebih dahulu."));
       await dialog.alert({
-        title: "Nomor belum diisi",
-        message: "Masukkan nomor telepon tujuan (dengan kode negara) sebelum membuat link WhatsApp.",
+        title: tr("Nomor belum diisi"),
+        message: tr("Masukkan nomor telepon tujuan (dengan kode negara) sebelum membuat link WhatsApp."),
         tone: "warning",
       });
       return;
@@ -371,22 +372,22 @@ export function WaLink() {
   const copyLink = async () => {
     try {
       if (!(await copyText(waLink))) throw new Error("clipboard");
-      setInfo("Link disalin!");
+      setInfo(tr("Link disalin!"));
     } catch {
-      setInfo("Gagal menyalin.");
+      setInfo(tr("Gagal menyalin."));
       await dialog.alert({
-        title: "Gagal menyalin",
-        message: "Browser menolak akses clipboard. Salin link secara manual dari kotak di bawah.",
+        title: tr("Gagal menyalin"),
+        message: tr("Browser menolak akses clipboard. Salin link secara manual dari kotak di bawah."),
         tone: "danger",
       });
     }
   };
 
   return (
-    <PanelCard title="WhatsApp Direct Link" subtitle="Buka chat WA langsung tanpa perlu menyimpan kontak">
+    <PanelCard title={tr("WhatsApp Direct Link")} subtitle={tr("Buka chat WA langsung tanpa perlu menyimpan kontak")}>
       <div className="space-y-5">
         <Input
-          label="Nomor Telepon (dengan kode negara)"
+          label={tr("Nomor Telepon (dengan kode negara)")}
           value={waPhone}
           onChange={(e) => setWaPhone(sanitizePhone(e.target.value))}
           placeholder="+62812xxxxxxx"
@@ -394,7 +395,7 @@ export function WaLink() {
 
         {/* Template group tabs */}
         <div>
-          <Label>Template Pesan Cepat</Label>
+          <Label>{tr("Template Pesan Cepat")}</Label>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {TEMPLATE_GROUPS.map((g) => (
               <button
@@ -431,23 +432,23 @@ export function WaLink() {
         </div>
 
         <Textarea
-          label="Pesan (opsional)"
+          label={tr("Pesan (opsional)")}
           rows={4}
           value={waMessage}
           onChange={(e) => setWaMessage(sanitizeText(e.target.value))}
-          placeholder="Tulis pesan Anda di sini, atau gunakan template di atas…"
+          placeholder={tr("Tulis pesan Anda di sini, atau gunakan template di atas…")}
         />
         <div className="flex gap-3">
           <Btn onClick={buildWa} className="flex-1 gap-2">
-            <MessageCircle className="w-4 h-4" />Buat Link WA
+            <MessageCircle className="w-4 h-4" />{tr("Buat Link WA")}
           </Btn>
           {waLink && (
             <Btn onClick={copyLink} variant="secondary" className="flex-1 gap-2">
-              <Copy className="w-4 h-4" />Salin Link
+              <Copy className="w-4 h-4" />{tr("Salin Link")}
             </Btn>
           )}
         </div>
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Isi") || info.startsWith("Gagal") ? "warning" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Isi") || msgStarts(info, "Gagal") ? "warning" : "success"} />}
         {waLink && (
           <div className="space-y-2">
             <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 dark:text-slate-200 break-all">
@@ -459,7 +460,7 @@ export function WaLink() {
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-green-500 text-white rounded-xl py-3 font-semibold hover:bg-green-600 transition-colors"
             >
-              <MessageCircle className="w-4 h-4" /> Buka di WhatsApp
+              <MessageCircle className="w-4 h-4" /> {tr("Buka di WhatsApp")}
             </a>
           </div>
         )}

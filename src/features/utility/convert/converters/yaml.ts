@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // ─── Minimal YAML subset — parser & serializer ─────────────────────────────
 // Full YAML (anchors/aliases, multi-document streams, complex block scalars,
 // tags, merge keys) is a genuinely huge spec, and there is no YAML library
@@ -93,7 +94,7 @@ function parseFlowMapping(s: string): Record<string, YamlValue> {
   if (!inner) return out;
   for (const item of splitFlowItems(inner)) {
     const idx = item.indexOf(":");
-    if (idx === -1) throw new Error(`YAML tidak valid: pasangan key:value hilang di "${item}"`);
+    if (idx === -1) throw new Error(tr("YAML tidak valid: pasangan key:value hilang di \"{0}\"", item));
     const key = parseScalar(item.slice(0, idx)) as string;
     out[String(key)] = parseScalar(item.slice(idx + 1));
   }
@@ -113,7 +114,7 @@ function tokenizeLines(text: string): RawLine[] {
     const stripped = stripComment(rawLine).replace(/\s+$/, "");
     if (stripped.trim() === "") continue;
     if (/\t/.test(stripped.slice(0, stripped.search(/\S/)))) {
-      throw new Error("YAML tidak boleh memakai tab untuk indentasi — gunakan spasi.");
+      throw new Error(tr("YAML tidak boleh memakai tab untuk indentasi — gunakan spasi."));
     }
     const indent = stripped.search(/\S/);
     lines.push({ indent, content: stripped.trim() });
@@ -161,7 +162,7 @@ function parseBlock(lines: RawLine[], start: number, baseIndent: number): [YamlV
       const line = lines[i];
       if (line.content.startsWith("- ") || line.content === "-") break; // shouldn't happen at this level
       const m = line.content.match(/^((?:"[^"]*")|(?:'[^']*')|(?:[^:]+)):(\s(.*))?$/);
-      if (!m) throw new Error(`YAML tidak valid di: "${line.content}"`);
+      if (!m) throw new Error(tr("YAML tidak valid di: \"{0}\"", line.content));
       const key = parseScalar(m[1]) as string;
       const valueText = (m[3] ?? "").trim();
       if (valueText === "") {

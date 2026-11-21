@@ -14,15 +14,16 @@ import { downloadBlob } from "@/lib/file";
 import { sanitizeFileName } from "@/utils/sanitize";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { tr } from "@/i18n";
 
 const PRESETS = [
-  { id: "normal", label: "Normal", filter: "" },
-  { id: "grayscale", label: "Hitam-Putih", filter: "grayscale(1)" },
-  { id: "sepia", label: "Sepia", filter: "sepia(0.8)" },
-  { id: "vintage", label: "Vintage", filter: "sepia(0.35) contrast(1.1) brightness(0.95) saturate(0.85)" },
-  { id: "cool", label: "Dingin", filter: "hue-rotate(15deg) saturate(1.1) brightness(1.02)" },
-  { id: "warm", label: "Hangat", filter: "hue-rotate(-10deg) saturate(1.15) brightness(1.03)" },
-  { id: "highcontrast", label: "Kontras Tinggi", filter: "contrast(1.4) saturate(1.2)" },
+  { id: "normal", label: tr("Normal"), filter: "" },
+  { id: "grayscale", label: tr("Hitam-Putih"), filter: "grayscale(1)" },
+  { id: "sepia", label: tr("Sepia"), filter: "sepia(0.8)" },
+  { id: "vintage", label: tr("Vintage"), filter: "sepia(0.35) contrast(1.1) brightness(0.95) saturate(0.85)" },
+  { id: "cool", label: tr("Dingin"), filter: "hue-rotate(15deg) saturate(1.1) brightness(1.02)" },
+  { id: "warm", label: tr("Hangat"), filter: "hue-rotate(-10deg) saturate(1.15) brightness(1.03)" },
+  { id: "highcontrast", label: tr("Kontras Tinggi"), filter: "contrast(1.4) saturate(1.2)" },
 ];
 
 function buildFilterString(presetFilter: string, brightness: number, contrast: number, saturation: number) {
@@ -102,7 +103,7 @@ export function VideoFilter() {
 
       setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
-      setExportError(err?.message || "Gagal memproses video.");
+      setExportError(err?.message || tr("Gagal memproses video."));
     } finally {
       setIsExporting(false);
       setPacking(false);
@@ -126,8 +127,8 @@ export function VideoFilter() {
             onFiles={handleFiles}
             accept="video/*"
             multiple={false}
-            label={isLoading ? "Memuat video…" : "Drop video di sini"}
-            sublabel="MP4, WebM, MOV — diproses langsung di browser"
+            label={isLoading ? tr("Memuat video…") : tr("Drop video di sini")}
+            sublabel={tr("MP4, WebM, MOV — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -142,7 +143,7 @@ export function VideoFilter() {
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Filter Warna</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{tr("Filter Warna")}</p>
                 <div className="flex flex-wrap gap-2">
                   {PRESETS.map((p) => (
                     <button
@@ -162,45 +163,45 @@ export function VideoFilter() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <div className="flex items-center justify-between mb-1"><Label>Terang</Label><span className="text-xs font-mono text-slate-400">{brightness}%</span></div>
-                  <GamatoSlider min={40} max={160} value={brightness} onChange={setBrightness} aria-label="Kecerahan" />
+                  <div className="flex items-center justify-between mb-1"><Label>{tr("Terang")}</Label><span className="text-xs font-mono text-slate-400">{brightness}%</span></div>
+                  <GamatoSlider min={40} max={160} value={brightness} onChange={setBrightness} aria-label={tr("Kecerahan")} />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-1"><Label>Kontras</Label><span className="text-xs font-mono text-slate-400">{contrast}%</span></div>
+                  <div className="flex items-center justify-between mb-1"><Label>{tr("Kontras")}</Label><span className="text-xs font-mono text-slate-400">{contrast}%</span></div>
                   <GamatoSlider min={40} max={160} value={contrast} onChange={setContrast} aria-label="Kontras" />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-1"><Label>Saturasi</Label><span className="text-xs font-mono text-slate-400">{saturation}%</span></div>
-                  <GamatoSlider min={0} max={200} value={saturation} onChange={setSaturation} aria-label="Saturasi" />
+                  <div className="flex items-center justify-between mb-1"><Label>{tr("Saturasi")}</Label><span className="text-xs font-mono text-slate-400">{saturation}%</span></div>
+                  <GamatoSlider min={0} max={200} value={saturation} onChange={setSaturation} aria-label={tr("Saturasi")} />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Kecepatan</p>
-                  <span className="text-xs font-mono text-slate-400">{speed.toFixed(2)}x</span>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tr("Kecepatan")}</p>
+                  <span className="text-xs font-mono text-slate-400">{tr("{0}x", speed.toFixed(2))}</span>
                 </div>
-                <GamatoSlider min={0.25} max={2} step={0.25} value={speed} onChange={setSpeed} aria-label="Kecepatan" />
+                <GamatoSlider min={0.25} max={2} step={0.25} value={speed} onChange={setSpeed} aria-label={tr("Kecepatan")} />
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">Rentang Waktu</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{tr("Rentang Waktu")}</p>
                 <TimeRangeSlider duration={meta.duration} start={trimStart} end={trimEnd} onChange={(s, e) => { setTrimStart(s); setTrimEnd(e); }} playhead={playhead} />
               </div>
 
               <button type="button" onClick={() => setIncludeAudio((v) => !v)} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-medium">
                 {includeAudio ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                {includeAudio ? "Audio disertakan" : "Audio dibisukan"}
+                {includeAudio ? tr("Audio disertakan") : tr("Audio dibisukan")}
               </button>
             </div>
 
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Hasil")}</p>
                 <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
-                  Unduh Video ({resultFormat?.label})
+                  {tr("Unduh Video (")}{resultFormat?.label})
                 </Btn>
               </div>
             )}
@@ -215,37 +216,35 @@ export function VideoFilter() {
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{meta.file.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {meta.width}×{meta.height} · {formatTime(meta.duration)}
-            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr("{0}×{1} · {2}", meta.width, meta.height, formatTime(meta.duration))}</p>
             {isExporting && (
               <div className="space-y-1.5">
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? tr("Mengemas ke {0}…", container === "asli" ? tr("format asli") : container.toUpperCase()) : tr("Memproses…")} {Math.round(progress * 100)}%</p>
               </div>
             )}
             <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
             {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
             <Btn onClick={runExport} disabled={isExporting || !format} className="w-full gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {isExporting ? "Memproses…" : "Terapkan & Ekspor"}
+              {isExporting ? tr("Memproses…") : tr("Terapkan & Ekspor")}
             </Btn>
             <button type="button" onClick={reset} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Video
+              {tr("Ganti Video")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<Sparkles className="w-5 h-5" />}
-          label="Kecepatan & Filter"
-          desc="Preview WYSIWYG — apa yang terlihat, itu yang diekspor"
+          label={tr("Kecepatan & Filter")}
+          desc={tr("Preview WYSIWYG — apa yang terlihat, itu yang diekspor")}
           points={[
-            "Kecepatan >1x membuat proses ekspor lebih cepat; <1x (slow-motion) butuh waktu proses lebih lama dari durasi aslinya.",
-            "Filter warna diterapkan langsung saat preview, jadi hasilnya selalu sesuai yang terlihat.",
-            format ? `Format ekspor terbaik di browser ini: ${format.label}.` : "Browser ini tampaknya tidak mendukung ekspor video.",
+            tr("Kecepatan >1x membuat proses ekspor lebih cepat; <1x (slow-motion) butuh waktu proses lebih lama dari durasi aslinya."),
+            tr("Filter warna diterapkan langsung saat preview, jadi hasilnya selalu sesuai yang terlihat."),
+            format ? tr("Format ekspor terbaik di browser ini: {0}.", format.label) : tr("Browser ini tampaknya tidak mendukung ekspor video."),
           ]}
         />
       </div>

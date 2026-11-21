@@ -7,6 +7,7 @@ import { parsePageSpec } from "@/lib/pdf";
 import { Input, Btn } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
+import { tr } from "@/i18n";
 
 export const PdfDeletePages: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -34,9 +35,9 @@ export const PdfDeletePages: React.FC = () => {
       (await doc.copyPages(src, keep)).forEach((p) => doc.addPage(p));
       await stampGamatoBranding(doc);
       downloadBlob(new Blob([await doc.save()], { type: "application/pdf" }), "gamato-clean.pdf");
-      setInfo(`${toRemove.size} halaman dihapus. Sisa ${keep.length} halaman.`);
+      setInfo(tr("{0} halaman dihapus. Sisa {1} halaman.", toRemove.size, keep.length));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal memproses PDF."));
+      setInfo("" + (err?.message || tr("Gagal memproses PDF.")));
     } finally {
       setIsWorking(false);
     }
@@ -49,8 +50,8 @@ export const PdfDeletePages: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -62,7 +63,7 @@ export const PdfDeletePages: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -72,20 +73,20 @@ export const PdfDeletePages: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-          <Input label="Rentang Halaman" value={pageSpec} onChange={(e) => setPageSpec(e.target.value)} placeholder="contoh: 1-3,5,8-9" />
-          <p className="text-xs text-slate-400 dark:text-slate-500">Gunakan koma untuk memisah, tanda minus untuk rentang. Halaman mulai dari 1.</p>
+          <Input label={tr("Rentang Halaman")} value={pageSpec} onChange={(e) => setPageSpec(e.target.value)} placeholder={tr("contoh: 1-3,5,8-9")} />
+          <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Gunakan koma untuk memisah, tanda minus untuk rentang. Halaman mulai dari 1.")}</p>
         </div>
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses…
+              {tr("Memproses…")}
             </>
           ) : (
             <>
               <Zap className="w-4 h-4" />
-              Hapus Halaman
+              {tr("Hapus Halaman")}
             </>
           )}
         </Btn>
@@ -93,9 +94,9 @@ export const PdfDeletePages: React.FC = () => {
 
       <ToolInfoPanel
         icon={<FileX className="w-5 h-5" />}
-        label="Hapus Halaman"
-        desc="Buang halaman"
-        points={["Hapus halaman yang tidak dibutuhkan.", "Sisa halaman tetap utuh."]}
+        label={tr("Hapus Halaman")}
+        desc={tr("Buang halaman")}
+        points={[tr("Hapus halaman yang tidak dibutuhkan."), tr("Sisa halaman tetap utuh.")]}
         info={info}
         infoTone={info?.includes("dihapus") ? "success" : "error"}
       />

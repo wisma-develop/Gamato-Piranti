@@ -17,6 +17,7 @@ import {
   type ExportProgressCallback,
 } from "@/lib/videoEngine";
 import { encodeGif } from "@/lib/gifEncoder";
+import { tr } from "@/i18n";
 
 /** Keeps exported GIFs a sane size/time — same spirit as the dedicated Video-to-GIF tool's own sensible defaults. Longer clips are simply cut to this length rather than silently failing or producing a huge file. */
 export const VIDEO_GIF_MAX_SECONDS = 15;
@@ -32,7 +33,7 @@ export function getVideoOutputExt(): string {
 /** Re-encodes the whole source video, unchanged in content, through the browser's best available MediaRecorder format — a straightforward "convert this video" pass. */
 export async function convertVideoFile(file: File, onProgress?: ExportProgressCallback): Promise<Blob> {
   const format = getBestExportFormat();
-  if (!format) throw new Error("Browser ini tidak mendukung konversi video (MediaRecorder). Coba Chrome atau Edge terbaru.");
+  if (!format) throw new Error(tr("Browser ini tidak mendukung konversi video (MediaRecorder). Coba Chrome atau Edge terbaru."));
   const meta = await loadVideoMeta(file);
   try {
     // `exportSegmentedVideo` creates and drives its own internal <video>

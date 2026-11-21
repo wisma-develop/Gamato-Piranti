@@ -56,18 +56,19 @@ import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
 import { SettingsTabBar, NextTabHint, type SettingsTabDef } from "@/components/ui/SettingsTabs";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
+import { tr } from "@/i18n";
 
 type Side = "front" | "back";
 
 type EditorTabId = "template" | "kontak" | "ukuran" | "latar" | "elemen" | "massal";
 
 const EDITOR_TABS: SettingsTabDef<EditorTabId>[] = [
-  { id: "template", label: "Template", icon: <Sparkles className="w-3.5 h-3.5" /> },
-  { id: "kontak", label: "Data Kontak", icon: <IdCard className="w-3.5 h-3.5" /> },
-  { id: "ukuran", label: "Ukuran Kartu", icon: <Ruler className="w-3.5 h-3.5" /> },
-  { id: "latar", label: "Latar Belakang", icon: <Palette className="w-3.5 h-3.5" /> },
-  { id: "elemen", label: "Elemen", icon: <Layers className="w-3.5 h-3.5" /> },
-  { id: "massal", label: "Massal (Bulk)", icon: <Users className="w-3.5 h-3.5" /> },
+  { id: "template", label: tr("Template"), icon: <Sparkles className="w-3.5 h-3.5" /> },
+  { id: "kontak", label: tr("Data Kontak"), icon: <IdCard className="w-3.5 h-3.5" /> },
+  { id: "ukuran", label: tr("Ukuran Kartu"), icon: <Ruler className="w-3.5 h-3.5" /> },
+  { id: "latar", label: tr("Latar Belakang"), icon: <Palette className="w-3.5 h-3.5" /> },
+  { id: "elemen", label: tr("Elemen"), icon: <Layers className="w-3.5 h-3.5" /> },
+  { id: "massal", label: tr("Massal (Bulk)"), icon: <Users className="w-3.5 h-3.5" /> },
 ];
 
 interface StudioState {
@@ -192,7 +193,7 @@ export function BusinessCardGenerator() {
 
   // ── element CRUD ──
   const addTextElement = () => {
-    const el = makeTextElement({ text: "Teks baru" });
+    const el = makeTextElement({ text: tr("Teks baru") });
     updateSide((side) => ({ ...side, elements: [...side.elements, el] }));
     setSelectedElementId(el.id);
   };
@@ -209,7 +210,7 @@ export function BusinessCardGenerator() {
       updateSide((side) => ({ ...side, elements: [...side.elements, el] }));
       setSelectedElementId(el.id);
     } catch {
-      setInfo({ type: "error", text: "Gagal memuat gambar." });
+      setInfo({ type: "error", text: tr("Gagal memuat gambar.") });
     }
   };
   const replaceImageSrc = async (id: string, file: File | null) => {
@@ -218,7 +219,7 @@ export function BusinessCardGenerator() {
       const src = await fileToDataUrl(file);
       updateElement(id, { src });
     } catch {
-      setInfo({ type: "error", text: "Gagal memuat gambar." });
+      setInfo({ type: "error", text: tr("Gagal memuat gambar.") });
     }
   };
   const removeElement = (id: string) => {
@@ -274,7 +275,7 @@ export function BusinessCardGenerator() {
       const src = await fileToDataUrl(file);
       updateSide((side) => (side.background.type === "image" ? { ...side, background: { ...side.background, src } } : side));
     } catch {
-      setInfo({ type: "error", text: "Gagal memuat gambar latar." });
+      setInfo({ type: "error", text: tr("Gagal memuat gambar latar.") });
     }
   };
   const setBgImageFit = (fit: "cover" | "contain") =>
@@ -364,9 +365,9 @@ export function BusinessCardGenerator() {
       const blob = await canvasToBlob(canvas);
       const base = sanitizeFileName((bulkPreview?.name || contact.name) || "kartu-nama");
       downloadBlob(blob, `${base}-${activeSide === "front" ? "depan" : "belakang"}.png`);
-      setInfo({ type: "success", text: "Kartu nama berhasil diunduh sebagai PNG." });
+      setInfo({ type: "success", text: tr("Kartu nama berhasil diunduh sebagai PNG.") });
     } catch (err: any) {
-      setInfo({ type: "error", text: err?.message || "Gagal mengunduh PNG." });
+      setInfo({ type: "error", text: err?.message || tr("Gagal mengunduh PNG.") });
     } finally {
       setIsExporting(false);
     }
@@ -393,10 +394,10 @@ export function BusinessCardGenerator() {
       const pdfBytes = await pdfDoc.save();
       const base = sanitizeFileName((bulkPreview?.name || contact.name) || "kartu-nama");
       const suffix = mode === "both" ? "" : `-${activeSide === "front" ? "depan" : "belakang"}`;
-      downloadBlob(new Blob([pdfBytes as BlobPart], { type: "application/pdf" }), `${base}-kartu-nama${suffix}.pdf`);
-      setInfo({ type: "success", text: `Kartu nama berhasil diunduh sebagai PDF${mode === "both" ? " (2 halaman)" : ""}.` });
+      downloadBlob(new Blob([pdfBytes as BlobPart], { type: "application/pdf" }), tr("{0}-kartu-nama{1}.pdf", base, suffix));
+      setInfo({ type: "success", text: tr("Kartu nama berhasil diunduh sebagai PDF{0}.", mode === "both" ? tr(" (2 halaman)") : "") });
     } catch (err: any) {
-      setInfo({ type: "error", text: err?.message || "Gagal membuat PDF." });
+      setInfo({ type: "error", text: err?.message || tr("Gagal membuat PDF.") });
     } finally {
       setIsExporting(false);
     }
@@ -407,9 +408,9 @@ export function BusinessCardGenerator() {
     try {
       const canvas = activeCanvas();
       if (!canvas) return;
-      printCanvasImage(canvas, { widthMm: activeSizeMM.wMM, title: `Kartu Nama — ${contact.name || "Gamato Piranti"}` });
+      printCanvasImage(canvas, { widthMm: activeSizeMM.wMM, title: tr("Kartu Nama — {0}", contact.name || tr("Gamato Piranti")) });
     } catch (err: any) {
-      setInfo({ type: "error", text: err?.message || "Gagal membuka dialog cetak." });
+      setInfo({ type: "error", text: err?.message || tr("Gagal membuka dialog cetak.") });
     }
   };
 
@@ -417,9 +418,9 @@ export function BusinessCardGenerator() {
     setInfo(null);
     try {
       const pages = [frontCanvasRef.current, backCanvasRef.current].filter((c): c is HTMLCanvasElement => !!c);
-      printCanvasPages(pages, { title: `Kartu Nama — ${contact.name || "Gamato Piranti"}`, pageSizeMm: { w: activeSizeMM.wMM, h: activeSizeMM.hMM } });
+      printCanvasPages(pages, { title: tr("Kartu Nama — {0}", contact.name || tr("Gamato Piranti")), pageSizeMm: { w: activeSizeMM.wMM, h: activeSizeMM.hMM } });
     } catch (err: any) {
-      setInfo({ type: "error", text: err?.message || "Gagal membuka dialog cetak." });
+      setInfo({ type: "error", text: err?.message || tr("Gagal membuka dialog cetak.") });
     }
   };
 
@@ -434,10 +435,10 @@ export function BusinessCardGenerator() {
       <AutosaveBar autosave={autosave} what="kartu nama" className="lg:col-span-full" />
       {/* LEFT: editor */}
       <div className="space-y-5">
-        <GamatoDesktopRecommended toolName="Studio Kartu Nama" />
+        <GamatoDesktopRecommended toolName={tr("Studio Kartu Nama")} />
 
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Editor Kartu Nama</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Editor Kartu Nama")}</span>
           <UndoRedoBar canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} />
         </div>
 
@@ -447,8 +448,8 @@ export function BusinessCardGenerator() {
             value={activeSide}
             onChange={(v) => { setActiveSide(v); setSelectedElementId(null); }}
             options={[
-              { value: "front", label: "Sisi Depan", icon: <IdCard className="w-4 h-4" /> },
-              { value: "back", label: "Sisi Belakang", icon: <FlipHorizontal2 className="w-4 h-4" /> },
+              { value: "front", label: tr("Sisi Depan"), icon: <IdCard className="w-4 h-4" /> },
+              { value: "back", label: tr("Sisi Belakang"), icon: <FlipHorizontal2 className="w-4 h-4" /> },
             ]}
           />
         </div>
@@ -459,7 +460,7 @@ export function BusinessCardGenerator() {
 
         {/* Templates */}
         {tab === "template" && (
-        <PanelCard title="Template Siap Pakai" subtitle="Pilih titik awal, lalu ubah bebas sesuka Anda">
+        <PanelCard title={tr("Template Siap Pakai")} subtitle={tr("Pilih titik awal, lalu ubah bebas sesuka Anda")}>
           <div className="grid grid-cols-2 gap-2.5">
             {CARD_TEMPLATES.map((t) => (
               <button
@@ -483,16 +484,16 @@ export function BusinessCardGenerator() {
 
         {/* Contact data */}
         {tab === "kontak" && (
-        <PanelCard title="Data Kontak" subtitle="Sumber teks untuk elemen yang ditautkan (dipakai lintas template)">
+        <PanelCard title={tr("Data Kontak")} subtitle={tr("Sumber teks untuk elemen yang ditautkan (dipakai lintas template)")}>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Input label="Nama" value={contact.name} onChange={(e) => updateContact({ name: e.target.value }, { continuous: true })} />
-            <Input label="Jabatan" value={contact.title} onChange={(e) => updateContact({ title: e.target.value }, { continuous: true })} />
-            <Input label="Perusahaan" value={contact.company} onChange={(e) => updateContact({ company: e.target.value }, { continuous: true })} />
-            <Input label="Telepon" value={contact.phone} onChange={(e) => updateContact({ phone: e.target.value }, { continuous: true })} />
-            <Input label="Email" type="email" value={contact.email} onChange={(e) => updateContact({ email: e.target.value }, { continuous: true })} />
-            <Input label="Website" value={contact.website} onChange={(e) => updateContact({ website: e.target.value }, { continuous: true })} />
-            <Input label="Alamat" value={contact.address} onChange={(e) => updateContact({ address: e.target.value }, { continuous: true })} />
-            <Input label="Tagline" value={contact.tagline} onChange={(e) => updateContact({ tagline: e.target.value }, { continuous: true })} />
+            <Input label={tr("Nama")} value={contact.name} onChange={(e) => updateContact({ name: e.target.value }, { continuous: true })} />
+            <Input label={tr("Jabatan")} value={contact.title} onChange={(e) => updateContact({ title: e.target.value }, { continuous: true })} />
+            <Input label={tr("Perusahaan")} value={contact.company} onChange={(e) => updateContact({ company: e.target.value }, { continuous: true })} />
+            <Input label={tr("Telepon")} value={contact.phone} onChange={(e) => updateContact({ phone: e.target.value }, { continuous: true })} />
+            <Input label={tr("Email")} type="email" value={contact.email} onChange={(e) => updateContact({ email: e.target.value }, { continuous: true })} />
+            <Input label={tr("Website")} value={contact.website} onChange={(e) => updateContact({ website: e.target.value }, { continuous: true })} />
+            <Input label={tr("Alamat")} value={contact.address} onChange={(e) => updateContact({ address: e.target.value }, { continuous: true })} />
+            <Input label={tr("Tagline")} value={contact.tagline} onChange={(e) => updateContact({ tagline: e.target.value }, { continuous: true })} />
           </div>
           <NextTabHint tabs={EDITOR_TABS} active={tab} onChange={setTab} />
         </PanelCard>
@@ -500,7 +501,7 @@ export function BusinessCardGenerator() {
 
         {/* Size */}
         {tab === "ukuran" && (
-        <PanelCard title="Ukuran Kartu" subtitle="Elemen menyesuaikan otomatis (posisi berbasis persentase)">
+        <PanelCard title={tr("Ukuran Kartu")} subtitle={tr("Elemen menyesuaikan otomatis (posisi berbasis persentase)")}>
           <div className="grid grid-cols-2 gap-2">
             {CARD_SIZES.map((s) => (
               <button
@@ -522,7 +523,7 @@ export function BusinessCardGenerator() {
           {design.sizeId === "custom" && (
             <div className="grid grid-cols-2 gap-3 pt-1">
               <Input
-                label="Lebar (mm)"
+                label={tr("Lebar (mm)")}
                 type="number"
                 min={30}
                 max={200}
@@ -530,7 +531,7 @@ export function BusinessCardGenerator() {
                 onChange={(e) => updateDesignRoot({ customWMM: Number(e.target.value) || 90 }, { continuous: true })}
               />
               <Input
-                label="Tinggi (mm)"
+                label={tr("Tinggi (mm)")}
                 type="number"
                 min={20}
                 max={200}
@@ -545,30 +546,30 @@ export function BusinessCardGenerator() {
 
         {/* Background */}
         {tab === "latar" && (
-        <PanelCard title={`Latar Belakang — ${activeSide === "front" ? "Sisi Depan" : "Sisi Belakang"}`} subtitle="Warna solid, gradasi, atau gambar kustom">
+        <PanelCard title={tr("Latar Belakang — {0}", activeSide === "front" ? tr("Sisi Depan") : tr("Sisi Belakang"))} subtitle={tr("Warna solid, gradasi, atau gambar kustom")}>
           <ToggleRow
             value={currentSide.background.type}
             onChange={setBgType}
             options={[
-              { value: "solid", label: "Warna", icon: <Palette className="w-3.5 h-3.5" /> },
-              { value: "gradient", label: "Gradasi", icon: <Layers className="w-3.5 h-3.5" /> },
-              { value: "image", label: "Gambar", icon: <ImageIcon className="w-3.5 h-3.5" /> },
+              { value: "solid", label: tr("Warna"), icon: <Palette className="w-3.5 h-3.5" /> },
+              { value: "gradient", label: tr("Gradasi"), icon: <Layers className="w-3.5 h-3.5" /> },
+              { value: "image", label: tr("Gambar"), icon: <ImageIcon className="w-3.5 h-3.5" /> },
             ]}
           />
 
           {currentSide.background.type === "solid" && (
-            <GamatoColorPicker label="Warna Latar" value={currentSide.background.color} onChange={(c) => setBgSolidColor(c)} />
+            <GamatoColorPicker label={tr("Warna Latar")} value={currentSide.background.color} onChange={(c) => setBgSolidColor(c)} />
           )}
 
           {currentSide.background.type === "gradient" && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <GamatoColorPicker label="Warna Awal" value={currentSide.background.from} onChange={(c) => setBgGradientFrom(c)} />
-                <GamatoColorPicker label="Warna Akhir" value={currentSide.background.to} onChange={(c) => setBgGradientTo(c)} />
+                <GamatoColorPicker label={tr("Warna Awal")} value={currentSide.background.from} onChange={(c) => setBgGradientFrom(c)} />
+                <GamatoColorPicker label={tr("Warna Akhir")} value={currentSide.background.to} onChange={(c) => setBgGradientTo(c)} />
               </div>
               <div>
-                <div className="flex justify-between mb-1"><Label>Sudut Gradasi</Label><span className="text-xs text-slate-400 dark:text-slate-500">{currentSide.background.angle}°</span></div>
-                <GamatoSlider min={0} max={360} value={currentSide.background.angle} onChange={(v) => setBgGradientAngle(v, { continuous: true })} aria-label="Sudut gradasi" />
+                <div className="flex justify-between mb-1"><Label>{tr("Sudut Gradasi")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{currentSide.background.angle}°</span></div>
+                <GamatoSlider min={0} max={360} value={currentSide.background.angle} onChange={(v) => setBgGradientAngle(v, { continuous: true })} aria-label={tr("Sudut gradasi")} />
               </div>
             </div>
           )}
@@ -577,7 +578,7 @@ export function BusinessCardGenerator() {
             <div className="space-y-4">
               <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-500 dark:text-slate-400">
                 <ImageIcon className="w-4 h-4" />
-                {currentSide.background.src ? "Ganti Gambar Latar" : "Unggah Gambar Latar"}
+                {currentSide.background.src ? tr("Ganti Gambar Latar") : tr("Unggah Gambar Latar")}
                 <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => setBgImageFile(e.target.files?.[0] ?? null)} />
               </label>
               {currentSide.background.src && (
@@ -586,18 +587,18 @@ export function BusinessCardGenerator() {
                     value={currentSide.background.fit}
                     onChange={setBgImageFit}
                     options={[
-                      { value: "cover", label: "Penuhi (Cover)" },
-                      { value: "contain", label: "Sesuaikan (Contain)" },
+                      { value: "cover", label: tr("Penuhi (Cover)") },
+                      { value: "contain", label: tr("Sesuaikan (Contain)") },
                     ]}
                   />
                   <div className="grid grid-cols-2 gap-3 items-end">
-                    <GamatoColorPicker label="Warna Overlay" value={currentSide.background.overlayColor} onChange={(c) => setBgOverlayColor(c)} />
+                    <GamatoColorPicker label={tr("Warna Overlay")} value={currentSide.background.overlayColor} onChange={(c) => setBgOverlayColor(c)} />
                     <div>
-                      <div className="flex justify-between mb-1"><Label>Opasitas Overlay</Label><span className="text-xs text-slate-400 dark:text-slate-500">{Math.round(currentSide.background.overlayOpacity * 100)}%</span></div>
-                      <GamatoSlider min={0} max={1} step={0.05} value={currentSide.background.overlayOpacity} onChange={(v) => setBgOverlayOpacity(v, { continuous: true })} aria-label="Opasitas overlay" />
+                      <div className="flex justify-between mb-1"><Label>{tr("Opasitas Overlay")}</Label><span className="text-xs text-slate-400 dark:text-slate-500">{Math.round(currentSide.background.overlayOpacity * 100)}%</span></div>
+                      <GamatoSlider min={0} max={1} step={0.05} value={currentSide.background.overlayOpacity} onChange={(v) => setBgOverlayOpacity(v, { continuous: true })} aria-label={tr("Opasitas overlay")} />
                     </div>
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Overlay membantu teks tetap terbaca di atas foto.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Overlay membantu teks tetap terbaca di atas foto.")}</p>
                 </>
               )}
             </div>
@@ -609,18 +610,18 @@ export function BusinessCardGenerator() {
         {/* Elements list */}
         {tab === "elemen" && (
         <>
-        <PanelCard title={`Elemen — ${activeSide === "front" ? "Sisi Depan" : "Sisi Belakang"}`} subtitle="Tambah, seret, dan atur lapisan bebas">
+        <PanelCard title={tr("Elemen — {0}", activeSide === "front" ? tr("Sisi Depan") : tr("Sisi Belakang"))} subtitle={tr("Tambah, seret, dan atur lapisan bebas")}>
           <div className="grid grid-cols-3 gap-2">
-            <Btn variant="secondary" onClick={addTextElement} className="text-xs gap-1.5"><Type className="w-3.5 h-3.5" />Teks</Btn>
+            <Btn variant="secondary" onClick={addTextElement} className="text-xs gap-1.5"><Type className="w-3.5 h-3.5" />{tr("Teks")}</Btn>
             <label className="inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all">
-              <ImageIcon className="w-3.5 h-3.5" />Gambar
+              <ImageIcon className="w-3.5 h-3.5" />{tr("Gambar")}
               <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => addImageElementFromFile(e.target.files?.[0] ?? null)} />
             </label>
             <div className="relative group">
-              <Btn variant="secondary" className="text-xs gap-1.5 w-full"><Square className="w-3.5 h-3.5" />Bentuk</Btn>
+              <Btn variant="secondary" className="text-xs gap-1.5 w-full"><Square className="w-3.5 h-3.5" />{tr("Bentuk")}</Btn>
               <div className="absolute z-10 hidden group-hover:flex group-focus-within:flex top-full mt-1 right-0 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-1.5 gap-1">
-                <button type="button" onClick={() => addShapeElement("rect")} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title="Kotak"><Square className="w-4 h-4" /></button>
-                <button type="button" onClick={() => addShapeElement("circle")} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title="Lingkaran"><Circle className="w-4 h-4" /></button>
+                <button type="button" onClick={() => addShapeElement("rect")} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title={tr("Kotak")}><Square className="w-4 h-4" /></button>
+                <button type="button" onClick={() => addShapeElement("circle")} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title={tr("Lingkaran")}><Circle className="w-4 h-4" /></button>
                 <button type="button" onClick={() => addShapeElement("line")} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title="Garis"><LineIcon className="w-4 h-4" /></button>
               </div>
             </div>
@@ -628,7 +629,7 @@ export function BusinessCardGenerator() {
 
           {currentSide.elements.length === 0 ? (
             <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
-              Belum ada elemen di sisi ini. Tambahkan teks, gambar, atau bentuk.
+              {tr("Belum ada elemen di sisi ini. Tambahkan teks, gambar, atau bentuk.")}
             </p>
           ) : (
             <div className="space-y-1.5">
@@ -647,11 +648,11 @@ export function BusinessCardGenerator() {
                     {el.kind === "text" ? <Type className="w-3.5 h-3.5" /> : el.kind === "image" ? <ImageIcon className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
                   </span>
                   <span className="flex-1 min-w-0 text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">
-                    {el.kind === "text" ? (el.bind ? CONTACT_FIELD_LABEL[el.bind] : el.text || "Teks Kosong") : el.kind === "image" ? "Gambar" : `Bentuk · ${el.shape === "rect" ? "Kotak" : el.shape === "circle" ? "Lingkaran" : "Garis"}`}
+                    {el.kind === "text" ? (el.bind ? CONTACT_FIELD_LABEL[el.bind] : el.text || tr("Teks Kosong")) : el.kind === "image" ? tr("Gambar") : tr("Bentuk · {0}", el.shape === "rect" ? tr("Kotak") : el.shape === "circle" ? tr("Lingkaran") : tr("Garis"))}
                   </span>
                   <button type="button" onClick={(e) => { e.stopPropagation(); moveElement(el.id, -1); }} disabled={idx === 0} className="p-1 rounded text-slate-400 hover:text-indigo-600 disabled:opacity-30 disabled:pointer-events-none"><ChevronUp className="w-3.5 h-3.5" /></button>
                   <button type="button" onClick={(e) => { e.stopPropagation(); moveElement(el.id, 1); }} disabled={idx === currentSide.elements.length - 1} className="p-1 rounded text-slate-400 hover:text-indigo-600 disabled:opacity-30 disabled:pointer-events-none"><ChevronDown className="w-3.5 h-3.5" /></button>
-                  <button type="button" onClick={(e) => { e.stopPropagation(); duplicateElement(el.id); }} className="p-1 rounded text-slate-400 hover:text-indigo-600" title="Duplikat"><Copy className="w-3.5 h-3.5" /></button>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); duplicateElement(el.id); }} className="p-1 rounded text-slate-400 hover:text-indigo-600" title={tr("Duplikat")}><Copy className="w-3.5 h-3.5" /></button>
                   <button type="button" onClick={(e) => { e.stopPropagation(); removeElement(el.id); }} className="p-1 rounded text-slate-400 hover:text-red-500" title="Hapus"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
@@ -661,7 +662,7 @@ export function BusinessCardGenerator() {
 
         {/* Element properties */}
         {selectedElement && (
-          <PanelCard title="Pengaturan Elemen" subtitle="Seret elemen langsung di pratinjau untuk mengatur posisi">
+          <PanelCard title={tr("Pengaturan Elemen")} subtitle={tr("Seret elemen langsung di pratinjau untuk mengatur posisi")}>
             {selectedElement.kind === "text" && (
               <TextElementPanel
                 el={selectedElement}
@@ -691,8 +692,8 @@ export function BusinessCardGenerator() {
       <PreviewJumpFab targetId="kartu-preview" />
       <div id="kartu-preview" className="space-y-4 lg:sticky lg:top-20 scroll-mt-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto lg:pr-1 [scrollbar-width:thin]">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Pratinjau Langsung</p>
-          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />Seret elemen untuk atur posisi</span>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Pratinjau Langsung")}</p>
+          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500"><Move className="w-3 h-3" />{tr("Seret elemen untuk atur posisi")}</span>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-1.5 shadow-sm">
@@ -700,8 +701,8 @@ export function BusinessCardGenerator() {
             value={activeSide}
             onChange={(v) => { setActiveSide(v); setSelectedElementId(null); }}
             options={[
-              { value: "front", label: "Depan", icon: <IdCard className="w-3.5 h-3.5" /> },
-              { value: "back", label: "Belakang", icon: <FlipHorizontal2 className="w-3.5 h-3.5" /> },
+              { value: "front", label: tr("Depan"), icon: <IdCard className="w-3.5 h-3.5" /> },
+              { value: "back", label: tr("Belakang"), icon: <FlipHorizontal2 className="w-3.5 h-3.5" /> },
             ]}
           />
         </div>
@@ -741,35 +742,35 @@ export function BusinessCardGenerator() {
                   "cursor-move rounded",
                   selectedElementId === el.id ? "ring-2 ring-indigo-500" : "ring-1 ring-transparent hover:ring-indigo-300"
                 )}
-                title={el.kind === "text" ? (el.bind ? CONTACT_FIELD_LABEL[el.bind] : "Teks") : el.kind === "shape" ? `Bentuk ${el.shape}` : "Gambar"}
+                title={el.kind === "text" ? (el.bind ? CONTACT_FIELD_LABEL[el.bind] : tr("Teks")) : el.kind === "shape" ? tr("Bentuk {0}", el.shape) : tr("Gambar")}
               />
             );
           })}
         </div>
 
-        <p className="text-center text-xs text-slate-400 dark:text-slate-500">{activeSizeMM.wMM} × {activeSizeMM.hMM} mm · {Math.round(activeSizeMM.wMM * PX_PER_MM)}×{Math.round(activeSizeMM.hMM * PX_PER_MM)}px</p>
+        <p className="text-center text-xs text-slate-400 dark:text-slate-500">{tr("{0} × {1} mm · {2}×{3}px", activeSizeMM.wMM, activeSizeMM.hMM, Math.round(activeSizeMM.wMM * PX_PER_MM), Math.round(activeSizeMM.hMM * PX_PER_MM))}</p>
 
         {info && <GamatoInlineAlert message={info.text} tone={info.type} />}
 
         <div className="grid grid-cols-2 gap-3">
           <Btn onClick={downloadPng} disabled={isExporting} className="gap-2">
-            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} PNG ({activeSide === "front" ? "Depan" : "Belakang"})
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} {tr("PNG (")}{activeSide === "front" ? tr("Depan") : tr("Belakang")})
           </Btn>
           <Btn onClick={() => downloadPdf("current")} disabled={isExporting} variant="secondary" className="gap-2">
-            <Download className="w-4 h-4" /> PDF (Sisi Ini)
+            <Download className="w-4 h-4" /> {tr("PDF (Sisi Ini)")}
           </Btn>
           <Btn onClick={() => downloadPdf("both")} disabled={isExporting} variant="secondary" className="gap-2">
-            <Layers className="w-4 h-4" /> PDF (2 Sisi)
+            <Layers className="w-4 h-4" /> {tr("PDF (2 Sisi)")}
           </Btn>
           <Btn onClick={printCurrent} variant="secondary" className="gap-2" data-testid="card-print-one">
-            <Printer className="w-4 h-4" /> Cetak Sisi Ini
+            <Printer className="w-4 h-4" /> {tr("Cetak Sisi Ini")}
           </Btn>
           <Btn onClick={printBoth} variant="secondary" className="gap-2 col-span-2" data-testid="card-print-both">
-            <Printer className="w-4 h-4" /> Cetak 2 Sisi (Depan + Belakang)
+            <Printer className="w-4 h-4" /> {tr("Cetak 2 Sisi (Depan + Belakang)")}
           </Btn>
         </div>
 
-        <div className="text-center"><SectionBadge>Diproses langsung di perangkatmu</SectionBadge></div>
+        <div className="text-center"><SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge></div>
       </div>
     </div>
   );
@@ -799,21 +800,21 @@ function TextElementPanel({
   return (
     <div className="space-y-4">
       <div>
-        <Label>Sumber Teks</Label>
+        <Label>{tr("Sumber Teks")}</Label>
         <GamatoSelect
           value={el.bind ?? ""}
           onChange={(e) => onChange({ bind: (e.target.value || null) as CardTextElement["bind"] })}
           data-testid="card-bind-select"
         >
-          <option value="">Teks Bebas</option>
+          <option value="">{tr("Teks Bebas")}</option>
           {CONTACT_FIELD_KEYS.map((f) => (
-            <option key={f} value={f}>{`Tertaut: ${CONTACT_FIELD_LABEL[f]}`}</option>
+            <option key={f} value={f}>{tr("Tertaut: {0}", CONTACT_FIELD_LABEL[f])}</option>
           ))}
         </GamatoSelect>
       </div>
 
       <Textarea
-        label={el.bind ? "Teks Cadangan (jika data kontak kosong)" : "Isi Teks"}
+        label={el.bind ? tr("Teks Cadangan (jika data kontak kosong)") : tr("Isi Teks")}
         rows={2}
         value={el.text}
         onChange={(e) => onChange({ text: e.target.value }, { continuous: true })}
@@ -830,7 +831,7 @@ function TextElementPanel({
           onUpload={onUploadFont}
           onRemoveCustomFont={onRemoveCustomFont}
         />
-        <Input label="Ukuran (pt)" type="number" min={5} max={120} step={0.5} value={el.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 11 }, { continuous: true })} />
+        <Input label={tr("Ukuran (pt)")} type="number" min={5} max={120} step={0.5} value={el.fontSize} onChange={(e) => onChange({ fontSize: Number(e.target.value) || 11 }, { continuous: true })} />
       </div>
       <FontPicker
         hideSelect
@@ -843,11 +844,11 @@ function TextElementPanel({
         onRemoveCustomFont={onRemoveCustomFont}
       />
 
-      <GamatoColorPicker label="Warna Teks" value={el.color} onChange={(c) => onChange({ color: c })} />
+      <GamatoColorPicker label={tr("Warna Teks")} value={el.color} onChange={(c) => onChange({ color: c })} />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label>Gaya</Label>
+          <Label>{tr("Gaya")}</Label>
           <div className="grid grid-cols-3 gap-2">
             <button type="button" onClick={() => onChange({ bold: !el.bold })} aria-pressed={el.bold} className={cn("flex items-center justify-center p-2.5 rounded-lg border-2", el.bold ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400")}><Bold className="w-4 h-4" /></button>
             <button type="button" onClick={() => onChange({ italic: !el.italic })} aria-pressed={el.italic} className={cn("flex items-center justify-center p-2.5 rounded-lg border-2", el.italic ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400")}><Italic className="w-4 h-4" /></button>
@@ -855,7 +856,7 @@ function TextElementPanel({
           </div>
         </div>
         <div>
-          <Label>Perataan</Label>
+          <Label>{tr("Perataan")}</Label>
           <div className="grid grid-cols-3 gap-2">
             {alignOptions.map((opt) => (
               <button key={opt.value} type="button" onClick={() => onChange({ align: opt.value })} aria-pressed={el.align === opt.value} className={cn("flex items-center justify-center p-2.5 rounded-lg border-2", el.align === opt.value ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300" : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400")}>{opt.icon}</button>
@@ -864,10 +865,10 @@ function TextElementPanel({
         </div>
       </div>
 
-      <SliderField label="Lebar Kotak Teks" unit="%" min={10} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-      <SliderField label="Jarak Antar Huruf" unit="pt" min={0} max={10} step={0.5} value={el.letterSpacing} onChange={(v) => onChange({ letterSpacing: v }, { continuous: true })} />
+      <SliderField label={tr("Lebar Kotak Teks")} unit="%" min={10} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+      <SliderField label={tr("Jarak Antar Huruf")} unit="pt" min={0} max={10} step={0.5} value={el.letterSpacing} onChange={(v) => onChange({ letterSpacing: v }, { continuous: true })} />
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Rotasi" unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
+        <SliderField label={tr("Rotasi")} unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
         <SliderField label="Opasitas" unit="%" min={10} max={100} value={Math.round(el.opacity * 100)} onChange={(v) => onChange({ opacity: v / 100 }, { continuous: true })} />
       </div>
     </div>
@@ -878,40 +879,40 @@ function ShapeElementPanel({ el, onChange }: { el: CardShapeElement; onChange: (
   return (
     <div className="space-y-4">
       <div>
-        <Label>Jenis Bentuk</Label>
+        <Label>{tr("Jenis Bentuk")}</Label>
         <ToggleRow
           value={el.shape}
           onChange={(v) => onChange({ shape: v })}
           options={[
-            { value: "rect", label: "Kotak", icon: <Square className="w-3.5 h-3.5" /> },
-            { value: "circle", label: "Lingkaran", icon: <Circle className="w-3.5 h-3.5" /> },
-            { value: "line", label: "Garis", icon: <LineIcon className="w-3.5 h-3.5" /> },
+            { value: "rect", label: tr("Kotak"), icon: <Square className="w-3.5 h-3.5" /> },
+            { value: "circle", label: tr("Lingkaran"), icon: <Circle className="w-3.5 h-3.5" /> },
+            { value: "line", label: tr("Garis"), icon: <LineIcon className="w-3.5 h-3.5" /> },
           ]}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Lebar" unit="%" min={1} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-        <SliderField label={el.shape === "line" ? "Ketebalan" : "Tinggi"} unit="%" min={0.2} max={100} step={0.2} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
+        <SliderField label={tr("Lebar")} unit="%" min={1} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+        <SliderField label={el.shape === "line" ? tr("Ketebalan") : tr("Tinggi")} unit="%" min={0.2} max={100} step={0.2} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
       </div>
 
       <div className="flex items-center justify-between">
-        <GamatoCheckbox checked={el.hasFill} onChange={(v) => onChange({ hasFill: v })} label="Isi Warna" />
+        <GamatoCheckbox checked={el.hasFill} onChange={(v) => onChange({ hasFill: v })} label={tr("Isi Warna")} />
         {el.hasFill && <GamatoColorPicker value={el.fill} onChange={(c) => onChange({ fill: c })} />}
       </div>
       {el.shape !== "line" && (
         <>
           <div className="flex items-center justify-between">
-            <GamatoCheckbox checked={el.hasStroke} onChange={(v) => onChange({ hasStroke: v })} label="Garis Tepi" />
+            <GamatoCheckbox checked={el.hasStroke} onChange={(v) => onChange({ hasStroke: v })} label={tr("Garis Tepi")} />
             {el.hasStroke && <GamatoColorPicker value={el.stroke} onChange={(c) => onChange({ stroke: c })} />}
           </div>
-          {el.hasStroke && <SliderField label="Ketebalan Garis Tepi" unit="px" min={1} max={20} value={el.strokeWidth} onChange={(v) => onChange({ strokeWidth: v }, { continuous: true })} />}
+          {el.hasStroke && <SliderField label={tr("Ketebalan Garis Tepi")} unit="px" min={1} max={20} value={el.strokeWidth} onChange={(v) => onChange({ strokeWidth: v }, { continuous: true })} />}
         </>
       )}
-      {el.shape === "rect" && <SliderField label="Radius Sudut" unit="px" min={0} max={100} value={el.radius} onChange={(v) => onChange({ radius: v }, { continuous: true })} />}
+      {el.shape === "rect" && <SliderField label={tr("Radius Sudut")} unit="px" min={0} max={100} value={el.radius} onChange={(v) => onChange({ radius: v }, { continuous: true })} />}
 
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Rotasi" unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
+        <SliderField label={tr("Rotasi")} unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
         <SliderField label="Opasitas" unit="%" min={10} max={100} value={Math.round(el.opacity * 100)} onChange={(v) => onChange({ opacity: v / 100 }, { continuous: true })} />
       </div>
     </div>
@@ -931,29 +932,29 @@ function ImageElementPanel({
     <div className="space-y-4">
       <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-500 dark:text-slate-400">
         <ImageIcon className="w-4 h-4" />
-        {el.src ? "Ganti Gambar" : "Unggah Gambar"}
+        {el.src ? tr("Ganti Gambar") : tr("Unggah Gambar")}
         <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => onReplaceFile(e.target.files?.[0] ?? null)} />
       </label>
 
       <div>
-        <Label>Bentuk Gambar</Label>
+        <Label>{tr("Bentuk Gambar")}</Label>
         <ToggleRow
           value={el.circle ? "circle" : el.rounded ? "rounded" : "square"}
           onChange={(v) => onChange(v === "circle" ? { circle: true, rounded: false } : v === "rounded" ? { circle: false, rounded: true } : { circle: false, rounded: false })}
           options={[
-            { value: "square", label: "Persegi" },
-            { value: "rounded", label: "Membulat" },
-            { value: "circle", label: "Lingkaran" },
+            { value: "square", label: tr("Persegi") },
+            { value: "rounded", label: tr("Membulat") },
+            { value: "circle", label: tr("Lingkaran") },
           ]}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Lebar" unit="%" min={5} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
-        <SliderField label="Tinggi" unit="%" min={5} max={100} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
+        <SliderField label={tr("Lebar")} unit="%" min={5} max={100} value={el.widthPct} onChange={(v) => onChange({ widthPct: v }, { continuous: true })} />
+        <SliderField label={tr("Tinggi")} unit="%" min={5} max={100} value={el.heightPct} onChange={(v) => onChange({ heightPct: v }, { continuous: true })} />
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <SliderField label="Rotasi" unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
+        <SliderField label={tr("Rotasi")} unit="°" min={-180} max={180} value={el.rotation} onChange={(v) => onChange({ rotation: v }, { continuous: true })} />
         <SliderField label="Opasitas" unit="%" min={10} max={100} value={Math.round(el.opacity * 100)} onChange={(v) => onChange({ opacity: v / 100 }, { continuous: true })} />
       </div>
     </div>

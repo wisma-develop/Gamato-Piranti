@@ -11,6 +11,7 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { loadPdfDocument, renderPageToCanvas } from "@/lib/pdfRender";
 import { useHistoryState } from "@/hooks/useHistoryState";
 import { UndoRedoBar } from "@/components/ui/UndoRedoBar";
+import { tr } from "@/i18n";
 
 type Box = { x: number; y: number; w: number; h: number };
 
@@ -76,7 +77,7 @@ export function PdfRedact() {
       boxesHistory.reset({});
       await renderCurrentPage(pdf, 1);
     } catch (err: any) {
-      setError(err?.message || "Gagal membuka file PDF.");
+      setError(err?.message || tr("Gagal membuka file PDF."));
     } finally {
       setIsLoading(false);
     }
@@ -175,7 +176,7 @@ export function PdfRedact() {
       const outBytes = await outDoc.save();
       downloadBlob(new Blob([outBytes], { type: "application/pdf" }), `${sanitizeFileName(file.name.replace(/\.pdf$/i, "")) || "dokumen"}-sensor.pdf`);
     } catch (err: any) {
-      setError(err?.message || "Gagal membuat PDF hasil sensor.");
+      setError(err?.message || tr("Gagal membuat PDF hasil sensor."));
     } finally {
       setIsExporting(false);
     }
@@ -190,8 +191,8 @@ export function PdfRedact() {
             onFiles={handleFiles}
             accept="application/pdf"
             multiple={false}
-            label={isLoading ? "Memuat PDF…" : "Drop file PDF di sini"}
-            sublabel="Gambar kotak hitam di atas informasi yang ingin disensor"
+            label={isLoading ? tr("Memuat PDF…") : tr("Drop file PDF di sini")}
+            sublabel={tr("Gambar kotak hitam di atas informasi yang ingin disensor")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -218,11 +219,11 @@ export function PdfRedact() {
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-0.5 shrink-0" />
               <Btn onClick={undoLastBox} variant="secondary" className="gap-2 text-xs" disabled={!(boxesByPage[currentPage] || []).length}>
                 <Undo2 className="w-3.5 h-3.5" />
-                Batalkan Kotak Terakhir
+                {tr("Batalkan Kotak Terakhir")}
               </Btn>
               <Btn onClick={clearPageBoxes} variant="secondary" className="gap-2 text-xs" disabled={!(boxesByPage[currentPage] || []).length}>
                 <Trash2 className="w-3.5 h-3.5" />
-                Hapus Semua di Halaman Ini
+                {tr("Hapus Semua di Halaman Ini")}
               </Btn>
             </div>
           </div>
@@ -233,18 +234,18 @@ export function PdfRedact() {
       <div className="space-y-4 lg:sticky lg:top-24">
         {file && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{totalBoxCount} area disensor</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("{0} area disensor", totalBoxCount)}</p>
             {isExporting && (
               <div className="space-y-1.5">
                 <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(exportProgress * 100)}%` }} />
                 </div>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Memproses… {Math.round(exportProgress * 100)}%</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Memproses… {0}%", Math.round(exportProgress * 100))}</p>
               </div>
             )}
             <Btn onClick={runExport} disabled={isExporting || !totalBoxCount} className="w-full gap-2">
               {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <EyeOff className="w-4 h-4" />}
-              {isExporting ? "Memproses…" : "Terapkan Sensor & Ekspor"}
+              {isExporting ? tr("Memproses…") : tr("Terapkan Sensor & Ekspor")}
             </Btn>
             <button
               type="button"
@@ -255,19 +256,19 @@ export function PdfRedact() {
               }}
               className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold"
             >
-              Ganti File
+              {tr("Ganti File")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<EyeOff className="w-5 h-5" />}
-          label="Sensor / Redaksi PDF"
-          desc="Hitamkan informasi sensitif secara permanen"
+          label={tr("Sensor / Redaksi PDF")}
+          desc={tr("Hitamkan informasi sensitif secara permanen")}
           points={[
-            "Klik dan seret di atas halaman untuk menggambar kotak sensor.",
-            "Halaman yang disensor diubah jadi gambar (flatten) agar teks di baliknya benar-benar tidak bisa diambil lagi — bukan cuma ditutup secara visual.",
-            "Halaman tanpa kotak sensor tetap dalam bentuk aslinya (teks tetap bisa di-select).",
+            tr("Klik dan seret di atas halaman untuk menggambar kotak sensor."),
+            tr("Halaman yang disensor diubah jadi gambar (flatten) agar teks di baliknya benar-benar tidak bisa diambil lagi — bukan cuma ditutup secara visual."),
+            tr("Halaman tanpa kotak sensor tetap dalam bentuk aslinya (teks tetap bisa di-select)."),
           ]}
         />
       </div>

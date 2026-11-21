@@ -6,6 +6,7 @@
 import { parseCsv, buildCsv } from "@/lib/csv";
 import { parseYaml, toYaml } from "./yaml";
 import { xmlToJson, jsonToXml } from "./xmlJson";
+import { tr } from "@/i18n";
 
 export type DataFormat = "json" | "csv" | "tsv" | "xml" | "yaml";
 
@@ -13,7 +14,7 @@ function parseJsonSafe(text: string): unknown {
   try {
     return JSON.parse(text);
   } catch (err) {
-    throw new Error(`JSON tidak valid: ${err instanceof Error ? err.message : "format tidak bisa dibaca."}`);
+    throw new Error(tr("JSON tidak valid: {0}", err instanceof Error ? err.message : tr("format tidak bisa dibaca.")));
   }
 }
 

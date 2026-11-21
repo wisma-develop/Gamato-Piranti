@@ -8,6 +8,7 @@ import { Btn, Select } from "@/components/ui/primitives";
 import { Dropzone } from "@/components/ui/Dropzone";
 import { ToolInfoPanel } from "@/components/ui/ToolInfoPanel";
 import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
+import { msgStarts, tr } from "@/i18n";
 
 export const PdfToImage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -53,9 +54,9 @@ export const PdfToImage: React.FC = () => {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         downloadBlob(zipBlob, `${base}-gambar.zip`);
       }
-      setInfo(`${total} halaman berhasil dijadikan gambar.`);
+      setInfo(tr("{0} halaman berhasil dijadikan gambar.", total));
     } catch (err: any) {
-      setInfo("" + (err?.message || "Gagal mengonversi PDF ke gambar."));
+      setInfo("" + (err?.message || tr("Gagal mengonversi PDF ke gambar.")));
     } finally {
       setIsWorking(false);
       setProgress(null);
@@ -69,8 +70,8 @@ export const PdfToImage: React.FC = () => {
           onFiles={addFiles}
           accept="application/pdf"
           multiple={false}
-          label="Drop file PDF di sini"
-          sublabel="atau klik untuk browse"
+          label={tr("Drop file PDF di sini")}
+          sublabel={tr("atau klik untuk browse")}
           icon={<FileText className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
           isDragging={isDragging}
           setIsDragging={setIsDragging}
@@ -82,7 +83,7 @@ export const PdfToImage: React.FC = () => {
               <FileText className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{file.name}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{tr("{0} MB", (file.size / 1024 / 1024).toFixed(2))}</p>
               </div>
               <button type="button" onClick={() => setFile(null)} className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
@@ -92,37 +93,35 @@ export const PdfToImage: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-          <Select label="Kualitas" value={scale} onChange={(e) => setScale(parseFloat(e.target.value))}>
-            <option value={1}>Standar (1x)</option>
-            <option value={2}>Tinggi (2x)</option>
-            <option value={3}>Sangat Tinggi (3x)</option>
-            <option value={4}>Maksimal (4x)</option>
+          <Select label={tr("Kualitas")} value={scale} onChange={(e) => setScale(parseFloat(e.target.value))}>
+            <option value={1}>{tr("Standar (1x)")}</option>
+            <option value={2}>{tr("Tinggi (2x)")}</option>
+            <option value={3}>{tr("Sangat Tinggi (3x)")}</option>
+            <option value={4}>{tr("Maksimal (4x)")}</option>
           </Select>
-          <Select label="Format" value={format} onChange={(e) => setFormat(e.target.value as any)}>
-            <option value="png">PNG</option>
-            <option value="jpeg">JPEG</option>
+          <Select label={tr("Format")} value={format} onChange={(e) => setFormat(e.target.value as any)}>
+            <option value="png">{tr("PNG")}</option>
+            <option value="jpeg">{tr("JPEG")}</option>
           </Select>
-          <p className="text-xs text-slate-400 dark:text-slate-500">PDF 1 halaman diunduh langsung sebagai gambar; PDF banyak halaman diunduh sebagai ZIP.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{tr("PDF 1 halaman diunduh langsung sebagai gambar; PDF banyak halaman diunduh sebagai ZIP.")}</p>
         </div>
 
         {progress && (
-          <div className="text-sm text-slate-500 dark:text-slate-400 px-1">
-            Merender halaman {progress.done + 1} dari {progress.total}…
-          </div>
+          <div className="text-sm text-slate-500 dark:text-slate-400 px-1">{tr("Merender halaman {0} dari {1}…", progress.done + 1, progress.total)}</div>
         )}
 
-        {info && <GamatoInlineAlert message={info} tone={info.startsWith("Gagal") ? "error" : "success"} />}
+        {info && <GamatoInlineAlert message={info} tone={msgStarts(info, "Gagal") ? "error" : "success"} />}
 
         <Btn onClick={handleRun} disabled={isWorking || !file} className="w-full py-4 text-base">
           {isWorking ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Merender…
+              {tr("Merender…")}
             </>
           ) : (
             <>
               <Download className="w-4 h-4" />
-              Konversi ke Gambar
+              {tr("Konversi ke Gambar")}
             </>
           )}
         </Btn>
@@ -130,9 +129,9 @@ export const PdfToImage: React.FC = () => {
 
       <ToolInfoPanel
         icon={<FileImage className="w-5 h-5" />}
-        label="PDF ke Gambar"
-        desc="Render setiap halaman"
-        points={["Setiap halaman dirender penuh sebagai gambar — termasuk PDF hasil scan.", "Pilih kualitas lebih tinggi untuk hasil yang lebih tajam (ukuran file lebih besar)."]}
+        label={tr("PDF ke Gambar")}
+        desc={tr("Render setiap halaman")}
+        points={[tr("Setiap halaman dirender penuh sebagai gambar — termasuk PDF hasil scan."), tr("Pilih kualitas lebih tinggi untuk hasil yang lebih tajam (ukuran file lebih besar).")]}
       />
     </div>
   );

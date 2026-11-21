@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 // ─── JSON <-> XML converter ─────────────────────────────────────────────────
 // Uses the browser's built-in DOMParser/XMLSerializer/Document APIs — no XML
 // library needed (and none of this project's dependencies ship one at the
@@ -49,10 +50,10 @@ export function xmlToJson(xmlText: string): unknown {
   const doc = parser.parseFromString(xmlText, "application/xml");
   const errorNode = doc.querySelector("parsererror");
   if (errorNode) {
-    throw new Error("XML tidak valid: " + (errorNode.textContent || "format tidak bisa dibaca.").split("\n")[0]);
+    throw new Error(tr("XML tidak valid: ") + (errorNode.textContent || tr("format tidak bisa dibaca.")).split("\n")[0]);
   }
   const root = doc.documentElement;
-  if (!root) throw new Error("XML tidak valid: elemen root tidak ditemukan.");
+  if (!root) throw new Error(tr("XML tidak valid: elemen root tidak ditemukan."));
   return { [root.tagName]: elementToJson(root) };
 }
 

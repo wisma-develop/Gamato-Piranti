@@ -16,6 +16,7 @@ import { sanitizeFileName } from "@/utils/sanitize";
 import { wrapText } from "@/lib/businessDocCanvas";
 import { formatTime, exportSegmentedVideo, getBestExportFormat, type ExportFormat } from "@/lib/videoEngine";
 import { GamatoDesktopRecommended } from "@/components/ui/GamatoDesktopRecommended";
+import { tr } from "@/i18n";
 
 type Caption = { id: string; start: number; end: number; text: string };
 type Position = "top" | "center" | "bottom";
@@ -96,7 +97,7 @@ export function VideoSubtitle() {
 
   useEffect(() => {
     if (!meta) return;
-    setCaptions([{ id: newCapId(), start: 0, end: Math.min(3, meta.duration), text: "Tulis teks di sini…" }]);
+    setCaptions([{ id: newCapId(), start: 0, end: Math.min(3, meta.duration), text: tr("Tulis teks di sini…") }]);
     setResultUrl(null);
     setExportError(null);
   }, [meta]);
@@ -112,7 +113,7 @@ export function VideoSubtitle() {
     if (!meta) return;
     const last = captions[captions.length - 1];
     const start = last ? Math.min(meta.duration, last.end + 0.2) : playhead;
-    setCaptions((prev) => [...prev, { id: newCapId(), start, end: Math.min(meta.duration, start + 2), text: "Teks baru" }]);
+    setCaptions((prev) => [...prev, { id: newCapId(), start, end: Math.min(meta.duration, start + 2), text: tr("Teks baru") }]);
   };
   const updateCaption = (id: string, patch: Partial<Caption>) => setCaptions((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   const removeCaption = (id: string) => setCaptions((prev) => prev.filter((c) => c.id !== id));
@@ -156,7 +157,7 @@ export function VideoSubtitle() {
 
       setResultUrl(URL.createObjectURL(fin.blob));
     } catch (err: any) {
-      setExportError(err?.message || "Gagal membakar teks ke video.");
+      setExportError(err?.message || tr("Gagal membakar teks ke video."));
     } finally {
       setIsExporting(false);
       setPacking(false);
@@ -172,7 +173,7 @@ export function VideoSubtitle() {
 
   return (
     <div className="space-y-4">
-      <GamatoDesktopRecommended toolName="Teks & Subtitle Video" />
+      <GamatoDesktopRecommended toolName={tr("Teks & Subtitle Video")} />
       <div className="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
       <div className="space-y-4">
         {!meta ? (
@@ -180,8 +181,8 @@ export function VideoSubtitle() {
             onFiles={handleFiles}
             accept="video/*"
             multiple={false}
-            label={isLoading ? "Memuat video…" : "Drop video di sini"}
-            sublabel="MP4, WebM, MOV — diproses langsung di browser"
+            label={isLoading ? tr("Memuat video…") : tr("Drop video di sini")}
+            sublabel={tr("MP4, WebM, MOV — diproses langsung di browser")}
             icon={<Upload className="w-8 h-8" />}
           />
         ) : (
@@ -206,7 +207,7 @@ export function VideoSubtitle() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Daftar Teks</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Daftar Teks")}</p>
               {captions.map((cap) => (
                 <div key={cap.id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2">
@@ -223,36 +224,36 @@ export function VideoSubtitle() {
               ))}
               <Btn onClick={addCaption} variant="secondary" className="w-full gap-2 text-sm">
                 <Plus className="w-4 h-4" />
-                Tambah Teks di Posisi Video Saat Ini
+                {tr("Tambah Teks di Posisi Video Saat Ini")}
               </Btn>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-4">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Gaya Teks</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Gaya Teks")}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Ukuran Font</Label>
-                  <div className="mt-2"><GamatoSlider min={16} max={56} value={fontSize} onChange={setFontSize} aria-label="Ukuran font" /></div>
+                  <Label>{tr("Ukuran Font")}</Label>
+                  <div className="mt-2"><GamatoSlider min={16} max={56} value={fontSize} onChange={setFontSize} aria-label={tr("Ukuran font")} /></div>
                 </div>
-                <Select label="Posisi" value={position} onChange={(e) => setPosition(e.target.value as Position)}>
-                  <option value="bottom">Bawah</option>
-                  <option value="center">Tengah</option>
-                  <option value="top">Atas</option>
+                <Select label={tr("Posisi")} value={position} onChange={(e) => setPosition(e.target.value as Position)}>
+                  <option value="bottom">{tr("Bawah")}</option>
+                  <option value="center">{tr("Tengah")}</option>
+                  <option value="top">{tr("Atas")}</option>
                 </Select>
               </div>
               <div className="flex items-center gap-4">
-                <GamatoColorPicker label="Warna" value={color} onChange={setColor} />
-                <GamatoCheckbox checked={background} onChange={setBackground} label="Latar belakang gelap" />
+                <GamatoColorPicker label={tr("Warna")} value={color} onChange={setColor} />
+                <GamatoCheckbox checked={background} onChange={setBackground} label={tr("Latar belakang gelap")} />
               </div>
             </div>
 
             {resultUrl && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Hasil (Teks Dibakar ke Video)</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{tr("Hasil (Teks Dibakar ke Video)")}</p>
                 <GamatoPlayer src={resultUrl} compact />
                 <Btn onClick={downloadResult} className="w-full gap-2">
                   <Download className="w-4 h-4" />
-                  Unduh Video ({resultFormat?.label})
+                  {tr("Unduh Video (")}{resultFormat?.label})
                 </Btn>
               </div>
             )}
@@ -267,52 +268,52 @@ export function VideoSubtitle() {
         {meta && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm space-y-3">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{meta.file.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{formatTime(meta.duration)} · {captions.length} teks</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{tr("{0} · {1} teks", formatTime(meta.duration), captions.length)}</p>
 
             <div className="space-y-2 pt-1">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Ekspor Ringan</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Ekspor Ringan")}</p>
               <Btn onClick={() => downloadSubtitleFile("srt")} variant="secondary" className="w-full gap-2 text-sm">
                 <FileText className="w-4 h-4" />
-                Unduh .SRT
+                {tr("Unduh .SRT")}
               </Btn>
               <Btn onClick={() => downloadSubtitleFile("vtt")} variant="secondary" className="w-full gap-2 text-sm">
                 <FileText className="w-4 h-4" />
-                Unduh .VTT
+                {tr("Unduh .VTT")}
               </Btn>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Instan, video asli tidak diubah — tinggal muat file ini di media player atau platform upload.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Instan, video asli tidak diubah — tinggal muat file ini di media player atau platform upload.")}</p>
             </div>
 
             <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Atau Bakar ke Video</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Atau Bakar ke Video")}</p>
               {isExporting && (
                 <div className="space-y-1.5">
                   <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <div className="h-full bg-indigo-500 transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                   </div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? `Mengemas ke ${container === "asli" ? "format asli" : container.toUpperCase()}…` : "Memproses…"} {Math.round(progress * 100)}%</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{packing ? tr("Mengemas ke {0}…", container === "asli" ? tr("format asli") : container.toUpperCase()) : tr("Memproses…")} {Math.round(progress * 100)}%</p>
                 </div>
               )}
               <VideoContainerPicker value={container} onChange={setContainer} disabled={isExporting} />
               {exportNote && <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-xl px-3 py-2">{exportNote}</p>}
               <Btn onClick={runBurnInExport} disabled={isExporting || !captions.length || !format} className="w-full gap-2">
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Captions className="w-4 h-4" />}
-                {isExporting ? "Memproses…" : "Bakar & Ekspor Video"}
+                {isExporting ? tr("Memproses…") : tr("Bakar & Ekspor Video")}
               </Btn>
             </div>
             <button type="button" onClick={reset} className="w-full text-xs text-slate-400 hover:text-red-500 font-semibold">
-              Ganti Video
+              {tr("Ganti Video")}
             </button>
           </div>
         )}
 
         <ToolInfoPanel
           icon={<Captions className="w-5 h-5" />}
-          label="Teks & Subtitle (CC)"
-          desc="Caption manual dengan dua cara ekspor"
+          label={tr("Teks & Subtitle (CC)")}
+          desc={tr("Caption manual dengan dua cara ekspor")}
           points={[
-            "File .SRT/.VTT paling ringan dan instan — cocok kalau platform tujuan (YouTube, dll) mendukung subtitle terpisah.",
-            "Bakar ke video kalau butuh teks permanen menyatu dengan gambar (untuk Reels/TikTok/WhatsApp Status).",
-            "Belum ada transkripsi otomatis — teks & waktunya diisi manual sesuai video.",
+            tr("File .SRT/.VTT paling ringan dan instan — cocok kalau platform tujuan (YouTube, dll) mendukung subtitle terpisah."),
+            tr("Bakar ke video kalau butuh teks permanen menyatu dengan gambar (untuk Reels/TikTok/WhatsApp Status)."),
+            tr("Belum ada transkripsi otomatis — teks & waktunya diisi manual sesuai video."),
           ]}
         />
       </div>
