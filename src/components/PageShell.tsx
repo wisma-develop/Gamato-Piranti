@@ -4,7 +4,9 @@ import { ShieldCheck, Sparkles } from "lucide-react";
 import { menuGroups } from "@/components/layout/Header";
 import { themeForPath } from "@/lib/categoryTheme";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
+import { useDocMeta } from "@/hooks/useDocMeta";
 /**
  * Lebar halaman alat.
  *  - "wide"   (bawaan): penuh 7xl — editor/pratinjau dua kolom.
@@ -32,6 +34,7 @@ export const PageShell: React.FC<{
   width?: PageWidth;
   children: React.ReactNode;
 }> = ({ badge, title, subtitle, width = "wide", children }) => {
+  useDocMeta(title, subtitle);
   const { pathname } = useLocation();
   const theme = themeForPath(pathname);
   const group = useMemo(() => (theme ? menuGroups.find((g) => g.id === theme) : undefined), [theme]);
@@ -94,19 +97,19 @@ export const PageShell: React.FC<{
             <p className="max-w-2xl text-sm sm:text-[0.95rem] leading-relaxed text-slate-500 dark:text-slate-400">{subtitle}</p>
           </div>
 
-          <ul className={cn("hidden shrink-0 flex-col items-end gap-2 text-xs font-semibold", width === "wide" && "lg:flex")} aria-label="Keunggulan">
+          <ul className={cn("hidden shrink-0 flex-col items-end gap-2 text-xs font-semibold", width === "wide" && "lg:flex")} aria-label={tr("Keunggulan")}>
             <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-800/70 ring-1 ring-slate-200 dark:ring-slate-700 px-3 py-1.5 text-slate-600 dark:text-slate-300">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />Diproses di perangkatmu
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />{tr("Diproses di perangkatmu")}
             </li>
             <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-800/70 ring-1 ring-slate-200 dark:ring-slate-700 px-3 py-1.5 text-slate-600 dark:text-slate-300">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />Gratis · tanpa akun
+              <Sparkles className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />{tr("Gratis · tanpa akun")}
             </li>
           </ul>
         </div>
       </section>
 
       {showSwitcher && group && (
-        <nav aria-label={`Alat lain di ${group.title}`} data-testid="tool-switcher" className="-mx-4 sm:mx-0">
+        <nav aria-label={tr("Alat lain di {0}", group.title)} data-testid="tool-switcher" className="-mx-4 sm:mx-0">
           <div ref={stripRef} className="gp-chip-scroll flex gap-2 overflow-x-auto px-4 sm:px-0 py-1.5">
             {group.items.map((item) => {
               const active = item.path === pathname;

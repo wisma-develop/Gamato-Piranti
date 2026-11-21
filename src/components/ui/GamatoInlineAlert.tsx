@@ -36,8 +36,8 @@ const TONE_STYLES: Record<AlertVariant, Record<AlertTone, { wrap: string; icon: 
 /** Heuristik penentuan tone dari isi pesan, untuk kompatibilitas dengan kode lama yang hanya kirim string biasa. */
 function inferTone(message: string): AlertTone {
   const m = message.toLowerCase();
-  if (m.includes("gagal") || m.includes("error") || m.includes("tidak valid") || m.includes("tidak ditemukan")) return "error";
-  if (m.includes("peringatan") || m.includes("hati-hati")) return "warning";
+  if (/gagal|error|tidak valid|tidak ditemukan|failed|invalid|not found|couldn['’]t|can['’]t/.test(m)) return "error";
+  if (/peringatan|hati-hati|warning|caution|careful/.test(m)) return "warning";
   return "success";
 }
 

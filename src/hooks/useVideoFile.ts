@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { loadVideoMeta, type VideoMeta } from "@/lib/videoEngine";
+import { tr } from "@/i18n";
 
 export function useVideoFile() {
   const [meta, setMeta] = useState<VideoMeta | null>(null);
@@ -16,7 +17,7 @@ export function useVideoFile() {
       urlRef.current = m.url;
       setMeta(m);
     } catch (err: any) {
-      setError(err?.message || "Gagal memuat video.");
+      setError(err?.message || tr("Gagal memuat video."));
     } finally {
       setIsLoading(false);
     }

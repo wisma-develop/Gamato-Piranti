@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader2, FileWarning } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { loadPdfDocument, renderPageToCanvas } from "@/lib/pdfRender";
+import { tr } from "@/i18n";
 
 /**
  * GamatoPdfPage — engine pratinjau halaman PDF kustom bermerek Gamato Piranti.
@@ -81,10 +82,10 @@ export function GamatoPdfPage({
       {status === "error" && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-slate-400 text-xs">
           <FileWarning className="w-5 h-5" />
-          Gagal merender halaman
+          {tr("Gagal merender halaman")}
         </div>
       )}
-      {status === "idle" && <div className="text-xs text-slate-300 dark:text-slate-600">Belum ada file</div>}
+      {status === "idle" && <div className="text-xs text-slate-300 dark:text-slate-600">{tr("Belum ada file")}</div>}
     </div>
   );
 }

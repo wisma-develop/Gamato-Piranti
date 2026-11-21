@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { Play, Pause, Volume2, VolumeX, Music2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoSpeakerButton } from "@/components/ui/GamatoSpeakerButton";
+import { tr } from "@/i18n";
 
 /** GamatoAudioPlayer — engine pemutar audio kustom bermerek Gamato Piranti, tanpa `<audio controls>` bawaan browser. */
-export function GamatoAudioPlayer({ src, className, label = "Audio" }: { src: string; className?: string; label?: string }) {
+export function GamatoAudioPlayer({ src, className, label = tr("Audio") }: { src: string; className?: string; label?: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -56,7 +57,7 @@ export function GamatoAudioPlayer({ src, className, label = "Audio" }: { src: st
         type="button"
         onClick={togglePlay}
         className="shrink-0 w-9 h-9 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white flex items-center justify-center transition-colors"
-        aria-label={playing ? "Jeda" : "Putar"}
+        aria-label={playing ? tr("Jeda") : tr("Putar")}
       >
         {playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
       </button>
@@ -79,7 +80,7 @@ export function GamatoAudioPlayer({ src, className, label = "Audio" }: { src: st
         type="button"
         onClick={() => { const a = audioRef.current; if (!a) return; a.muted = !a.muted; setMuted(a.muted); }}
         className="shrink-0 p-1.5 text-white/70 hover:text-white transition-colors"
-        aria-label="Volume"
+        aria-label={tr("Volume")}
       >
         {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
       </button>

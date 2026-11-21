@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Monitor, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 /**
  * GamatoDesktopRecommended — banner peringatan bermerek Gamato Piranti untuk fitur yang
@@ -25,15 +26,15 @@ export function GamatoDesktopRecommended({ toolName, className }: { toolName?: s
         <Monitor className="w-4 h-4" />
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-amber-800 dark:text-amber-300">Lebih nyaman dibuka di desktop</p>
+        <p className="text-sm font-bold text-amber-800 dark:text-amber-300">{tr("Lebih nyaman dibuka di desktop")}</p>
         <p className="text-xs text-amber-700 dark:text-amber-400/90 mt-0.5 leading-relaxed">
-          {toolName ? `${toolName} punya` : "Fitur ini punya"} kontrol & area kerja yang cukup detail — pengalaman terbaik ada di layar laptop/komputer. Tetap bisa dipakai di HP, tapi mungkin terasa sempit.
+          {toolName ? `${toolName} punya` : tr("Fitur ini punya")} {tr("kontrol & area kerja yang cukup detail — pengalaman terbaik ada di layar laptop/komputer. Tetap bisa dipakai di HP, tapi mungkin terasa sempit.")}
         </p>
       </div>
       <button
         type="button"
         onClick={() => setDismissed(true)}
-        aria-label="Tutup peringatan"
+        aria-label={tr("Tutup peringatan")}
         className="shrink-0 p-1 rounded-lg text-amber-500 hover:text-amber-700 dark:hover:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
       >
         <X className="w-3.5 h-3.5" />

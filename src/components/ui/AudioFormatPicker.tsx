@@ -3,6 +3,7 @@ import { Music2, Info } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { MP3_BITRATES } from "@/lib/mp3Encoder";
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
+import { tr } from "@/i18n";
 
 export type AudioOutChoice = { format: "mp3" | "asli"; kbps: number };
 
@@ -34,10 +35,10 @@ export function AudioFormatPicker({ value, onChange, disabled, nativeLabel, nati
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-        <Music2 className="w-3.5 h-3.5 text-indigo-500" /> Format Audio
+        <Music2 className="w-3.5 h-3.5 text-indigo-500" /> {tr("Format Audio")}
       </p>
-      <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Format audio">
-        {([["mp3", "MP3", "Universal — semua perangkat"], ["asli", nativeTitle ?? "Asli", nativeLabel ?? "Format bawaan browser"]] as const).map(([id, label, sub]) => (
+      <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={tr("Format audio")}>
+        {([["mp3", "MP3", tr("Universal — semua perangkat")], ["asli", nativeTitle ?? tr("Asli"), nativeLabel ?? tr("Format bawaan browser")]] as const).map(([id, label, sub]) => (
           <button
             key={id}
             type="button"
@@ -57,7 +58,7 @@ export function AudioFormatPicker({ value, onChange, disabled, nativeLabel, nati
       </div>
       {value.format === "mp3" && (
         <div className="flex items-center gap-2">
-          <label htmlFor="audio-mp3-kbps" className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">Bitrate</label>
+          <label htmlFor="audio-mp3-kbps" className="text-xs font-semibold text-slate-500 dark:text-slate-400 shrink-0">{tr("Bitrate")}</label>
           <GamatoSelect
             id="audio-mp3-kbps"
             compact
@@ -67,8 +68,7 @@ export function AudioFormatPicker({ value, onChange, disabled, nativeLabel, nati
             onChange={(e) => onChange({ ...value, kbps: parseInt(e.target.value) })}
           >
             {MP3_BITRATES.map((k) => (
-              <option key={k} value={k}>
-                {k} kbps{k === 128 ? " (standar)" : k === 192 ? " (seimbang)" : k === 320 ? " (maksimum)" : ""}
+              <option key={k} value={k}>{tr("{0} kbps", k)}{k === 128 ? tr(" (standar)") : k === 192 ? tr(" (seimbang)") : k === 320 ? tr(" (maksimum)") : ""}
               </option>
             ))}
           </GamatoSelect>
@@ -76,7 +76,7 @@ export function AudioFormatPicker({ value, onChange, disabled, nativeLabel, nati
       )}
       <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-start gap-1.5 leading-snug">
         <Info className="w-3 h-3 mt-0.5 shrink-0" />
-        <span>{value.format === "mp3" ? "Di-encode langsung di browser (cepat, tanpa upload). MP3 diputar di hampir semua perangkat." : "Tanpa encode MP3: memakai perekam browser secara real-time, hasilnya WebM/Ogg Opus."}</span>
+        <span>{value.format === "mp3" ? tr("Di-encode langsung di browser (cepat, tanpa upload). MP3 diputar di hampir semua perangkat.") : tr("Tanpa encode MP3: memakai perekam browser secara real-time, hasilnya WebM/Ogg Opus.")}</span>
       </p>
     </div>
   );

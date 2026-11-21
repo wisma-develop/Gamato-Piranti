@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from "react";
 import { CheckCircle2, XCircle, Info as InfoIcon, AlertTriangle, X, Zap } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 /**
  * GamatoToast — engine notifikasi toast global bermerek Gamato Piranti.
@@ -75,7 +76,7 @@ export function GamatoToastProvider({ children }: { children: React.ReactNode })
             <div className="flex-1 min-w-0 pt-0.5">
               <div className="flex items-center gap-1 mb-0.5">
                 <Zap className="w-3 h-3 text-indigo-400" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Gamato Piranti</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{tr("Gamato Piranti")}</span>
               </div>
               <p className="text-sm text-slate-700 dark:text-slate-200 break-words">{t.message}</p>
             </div>
@@ -83,7 +84,7 @@ export function GamatoToastProvider({ children }: { children: React.ReactNode })
               type="button"
               onClick={() => dismiss(t.id)}
               className="shrink-0 p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-              aria-label="Tutup notifikasi"
+              aria-label={tr("Tutup notifikasi")}
             >
               <X className="w-3.5 h-3.5" />
             </button>

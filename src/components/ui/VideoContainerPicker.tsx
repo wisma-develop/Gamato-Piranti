@@ -9,12 +9,13 @@ import {
   type ContainerCapability,
   type VideoContainerChoice,
 } from "@/lib/videoContainer";
+import { tr } from "@/i18n";
 
 const ORDER: { id: VideoContainerChoice; label: string; sub: string }[] = [
-  { id: "mp4", label: "MP4", sub: "Universal" },
-  { id: "mov", label: "MOV", sub: "QuickTime" },
-  { id: "webm", label: "WebM", sub: "Web ringan" },
-  { id: "asli", label: "Asli", sub: "Tanpa kemas ulang" },
+  { id: "mp4", label: tr("MP4"), sub: tr("Universal") },
+  { id: "mov", label: tr("MOV"), sub: tr("QuickTime") },
+  { id: "webm", label: tr("WebM"), sub: tr("Web ringan") },
+  { id: "asli", label: tr("Asli"), sub: tr("Tanpa kemas ulang") },
 ];
 
 /** Hook kecil: pilihan format keluaran yang diingat antar-sesi dan dipakai bersama semua alat Video. */
@@ -57,9 +58,9 @@ export function VideoContainerPicker({
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-        <Film className="w-3.5 h-3.5 text-indigo-500" /> Format Hasil
+        <Film className="w-3.5 h-3.5 text-indigo-500" /> {tr("Format Hasil")}
       </p>
-      <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label="Format hasil video">
+      <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label={tr("Format hasil video")}>
         {ORDER.map((o) => (
           <button
             key={o.id}
@@ -82,8 +83,8 @@ export function VideoContainerPicker({
         <Info className="w-3 h-3 mt-0.5 shrink-0" />
         <span>
           {value === "asli"
-            ? "Format bawaan perekam browser (WebM, atau MP4 bila didukung). Paling cepat, tanpa langkah kemas ulang."
-            : `${CONTAINER_META[value].hint}${cap ? ` Kodek di browser ini: ${cap.summary}.` : ""}`}
+            ? tr("Format bawaan perekam browser (WebM, atau MP4 bila didukung). Paling cepat, tanpa langkah kemas ulang.")
+            : `${CONTAINER_META[value].hint}${cap ? tr(" Kodek di browser ini: {0}.", cap.summary) : ""}`}
         </span>
       </p>
     </div>

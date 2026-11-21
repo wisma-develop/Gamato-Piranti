@@ -2,6 +2,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
+import { tr } from "@/i18n";
 
 /**
  * GamatoDatePicker — engine pemilih tanggal kustom bermerek Gamato Piranti.
@@ -14,8 +15,8 @@ import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui
  * - Papan ketik: ← → ↑ ↓ pindah hari, PageUp/PageDown ganti bulan, Home/End awal/akhir minggu, Enter pilih, Esc tutup.
  */
 
-const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const DAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]; // Senin → Minggu
+const MONTHS = [tr("Januari"), tr("Februari"), tr("Maret"), tr("April"), tr("Mei"), tr("Juni"), tr("Juli"), tr("Agustus"), tr("September"), tr("Oktober"), tr("November"), tr("Desember")];
+const DAYS = [tr("Sen"), tr("Sel"), tr("Rab"), tr("Kam"), tr("Jum"), tr("Sab"), tr("Min")]; // Senin → Minggu
 
 const pad = (n: number) => String(n).padStart(2, "0");
 export const toISODate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -44,7 +45,7 @@ export function GamatoDatePicker({
   disabled,
   required,
   className,
-  placeholder = "Pilih tanggal",
+  placeholder = tr("Pilih tanggal"),
   ...rest
 }: {
   value?: string;
@@ -164,19 +165,19 @@ export function GamatoDatePicker({
         open={open}
         panelRef={popRef}
         role="dialog"
-        aria-label="Pilih tanggal"
+        aria-label={tr("Pilih tanggal")}
         offset={6}
         className="w-72 max-w-[calc(100vw-1rem)] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-3 animate-[gamatoFadeIn_0.15s_ease-out]"
       >
           <div className="flex items-center justify-between gap-1 mb-2">
             <div className="flex">
-              <button type="button" className={navBtn} aria-label="Tahun sebelumnya" onClick={() => setFocusDay(addMonths(focusDay, -12))}><ChevronsLeft className="w-4 h-4" /></button>
-              <button type="button" className={navBtn} aria-label="Bulan sebelumnya" onClick={() => setFocusDay(addMonths(focusDay, -1))}><ChevronLeft className="w-4 h-4" /></button>
+              <button type="button" className={navBtn} aria-label={tr("Tahun sebelumnya")} onClick={() => setFocusDay(addMonths(focusDay, -12))}><ChevronsLeft className="w-4 h-4" /></button>
+              <button type="button" className={navBtn} aria-label={tr("Bulan sebelumnya")} onClick={() => setFocusDay(addMonths(focusDay, -1))}><ChevronLeft className="w-4 h-4" /></button>
             </div>
             <p className="text-sm font-bold text-slate-800 dark:text-slate-100 tabular-nums" aria-live="polite">{MONTHS[focusDay.getMonth()]} {focusDay.getFullYear()}</p>
             <div className="flex">
-              <button type="button" className={navBtn} aria-label="Bulan berikutnya" onClick={() => setFocusDay(addMonths(focusDay, 1))}><ChevronRight className="w-4 h-4" /></button>
-              <button type="button" className={navBtn} aria-label="Tahun berikutnya" onClick={() => setFocusDay(addMonths(focusDay, 12))}><ChevronsRight className="w-4 h-4" /></button>
+              <button type="button" className={navBtn} aria-label={tr("Bulan berikutnya")} onClick={() => setFocusDay(addMonths(focusDay, 1))}><ChevronRight className="w-4 h-4" /></button>
+              <button type="button" className={navBtn} aria-label={tr("Tahun berikutnya")} onClick={() => setFocusDay(addMonths(focusDay, 12))}><ChevronsRight className="w-4 h-4" /></button>
             </div>
           </div>
 
@@ -217,9 +218,9 @@ export function GamatoDatePicker({
           </div>
 
           <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700">
-            <button type="button" onClick={() => pick(new Date())} disabled={isDisabledDay(new Date())} className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 hover:underline disabled:opacity-40">Hari ini</button>
+            <button type="button" onClick={() => pick(new Date())} disabled={isDisabledDay(new Date())} className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 hover:underline disabled:opacity-40">{tr("Hari ini")}</button>
             {!required && selected && (
-              <button type="button" onClick={() => { commit(""); setOpen(false); }} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-red-500"><X className="w-3 h-3" />Hapus</button>
+              <button type="button" onClick={() => { commit(""); setOpen(false); }} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-red-500"><X className="w-3 h-3" />{tr("Hapus")}</button>
             )}
           </div>
       </AnchoredPortal>

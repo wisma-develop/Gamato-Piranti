@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Pipette, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
+import { tr } from "@/i18n";
 
 /**
  * GamatoColorPicker — engine pemilih warna kustom bermerek Gamato Piranti.
@@ -145,7 +146,7 @@ export function GamatoColorPicker({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label={label ? `${label}: ${value}` : `Pilih warna (${value})`}
+        aria-label={label ? `${label}: ${value}` : tr("Pilih warna ({0})", value)}
         className={cn(
           "flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:border-indigo-300 transition-colors",
           compact ? "justify-center p-1" : "gap-2.5 px-3 py-2"
@@ -163,7 +164,7 @@ export function GamatoColorPicker({
         open={open}
         panelRef={popRef}
         role="dialog"
-        aria-label="Pemilih warna"
+        aria-label={tr("Pemilih warna")}
         offset={8}
         className="w-64 max-w-[calc(100vw-1rem)] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-4 space-y-3"
       >

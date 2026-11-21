@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Eye, Settings2 } from "lucide-react";
+import { tr } from "@/i18n";
 
 /**
  * PreviewJumpFab — tombol melayang khusus layar kecil (ponsel/tablet). Di layar
@@ -7,7 +8,7 @@ import { Eye, Settings2 } from "lucide-react";
  * pengguna tidak melihat efek perubahan. Tombol ini melompat ke pratinjau dan
  * (saat pratinjau sudah terlihat) mengembalikan ke posisi pengaturan semula.
  */
-export function PreviewJumpFab({ targetId, label = "Pratinjau" }: { targetId: string; label?: string }) {
+export function PreviewJumpFab({ targetId, label = tr("Pratinjau") }: { targetId: string; label?: string }) {
   const [visible, setVisible] = useState(false);
   const [present, setPresent] = useState(false);
   const lastY = useRef(0);
@@ -39,11 +40,11 @@ export function PreviewJumpFab({ targetId, label = "Pratinjau" }: { targetId: st
     <button
       type="button"
       onClick={go}
-      aria-label={visible ? "Kembali ke pengaturan" : `Lihat ${label.toLowerCase()}`}
+      aria-label={visible ? tr("Kembali ke pengaturan") : tr("Lihat {0}", label.toLowerCase())}
       className="lg:hidden fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full bg-indigo-600 text-white text-sm font-semibold pl-3.5 pr-4 py-3 shadow-lg shadow-indigo-600/30 active:scale-95 transition-transform"
     >
       {visible ? <Settings2 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-      {visible ? "Pengaturan" : label}
+      {visible ? tr("Pengaturan") : label}
     </button>
   );
 }

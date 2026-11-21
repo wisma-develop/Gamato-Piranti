@@ -3,6 +3,7 @@ import { ImagePlus, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { fileToDataUrl } from "@/lib/file";
 import { Label } from "@/components/ui/primitives";
+import { tr } from "@/i18n";
 
 /**
  * ImageField — unggah gambar kecil (logo, cap, gambar latar) yang disimpan sebagai data-URL.
@@ -45,12 +46,12 @@ export const ImageField: React.FC<{
         )}
         <div className="flex-1 min-w-0">
           <button type="button" onClick={() => ref.current?.click()} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-            {value ? "Ganti gambar" : "Pilih gambar"}
+            {value ? tr("Ganti gambar") : tr("Pilih gambar")}
           </button>
           {hint && <p className="text-[11px] text-slate-400 mt-0.5">{hint}</p>}
         </div>
         {value && (
-          <button type="button" aria-label={`Hapus ${label}`} onClick={() => onChange(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
+          <button type="button" aria-label={tr("Hapus {0}", label)} onClick={() => onChange(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
             <X className="w-4 h-4" />
           </button>
         )}

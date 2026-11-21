@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Info, Loader2, X } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 /**
  * Custom dialog system — replaces native window.alert / window.confirm / window.prompt
@@ -67,7 +68,7 @@ const DialogContext = createContext<DialogContextValue | null>(null);
 
 export function useDialog(): DialogContextValue {
   const ctx = useContext(DialogContext);
-  if (!ctx) throw new Error("useDialog must be used within <DialogProvider>");
+  if (!ctx) throw new Error(tr("useDialog must be used within <DialogProvider>"));
   return ctx;
 }
 
@@ -142,7 +143,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!request || request.kind !== "form") return;
     const missing = request.options.fields.find((f) => f.required && !formValues[f.key]?.trim());
     if (missing) {
-      setFormError(`"${missing.label}" wajib diisi.`);
+      setFormError(tr("\"{0}\" wajib diisi.", missing.label));
       return;
     }
     setFormError(null);
@@ -173,7 +174,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                       onClick={() => closeWith(undefined)}
                       className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
                     >
-                      {request.options.confirmLabel ?? "Mengerti"}
+                      {request.options.confirmLabel ?? tr("Mengerti")}
                     </button>
                   </div>
                 </div>
@@ -197,7 +198,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                       onClick={() => closeWith(false)}
                       className="inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
                     >
-                      {request.options.cancelLabel ?? "Batal"}
+                      {request.options.cancelLabel ?? tr("Batal")}
                     </button>
                     <button
                       autoFocus
@@ -207,7 +208,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                         request.options.danger ? "bg-red-600 hover:bg-red-700 focus-visible:ring-red-500/40" : "bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 focus-visible:ring-indigo-500/40"
                       )}
                     >
-                      {request.options.confirmLabel ?? "Ya, lanjutkan"}
+                      {request.options.confirmLabel ?? tr("Ya, lanjutkan")}
                     </button>
                   </div>
                 </div>
@@ -233,7 +234,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                       type="button"
                       onClick={() => closeWith(null)}
                       className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      aria-label="Tutup"
+                      aria-label={tr("Tutup")}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -284,13 +285,13 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                       onClick={() => closeWith(null)}
                       className="inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
                     >
-                      {request.options.cancelLabel ?? "Batal"}
+                      {request.options.cancelLabel ?? tr("Batal")}
                     </button>
                     <button
                       type="submit"
                       className="inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40"
                     >
-                      {request.options.submitLabel ?? "Terapkan"}
+                      {request.options.submitLabel ?? tr("Terapkan")}
                     </button>
                   </div>
                 </form>

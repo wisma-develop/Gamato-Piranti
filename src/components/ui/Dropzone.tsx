@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { Upload } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 export const Dropzone: React.FC<{
   onFiles: (files: File[]) => void;
@@ -11,7 +12,7 @@ export const Dropzone: React.FC<{
   icon?: React.ReactNode;
   isDragging?: boolean;
   setIsDragging?: (v: boolean) => void;
-}> = ({ onFiles, accept, multiple = true, label = "Drop files here", sublabel = "atau klik untuk browse", icon, isDragging, setIsDragging }) => {
+}> = ({ onFiles, accept, multiple = true, label = tr("Drop files here"), sublabel = tr("atau klik untuk browse"), icon, isDragging, setIsDragging }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();

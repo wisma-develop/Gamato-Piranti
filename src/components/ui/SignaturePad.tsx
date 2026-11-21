@@ -13,6 +13,7 @@ import {
 } from "@/lib/signature";
 import { GamatoCheckbox } from "@/components/ui/GamatoCheckbox";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { tr } from "@/i18n";
 
 const CHECKER_STYLE: React.CSSProperties = {
   backgroundImage:
@@ -22,9 +23,9 @@ const CHECKER_STYLE: React.CSSProperties = {
 };
 
 const INK_COLORS: { value: string; label: string }[] = [
-  { value: "#0f172a", label: "Hitam" },
-  { value: "#1e3a8a", label: "Biru tua" },
-  { value: "#2563eb", label: "Biru" },
+  { value: "#0f172a", label: tr("Hitam") },
+  { value: "#1e3a8a", label: tr("Biru tua") },
+  { value: "#2563eb", label: tr("Biru") },
 ];
 
 /**
@@ -51,7 +52,7 @@ export const SignaturePad: React.FC<{
   onChange: (dataUrl: string | null) => void;
   label?: string;
   hint?: string;
-}> = ({ value, onChange, label = "Tanda Tangan", hint }) => {
+}> = ({ value, onChange, label = tr("Tanda Tangan"), hint }) => {
   const [mode, setMode] = useState<"draw" | "upload">("draw");
   const [autoTransparent, setAutoTransparent] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -207,7 +208,7 @@ export const SignaturePad: React.FC<{
       lastEmitted.current = finalUrl;
       onChange(finalUrl);
     } catch (err: any) {
-      setUploadError(err?.message || "Gagal memuat gambar tanda tangan.");
+      setUploadError(err?.message || tr("Gagal memuat gambar tanda tangan."));
     } finally {
       setIsProcessing(false);
     }
@@ -240,20 +241,20 @@ export const SignaturePad: React.FC<{
           className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:text-red-700 disabled:opacity-30 disabled:pointer-events-none"
         >
           <Trash2 className="w-3.5 h-3.5" />
-          Hapus
+          {tr("Hapus")}
         </button>
       </div>
       {hint && <p className="text-xs text-slate-400 dark:text-slate-500 -mt-1.5">{hint}</p>}
 
       <div className="grid grid-cols-2 gap-2">
-        {modeBtn("draw", <PenLine className="w-3.5 h-3.5" />, "Gambar Manual")}
-        {modeBtn("upload", <Upload className="w-3.5 h-3.5" />, "Upload Gambar")}
+        {modeBtn("draw", <PenLine className="w-3.5 h-3.5" />, tr("Gambar Manual"))}
+        {modeBtn("upload", <Upload className="w-3.5 h-3.5" />, tr("Upload Gambar"))}
       </div>
 
       {mode === "draw" ? (
         <div className="space-y-2.5">
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] text-slate-400 dark:text-slate-500">Coret dengan mouse, jari, atau pena di kotak putih</span>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Coret dengan mouse, jari, atau pena di kotak putih")}</span>
             <div className="flex items-center gap-3 shrink-0">
               <button
                 type="button"
@@ -261,7 +262,7 @@ export const SignaturePad: React.FC<{
                 disabled={strokeCount === 0}
                 className="text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none"
               >
-                <Undo2 className="w-3.5 h-3.5" /> Batal
+                <Undo2 className="w-3.5 h-3.5" /> {tr("Batal")}
               </button>
               <button
                 type="button"
@@ -269,7 +270,7 @@ export const SignaturePad: React.FC<{
                 disabled={strokeCount === 0}
                 className="text-xs text-red-600 font-semibold flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none"
               >
-                <Eraser className="w-3.5 h-3.5" /> Bersihkan
+                <Eraser className="w-3.5 h-3.5" /> {tr("Bersihkan")}
               </button>
             </div>
           </div>
@@ -284,20 +285,20 @@ export const SignaturePad: React.FC<{
               onPointerMove={moveDraw}
               onPointerUp={endDraw}
               onPointerCancel={endDraw}
-              aria-label="Area coret tanda tangan"
+              aria-label={tr("Area coret tanda tangan")}
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none" }}
               className="cursor-crosshair"
             />
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-1.5" role="group" aria-label="Warna tinta">
+            <div className="flex items-center gap-1.5" role="group" aria-label={tr("Warna tinta")}>
               {INK_COLORS.map((c) => (
                 <button
                   key={c.value}
                   type="button"
                   title={c.label}
-                  aria-label={`Tinta ${c.label}`}
+                  aria-label={tr("Tinta {0}", c.label)}
                   aria-pressed={color === c.value}
                   onClick={() => setColor(c.value)}
                   style={{ backgroundColor: c.value }}
@@ -309,8 +310,8 @@ export const SignaturePad: React.FC<{
               ))}
             </div>
             <div className="flex items-center gap-2 flex-1 min-w-[140px]">
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">Tebal</span>
-              <GamatoSlider min={1.5} max={8} step={0.5} value={penWidth} onChange={setPenWidth} className="flex-1" aria-label="Ketebalan pena" />
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 shrink-0">{tr("Tebal")}</span>
+              <GamatoSlider min={1.5} max={8} step={0.5} value={penWidth} onChange={setPenWidth} className="flex-1" aria-label={tr("Ketebalan pena")} />
               <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 w-6 text-right">{penWidth}</span>
             </div>
           </div>
@@ -320,12 +321,12 @@ export const SignaturePad: React.FC<{
           <label className="flex items-center justify-center gap-2 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl py-4 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/40 dark:hover:bg-indigo-500/5 transition-all text-sm font-semibold text-slate-500 dark:text-slate-400">
             {isProcessing ? (
               <span className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 animate-pulse" /> Memproses…
+                <ImageIcon className="w-4 h-4 animate-pulse" /> {tr("Memproses…")}
               </span>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                Pilih Gambar Tanda Tangan
+                {tr("Pilih Gambar Tanda Tangan")}
               </>
             )}
             <input
@@ -342,7 +343,7 @@ export const SignaturePad: React.FC<{
           <GamatoCheckbox
             checked={autoTransparent}
             onChange={setAutoTransparent}
-            label="Hapus latar putih otomatis (untuk foto/scan di kertas putih)"
+            label={tr("Hapus latar putih otomatis (untuk foto/scan di kertas putih)")}
           />
           {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
         </div>
@@ -350,16 +351,16 @@ export const SignaturePad: React.FC<{
 
       {/* Pratinjau hasil — tinggi TETAP & di bawah pad, supaya pad tidak bergeser saat coretan pertama. */}
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1">Hasil di dokumen</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1">{tr("Hasil di dokumen")}</p>
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 h-20 flex items-center justify-center px-3" style={CHECKER_STYLE}>
           {value ? (
-            <img src={value} alt="Pratinjau tanda tangan" className="max-h-16 max-w-full object-contain" />
+            <img src={value} alt={tr("Pratinjau tanda tangan")} className="max-h-16 max-w-full object-contain" />
           ) : (
-            <span className="text-[11px] text-slate-400 bg-white/80 dark:bg-slate-900/80 rounded px-2 py-0.5">Belum ada tanda tangan</span>
+            <span className="text-[11px] text-slate-400 bg-white/80 dark:bg-slate-900/80 rounded px-2 py-0.5">{tr("Belum ada tanda tangan")}</span>
           )}
         </div>
         {mode === "draw" && value && strokeCount === 0 && (
-          <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">Tanda tangan dari unggahan/riwayat sedang dipakai. Mencoret baru akan menggantikannya.</p>
+          <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">{tr("Tanda tangan dari unggahan/riwayat sedang dipakai. Mencoret baru akan menggantikannya.")}</p>
         )}
       </div>
     </div>

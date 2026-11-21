@@ -1,6 +1,7 @@
 import React, { useId } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 /**
  * GamatoCheckbox — engine checkbox kustom bermerek Gamato Piranti.
@@ -31,7 +32,7 @@ export function GamatoCheckbox({
       role="checkbox"
       data-testid={testId}
       aria-labelledby={label ? labelId : undefined}
-      aria-label={label ? undefined : ariaLabel ?? "Pilihan"}
+      aria-label={label ? undefined : ariaLabel ?? tr("Pilihan")}
       aria-checked={checked}
       tabIndex={disabled ? -1 : 0}
       onClick={() => !disabled && onChange(!checked)}

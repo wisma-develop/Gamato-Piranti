@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { AnchoredPortal, useOutsideClose } from "@/components/ui/AnchoredPortal";
+import { tr } from "@/i18n";
 
 /**
  * GamatoSelect — engine dropdown kustom bermerek Gamato Piranti.
@@ -117,7 +118,7 @@ export const GamatoSelect: React.FC<
         {...(rest as Record<string, unknown>)}
       >
         <span className={cn("truncate text-left", !selected && "text-slate-400 dark:text-slate-500")}>
-          {selected ? selected.label : "Pilih..."}
+          {selected ? selected.label : tr("Pilih...")}
         </span>
         <ChevronDown className={cn("w-4 h-4 shrink-0 text-slate-400 transition-transform", open && "rotate-180")} />
       </button>

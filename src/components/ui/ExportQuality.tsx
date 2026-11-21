@@ -1,12 +1,13 @@
 import { Sparkles } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 export type ExportScale = 1 | 2 | 3;
 
 const OPTIONS: { value: ExportScale; label: string; sub: string }[] = [
-  { value: 1, label: "Standar", sub: "1× · cepat, file kecil" },
-  { value: 2, label: "Tajam", sub: "2× · disarankan" },
-  { value: 3, label: "Ultra", sub: "3× · cetak besar" },
+  { value: 1, label: tr("Standar"), sub: tr("1× · cepat, file kecil") },
+  { value: 2, label: tr("Tajam"), sub: tr("2× · disarankan") },
+  { value: 3, label: tr("Ultra"), sub: tr("3× · cetak besar") },
 ];
 
 /**
@@ -27,9 +28,9 @@ export function ExportQuality({
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> Kualitas Ekspor
+        <Sparkles className="w-3.5 h-3.5 text-indigo-500" /> {tr("Kualitas Ekspor")}
       </p>
-      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Kualitas ekspor">
+      <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tr("Kualitas ekspor")}>
         {OPTIONS.map((o) => (
           <button
             key={o.value}
@@ -50,9 +51,7 @@ export function ExportQuality({
         ))}
       </div>
       {baseWidth && baseHeight && (
-        <p className="text-[11px] text-slate-400 dark:text-slate-500">
-          Hasil PNG: {Math.round(baseWidth * value)} × {Math.round(baseHeight * value)} px
-        </p>
+        <p className="text-[11px] text-slate-400 dark:text-slate-500">{tr("Hasil PNG: {0} × {1} px", Math.round(baseWidth * value), Math.round(baseHeight * value))}</p>
       )}
     </div>
   );

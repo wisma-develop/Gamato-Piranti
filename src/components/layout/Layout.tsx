@@ -1,137 +1,141 @@
 import { Suspense, useLayoutEffect } from 'react';
+import { useEffect } from "react";
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { ChevronRight, Home } from 'lucide-react';
 import { GamatoToastProvider } from '@/components/ui/GamatoToast';
 import { themeForPath } from '@/lib/categoryTheme';
+import { tr } from "@/i18n";
 
+import { loadWebFonts } from "@/lib/webFonts";
 const CATEGORY_LABELS: Record<string, string> = {
-  qr: 'Kode',
-  pdf: 'Dokumen',
-  docs: 'Doc Studio',
-  office: 'Office Tools',
-  image: 'Gambar',
-  utility: 'Utilitas',
-  special: 'Spesial',
-  video: 'Video',
-  audio: 'Audio',
-  about: 'Tentang Kami',
-  privacy: 'Kebijakan Privasi',
-  terms: 'Ketentuan Layanan',
+  qr: tr("Kode"),
+  pdf: tr("Dokumen"),
+  docs: tr("Doc Studio"),
+  office: tr("Office Tools"),
+  image: tr("Gambar"),
+  utility: tr("Utilitas"),
+  special: tr("Spesial"),
+  video: tr("Video"),
+  audio: tr("Audio"),
+  about: tr("Tentang Kami"),
+  privacy: tr("Kebijakan Privasi"),
+  terms: tr("Ketentuan Layanan"),
+  faq: "FAQ",
 };
 
 // Sub-feature labels, namespaced per category since slugs like "kompres"/"putar" repeat across sections.
 const MODE_LABELS: Record<string, Record<string, string>> = {
   qr: {
-    'qr-code': 'QR Code',
-    'barcode': 'Barcode',
-    'scan-hid': 'Scan HID',
-    'kode-morse': 'Kode Morse',
-    'scan-qr': 'QR & Barcode Scanner',
+    'qr-code': tr("QR Code"),
+    'barcode': tr("Barcode"),
+    'scan-hid': tr("Scan HID"),
+    'kode-morse': tr("Kode Morse"),
+    'scan-qr': tr("QR & Barcode Scanner"),
   },
   office: {
-    'doc-studio': 'Doc Studio',
-    'sheet-studio': 'Sheet Studio',
-    'slide-studio': 'Slide Studio',
+    'doc-studio': tr("Doc Studio"),
+    'sheet-studio': tr("Sheet Studio"),
+    'slide-studio': tr("Slide Studio"),
   },
   pdf: {
-    'gabung': 'Gabung PDF',
-    'pecah': 'Pecah PDF',
-    'kompres': 'Kompres PDF',
-    'kompres-dokumen': 'Kompres Dokumen',
-    'ekstrak': 'Ekstrak Halaman',
-    'hapus-halaman': 'Hapus Halaman',
-    'putar': 'Putar Halaman',
-    'atur-ulang': 'Atur Ulang Halaman',
-    'gambar-ke-pdf': 'Gambar ke PDF',
-    'teks-ke-pdf': 'Teks ke PDF',
-    'word-ke-pdf': 'Word ke PDF',
-    'excel-ke-pdf': 'Excel ke PDF',
-    'ppt-ke-pdf': 'PowerPoint ke PDF',
-    'edit': 'Edit PDF',
-    'tanda-tangan': 'Tanda Tangan PDF',
-    'watermark': 'Watermark PDF',
-    'html-ke-pdf': 'HTML ke PDF',
-    'nomor-halaman': 'Nomor Halaman',
-    'unlock': 'Unlock PDF',
-    'reader': 'PDF Reader',
-    'sensor': 'Sensor / Redaksi PDF',
-    'scan': 'Scan PDF',
-    'ke-gambar': 'PDF ke Gambar',
-    'ke-word': 'PDF ke Word',
-    'ke-excel': 'PDF ke Excel',
+    'gabung': tr("Gabung PDF"),
+    'pecah': tr("Pecah PDF"),
+    'kompres': tr("Kompres PDF"),
+    'kompres-dokumen': tr("Kompres Dokumen"),
+    'ekstrak': tr("Ekstrak Halaman"),
+    'hapus-halaman': tr("Hapus Halaman"),
+    'putar': tr("Putar Halaman"),
+    'atur-ulang': tr("Atur Ulang Halaman"),
+    'gambar-ke-pdf': tr("Gambar ke PDF"),
+    'teks-ke-pdf': tr("Teks ke PDF"),
+    'word-ke-pdf': tr("Word ke PDF"),
+    'excel-ke-pdf': tr("Excel ke PDF"),
+    'ppt-ke-pdf': tr("PowerPoint ke PDF"),
+    'edit': tr("Edit PDF"),
+    'tanda-tangan': tr("Tanda Tangan PDF"),
+    'watermark': tr("Watermark PDF"),
+    'html-ke-pdf': tr("HTML ke PDF"),
+    'nomor-halaman': tr("Nomor Halaman"),
+    'unlock': tr("Unlock PDF"),
+    'reader': tr("PDF Reader"),
+    'sensor': tr("Sensor / Redaksi PDF"),
+    'scan': tr("Scan PDF"),
+    'ke-gambar': tr("PDF ke Gambar"),
+    'ke-word': tr("PDF ke Word"),
+    'ke-excel': tr("PDF ke Excel"),
     'ocr': 'OCR',
-    'protect': 'Protect PDF',
-    'baca-dokumen': 'Doc Reader',
+    'protect': tr("Protect PDF"),
+    'baca-dokumen': tr("Doc Reader"),
   },
   image: {
-    'kompres': 'Kompres Gambar',
-    'resize': 'Ubah Ukuran',
-    'konversi': 'Konversi Format',
-    'putar': 'Putar Gambar',
-    'hapus-metadata': 'Hapus Metadata',
-    'raw-preview': 'Baca Foto RAW',
-    'crop': 'Crop Gambar',
-    'hapus-background': 'Hapus Background',
-    'watermark': 'Watermark Gambar',
-    'html-ke-gambar': 'HTML ke Gambar',
-    'color-picker': 'Color Picker & Palette',
-    'meme-generator': 'Meme Generator',
-    'photo-editor': 'Photo Editor',
-    'cetak-foto': 'Cetak Foto',
-    'kolase': 'Kolase Gambar',
+    'kompres': tr("Kompres Gambar"),
+    'resize': tr("Ubah Ukuran"),
+    'konversi': tr("Konversi Format"),
+    'putar': tr("Putar Gambar"),
+    'hapus-metadata': tr("Hapus Metadata"),
+    'raw-preview': tr("Baca Foto RAW"),
+    'crop': tr("Crop Gambar"),
+    'hapus-background': tr("Hapus Background"),
+    'watermark': tr("Watermark Gambar"),
+    'html-ke-gambar': tr("HTML ke Gambar"),
+    'color-picker': tr("Color Picker & Palette"),
+    'meme-generator': tr("Meme Generator"),
+    'photo-editor': tr("Photo Editor"),
+    'cetak-foto': tr("Cetak Foto"),
+    'kolase': tr("Kolase Gambar"),
   },
   utility: {
-    'json-base64': 'JSON & Base64',
-    'bulk-teks': 'Bulk Teks',
-    'capture-website': 'Capture Website',
-    'koordinat': 'Koordinat',
-    'cetak': 'Cetak File & Dokumen',
-    'link-media': 'Link Media',
-    'alias-email': 'Alias Email',
-    'kalkulator-pajak': 'Kalkulator Pajak',
-    'kalkulator-bunga': 'Kalkulator Bunga',
-    'statistik': 'Statistik',
-    'password-token': 'Password & Token',
-    'kamus-dunia': 'Kamus Dunia',
-    'html-preview': 'HTML Preview',
-    'diagram-rumus': 'Diagram & Rumus Studio',
-    'convert': 'Universal Converter',
-    'kalkulator': 'Kalkulator',
+    'json-base64': tr("JSON & Base64"),
+    'bulk-teks': tr("Bulk Teks"),
+    'capture-website': tr("Capture Website"),
+    'koordinat': tr("Koordinat"),
+    'cetak': tr("Cetak File & Dokumen"),
+    'link-media': tr("Link Media"),
+    'alias-email': tr("Alias Email"),
+    'kalkulator-pajak': tr("Kalkulator Pajak"),
+    'kalkulator-bunga': tr("Kalkulator Bunga"),
+    'statistik': tr("Statistik"),
+    'password-token': tr("Password & Token"),
+    'kamus-dunia': tr("Kamus Dunia"),
+    'html-preview': tr("HTML Preview"),
+    'diagram-rumus': tr("Diagram & Rumus Studio"),
+    'convert': tr("Universal Converter"),
+    'kalkulator': tr("Kalkulator"),
   },
   special: {
-    'kwitansi': 'Kwitansi',
-    'invoice': 'Invoice',
-    'struk': 'Struk / Nota',
-    'kartu-nama': 'Kartu Nama',
-    'name-tag': 'Name Tag Studio',
-    'kupon': 'Kupon, Voucher & Tiket',
-    'surat': 'Pembuat Surat',
-    'sertifikat': 'Sertifikat & Piagam',
-    'wa-link': 'WA Link',
-    'pembuat-cv': 'Pembuat CV',
+    'kwitansi': tr("Kwitansi"),
+    'invoice': tr("Invoice"),
+    'struk': tr("Struk / Nota"),
+    'kartu-nama': tr("Kartu Nama"),
+    'name-tag': tr("Name Tag Studio"),
+    'kupon': tr("Kupon, Voucher & Tiket"),
+    'surat': tr("Pembuat Surat"),
+    'sertifikat': tr("Sertifikat & Piagam"),
+    'wa-link': tr("WA Link"),
+    'pembuat-cv': tr("Pembuat CV"),
   },
   video: {
-    'konversi': 'Konversi Video',
-    'kompres': 'Kompres Video',
-    'potong': 'Potong Video',
-    'crop': 'Crop & Resize',
-    'subtitle': 'Teks & Subtitle (CC)',
-    'gabung': 'Gabung & Transisi',
-    'filter': 'Kecepatan & Filter',
-    'thumbnail': 'Tangkap Thumbnail / Screenshot',
+    'konversi': tr("Konversi Video"),
+    'kompres': tr("Kompres Video"),
+    'potong': tr("Potong Video"),
+    'crop': tr("Crop & Resize"),
+    'subtitle': tr("Teks & Subtitle (CC)"),
+    'gabung': tr("Gabung & Transisi"),
+    'filter': tr("Kecepatan & Filter"),
+    'thumbnail': tr("Tangkap Thumbnail / Screenshot"),
   },
   audio: {
-    'konversi': 'Konversi Audio',
-    'kompres': 'Kompres Audio',
-    'visualizer': 'Audio Visualizer',
-    'edit-audio': 'Edit Audio',
-    'transkrip-audio': 'Transkrip Audio',
-    'suara-ke-teks': 'Speech to Text',
-    'teks-ke-suara': 'Text to Speech',
-    'pengukur-suara': 'Pengukur Kekuatan Suara',
-    'ekstrak-audio-video': 'Ekstrak Audio dari Video',
+    'konversi': tr("Konversi Audio"),
+    'kompres': tr("Kompres Audio"),
+    'visualizer': tr("Audio Visualizer"),
+    'edit-audio': tr("Edit Audio"),
+    'transkrip-audio': tr("Transkrip Audio"),
+    'suara-ke-teks': tr("Speech to Text"),
+    'teks-ke-suara': tr("Text to Speech"),
+    'pengukur-suara': tr("Pengukur Kekuatan Suara"),
+    'ekstrak-audio-video': tr("Ekstrak Audio dari Video"),
   },
 };
 
@@ -139,7 +143,7 @@ const MODE_LABELS: Record<string, Record<string, string>> = {
 function RouteFallback() {
   return (
     <div role="status" aria-live="polite" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 min-h-[100svh]">
-      <span className="sr-only">Memuat…</span>
+      <span className="sr-only">{tr("Memuat…")}</span>
       <div aria-hidden="true" className="h-36 sm:h-40 rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 animate-pulse" />
       <div aria-hidden="true" className="mt-6 h-72 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/60 dark:bg-slate-900/50 animate-pulse" />
     </div>
@@ -148,6 +152,12 @@ function RouteFallback() {
 
 export default function Layout() {
   const { pathname } = useLocation();
+
+  // Font generator (Google Fonts) hanya dimuat saat sebuah alat dibuka — bukan di beranda / halaman informasi.
+  useEffect(() => {
+    if (pathname === "/" || /^\/(about|faq|privacy|terms)\/?$/.test(pathname)) return;
+    loadWebFonts();
+  }, [pathname]);
   const isHome = pathname === '/';
   const [category, mode] = pathname.split('/').filter(Boolean);
 
@@ -180,7 +190,7 @@ export default function Layout() {
               <nav className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 flex-wrap">
                 <Link to="/" className="flex items-center gap-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                   <Home className="w-3 h-3" />
-                  <span>Beranda</span>
+                  <span>{tr("Beranda")}</span>
                 </Link>
                 <ChevronRight className="w-3 h-3 shrink-0" />
                 {modeLabel ? (

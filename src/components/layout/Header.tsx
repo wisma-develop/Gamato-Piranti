@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Menu, X, ChevronDown,
   FileText, Image as ImageIcon, QrCode, SlidersHorizontal,
-  Barcode, Info, BookOpen, Code2,
+  Barcode, Info, BookOpen, Code2, HelpCircle,
   Layers, FileOutput, FileDown, FilePlus, FileX, RotateCw,
   FileImage, AlignLeft, ArrowLeftRight, Wand2,
   ListOrdered, Radio, Mail, Calculator, BarChart3,
@@ -32,6 +32,8 @@ import { Presence } from '@/hooks/usePresence';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { GamatoTooltip } from '@/components/ui/GamatoTooltip';
 import { SearchTrigger } from '@/components/search/ToolSearch';
+import LangSwitch from '@/components/layout/LangSwitch';
+import { tr } from "@/i18n";
 
 export type DropGroup = 'kode' | 'dokumen' | 'office' | 'gambar' | 'utilitas' | 'spesial' | 'video' | 'audio' | null;
 
@@ -40,172 +42,173 @@ export type MenuItem = { name: string; path: string; icon: ReactNode; section?: 
 export const menuGroups: { id: Exclude<DropGroup, null>; title: string; icon: ReactNode; rootPath: string; items: MenuItem[] }[] = [
   {
     id: 'kode',
-    title: 'Kode',
+    title: tr("Kode"),
     icon: <QrCode className="w-4 h-4" />,
     rootPath: '/qr',
     items: [
-      { name: 'QR Code', path: '/qr/qr-code', icon: <QrCode className="w-4 h-4 text-teal-500" /> },
-      { name: 'Barcode', path: '/qr/barcode', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
-      { name: 'Scan HID', path: '/qr/scan-hid', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
-      { name: 'Kode Morse', path: '/qr/kode-morse', icon: <Radio className="w-4 h-4 text-teal-500" /> },
-      { name: 'QR & Barcode Scanner', path: '/qr/scan-qr', icon: <ScanLine className="w-4 h-4 text-teal-500" /> },
+      { name: tr("QR Code"), path: '/qr/qr-code', icon: <QrCode className="w-4 h-4 text-teal-500" /> },
+      { name: tr("Barcode"), path: '/qr/barcode', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
+      { name: tr("Scan HID"), path: '/qr/scan-hid', icon: <Barcode className="w-4 h-4 text-teal-500" /> },
+      { name: tr("Kode Morse"), path: '/qr/kode-morse', icon: <Radio className="w-4 h-4 text-teal-500" /> },
+      { name: tr("QR & Barcode Scanner"), path: '/qr/scan-qr', icon: <ScanLine className="w-4 h-4 text-teal-500" /> },
     ],
   },
   {
     id: 'dokumen',
-    title: 'Dokumen',
+    title: tr("Dokumen"),
     icon: <FileText className="w-4 h-4" />,
     rootPath: '/pdf',
     items: [
-      { name: 'Word ke PDF',       path: '/pdf/word-ke-pdf',   icon: <FileText className="w-4 h-4 text-blue-500" />, section: 'Konversi Dokumen' },
-      { name: 'Excel ke PDF',      path: '/pdf/excel-ke-pdf',  icon: <BarChart3 className="w-4 h-4 text-blue-500" />, section: 'Konversi Dokumen' },
-      { name: 'PowerPoint ke PDF', path: '/pdf/ppt-ke-pdf',    icon: <Layers className="w-4 h-4 text-blue-500" />, section: 'Konversi Dokumen' },
-      { name: 'Gambar ke PDF',     path: '/pdf/gambar-ke-pdf', icon: <FileImage className="w-4 h-4 text-blue-500" />, section: 'Konversi Dokumen' },
-      { name: 'Teks ke PDF',       path: '/pdf/teks-ke-pdf',   icon: <AlignLeft className="w-4 h-4 text-blue-500" />, section: 'Konversi Dokumen' },
-      { name: 'HTML ke PDF',       path: '/pdf/html-ke-pdf',   icon: <Code2 className="w-4 h-4 text-blue-500" />, section: 'Konversi Dokumen' },
-      { name: 'PDF ke Gambar',     path: '/pdf/ke-gambar',     icon: <FileImage className="w-4 h-4 text-blue-500" />, section: 'Konversi dari PDF' },
-      { name: 'PDF ke Word',       path: '/pdf/ke-word',       icon: <FileText className="w-4 h-4 text-blue-500" />, section: 'Konversi dari PDF' },
-      { name: 'PDF ke Excel',      path: '/pdf/ke-excel',      icon: <BarChart3 className="w-4 h-4 text-blue-500" />, section: 'Konversi dari PDF' },
-      { name: 'OCR',               path: '/pdf/ocr',           icon: <Type className="w-4 h-4 text-blue-500" />, section: 'Konversi dari PDF' },
-      { name: 'Gabung PDF',        path: '/pdf/gabung',        icon: <Layers className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Pecah PDF',         path: '/pdf/pecah',         icon: <FileOutput className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Kompres Dokumen',   path: '/pdf/kompres-dokumen', icon: <Shrink className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Kompres PDF',       path: '/pdf/kompres',       icon: <FileDown className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Ekstrak Halaman',   path: '/pdf/ekstrak',       icon: <FilePlus className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Hapus Halaman',     path: '/pdf/hapus-halaman', icon: <FileX className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Putar Halaman',     path: '/pdf/putar',         icon: <RotateCw className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Atur Ulang Halaman',path: '/pdf/atur-ulang',    icon: <SlidersHorizontal className="w-4 h-4 text-blue-500" />, section: 'PDF Lab – Suite' },
-      { name: 'Edit PDF',          path: '/pdf/edit',          icon: <PenSquare className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
-      { name: 'Tanda Tangan PDF',  path: '/pdf/tanda-tangan',  icon: <PenLine className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
-      { name: 'Watermark PDF',     path: '/pdf/watermark',     icon: <Layers className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
-      { name: 'Nomor Halaman',     path: '/pdf/nomor-halaman', icon: <ListOrdered className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
-      { name: 'Protect PDF',       path: '/pdf/protect',       icon: <ShieldCheck className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
-      { name: 'Unlock PDF',        path: '/pdf/unlock',        icon: <KeyRound className="w-4 h-4 text-blue-500" />, section: 'Keamanan & Anotasi' },
-      { name: 'PDF Reader',        path: '/pdf/reader',        icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
-      { name: 'Sensor / Redaksi PDF', path: '/pdf/sensor',     icon: <EyeOff className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
-      { name: 'Scan PDF',          path: '/pdf/scan',          icon: <ScanLine className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
-      { name: 'Doc Reader',        path: '/pdf/baca-dokumen',  icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: 'Baca & Pindai' },
+      { name: tr("Word ke PDF"),       path: '/pdf/word-ke-pdf',   icon: <FileText className="w-4 h-4 text-blue-500" />, section: tr("Konversi Dokumen") },
+      { name: tr("Excel ke PDF"),      path: '/pdf/excel-ke-pdf',  icon: <BarChart3 className="w-4 h-4 text-blue-500" />, section: tr("Konversi Dokumen") },
+      { name: tr("PowerPoint ke PDF"), path: '/pdf/ppt-ke-pdf',    icon: <Layers className="w-4 h-4 text-blue-500" />, section: tr("Konversi Dokumen") },
+      { name: tr("Gambar ke PDF"),     path: '/pdf/gambar-ke-pdf', icon: <FileImage className="w-4 h-4 text-blue-500" />, section: tr("Konversi Dokumen") },
+      { name: tr("Teks ke PDF"),       path: '/pdf/teks-ke-pdf',   icon: <AlignLeft className="w-4 h-4 text-blue-500" />, section: tr("Konversi Dokumen") },
+      { name: tr("HTML ke PDF"),       path: '/pdf/html-ke-pdf',   icon: <Code2 className="w-4 h-4 text-blue-500" />, section: tr("Konversi Dokumen") },
+      { name: tr("PDF ke Gambar"),     path: '/pdf/ke-gambar',     icon: <FileImage className="w-4 h-4 text-blue-500" />, section: tr("Konversi dari PDF") },
+      { name: tr("PDF ke Word"),       path: '/pdf/ke-word',       icon: <FileText className="w-4 h-4 text-blue-500" />, section: tr("Konversi dari PDF") },
+      { name: tr("PDF ke Excel"),      path: '/pdf/ke-excel',      icon: <BarChart3 className="w-4 h-4 text-blue-500" />, section: tr("Konversi dari PDF") },
+      { name: tr("OCR"),               path: '/pdf/ocr',           icon: <Type className="w-4 h-4 text-blue-500" />, section: tr("Konversi dari PDF") },
+      { name: tr("Gabung PDF"),        path: '/pdf/gabung',        icon: <Layers className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Pecah PDF"),         path: '/pdf/pecah',         icon: <FileOutput className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Kompres Dokumen"),   path: '/pdf/kompres-dokumen', icon: <Shrink className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Kompres PDF"),       path: '/pdf/kompres',       icon: <FileDown className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Ekstrak Halaman"),   path: '/pdf/ekstrak',       icon: <FilePlus className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Hapus Halaman"),     path: '/pdf/hapus-halaman', icon: <FileX className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Putar Halaman"),     path: '/pdf/putar',         icon: <RotateCw className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Atur Ulang Halaman"),path: '/pdf/atur-ulang',    icon: <SlidersHorizontal className="w-4 h-4 text-blue-500" />, section: tr("PDF Lab – Suite") },
+      { name: tr("Edit PDF"),          path: '/pdf/edit',          icon: <PenSquare className="w-4 h-4 text-blue-500" />, section: tr("Keamanan & Anotasi") },
+      { name: tr("Tanda Tangan PDF"),  path: '/pdf/tanda-tangan',  icon: <PenLine className="w-4 h-4 text-blue-500" />, section: tr("Keamanan & Anotasi") },
+      { name: tr("Watermark PDF"),     path: '/pdf/watermark',     icon: <Layers className="w-4 h-4 text-blue-500" />, section: tr("Keamanan & Anotasi") },
+      { name: tr("Nomor Halaman"),     path: '/pdf/nomor-halaman', icon: <ListOrdered className="w-4 h-4 text-blue-500" />, section: tr("Keamanan & Anotasi") },
+      { name: tr("Protect PDF"),       path: '/pdf/protect',       icon: <ShieldCheck className="w-4 h-4 text-blue-500" />, section: tr("Keamanan & Anotasi") },
+      { name: tr("Unlock PDF"),        path: '/pdf/unlock',        icon: <KeyRound className="w-4 h-4 text-blue-500" />, section: tr("Keamanan & Anotasi") },
+      { name: tr("PDF Reader"),        path: '/pdf/reader',        icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: tr("Baca & Pindai") },
+      { name: tr("Sensor / Redaksi PDF"), path: '/pdf/sensor',     icon: <EyeOff className="w-4 h-4 text-blue-500" />, section: tr("Baca & Pindai") },
+      { name: tr("Scan PDF"),          path: '/pdf/scan',          icon: <ScanLine className="w-4 h-4 text-blue-500" />, section: tr("Baca & Pindai") },
+      { name: tr("Doc Reader"),        path: '/pdf/baca-dokumen',  icon: <BookOpen className="w-4 h-4 text-blue-500" />, section: tr("Baca & Pindai") },
     ],
   },
   {
     id: 'office',
-    title: 'Office',
+    title: tr("Office"),
     icon: <Presentation className="w-4 h-4" />,
     rootPath: '/office',
     items: [
-      { name: 'Doc Studio',   path: '/office/doc-studio',   icon: <BookOpen className="w-4 h-4 text-violet-500" /> },
-      { name: 'Sheet Studio', path: '/office/sheet-studio', icon: <Table2 className="w-4 h-4 text-violet-500" /> },
-      { name: 'Slide Studio', path: '/office/slide-studio', icon: <Presentation className="w-4 h-4 text-violet-500" /> },
-      { name: 'Diagram & Rumus Studio', path: '/office/diagram-rumus', icon: <Workflow className="w-4 h-4 text-violet-500" /> },
+      { name: tr("Doc Studio"),   path: '/office/doc-studio',   icon: <BookOpen className="w-4 h-4 text-violet-500" /> },
+      { name: tr("Sheet Studio"), path: '/office/sheet-studio', icon: <Table2 className="w-4 h-4 text-violet-500" /> },
+      { name: tr("Slide Studio"), path: '/office/slide-studio', icon: <Presentation className="w-4 h-4 text-violet-500" /> },
+      { name: tr("Diagram & Rumus Studio"), path: '/office/diagram-rumus', icon: <Workflow className="w-4 h-4 text-violet-500" /> },
     ],
   },
   {
     id: 'gambar',
-    title: 'Gambar',
+    title: tr("Gambar"),
     icon: <ImageIcon className="w-4 h-4" />,
     rootPath: '/image',
     items: [
-      { name: 'Kolase Gambar',  path: '/image/kolase',           icon: <LayoutGrid className="w-4 h-4 text-orange-500" />, section: 'Kolase & Cetak' },
-      { name: 'Cetak Foto',     path: '/image/cetak-foto',       icon: <Printer className="w-4 h-4 text-orange-500" />, section: 'Kolase & Cetak' },
-      { name: 'Photo Editor',   path: '/image/photo-editor',     icon: <SlidersHorizontal className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
-      { name: 'Crop Gambar',    path: '/image/crop',              icon: <Crop className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
-      { name: 'Putar Gambar',   path: '/image/putar',             icon: <RotateCw className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
-      { name: 'Hapus Background', path: '/image/hapus-background', icon: <Eraser className="w-4 h-4 text-orange-500" />, section: 'Edit & Perbaiki' },
-      { name: 'Watermark Gambar', path: '/image/watermark',       icon: <Layers className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
-      { name: 'Meme Generator', path: '/image/meme-generator',    icon: <Smile className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
-      { name: 'HTML ke Gambar', path: '/image/html-ke-gambar',    icon: <Code2 className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
-      { name: 'Color Picker & Palette', path: '/image/color-picker', icon: <Pipette className="w-4 h-4 text-orange-500" />, section: 'Kreatif' },
-      { name: 'Kompres Gambar', path: '/image/kompres',  icon: <FileDown className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
-      { name: 'Ubah Ukuran',    path: '/image/resize',   icon: <ArrowLeftRight className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
-      { name: 'Konversi Format',path: '/image/konversi', icon: <Wand2 className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
-      { name: 'Baca Foto RAW',  path: '/image/raw-preview', icon: <Camera className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
-      { name: 'Hapus Metadata', path: '/image/hapus-metadata', icon: <Eraser className="w-4 h-4 text-orange-500" />, section: 'Konversi & Optimasi' },
-      { name: 'Semua Dokumen ke Gambar', path: '/image/dokumen-ke-gambar', icon: <Files className="w-4 h-4 text-orange-500" />, section: 'Dokumen ke Gambar' },
-      { name: 'PDF ke Gambar',    path: '/image/pdf-ke-gambar',   icon: <FileText className="w-4 h-4 text-orange-500" />, section: 'Dokumen ke Gambar' },
-      { name: 'Word ke Gambar',   path: '/image/word-ke-gambar',  icon: <FileType2 className="w-4 h-4 text-orange-500" />, section: 'Dokumen ke Gambar' },
-      { name: 'PowerPoint ke Gambar', path: '/image/ppt-ke-gambar', icon: <Presentation className="w-4 h-4 text-orange-500" />, section: 'Dokumen ke Gambar' },
-      { name: 'Excel & CSV ke Gambar', path: '/image/excel-ke-gambar', icon: <Sheet className="w-4 h-4 text-orange-500" />, section: 'Dokumen ke Gambar' },
-      { name: 'Teks & Markdown ke Gambar', path: '/image/teks-ke-gambar', icon: <AlignLeft className="w-4 h-4 text-orange-500" />, section: 'Dokumen ke Gambar' },
+      { name: tr("Kolase Gambar"),  path: '/image/kolase',           icon: <LayoutGrid className="w-4 h-4 text-orange-500" />, section: tr("Kolase & Cetak") },
+      { name: tr("Cetak Foto"),     path: '/image/cetak-foto',       icon: <Printer className="w-4 h-4 text-orange-500" />, section: tr("Kolase & Cetak") },
+      { name: tr("Photo Editor"),   path: '/image/photo-editor',     icon: <SlidersHorizontal className="w-4 h-4 text-orange-500" />, section: tr("Edit & Perbaiki") },
+      { name: tr("Crop Gambar"),    path: '/image/crop',              icon: <Crop className="w-4 h-4 text-orange-500" />, section: tr("Edit & Perbaiki") },
+      { name: tr("Putar Gambar"),   path: '/image/putar',             icon: <RotateCw className="w-4 h-4 text-orange-500" />, section: tr("Edit & Perbaiki") },
+      { name: tr("Hapus Background"), path: '/image/hapus-background', icon: <Eraser className="w-4 h-4 text-orange-500" />, section: tr("Edit & Perbaiki") },
+      { name: tr("Watermark Gambar"), path: '/image/watermark',       icon: <Layers className="w-4 h-4 text-orange-500" />, section: tr("Kreatif") },
+      { name: tr("Meme Generator"), path: '/image/meme-generator',    icon: <Smile className="w-4 h-4 text-orange-500" />, section: tr("Kreatif") },
+      { name: tr("HTML ke Gambar"), path: '/image/html-ke-gambar',    icon: <Code2 className="w-4 h-4 text-orange-500" />, section: tr("Kreatif") },
+      { name: tr("Color Picker & Palette"), path: '/image/color-picker', icon: <Pipette className="w-4 h-4 text-orange-500" />, section: tr("Kreatif") },
+      { name: tr("Kompres Gambar"), path: '/image/kompres',  icon: <FileDown className="w-4 h-4 text-orange-500" />, section: tr("Konversi & Optimasi") },
+      { name: tr("Ubah Ukuran"),    path: '/image/resize',   icon: <ArrowLeftRight className="w-4 h-4 text-orange-500" />, section: tr("Konversi & Optimasi") },
+      { name: tr("Konversi Format"),path: '/image/konversi', icon: <Wand2 className="w-4 h-4 text-orange-500" />, section: tr("Konversi & Optimasi") },
+      { name: tr("Baca Foto RAW"),  path: '/image/raw-preview', icon: <Camera className="w-4 h-4 text-orange-500" />, section: tr("Konversi & Optimasi") },
+      { name: tr("Hapus Metadata"), path: '/image/hapus-metadata', icon: <Eraser className="w-4 h-4 text-orange-500" />, section: tr("Konversi & Optimasi") },
+      { name: tr("Semua Dokumen ke Gambar"), path: '/image/dokumen-ke-gambar', icon: <Files className="w-4 h-4 text-orange-500" />, section: tr("Dokumen ke Gambar") },
+      { name: tr("PDF ke Gambar"),    path: '/image/pdf-ke-gambar',   icon: <FileText className="w-4 h-4 text-orange-500" />, section: tr("Dokumen ke Gambar") },
+      { name: tr("Word ke Gambar"),   path: '/image/word-ke-gambar',  icon: <FileType2 className="w-4 h-4 text-orange-500" />, section: tr("Dokumen ke Gambar") },
+      { name: tr("PowerPoint ke Gambar"), path: '/image/ppt-ke-gambar', icon: <Presentation className="w-4 h-4 text-orange-500" />, section: tr("Dokumen ke Gambar") },
+      { name: tr("Excel & CSV ke Gambar"), path: '/image/excel-ke-gambar', icon: <Sheet className="w-4 h-4 text-orange-500" />, section: tr("Dokumen ke Gambar") },
+      { name: tr("Teks & Markdown ke Gambar"), path: '/image/teks-ke-gambar', icon: <AlignLeft className="w-4 h-4 text-orange-500" />, section: tr("Dokumen ke Gambar") },
     ],
   },
   {
     id: 'video',
-    title: 'Video',
+    title: tr("Video"),
     icon: <Clapperboard className="w-4 h-4" />,
     rootPath: '/video',
     items: [
-      { name: 'Konversi Video',    path: '/video/konversi', icon: <RefreshCw className="w-4 h-4 text-rose-500" /> },
-      { name: 'Kompres Video',    path: '/video/kompres',  icon: <Shrink className="w-4 h-4 text-rose-500" /> },
-      { name: 'Potong Video',      path: '/video/potong',   icon: <Scissors className="w-4 h-4 text-rose-500" /> },
-      { name: 'Crop & Resize',     path: '/video/crop',     icon: <Crop className="w-4 h-4 text-rose-500" /> },
-      { name: 'Teks & Subtitle (CC)', path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
-      { name: 'Gabung & Transisi', path: '/video/gabung',   icon: <Layers className="w-4 h-4 text-rose-500" /> },
-      { name: 'Kecepatan & Filter', path: '/video/filter',  icon: <Sparkles className="w-4 h-4 text-rose-500" /> },
-      { name: 'Tangkap Thumbnail / Screenshot', path: '/video/thumbnail', icon: <Camera className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Konversi Video"),    path: '/video/konversi', icon: <RefreshCw className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Kompres Video"),    path: '/video/kompres',  icon: <Shrink className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Potong Video"),      path: '/video/potong',   icon: <Scissors className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Crop & Resize"),     path: '/video/crop',     icon: <Crop className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Teks & Subtitle (CC)"), path: '/video/subtitle', icon: <Captions className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Gabung & Transisi"), path: '/video/gabung',   icon: <Layers className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Kecepatan & Filter"), path: '/video/filter',  icon: <Sparkles className="w-4 h-4 text-rose-500" /> },
+      { name: tr("Tangkap Thumbnail / Screenshot"), path: '/video/thumbnail', icon: <Camera className="w-4 h-4 text-rose-500" /> },
     ],
   },
   {
     id: 'audio',
-    title: 'Audio',
+    title: tr("Audio"),
     icon: <AudioLines className="w-4 h-4" />,
     rootPath: '/audio',
     items: [
-      { name: 'Konversi Audio',            path: '/audio/konversi',            icon: <RefreshCw className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Kompres Audio',             path: '/audio/kompres',             icon: <Shrink className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Edit Audio',                path: '/audio/edit-audio',          icon: <AudioWaveform className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Audio Visualizer',          path: '/audio/visualizer',          icon: <AudioLines className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Transkrip Audio',           path: '/audio/transkrip-audio',     icon: <ScrollText className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Speech to Text',            path: '/audio/suara-ke-teks',       icon: <Mic className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Text to Speech',            path: '/audio/teks-ke-suara',       icon: <Volume2 className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Pengukur Kekuatan Suara',   path: '/audio/pengukur-suara',      icon: <Gauge className="w-4 h-4 text-cyan-500" /> },
-      { name: 'Ekstrak Audio dari Video',  path: '/audio/ekstrak-audio-video', icon: <AudioLines className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Konversi Audio"),            path: '/audio/konversi',            icon: <RefreshCw className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Kompres Audio"),             path: '/audio/kompres',             icon: <Shrink className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Edit Audio"),                path: '/audio/edit-audio',          icon: <AudioWaveform className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Audio Visualizer"),          path: '/audio/visualizer',          icon: <AudioLines className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Transkrip Audio"),           path: '/audio/transkrip-audio',     icon: <ScrollText className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Speech to Text"),            path: '/audio/suara-ke-teks',       icon: <Mic className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Text to Speech"),            path: '/audio/teks-ke-suara',       icon: <Volume2 className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Pengukur Kekuatan Suara"),   path: '/audio/pengukur-suara',      icon: <Gauge className="w-4 h-4 text-cyan-500" /> },
+      { name: tr("Ekstrak Audio dari Video"),  path: '/audio/ekstrak-audio-video', icon: <AudioLines className="w-4 h-4 text-cyan-500" /> },
     ],
   },
   {
     id: 'utilitas',
-    title: 'Utilitas',
+    title: tr("Utilitas"),
     icon: <SlidersHorizontal className="w-4 h-4" />,
     rootPath: '/utility',
     items: [
-      { name: 'Kalkulator',       path: '/utility/kalkulator',       icon: <Calculator className="w-4 h-4 text-pink-500" />, section: 'Kalkulator' },
-      { name: 'Universal Converter', path: '/utility/convert',       icon: <RefreshCw className="w-4 h-4 text-pink-500" />, section: 'Konversi' },
-      { name: 'Kamus Dunia',      path: '/utility/kamus-dunia',      icon: <Languages className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
-      { name: 'HTML Preview',     path: '/utility/html-preview',     icon: <AppWindow className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
-      { name: 'Capture Website',  path: '/utility/capture-website',  icon: <Camera className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
-      { name: 'Koordinat',        path: '/utility/koordinat',        icon: <MapPin className="w-4 h-4 text-pink-500" />, section: 'Bahasa & Konten' },
-      { name: 'JSON & Base64',    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
-      { name: 'Bulk Teks',        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
-      { name: 'Statistik',        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" />, section: 'Data & Teks' },
-      { name: 'Cetak File & Dokumen', path: '/utility/cetak',        icon: <Printer className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
-      { name: 'Link Media',       path: '/utility/link-media',       icon: <Radio className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
-      { name: 'Alias Email',      path: '/utility/alias-email',      icon: <Mail className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
-      { name: 'Password & Token', path: '/utility/password-token',   icon: <KeyRound className="w-4 h-4 text-pink-500" />, section: 'Lainnya' },
+      { name: tr("Kalkulator"),       path: '/utility/kalkulator',       icon: <Calculator className="w-4 h-4 text-pink-500" />, section: tr("Kalkulator") },
+      { name: tr("Universal Converter"), path: '/utility/convert',       icon: <RefreshCw className="w-4 h-4 text-pink-500" />, section: tr("Konversi") },
+      { name: tr("Kamus Dunia"),      path: '/utility/kamus-dunia',      icon: <Languages className="w-4 h-4 text-pink-500" />, section: tr("Bahasa & Konten") },
+      { name: tr("HTML Preview"),     path: '/utility/html-preview',     icon: <AppWindow className="w-4 h-4 text-pink-500" />, section: tr("Bahasa & Konten") },
+      { name: tr("Capture Website"),  path: '/utility/capture-website',  icon: <Camera className="w-4 h-4 text-pink-500" />, section: tr("Bahasa & Konten") },
+      { name: tr("Koordinat"),        path: '/utility/koordinat',        icon: <MapPin className="w-4 h-4 text-pink-500" />, section: tr("Bahasa & Konten") },
+      { name: tr("JSON & Base64"),    path: '/utility/json-base64',      icon: <Code2 className="w-4 h-4 text-pink-500" />, section: tr("Data & Teks") },
+      { name: tr("Bulk Teks"),        path: '/utility/bulk-teks',        icon: <ListOrdered className="w-4 h-4 text-pink-500" />, section: tr("Data & Teks") },
+      { name: tr("Statistik"),        path: '/utility/statistik',        icon: <BarChart3 className="w-4 h-4 text-pink-500" />, section: tr("Data & Teks") },
+      { name: tr("Cetak File & Dokumen"), path: '/utility/cetak',        icon: <Printer className="w-4 h-4 text-pink-500" />, section: tr("Lainnya") },
+      { name: tr("Link Media"),       path: '/utility/link-media',       icon: <Radio className="w-4 h-4 text-pink-500" />, section: tr("Lainnya") },
+      { name: tr("Alias Email"),      path: '/utility/alias-email',      icon: <Mail className="w-4 h-4 text-pink-500" />, section: tr("Lainnya") },
+      { name: tr("Password & Token"), path: '/utility/password-token',   icon: <KeyRound className="w-4 h-4 text-pink-500" />, section: tr("Lainnya") },
     ],
   },
   {
     id: 'spesial',
-    title: 'Spesial',
+    title: tr("Spesial"),
     icon: <Sparkles className="w-4 h-4" />,
     rootPath: '/special',
     items: [
-      { name: 'Kwitansi',            path: '/special/kwitansi',   icon: <Receipt className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Invoice',             path: '/special/invoice',    icon: <FileSpreadsheet className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Struk / Nota',        path: '/special/struk',      icon: <ShoppingBag className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Kartu Nama',          path: '/special/kartu-nama', icon: <IdCard className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Name Tag',            path: '/special/name-tag',   icon: <Tag className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Pembuat Surat', path: '/special/surat', icon: <MailOpen className="w-4 h-4 text-sky-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Kupon, Voucher & Tiket', path: '/special/kupon',    icon: <TicketPercent className="w-4 h-4 text-amber-500" />, section: 'Dokumen Bisnis' },
-      { name: 'Sertifikat & Piagam', path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
-      { name: 'WA Link',             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
-      { name: 'Pembuat CV',          path: '/special/pembuat-cv', icon: <FileText className="w-4 h-4 text-amber-500" />, section: 'Lainnya' },
+      { name: tr("Kwitansi"),            path: '/special/kwitansi',   icon: <Receipt className="w-4 h-4 text-amber-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Invoice"),             path: '/special/invoice',    icon: <FileSpreadsheet className="w-4 h-4 text-amber-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Struk / Nota"),        path: '/special/struk',      icon: <ShoppingBag className="w-4 h-4 text-amber-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Kartu Nama"),          path: '/special/kartu-nama', icon: <IdCard className="w-4 h-4 text-amber-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Name Tag"),            path: '/special/name-tag',   icon: <Tag className="w-4 h-4 text-amber-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Pembuat Surat"), path: '/special/surat', icon: <MailOpen className="w-4 h-4 text-sky-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Kupon, Voucher & Tiket"), path: '/special/kupon',    icon: <TicketPercent className="w-4 h-4 text-amber-500" />, section: tr("Dokumen Bisnis") },
+      { name: tr("Sertifikat & Piagam"), path: '/special/sertifikat', icon: <Award className="w-4 h-4 text-amber-500" />, section: tr("Lainnya") },
+      { name: tr("WA Link"),             path: '/special/wa-link',    icon: <MessageCircle className="w-4 h-4 text-amber-500" />, section: tr("Lainnya") },
+      { name: tr("Pembuat CV"),          path: '/special/pembuat-cv', icon: <FileText className="w-4 h-4 text-amber-500" />, section: tr("Lainnya") },
     ],
   },
 ];
 
 const policyLinks = [
-  { name: 'Tentang Kami',       path: '/about',   icon: <Info className="w-4 h-4 text-slate-400" /> },
-  { name: 'Kebijakan Privasi',  path: '/privacy', icon: <BookOpen className="w-4 h-4 text-slate-400" /> },
-  { name: 'Ketentuan Layanan',  path: '/terms',   icon: <FileText className="w-4 h-4 text-slate-400" /> },
+  { name: tr("Tentang Kami"),       path: '/about',   icon: <Info className="w-4 h-4 text-slate-400" /> },
+  { name: tr("FAQ"),                path: '/faq',     icon: <HelpCircle className="w-4 h-4 text-slate-400" /> },
+  { name: tr("Kebijakan Privasi"),  path: '/privacy', icon: <BookOpen className="w-4 h-4 text-slate-400" /> },
+  { name: tr("Ketentuan Layanan"),  path: '/terms',   icon: <FileText className="w-4 h-4 text-slate-400" /> },
 ];
 
 /** Renders a flat item list, inserting a small section label whenever `section` changes. */
@@ -302,14 +305,14 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="rounded-xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm group-hover:shadow-md group-hover:ring-indigo-200 dark:group-hover:ring-indigo-500/40 transition-[box-shadow,--tw-ring-color,rotate,scale] duration-300 group-hover:-rotate-6 group-hover:scale-110">
-              <img src="/gamato-piranti-128.webp" width={36} height={36} alt="Gamato Piranti" className="w-9 h-9 object-cover" />
+              <img src="/gamato-piranti-128.webp" width={36} height={36} alt={tr("Gamato Piranti")} className="w-9 h-9 object-cover" />
             </div>
             <div className="leading-tight">
               <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                Gamato<span className="text-slate-400 dark:text-slate-500 font-normal">Piranti</span>
+                {tr("Gamato")}<span className="text-slate-400 dark:text-slate-500 font-normal">{tr("Piranti")}</span>
               </span>
               <div className="flex items-center gap-1 -mt-0.5">
-                <span className="text-[10px] font-semibold text-slate-300 tracking-wide">by WisDev</span>
+                <span className="text-[10px] font-semibold text-slate-300 tracking-wide">{tr("by WisDev")}</span>
               </div>
             </div>
           </Link>
@@ -358,9 +361,7 @@ export default function Header() {
                           to={group.rootPath}
                           onClick={() => setActiveDropdown(null)}
                           className="flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-500/10 border-t border-slate-100 dark:border-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
-                        >
-                          Lihat semua {group.title}
-                        </Link>
+                        >{tr("Lihat semua {0}", group.title)}</Link>
                   </Presence>
                 </div>
               );
@@ -368,14 +369,14 @@ export default function Header() {
 
             <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
 
-            <GamatoTooltip label="Cari alat (Ctrl K)">
+            <GamatoTooltip label={tr("Cari alat (Ctrl K)")}>
               <SearchTrigger className="!px-2.5" />
             </GamatoTooltip>
 
-            <GamatoTooltip label="Tentang Kami">
+            <GamatoTooltip label={tr("Tentang Kami")}>
               <Link
                 to="/about"
-                aria-label="Tentang Kami"
+                aria-label={tr("Tentang Kami")}
                 className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors ${
                   location.pathname === '/about' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`}
@@ -384,11 +385,13 @@ export default function Header() {
               </Link>
             </GamatoTooltip>
 
+            <LangSwitch className="mx-1" />
+
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={isDark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'}
-              title={isDark ? 'Mode terang' : 'Mode gelap'}
+              aria-label={isDark ? tr("Aktifkan mode terang") : tr("Aktifkan mode gelap")}
+              title={isDark ? tr("Mode terang") : tr("Mode gelap")}
               className="p-2 rounded-full text-slate-500 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -398,10 +401,11 @@ export default function Header() {
           {/* Mobile theme toggle + hamburger — mirrors the nav's xl: cutover above */}
           <div className="xl:hidden flex items-center gap-1">
             <SearchTrigger compact className="!rounded-xl" />
+            <LangSwitch />
             <button
               type="button"
               onClick={toggleTheme}
-              aria-label={isDark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'}
+              aria-label={isDark ? tr("Aktifkan mode terang") : tr("Aktifkan mode gelap")}
               className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -409,7 +413,7 @@ export default function Header() {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Toggle menu"
+              aria-label={tr("Toggle menu")}
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -456,9 +460,7 @@ export default function Header() {
                             to={group.rootPath}
                             onClick={() => setMobileOpen(false)}
                             className="flex items-center justify-center gap-1.5 mx-1.5 mb-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors"
-                          >
-                            Lihat semua {group.title}
-                          </Link>
+                          >{tr("Lihat semua {0}", group.title)}</Link>
                       </div>
                     </Presence>
                   </div>
@@ -480,8 +482,8 @@ export default function Header() {
               {/* WisDev tag in mobile */}
               <div className="flex items-center justify-center gap-1.5 text-xs text-slate-300 dark:text-slate-600 pt-1 border-t border-slate-100 dark:border-slate-800">
                 <Code2 className="w-3 h-3" />
-                <span>Powered by</span>
-                <span className="text-slate-500 dark:text-slate-400 font-bold">WisDev</span>
+                <span>{tr("Powered by")}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-bold">{tr("WisDev")}</span>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import { Select, Label } from "@/components/ui/primitives";
 import { FONT_PRESETS } from "@/lib/fontPresets";
 import type { CustomFontEntry } from "@/lib/customFont";
+import { tr } from "@/i18n";
 
 export interface FontPickerProps {
   /** Currently selected font-family name (a preset id or a custom font's family). */
@@ -40,7 +41,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({
   fontError,
   onUpload,
   onRemoveCustomFont,
-  label = "Font",
+  label = tr("Font"),
   hideUpload,
   hideSelect,
 }) => {
@@ -54,7 +55,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({
           {customFonts.length > 0 && (
             <>
               {customFonts.map((f) => (
-                <option key={f.id} value={f.family}>{`${f.fileName} (Kustom)`}</option>
+                <option key={f.id} value={f.family}>{tr("{0} (Kustom)", f.fileName)}</option>
               ))}
             </>
           )}
@@ -65,7 +66,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({
         <div>
           <label className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:text-indigo-700 dark:hover:text-indigo-300">
             {isFontLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-            Upload Font Kustom (.ttf / .otf / .woff)
+            {tr("Upload Font Kustom (.ttf / .otf / .woff)")}
             <input
               type="file"
               accept=".ttf,.otf,.woff,.woff2"
@@ -80,7 +81,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({
               {customFonts.map((f) => (
                 <span key={f.id} className="inline-flex items-center gap-1 text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">
                   {f.fileName}
-                  <button type="button" onClick={() => onRemoveCustomFont(f.id)} className="hover:text-red-500 transition-colors" aria-label={`Hapus font ${f.fileName}`}>
+                  <button type="button" onClick={() => onRemoveCustomFont(f.id)} className="hover:text-red-500 transition-colors" aria-label={tr("Hapus font {0}", f.fileName)}>
                     <X className="w-3 h-3" />
                   </button>
                 </span>

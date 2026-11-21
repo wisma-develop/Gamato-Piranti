@@ -3,6 +3,7 @@ import { cn } from "@/utils/cn";
 import { GamatoColorPicker } from "@/components/ui/GamatoColorPicker";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
 import { Label } from "@/components/ui/primitives";
+import { tr } from "@/i18n";
 
 export type ColorMode = "solid" | "gradient";
 export type GradientKind = "linear" | "radial";
@@ -55,7 +56,7 @@ export function ColorModeControl({
                 value.mode === m ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
               )}
             >
-              {m === "solid" ? "Solid" : "Gradasi"}
+              {m === "solid" ? tr("Solid") : tr("Gradasi")}
             </button>
           ))}
         </div>
@@ -66,8 +67,8 @@ export function ColorModeControl({
       ) : (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <GamatoColorPicker label="Warna 1" value={value.color} onChange={(c) => set({ color: c })} testId={testId ? `${testId}-c1` : undefined} />
-            <GamatoColorPicker label="Warna 2" value={value.color2} onChange={(c) => set({ color2: c })} testId={testId ? `${testId}-c2` : undefined} />
+            <GamatoColorPicker label={tr("Warna 1")} value={value.color} onChange={(c) => set({ color: c })} testId={testId ? `${testId}-c1` : undefined} />
+            <GamatoColorPicker label={tr("Warna 2")} value={value.color2} onChange={(c) => set({ color2: c })} testId={testId ? `${testId}-c2` : undefined} />
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -76,16 +77,16 @@ export function ColorModeControl({
               className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               <ArrowRightLeft className="w-3 h-3" />
-              {value.gradientType === "linear" ? "Linear" : "Radial"} — ganti
+              {value.gradientType === "linear" ? tr("Linear") : tr("Radial")} {tr("— ganti")}
             </button>
           </div>
           {value.gradientType === "linear" && (
             <div>
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Sudut Gradasi</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{tr("Sudut Gradasi")}</span>
                 <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">{value.rotation}°</span>
               </div>
-              <GamatoSlider min={0} max={360} step={5} value={value.rotation} onChange={(r) => set({ rotation: r })} aria-label={`Sudut gradasi ${label}`} />
+              <GamatoSlider min={0} max={360} step={5} value={value.rotation} onChange={(r) => set({ rotation: r })} aria-label={tr("Sudut gradasi {0}", label)} />
             </div>
           )}
         </div>

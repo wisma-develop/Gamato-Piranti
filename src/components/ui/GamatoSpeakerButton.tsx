@@ -3,6 +3,7 @@ import { Speaker, Check } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui/AnchoredPortal";
 import { canSelectAudioOutput, listMediaDevices, pickAudioOutput, setMediaSink, type MediaDeviceOption } from "@/lib/permissions";
+import { tr } from "@/i18n";
 
 /**
  * GamatoSpeakerButton — pilih speaker/headset keluaran untuk pemutar (Chrome/Edge: setSinkId).
@@ -38,7 +39,7 @@ export function GamatoSpeakerButton({
   const choose = async (deviceId: string) => {
     const ok = await setMediaSink(mediaRef.current, deviceId);
     if (ok) { setActive(deviceId); setNote(null); setOpen(false); }
-    else setNote("Speaker tidak bisa dipilih. Izinkan akses dan coba lagi.");
+    else setNote(tr("Speaker tidak bisa dipilih. Izinkan akses dan coba lagi."));
   };
 
   const onClick = async () => {
@@ -56,16 +57,16 @@ export function GamatoSpeakerButton({
       <button
         type="button"
         onClick={onClick}
-        aria-label="Pilih speaker"
+        aria-label={tr("Pilih speaker")}
         aria-haspopup="listbox"
         data-testid="speaker-picker"
         className={cn("p-1.5 rounded-lg transition-colors", tone === "dark" ? "text-white/70 hover:text-white hover:bg-white/15" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800")}
       >
         <Speaker className="w-4 h-4" />
       </button>
-      <AnchoredPortal anchorRef={wrapRef} open={open} side="top" align="end" offset={8} panelRef={popRef} role="listbox" aria-label="Pilih speaker" className="min-w-[190px] max-w-[260px] bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl">
+      <AnchoredPortal anchorRef={wrapRef} open={open} side="top" align="end" offset={8} panelRef={popRef} role="listbox" aria-label={tr("Pilih speaker")} className="min-w-[190px] max-w-[260px] bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl">
           <button type="button" role="option" aria-selected={active === ""} onClick={() => choose("")} className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-semibold text-white/85 hover:bg-white/10 text-left">
-            <span className="truncate">Speaker bawaan</span>{active === "" && <Check className="w-3 h-3 text-indigo-300" />}
+            <span className="truncate">{tr("Speaker bawaan")}</span>{active === "" && <Check className="w-3 h-3 text-indigo-300" />}
           </button>
           {devices.filter((d) => d.deviceId !== "default").map((d) => (
             <button key={d.deviceId} type="button" role="option" aria-selected={active === d.deviceId} onClick={() => choose(d.deviceId)} className="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-semibold text-white/85 hover:bg-white/10 text-left">

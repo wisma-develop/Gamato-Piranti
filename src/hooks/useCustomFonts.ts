@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { loadCustomFont, type CustomFontEntry } from "@/lib/customFont";
 import { DEFAULT_FONT_FAMILY } from "@/lib/fontPresets";
+import { tr } from "@/i18n";
 
 export interface UseCustomFontsResult {
   customFonts: CustomFontEntry[];
@@ -36,7 +37,7 @@ export function useCustomFonts(): UseCustomFontsResult {
       const entry = await loadCustomFont(file);
       setCustomFonts((prev) => [...prev, entry]);
     } catch (err: any) {
-      setFontError(err?.message || "Gagal memuat font kustom.");
+      setFontError(err?.message || tr("Gagal memuat font kustom."));
     } finally {
       setIsFontLoading(false);
     }

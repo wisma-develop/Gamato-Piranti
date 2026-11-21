@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { usePrefersReducedMotion } from "@/hooks/usePresence";
 import { AudioLines, Check, Clapperboard, FileText, Gauge, Image as ImageIcon, Play, QrCode, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 /* ───────────────────────── Data QR dekoratif (deterministik, bukan QR sungguhan) ───────────────────────── */
 const QR_N = 25;
@@ -27,11 +28,11 @@ const QR_PATH = (() => {
 type SceneId = "qr" | "pdf" | "gambar" | "audio" | "video";
 
 const SCENES: { id: SceneId; label: string; icon: ReactNode; path: string; caption: string }[] = [
-  { id: "qr", label: "QR Code", icon: <QrCode className="h-4 w-4" />, path: "/qr/qr-code", caption: "QR code dengan warna & logo kustom" },
-  { id: "pdf", label: "PDF", icon: <FileText className="h-4 w-4" />, path: "/pdf/gabung", caption: "Gabung 3 file PDF jadi satu" },
-  { id: "gambar", label: "Gambar", icon: <ImageIcon className="h-4 w-4" />, path: "/image/kompres", caption: "Kompres foto tanpa kehilangan kualitas" },
-  { id: "audio", label: "Audio", icon: <AudioLines className="h-4 w-4" />, path: "/audio/edit-audio", caption: "Edit & ubah format audio" },
-  { id: "video", label: "Video", icon: <Clapperboard className="h-4 w-4" />, path: "/video/potong", caption: "Potong video presisi di browser" },
+  { id: "qr", label: tr("QR Code"), icon: <QrCode className="h-4 w-4" />, path: "/qr/qr-code", caption: tr("QR code dengan warna & logo kustom") },
+  { id: "pdf", label: tr("PDF"), icon: <FileText className="h-4 w-4" />, path: "/pdf/gabung", caption: tr("Gabung 3 file PDF jadi satu") },
+  { id: "gambar", label: tr("Gambar"), icon: <ImageIcon className="h-4 w-4" />, path: "/image/kompres", caption: tr("Kompres foto tanpa kehilangan kualitas") },
+  { id: "audio", label: tr("Audio"), icon: <AudioLines className="h-4 w-4" />, path: "/audio/edit-audio", caption: tr("Edit & ubah format audio") },
+  { id: "video", label: tr("Video"), icon: <Clapperboard className="h-4 w-4" />, path: "/video/potong", caption: tr("Potong video presisi di browser") },
 ];
 
 /* ───────────────────────────────────────────── Adegan ───────────────────────────────────────────── */
@@ -56,14 +57,14 @@ function SceneQr() {
         </span>
       </div>
       <div className="hidden space-y-2.5 sm:block">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Kustomisasi</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{tr("Kustomisasi")}</p>
         <div className="flex gap-1.5" aria-hidden="true">
           {["#4f46e5", "#0d9488", "#e11d48", "#0f172a"].map((c) => <span key={c} className="h-5 w-5 rounded-full ring-2 ring-white dark:ring-slate-800 shadow" style={{ background: c }} />)}
         </div>
         <div className="space-y-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-          <p className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" />Logo di tengah</p>
-          <p className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" />Bentuk titik</p>
-          <p className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" />PNG · SVG · JPEG</p>
+          <p className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" />{tr("Logo di tengah")}</p>
+          <p className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" />{tr("Bentuk titik")}</p>
+          <p className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" />{tr("PNG · SVG · JPEG")}</p>
         </div>
       </div>
     </div>
@@ -84,7 +85,7 @@ function ScenePdf() {
             animation: `gpPdfCard .8s ${0.15 + i * 0.12}s cubic-bezier(.34,1.45,.64,1) both`,
           } as CSSProperties}
         >
-          <span className="inline-block rounded bg-rose-500 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-white">PDF</span>
+          <span className="inline-block rounded bg-rose-500 px-1.5 py-0.5 text-[9px] font-extrabold tracking-wide text-white">{tr("PDF")}</span>
           <div className="h-1.5 w-full rounded bg-slate-200" /><div className="h-1.5 w-4/5 rounded bg-slate-200" />
           <div className="h-1.5 w-full rounded bg-slate-200" /><div className="h-1.5 w-3/5 rounded bg-slate-200" />
           <div className="mt-2 h-8 w-full rounded bg-gradient-to-br from-indigo-100 to-violet-100" />
@@ -94,7 +95,7 @@ function ScenePdf() {
         className="absolute bottom-4 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-lg dark:bg-white dark:text-slate-900"
         style={{ animation: "gpRiseFade .5s .9s ease-out both" }}
       >
-        <Check className="h-3.5 w-3.5 text-emerald-400 dark:text-emerald-600" />3 file → 1 PDF
+        <Check className="h-3.5 w-3.5 text-emerald-400 dark:text-emerald-600" />{tr("3 file → 1 PDF")}
       </span>
     </div>
   );
@@ -110,8 +111,8 @@ function SceneImage() {
       </div>
       <div className="w-full max-w-xs space-y-1.5">
         <div className="flex justify-between text-xs font-bold">
-          <span className="text-slate-500 dark:text-slate-400 line-through decoration-slate-400/60">4,2 MB</span>
-          <span className="text-emerald-700 dark:text-emerald-400">890 KB · −79%</span>
+          <span className="text-slate-500 dark:text-slate-400 line-through decoration-slate-400/60">{tr("4,2 MB")}</span>
+          <span className="text-emerald-700 dark:text-emerald-400">{tr("890 KB · −79%")}</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
           <div className="h-full w-full origin-left rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" style={{ animation: "gpShrink 1.1s .45s ease-in-out both" }} />
@@ -151,7 +152,7 @@ function SceneVideo() {
           {Array.from({ length: 12 }, (_, i) => <span key={i} className="flex-1" style={{ background: `linear-gradient(135deg,hsl(${205 + i * 11} 70% 62%),hsl(${235 + i * 11} 65% 46%))` }} />)}
           <span className="absolute inset-y-0 rounded-md border-2 border-white shadow-[0_0_0_9999px_rgba(15,23,42,.55)]" style={{ animation: "gpTrim 1.2s .4s ease-in-out both" }} />
         </div>
-        <p className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400">Potong 00:12 – 00:48</p>
+        <p className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400">{tr("Potong 00:12 – 00:48")}</p>
       </div>
     </div>
   );
@@ -213,8 +214,8 @@ export function HeroShowcase({ totalTools }: { totalTools: number }) {
 
       {/* Kartu kaca melayang (hanya ≥ lg): dua menjepit sudut jendela, satu gelembung ikon di tepi kiri.
           Posisinya sengaja di area kosong jendela (sudut kanan-atas bilah judul, sudut kanan-bawah bilah status). */}
-      <GlassChip icon={<Search className="h-5 w-5" />} title={`${totalTools}+ alat`} text="Cari cepat · Ctrl K" className="gp-hero-near absolute -right-5 -top-7 z-20 hidden lg:block" bobDelay="-2s" />
-      <GlassChip icon={<ShieldCheck className="h-5 w-5" />} title="Privasi penuh" text="0 byte diunggah" className="gp-hero-far absolute -bottom-8 -right-5 z-20 hidden lg:block" />
+      <GlassChip icon={<Search className="h-5 w-5" />} title={tr("{0}+ alat", totalTools)} text={tr("Cari cepat · Ctrl K")} className="gp-hero-near absolute -right-5 -top-7 z-20 hidden lg:block" bobDelay="-2s" />
+      <GlassChip icon={<ShieldCheck className="h-5 w-5" />} title={tr("Privasi penuh")} text={tr("0 byte diunggah")} className="gp-hero-far absolute -bottom-8 -right-5 z-20 hidden lg:block" />
       <div aria-hidden="true" className="gp-hero-far absolute -left-6 top-[46%] z-20 hidden lg:block">
         <div className="gp-bob gp-glass grid h-12 w-12 place-items-center rounded-2xl border border-white/60 dark:border-slate-700/70 shadow-xl shadow-slate-900/10 dark:shadow-black/40" style={{ animationDelay: "-4s" }}>
           <Gauge className="h-6 w-6 text-indigo-600 dark:text-indigo-300" />
@@ -227,13 +228,13 @@ export function HeroShowcase({ totalTools }: { totalTools: number }) {
           <span className="flex gap-1.5" aria-hidden="true"><i className="h-2.5 w-2.5 rounded-full bg-rose-400" /><i className="h-2.5 w-2.5 rounded-full bg-amber-400" /><i className="h-2.5 w-2.5 rounded-full bg-emerald-400" /></span>
           <span className="mx-auto flex min-w-0 max-w-full items-center gap-1.5 truncate rounded-full bg-white dark:bg-slate-800 px-3 py-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-700">
             <ShieldCheck className="h-3 w-3 shrink-0 text-emerald-500" aria-hidden="true" />
-            <span className="truncate">gamatopiranti.zone.id{scene.path}</span>
+            <span className="truncate">{tr("gamatopiranti.zone.id{0}", scene.path)}</span>
           </span>
           <span className="w-11 shrink-0" aria-hidden="true" />
         </div>
 
         {/* Tab adegan */}
-        <div role="tablist" aria-label="Contoh alat" className="flex gap-1 overflow-x-auto border-b border-slate-200/80 dark:border-slate-800 px-3 py-2 [scrollbar-width:none]">
+        <div role="tablist" aria-label={tr("Contoh alat")} className="flex gap-1 overflow-x-auto border-b border-slate-200/80 dark:border-slate-800 px-3 py-2 [scrollbar-width:none]">
           {SCENES.map((s, i) => (
             <button
               key={s.id}
@@ -266,16 +267,16 @@ export function HeroShowcase({ totalTools }: { totalTools: number }) {
           <span className="min-w-0 truncate font-semibold text-slate-600 dark:text-slate-300" aria-live="polite">{scene.caption}</span>
           <span className="inline-flex shrink-0 items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 lg:invisible">
             <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" /></span>
-            Di perangkatmu
+            {tr("Di perangkatmu")}
           </span>
         </div>
       </div>
 
       {/* Versi ringkas kartu kaca untuk layar < lg */}
-      <ul className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 lg:hidden" aria-label="Keunggulan">
-        <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 px-3 py-1.5 ring-1 ring-slate-200 dark:ring-slate-700"><ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />0 byte diunggah</li>
-        <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 px-3 py-1.5 ring-1 ring-slate-200 dark:ring-slate-700"><Search className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />{totalTools}+ alat</li>
-        <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 px-3 py-1.5 ring-1 ring-slate-200 dark:ring-slate-700"><Gauge className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />Instan</li>
+      <ul className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 lg:hidden" aria-label={tr("Keunggulan")}>
+        <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 px-3 py-1.5 ring-1 ring-slate-200 dark:ring-slate-700"><ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />{tr("0 byte diunggah")}</li>
+        <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 px-3 py-1.5 ring-1 ring-slate-200 dark:ring-slate-700"><Search className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />{tr("{0}+ alat", totalTools)}</li>
+        <li className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-900/70 px-3 py-1.5 ring-1 ring-slate-200 dark:ring-slate-700"><Gauge className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />{tr("Instan")}</li>
       </ul>
     </div>
   );

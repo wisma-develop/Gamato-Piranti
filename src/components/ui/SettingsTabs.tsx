@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Lightbulb } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { tr } from "@/i18n";
 
 export interface SettingsTabDef<T extends string = string> {
   id: T;
@@ -95,7 +96,7 @@ export function SettingsTabBar<T extends string>({
           <button
             type="button"
             onClick={() => nudge(-1)}
-            aria-label="Geser tab ke kiri"
+            aria-label={tr("Geser tab ke kiri")}
             className="absolute left-0 top-0 bottom-0 z-10 w-9 flex items-center justify-start pl-1.5 rounded-l-2xl bg-gradient-to-r from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 text-slate-500 hover:text-indigo-600"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -113,7 +114,7 @@ export function SettingsTabBar<T extends string>({
           <button
             type="button"
             onClick={() => nudge(1)}
-            aria-label="Geser tab ke kanan"
+            aria-label={tr("Geser tab ke kanan")}
             className="absolute right-0 top-0 bottom-0 z-10 w-9 flex items-center justify-end pr-1.5 rounded-r-2xl bg-gradient-to-l from-white via-white/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 text-slate-500 hover:text-indigo-600"
           >
             <ChevronRight className="w-4 h-4" />
@@ -153,9 +154,8 @@ export function NextTabHint<T extends string>({
       <span className="flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300">
         <Lightbulb className="w-3.5 h-3.5 shrink-0" />
         <span>
-          {isLast ? "Kembali ke bagian" : "Pengaturan selanjutnya:"}{" "}
-          <span className="font-bold text-slate-800 dark:text-slate-100">{next.label}</span> — tersedia di tombol tab
-          di atas.
+          {isLast ? tr("Kembali ke bagian") : tr("Pengaturan selanjutnya:")}{" "}
+          <span className="font-bold text-slate-800 dark:text-slate-100">{next.label}</span> {tr("— tersedia di tombol tab di atas.")}
         </span>
       </span>
       <ChevronRight className="w-4 h-4 shrink-0 text-indigo-500" />

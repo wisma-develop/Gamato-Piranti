@@ -8,9 +8,11 @@ import SeoSync from "@/components/SeoSync";
 import { ToolSearchProvider } from "@/components/search/ToolSearch";
 
 import Home from "@/pages/Home";
+import { tr } from "@/i18n";
 const About = lazy(() => import("@/pages/About"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const Faq = lazy(() => import("@/pages/Faq"));
 
 const KodeCategory = lazy(() => import("@/pages/categories/KodeCategory"));
 const DokumenCategory = lazy(() => import("@/pages/categories/DokumenCategory"));
@@ -138,7 +140,7 @@ export const App: FC = () => (
         <Route
           path="qr/qr-code"
           element={
-            <PageShell badge="Kode" title="QR Code" subtitle="QR code full custom — bentuk titik & sudut, warna, hingga logo bebas diatur, dengan preview real-time.">
+            <PageShell badge={tr("Kode")} title={tr("QR Code")} subtitle={tr("QR code full custom — bentuk titik & sudut, warna, hingga logo bebas diatur, dengan preview real-time.")}>
               <QrCodeGenerator />
             </PageShell>
           }
@@ -146,7 +148,7 @@ export const App: FC = () => (
         <Route
           path="qr/barcode"
           element={
-            <PageShell badge="Kode" title="Barcode" subtitle="6 format barcode (CODE128, EAN-13, EAN-8, UPC, CODE39, ITF-14) dengan validasi otomatis dan cetak massal ke PDF.">
+            <PageShell badge={tr("Kode")} title={tr("Barcode")} subtitle={tr("6 format barcode (CODE128, EAN-13, EAN-8, UPC, CODE39, ITF-14) dengan validasi otomatis dan cetak massal ke PDF.")}>
               <BarcodeGenerator />
             </PageShell>
           }
@@ -154,7 +156,7 @@ export const App: FC = () => (
         <Route
           path="qr/scan-hid"
           element={
-            <PageShell badge="Kode" title="Scan HID" subtitle="Terima input dari scanner barcode/QR bertipe HID (USB/Bluetooth) yang bekerja seperti keyboard.">
+            <PageShell badge={tr("Kode")} title={tr("Scan HID")} subtitle={tr("Terima input dari scanner barcode/QR bertipe HID (USB/Bluetooth) yang bekerja seperti keyboard.")}>
               <HidScanner />
             </PageShell>
           }
@@ -162,7 +164,7 @@ export const App: FC = () => (
         <Route
           path="qr/kode-morse"
           element={
-            <PageShell badge="Kode" title="Kode Morse" subtitle="Konversi teks ke kode Morse (dan sebaliknya), lengkap dengan audio beep yang bisa diunduh.">
+            <PageShell badge={tr("Kode")} title={tr("Kode Morse")} subtitle={tr("Konversi teks ke kode Morse (dan sebaliknya), lengkap dengan audio beep yang bisa diunduh.")}>
               <MorseCode />
             </PageShell>
           }
@@ -170,7 +172,7 @@ export const App: FC = () => (
         <Route
           path="qr/scan-qr"
           element={
-            <PageShell badge="Kode" title="QR & Barcode Scanner" subtitle="Baca QR code dan barcode dari gambar yang diunggah atau langsung dari kamera.">
+            <PageShell badge={tr("Kode")} title={tr("QR & Barcode Scanner")} subtitle={tr("Baca QR code dan barcode dari gambar yang diunggah atau langsung dari kamera.")}>
               <QrScanner />
             </PageShell>
           }
@@ -182,7 +184,7 @@ export const App: FC = () => (
         <Route
           path="pdf/gabung"
           element={
-            <PageShell badge="Dokumen" title="Gabung PDF" subtitle="Gabungkan beberapa file PDF menjadi satu file, urutan mengikuti daftar file yang kamu unggah.">
+            <PageShell badge={tr("Dokumen")} title={tr("Gabung PDF")} subtitle={tr("Gabungkan beberapa file PDF menjadi satu file, urutan mengikuti daftar file yang kamu unggah.")}>
               <PdfMerge />
             </PageShell>
           }
@@ -190,7 +192,7 @@ export const App: FC = () => (
         <Route
           path="pdf/pecah"
           element={
-            <PageShell badge="Dokumen" title="Pecah PDF" subtitle="Setiap halaman PDF diunduh sebagai file terpisah, satu per satu.">
+            <PageShell badge={tr("Dokumen")} title={tr("Pecah PDF")} subtitle={tr("Setiap halaman PDF diunduh sebagai file terpisah, satu per satu.")}>
               <PdfSplit />
             </PageShell>
           }
@@ -198,7 +200,7 @@ export const App: FC = () => (
         <Route
           path="pdf/kompres"
           element={
-            <PageShell badge="Dokumen" title="Kompres PDF" subtitle="Kurangi ukuran file PDF tanpa mengubah isi — pilih tingkat kompresi ringan, sedang, atau tinggi.">
+            <PageShell badge={tr("Dokumen")} title={tr("Kompres PDF")} subtitle={tr("Kurangi ukuran file PDF tanpa mengubah isi — pilih tingkat kompresi ringan, sedang, atau tinggi.")}>
               <PdfCompress />
             </PageShell>
           }
@@ -206,7 +208,7 @@ export const App: FC = () => (
         <Route
           path="pdf/kompres-dokumen"
           element={
-            <PageShell badge="Dokumen" title="Kompres Dokumen" subtitle="Satu tempat untuk memperkecil PDF, Word, Excel, PowerPoint, ODT, EPUB, ZIP, gambar, dan berkas teks — banyak berkas sekaligus, langsung di browser.">
+            <PageShell badge={tr("Dokumen")} title={tr("Kompres Dokumen")} subtitle={tr("Satu tempat untuk memperkecil PDF, Word, Excel, PowerPoint, ODT, EPUB, ZIP, gambar, dan berkas teks — banyak berkas sekaligus, langsung di browser.")}>
               <DocCompress />
             </PageShell>
           }
@@ -214,7 +216,7 @@ export const App: FC = () => (
         <Route
           path="pdf/ekstrak"
           element={
-            <PageShell badge="Dokumen" title="Ekstrak Halaman" subtitle="Ambil hanya halaman tertentu dari PDF, misalnya 1-3,5,8-9.">
+            <PageShell badge={tr("Dokumen")} title={tr("Ekstrak Halaman")} subtitle={tr("Ambil hanya halaman tertentu dari PDF, misalnya 1-3,5,8-9.")}>
               <PdfExtract />
             </PageShell>
           }
@@ -222,7 +224,7 @@ export const App: FC = () => (
         <Route
           path="pdf/hapus-halaman"
           element={
-            <PageShell badge="Dokumen" title="Hapus Halaman" subtitle="Buang halaman yang tidak dibutuhkan, sisanya tetap utuh.">
+            <PageShell badge={tr("Dokumen")} title={tr("Hapus Halaman")} subtitle={tr("Buang halaman yang tidak dibutuhkan, sisanya tetap utuh.")}>
               <PdfDeletePages />
             </PageShell>
           }
@@ -230,7 +232,7 @@ export const App: FC = () => (
         <Route
           path="pdf/putar"
           element={
-            <PageShell badge="Dokumen" title="Putar Halaman" subtitle="Rotasi halaman PDF yang miring atau terbalik — bisa semua halaman atau halaman tertentu.">
+            <PageShell badge={tr("Dokumen")} title={tr("Putar Halaman")} subtitle={tr("Rotasi halaman PDF yang miring atau terbalik — bisa semua halaman atau halaman tertentu.")}>
               <PdfRotate />
             </PageShell>
           }
@@ -238,7 +240,7 @@ export const App: FC = () => (
         <Route
           path="pdf/atur-ulang"
           element={
-            <PageShell badge="Dokumen" title="Atur Ulang Halaman" subtitle="Susun ulang urutan halaman PDF sesuai kebutuhanmu.">
+            <PageShell badge={tr("Dokumen")} title={tr("Atur Ulang Halaman")} subtitle={tr("Susun ulang urutan halaman PDF sesuai kebutuhanmu.")}>
               <PdfOrganize />
             </PageShell>
           }
@@ -246,7 +248,7 @@ export const App: FC = () => (
         <Route
           path="pdf/gambar-ke-pdf"
           element={
-            <PageShell badge="Dokumen" title="Gambar ke PDF" subtitle="Ubah kumpulan gambar JPG/PNG menjadi satu file PDF, tiap gambar jadi satu halaman.">
+            <PageShell badge={tr("Dokumen")} title={tr("Gambar ke PDF")} subtitle={tr("Ubah kumpulan gambar JPG/PNG menjadi satu file PDF, tiap gambar jadi satu halaman.")}>
               <PdfImagesToPdf />
             </PageShell>
           }
@@ -254,7 +256,7 @@ export const App: FC = () => (
         <Route
           path="pdf/teks-ke-pdf"
           element={
-            <PageShell badge="Dokumen" title="Teks ke PDF" subtitle="Konversi teks polos menjadi dokumen PDF yang rapi dan bisa dibuka di mana saja.">
+            <PageShell badge={tr("Dokumen")} title={tr("Teks ke PDF")} subtitle={tr("Konversi teks polos menjadi dokumen PDF yang rapi dan bisa dibuka di mana saja.")}>
               <PdfTextToPdf />
             </PageShell>
           }
@@ -262,7 +264,7 @@ export const App: FC = () => (
         <Route
           path="pdf/word-ke-pdf"
           element={
-            <PageShell badge="Dokumen" title="Word ke PDF" subtitle="Konversi file .docx menjadi PDF, lengkap dengan format bold/italic/underline dan perataan paragraf.">
+            <PageShell badge={tr("Dokumen")} title={tr("Word ke PDF")} subtitle={tr("Konversi file .docx menjadi PDF, lengkap dengan format bold/italic/underline dan perataan paragraf.")}>
               <PdfWordToPdf />
             </PageShell>
           }
@@ -270,7 +272,7 @@ export const App: FC = () => (
         <Route
           path="pdf/excel-ke-pdf"
           element={
-            <PageShell badge="Dokumen" title="Excel ke PDF" subtitle="Konversi sheet pertama file .xlsx menjadi tabel PDF yang rapi.">
+            <PageShell badge={tr("Dokumen")} title={tr("Excel ke PDF")} subtitle={tr("Konversi sheet pertama file .xlsx menjadi tabel PDF yang rapi.")}>
               <PdfExcelToPdf />
             </PageShell>
           }
@@ -278,7 +280,7 @@ export const App: FC = () => (
         <Route
           path="pdf/ppt-ke-pdf"
           element={
-            <PageShell badge="Dokumen" title="PowerPoint ke PDF" subtitle="Konversi file .pptx menjadi PDF, satu slide jadi satu halaman.">
+            <PageShell badge={tr("Dokumen")} title={tr("PowerPoint ke PDF")} subtitle={tr("Konversi file .pptx menjadi PDF, satu slide jadi satu halaman.")}>
               <PdfPptToPdf />
             </PageShell>
           }
@@ -286,7 +288,7 @@ export const App: FC = () => (
         <Route
           path="pdf/edit"
           element={
-            <PageShell badge="Dokumen" title="Edit PDF" subtitle="Tambahkan teks bebas atau kotak penanda ke halaman PDF mana pun.">
+            <PageShell badge={tr("Dokumen")} title={tr("Edit PDF")} subtitle={tr("Tambahkan teks bebas atau kotak penanda ke halaman PDF mana pun.")}>
               <PdfEdit />
             </PageShell>
           }
@@ -294,7 +296,7 @@ export const App: FC = () => (
         <Route
           path="pdf/tanda-tangan"
           element={
-            <PageShell badge="Dokumen" title="Tanda Tangan PDF" subtitle="Gambar atau ketik tanda tangan, lalu tempelkan ke halaman PDF.">
+            <PageShell badge={tr("Dokumen")} title={tr("Tanda Tangan PDF")} subtitle={tr("Gambar atau ketik tanda tangan, lalu tempelkan ke halaman PDF.")}>
               <PdfSign />
             </PageShell>
           }
@@ -302,7 +304,7 @@ export const App: FC = () => (
         <Route
           path="pdf/watermark"
           element={
-            <PageShell badge="Dokumen" title="Watermark PDF" subtitle="Tambahkan watermark teks ke semua halaman PDF sekaligus.">
+            <PageShell badge={tr("Dokumen")} title={tr("Watermark PDF")} subtitle={tr("Tambahkan watermark teks ke semua halaman PDF sekaligus.")}>
               <PdfWatermark />
             </PageShell>
           }
@@ -310,7 +312,7 @@ export const App: FC = () => (
         <Route
           path="pdf/html-ke-pdf"
           element={
-            <PageShell badge="Dokumen" title="HTML ke PDF" subtitle="Render kode HTML/CSS menjadi dokumen PDF — cocok untuk invoice atau surat custom.">
+            <PageShell badge={tr("Dokumen")} title={tr("HTML ke PDF")} subtitle={tr("Render kode HTML/CSS menjadi dokumen PDF — cocok untuk invoice atau surat custom.")}>
               <PdfHtmlToPdf />
             </PageShell>
           }
@@ -318,7 +320,7 @@ export const App: FC = () => (
         <Route
           path="pdf/nomor-halaman"
           element={
-            <PageShell badge="Dokumen" title="Nomor Halaman" subtitle="Tambahkan nomor halaman dengan format dan posisi bebas ke seluruh PDF.">
+            <PageShell badge={tr("Dokumen")} title={tr("Nomor Halaman")} subtitle={tr("Tambahkan nomor halaman dengan format dan posisi bebas ke seluruh PDF.")}>
               <PdfPageNumbers />
             </PageShell>
           }
@@ -326,7 +328,7 @@ export const App: FC = () => (
         <Route
           path="pdf/unlock"
           element={
-            <PageShell badge="Dokumen" title="Unlock PDF" subtitle="Hapus batasan cetak/salin/edit dari PDF yang tidak memerlukan password pembuka.">
+            <PageShell badge={tr("Dokumen")} title={tr("Unlock PDF")} subtitle={tr("Hapus batasan cetak/salin/edit dari PDF yang tidak memerlukan password pembuka.")}>
               <PdfUnlock />
             </PageShell>
           }
@@ -334,7 +336,7 @@ export const App: FC = () => (
         <Route
           path="pdf/reader"
           element={
-            <PageShell badge="Dokumen" title="PDF Reader" subtitle="Baca PDF langsung di browser, lengkap dengan info dokumen.">
+            <PageShell badge={tr("Dokumen")} title={tr("PDF Reader")} subtitle={tr("Baca PDF langsung di browser, lengkap dengan info dokumen.")}>
               <PdfReader />
             </PageShell>
           }
@@ -342,7 +344,7 @@ export const App: FC = () => (
         <Route
           path="pdf/sensor"
           element={
-            <PageShell badge="Dokumen" title="Sensor / Redaksi PDF" subtitle="Hitamkan informasi sensitif secara permanen — halaman disensor diubah jadi gambar agar teks di baliknya tak bisa diambil lagi.">
+            <PageShell badge={tr("Dokumen")} title={tr("Sensor / Redaksi PDF")} subtitle={tr("Hitamkan informasi sensitif secara permanen — halaman disensor diubah jadi gambar agar teks di baliknya tak bisa diambil lagi.")}>
               <PdfRedact />
             </PageShell>
           }
@@ -350,7 +352,7 @@ export const App: FC = () => (
         <Route
           path="pdf/scan"
           element={
-            <PageShell badge="Dokumen" title="Scan PDF" subtitle="Ubah foto dokumen menjadi PDF hasil scan yang rapi.">
+            <PageShell badge={tr("Dokumen")} title={tr("Scan PDF")} subtitle={tr("Ubah foto dokumen menjadi PDF hasil scan yang rapi.")}>
               <PdfScan />
             </PageShell>
           }
@@ -358,7 +360,7 @@ export const App: FC = () => (
         <Route
           path="pdf/ke-gambar"
           element={
-            <PageShell badge="Dokumen" title="PDF ke Gambar" subtitle="Render setiap halaman PDF menjadi gambar PNG/JPEG kualitas tinggi.">
+            <PageShell badge={tr("Dokumen")} title={tr("PDF ke Gambar")} subtitle={tr("Render setiap halaman PDF menjadi gambar PNG/JPEG kualitas tinggi.")}>
               <PdfToImage />
             </PageShell>
           }
@@ -366,7 +368,7 @@ export const App: FC = () => (
         <Route
           path="pdf/ke-word"
           element={
-            <PageShell badge="Dokumen" title="PDF ke Word" subtitle="Ekstrak teks asli dari PDF menjadi dokumen .docx yang bisa diedit.">
+            <PageShell badge={tr("Dokumen")} title={tr("PDF ke Word")} subtitle={tr("Ekstrak teks asli dari PDF menjadi dokumen .docx yang bisa diedit.")}>
               <PdfToWord />
             </PageShell>
           }
@@ -374,7 +376,7 @@ export const App: FC = () => (
         <Route
           path="pdf/ke-excel"
           element={
-            <PageShell badge="Dokumen" title="PDF ke Excel" subtitle="Deteksi baris & kolom dari PDF, ekspor sebagai .xlsx.">
+            <PageShell badge={tr("Dokumen")} title={tr("PDF ke Excel")} subtitle={tr("Deteksi baris & kolom dari PDF, ekspor sebagai .xlsx.")}>
               <PdfToExcel />
             </PageShell>
           }
@@ -382,7 +384,7 @@ export const App: FC = () => (
         <Route
           path="pdf/ocr"
           element={
-            <PageShell badge="Dokumen" title="OCR" subtitle="Baca teks dari PDF hasil scan atau foto dokumen — hasilnya bisa disalin atau diunduh.">
+            <PageShell badge={tr("Dokumen")} title="OCR" subtitle={tr("Baca teks dari PDF hasil scan atau foto dokumen — hasilnya bisa disalin atau diunduh.")}>
               <PdfOcr />
             </PageShell>
           }
@@ -390,7 +392,7 @@ export const App: FC = () => (
         <Route
           path="pdf/protect"
           element={
-            <PageShell badge="Dokumen" title="Protect PDF" subtitle="Kunci konten PDF dari salin/edit dengan mengubahnya menjadi gambar flat.">
+            <PageShell badge={tr("Dokumen")} title={tr("Protect PDF")} subtitle={tr("Kunci konten PDF dari salin/edit dengan mengubahnya menjadi gambar flat.")}>
               <PdfProtect />
             </PageShell>
           }
@@ -400,7 +402,7 @@ export const App: FC = () => (
         <Route
           path="pdf/baca-dokumen"
           element={
-            <PageShell badge="Dokumen" title="Doc Reader" subtitle="Baca file .txt, .docx, atau .rtf dengan tampilan nyaman — bisa juga didengarkan.">
+            <PageShell badge={tr("Dokumen")} title={tr("Doc Reader")} subtitle={tr("Baca file .txt, .docx, atau .rtf dengan tampilan nyaman — bisa juga didengarkan.")}>
               <DocReader />
             </PageShell>
           }
@@ -415,9 +417,9 @@ export const App: FC = () => (
           path="office/doc-studio"
           element={
             <PageShell
-              badge="Office Tools"
-              title="Doc Studio"
-              subtitle="Editor dokumen ringan dengan ekspor .docx, .pdf, .txt — dilengkapi Find & Replace, template cepat, dan snapshot sesi."
+              badge={tr("Office Tools")}
+              title={tr("Doc Studio")}
+              subtitle={tr("Editor dokumen ringan dengan ekspor .docx, .pdf, .txt — dilengkapi Find & Replace, template cepat, dan snapshot sesi.")}
             >
               <DocTools />
             </PageShell>
@@ -427,9 +429,9 @@ export const App: FC = () => (
           path="office/sheet-studio"
           element={
             <PageShell
-              badge="Office Tools"
-              title="Sheet Studio"
-              subtitle="Spreadsheet penuh — rumus, format sel, banyak sheet, dan ekspor .xlsx / .csv / .pdf, semua diproses di perangkatmu."
+              badge={tr("Office Tools")}
+              title={tr("Sheet Studio")}
+              subtitle={tr("Spreadsheet penuh — rumus, format sel, banyak sheet, dan ekspor .xlsx / .csv / .pdf, semua diproses di perangkatmu.")}
             >
               <SheetStudio />
             </PageShell>
@@ -439,9 +441,9 @@ export const App: FC = () => (
           path="office/slide-studio"
           element={
             <PageShell
-              badge="Office Tools"
-              title="Slide Studio"
-              subtitle="Editor presentasi — teks, bentuk, gambar, banyak slide, mode tampilkan layar penuh, dan ekspor .pdf / gambar."
+              badge={tr("Office Tools")}
+              title={tr("Slide Studio")}
+              subtitle={tr("Editor presentasi — teks, bentuk, gambar, banyak slide, mode tampilkan layar penuh, dan ekspor .pdf / gambar.")}
             >
               <SlideStudio />
             </PageShell>
@@ -453,7 +455,7 @@ export const App: FC = () => (
         <Route
           path="image/kompres"
           element={
-            <PageShell badge="Gambar" title="Kompres Gambar" subtitle="Kurangi ukuran file gambar tanpa mengubah dimensi — atur kualitas dengan slider.">
+            <PageShell badge={tr("Gambar")} title={tr("Kompres Gambar")} subtitle={tr("Kurangi ukuran file gambar tanpa mengubah dimensi — atur kualitas dengan slider.")}>
               <ImageCompress />
             </PageShell>
           }
@@ -461,7 +463,7 @@ export const App: FC = () => (
         <Route
           path="image/resize"
           element={
-            <PageShell badge="Gambar" title="Ubah Ukuran" subtitle="Ubah dimensi gambar dengan rasio tetap terjaga — ideal untuk thumbnail dan upload.">
+            <PageShell badge={tr("Gambar")} title={tr("Ubah Ukuran")} subtitle={tr("Ubah dimensi gambar dengan rasio tetap terjaga — ideal untuk thumbnail dan upload.")}>
               <ImageResize />
             </PageShell>
           }
@@ -469,7 +471,7 @@ export const App: FC = () => (
         <Route
           path="image/konversi"
           element={
-            <PageShell badge="Gambar" title="Konversi Format" subtitle="Konversi antar format JPEG, PNG, dan WEBP.">
+            <PageShell badge={tr("Gambar")} title={tr("Konversi Format")} subtitle={tr("Konversi antar format JPEG, PNG, dan WEBP.")}>
               <ImageConvert />
             </PageShell>
           }
@@ -477,7 +479,7 @@ export const App: FC = () => (
         <Route
           path="image/putar"
           element={
-            <PageShell badge="Gambar" title="Putar Gambar" subtitle="Putar foto yang miring atau terbalik, diterapkan ke semua file yang dipilih.">
+            <PageShell badge={tr("Gambar")} title={tr("Putar Gambar")} subtitle={tr("Putar foto yang miring atau terbalik, diterapkan ke semua file yang dipilih.")}>
               <ImageRotate />
             </PageShell>
           }
@@ -485,7 +487,7 @@ export const App: FC = () => (
         <Route
           path="image/dokumen-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="Dokumen ke Gambar" subtitle="Ubah PDF, Word, PowerPoint, Excel/CSV, dan teks/Markdown menjadi gambar PNG/JPG/WebP — per halaman atau satu gambar panjang.">
+            <PageShell badge={tr("Gambar")} title={tr("Dokumen ke Gambar")} subtitle={tr("Ubah PDF, Word, PowerPoint, Excel/CSV, dan teks/Markdown menjadi gambar PNG/JPG/WebP — per halaman atau satu gambar panjang.")}>
               <DocToImage kind="auto" />
             </PageShell>
           }
@@ -493,7 +495,7 @@ export const App: FC = () => (
         <Route
           path="image/pdf-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="PDF ke Gambar" subtitle="Render setiap halaman PDF menjadi gambar PNG/JPG/WebP hingga 400 dpi, pilih halaman, atau gabung jadi satu gambar panjang.">
+            <PageShell badge={tr("Gambar")} title={tr("PDF ke Gambar")} subtitle={tr("Render setiap halaman PDF menjadi gambar PNG/JPG/WebP hingga 400 dpi, pilih halaman, atau gabung jadi satu gambar panjang.")}>
               <DocToImage kind="pdf" />
             </PageShell>
           }
@@ -501,7 +503,7 @@ export const App: FC = () => (
         <Route
           path="image/word-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="Word ke Gambar" subtitle="Ubah dokumen Word (.docx) menjadi gambar per halaman — judul, daftar, tabel, dan gambar ikut dirender.">
+            <PageShell badge={tr("Gambar")} title={tr("Word ke Gambar")} subtitle={tr("Ubah dokumen Word (.docx) menjadi gambar per halaman — judul, daftar, tabel, dan gambar ikut dirender.")}>
               <DocToImage kind="word" />
             </PageShell>
           }
@@ -509,7 +511,7 @@ export const App: FC = () => (
         <Route
           path="image/ppt-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="PowerPoint ke Gambar" subtitle="Ubah setiap slide PowerPoint (.pptx) menjadi gambar lengkap dengan latar, tema warna, bentuk, teks, dan gambar.">
+            <PageShell badge={tr("Gambar")} title={tr("PowerPoint ke Gambar")} subtitle={tr("Ubah setiap slide PowerPoint (.pptx) menjadi gambar lengkap dengan latar, tema warna, bentuk, teks, dan gambar.")}>
               <DocToImage kind="ppt" />
             </PageShell>
           }
@@ -517,7 +519,7 @@ export const App: FC = () => (
         <Route
           path="image/excel-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="Excel & CSV ke Gambar" subtitle="Render lembar Excel (.xlsx) atau CSV menjadi gambar — warna sel, garis, sel gabungan, dan format angka dipertahankan.">
+            <PageShell badge={tr("Gambar")} title={tr("Excel & CSV ke Gambar")} subtitle={tr("Render lembar Excel (.xlsx) atau CSV menjadi gambar — warna sel, garis, sel gabungan, dan format angka dipertahankan.")}>
               <DocToImage kind="excel" />
             </PageShell>
           }
@@ -525,7 +527,7 @@ export const App: FC = () => (
         <Route
           path="image/teks-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="Teks & Markdown ke Gambar" subtitle="Ubah .txt, .md, .json, .rtf, kode, dan log menjadi gambar rapi dengan font Unicode penuh.">
+            <PageShell badge={tr("Gambar")} title={tr("Teks & Markdown ke Gambar")} subtitle={tr("Ubah .txt, .md, .json, .rtf, kode, dan log menjadi gambar rapi dengan font Unicode penuh.")}>
               <DocToImage kind="teks" />
             </PageShell>
           }
@@ -533,7 +535,7 @@ export const App: FC = () => (
         <Route
           path="image/hapus-metadata"
           element={
-            <PageShell badge="Gambar" title="Hapus Metadata" width="narrow" subtitle="Hapus EXIF, GPS, dan data sensitif lainnya dari gambar via re-encode canvas.">
+            <PageShell badge={tr("Gambar")} title={tr("Hapus Metadata")} width="narrow" subtitle={tr("Hapus EXIF, GPS, dan data sensitif lainnya dari gambar via re-encode canvas.")}>
               <ImageMetadataRemover />
             </PageShell>
           }
@@ -541,7 +543,7 @@ export const App: FC = () => (
         <Route
           path="image/raw-preview"
           element={
-            <PageShell badge="Gambar" title="Baca Foto RAW" subtitle="Ekstrak preview JPEG yang tersimpan di dalam file RAW kamera (CR2, NEF, ARW, DNG, dan lainnya).">
+            <PageShell badge={tr("Gambar")} title={tr("Baca Foto RAW")} subtitle={tr("Ekstrak preview JPEG yang tersimpan di dalam file RAW kamera (CR2, NEF, ARW, DNG, dan lainnya).")}>
               <ImageRawPreview />
             </PageShell>
           }
@@ -549,7 +551,7 @@ export const App: FC = () => (
         <Route
           path="image/crop"
           element={
-            <PageShell badge="Gambar" title="Crop Gambar" subtitle="Potong area gambar secara interaktif dengan preset rasio siap pakai.">
+            <PageShell badge={tr("Gambar")} title={tr("Crop Gambar")} subtitle={tr("Potong area gambar secara interaktif dengan preset rasio siap pakai.")}>
               <ImageCrop />
             </PageShell>
           }
@@ -557,7 +559,7 @@ export const App: FC = () => (
         <Route
           path="image/hapus-background"
           element={
-            <PageShell badge="Gambar" title="Hapus Background" subtitle="Hapus warna latar solid (chroma-key) dan unduh sebagai PNG transparan.">
+            <PageShell badge={tr("Gambar")} title={tr("Hapus Background")} subtitle={tr("Hapus warna latar solid (chroma-key) dan unduh sebagai PNG transparan.")}>
               <ImageRemoveBg />
             </PageShell>
           }
@@ -565,7 +567,7 @@ export const App: FC = () => (
         <Route
           path="image/watermark"
           element={
-            <PageShell badge="Gambar" title="Watermark Gambar" subtitle="Tambahkan watermark teks atau logo, sekali tempel atau diulang ke seluruh gambar.">
+            <PageShell badge={tr("Gambar")} title={tr("Watermark Gambar")} subtitle={tr("Tambahkan watermark teks atau logo, sekali tempel atau diulang ke seluruh gambar.")}>
               <ImageWatermark />
             </PageShell>
           }
@@ -573,7 +575,7 @@ export const App: FC = () => (
         <Route
           path="image/html-ke-gambar"
           element={
-            <PageShell badge="Gambar" title="HTML ke Gambar" subtitle="Render kode HTML/CSS menjadi gambar PNG — cocok untuk kartu kutipan, badge, atau banner.">
+            <PageShell badge={tr("Gambar")} title={tr("HTML ke Gambar")} subtitle={tr("Render kode HTML/CSS menjadi gambar PNG — cocok untuk kartu kutipan, badge, atau banner.")}>
               <HtmlToImage />
             </PageShell>
           }
@@ -581,7 +583,7 @@ export const App: FC = () => (
         <Route
           path="image/meme-generator"
           element={
-            <PageShell badge="Gambar" title="Meme Generator" subtitle="Tambahkan teks bergaya meme yang bisa digeser bebas di atas gambar.">
+            <PageShell badge={tr("Gambar")} title={tr("Meme Generator")} subtitle={tr("Tambahkan teks bergaya meme yang bisa digeser bebas di atas gambar.")}>
               <MemeGenerator />
             </PageShell>
           }
@@ -589,7 +591,7 @@ export const App: FC = () => (
         <Route
           path="image/photo-editor"
           element={
-            <PageShell badge="Gambar" title="Photo Editor" subtitle="Sesuaikan kecerahan, kontras, saturasi, filter warna, putar, dan balik gambar.">
+            <PageShell badge={tr("Gambar")} title={tr("Photo Editor")} subtitle={tr("Sesuaikan kecerahan, kontras, saturasi, filter warna, putar, dan balik gambar.")}>
               <PhotoEditor />
             </PageShell>
           }
@@ -597,7 +599,7 @@ export const App: FC = () => (
                 <Route
           path="image/kolase"
           element={
-            <PageShell badge="Gambar" title="Kolase Gambar" subtitle="Susun banyak foto jadi satu kolase — 46 template atau mode bebas ala scrapbook, bentuk sel, bingkai, bayangan, latar, teks & stiker. Semua diproses di perangkatmu.">
+            <PageShell badge={tr("Gambar")} title={tr("Kolase Gambar")} subtitle={tr("Susun banyak foto jadi satu kolase — 46 template atau mode bebas ala scrapbook, bentuk sel, bingkai, bayangan, latar, teks & stiker. Semua diproses di perangkatmu.")}>
               <CollageMaker />
             </PageShell>
           }
@@ -605,7 +607,7 @@ export const App: FC = () => (
 <Route
           path="image/cetak-foto"
           element={
-            <PageShell badge="Gambar" title="Cetak Foto" subtitle="Susun pas foto atau foto cetak (2x3, 3x4, 4x6, 4R, dll) dalam satu atau beberapa lembar siap cetak — unduh PDF atau cetak langsung.">
+            <PageShell badge={tr("Gambar")} title={tr("Cetak Foto")} subtitle={tr("Susun pas foto atau foto cetak (2x3, 3x4, 4x6, 4R, dll) dalam satu atau beberapa lembar siap cetak — unduh PDF atau cetak langsung.")}>
               <PhotoPrintLayout />
             </PageShell>
           }
@@ -613,7 +615,7 @@ export const App: FC = () => (
         <Route
           path="image/color-picker"
           element={
-            <PageShell badge="Gambar" title="Color Picker & Palette" subtitle="Ambil warna dari gambar (HEX/RGB/HSL) dan ekstrak palet warna dominan otomatis.">
+            <PageShell badge={tr("Gambar")} title={tr("Color Picker & Palette")} subtitle={tr("Ambil warna dari gambar (HEX/RGB/HSL) dan ekstrak palet warna dominan otomatis.")}>
               <ColorPicker />
             </PageShell>
           }
@@ -624,8 +626,8 @@ export const App: FC = () => (
         <Route
           path="utility/koordinat"
           element={
-            <PageShell badge="Utilitas" title="Koordinat" subtitle="Cari tempat, pilih titik di peta dunia, lihat pratinjau, dan dapatkan koordinat dalam semua format (DD, DMS, UTM, MGRS, Plus Code, Geohash…). Ukur jarak, kelola daftar titik, generate titik, impor/ekspor CSV/GeoJSON/KML/GPX.">
-              <Suspense fallback={<div className="py-16 text-center text-sm text-slate-400">Memuat peta…</div>}>
+            <PageShell badge="Utilitas" title={tr("Koordinat")} subtitle={tr("Cari tempat, pilih titik di peta dunia, lihat pratinjau, dan dapatkan koordinat dalam semua format (DD, DMS, UTM, MGRS, Plus Code, Geohash…). Ukur jarak, kelola daftar titik, generate titik, impor/ekspor CSV/GeoJSON/KML/GPX.")}>
+              <Suspense fallback={<div className="py-16 text-center text-sm text-slate-400">{tr("Memuat peta…")}</div>}>
                 <CoordinateTool />
               </Suspense>
             </PageShell>
@@ -634,7 +636,7 @@ export const App: FC = () => (
         <Route
           path="utility/capture-website"
           element={
-            <PageShell badge="Utilitas" title="Capture Website" subtitle="Screenshot panjang website secara real-time: bagikan tab, beri anotasi langsung di pratinjau (pena, panah, bentuk, teks, sensor, gambar), tumpuk hasilnya, lalu unduh sebagai gambar/ZIP atau PDF yang rapi.">
+            <PageShell badge="Utilitas" title={tr("Capture Website")} subtitle={tr("Screenshot panjang website secara real-time: bagikan tab, beri anotasi langsung di pratinjau (pena, panah, bentuk, teks, sensor, gambar), tumpuk hasilnya, lalu unduh sebagai gambar/ZIP atau PDF yang rapi.")}>
               <CaptureWebsite />
             </PageShell>
           }
@@ -642,7 +644,7 @@ export const App: FC = () => (
         <Route
           path="utility/json-base64"
           element={
-            <PageShell badge="Utilitas" title="JSON & Base64" subtitle="Format JSON rapi, serta encode/decode Base64.">
+            <PageShell badge="Utilitas" title={tr("JSON & Base64")} subtitle={tr("Format JSON rapi, serta encode/decode Base64.")}>
               <UtilityJsonBase64 />
             </PageShell>
           }
@@ -650,7 +652,7 @@ export const App: FC = () => (
         <Route
           path="utility/bulk-teks"
           element={
-            <PageShell badge="Utilitas" title="Bulk Teks" subtitle="Manipulasi daftar teks — hapus duplikat, sort, acak, nomori, dan lainnya.">
+            <PageShell badge="Utilitas" title={tr("Bulk Teks")} subtitle={tr("Manipulasi daftar teks — hapus duplikat, sort, acak, nomori, dan lainnya.")}>
               <UtilityBulkText />
             </PageShell>
           }
@@ -658,7 +660,7 @@ export const App: FC = () => (
         <Route
           path="utility/cetak"
           element={
-            <PageShell badge="Utilitas" title="Cetak File & Dokumen" subtitle="Cetak PDF, gambar, dokumen Office, dan teks dengan pratinjau langsung dan pengaturan lengkap seperti dialog cetak browser: kertas, orientasi, margin, skala, halaman per lembar, salinan, warna, buklet, header/footer, watermark.">
+            <PageShell badge="Utilitas" title={tr("Cetak File & Dokumen")} subtitle={tr("Cetak PDF, gambar, dokumen Office, dan teks dengan pratinjau langsung dan pengaturan lengkap seperti dialog cetak browser: kertas, orientasi, margin, skala, halaman per lembar, salinan, warna, buklet, header/footer, watermark.")}>
               <PrintCenter />
             </PageShell>
           }
@@ -666,7 +668,7 @@ export const App: FC = () => (
         <Route
           path="utility/link-media"
           element={
-            <PageShell badge="Utilitas" title="Link Media" width="narrow" subtitle="Analisis link video/file untuk unduhan langsung.">
+            <PageShell badge="Utilitas" title={tr("Link Media")} width="narrow" subtitle={tr("Analisis link video/file untuk unduhan langsung.")}>
               <UtilityMediaLink />
             </PageShell>
           }
@@ -674,7 +676,7 @@ export const App: FC = () => (
         <Route
           path="utility/alias-email"
           element={
-            <PageShell badge="Utilitas" title="Alias Email" width="narrow" subtitle="Buat alamat email alternatif untuk pendaftaran.">
+            <PageShell badge="Utilitas" title={tr("Alias Email")} width="narrow" subtitle={tr("Buat alamat email alternatif untuk pendaftaran.")}>
               <UtilityAliasEmail />
             </PageShell>
           }
@@ -682,7 +684,7 @@ export const App: FC = () => (
         <Route
           path="utility/kalkulator-pajak"
           element={
-            <PageShell badge="Utilitas" title="Kalkulator Pajak" width="narrow" subtitle="Hitung PPN eksklusif maupun inklusif.">
+            <PageShell badge="Utilitas" title={tr("Kalkulator Pajak")} width="narrow" subtitle={tr("Hitung PPN eksklusif maupun inklusif.")}>
               <UtilityTaxCalculator />
             </PageShell>
           }
@@ -690,7 +692,7 @@ export const App: FC = () => (
         <Route
           path="utility/kalkulator-bunga"
           element={
-            <PageShell badge="Utilitas" title="Kalkulator Bunga" width="narrow" subtitle="Hitung bunga sederhana & majemuk.">
+            <PageShell badge="Utilitas" title={tr("Kalkulator Bunga")} width="narrow" subtitle={tr("Hitung bunga sederhana & majemuk.")}>
               <UtilityInterestCalculator />
             </PageShell>
           }
@@ -698,7 +700,7 @@ export const App: FC = () => (
         <Route
           path="utility/statistik"
           element={
-            <PageShell badge="Utilitas" title="Statistik" width="narrow" subtitle="Mean, median, min, max, dan standar deviasi dari sekumpulan angka.">
+            <PageShell badge="Utilitas" title={tr("Statistik")} width="narrow" subtitle={tr("Mean, median, min, max, dan standar deviasi dari sekumpulan angka.")}>
               <UtilityStatistics />
             </PageShell>
           }
@@ -706,7 +708,7 @@ export const App: FC = () => (
         <Route
           path="utility/password-token"
           element={
-            <PageShell badge="Utilitas" title="Password & Token" subtitle="Generator password & token berbasis Web Crypto API — aman dan acak.">
+            <PageShell badge="Utilitas" title={tr("Password & Token")} subtitle={tr("Generator password & token berbasis Web Crypto API — aman dan acak.")}>
               <UtilityPasswordToken />
             </PageShell>
           }
@@ -714,7 +716,7 @@ export const App: FC = () => (
         <Route
           path="utility/kamus-dunia"
           element={
-            <PageShell badge="Utilitas" title="Kamus Dunia" subtitle="Cari arti kata & terjemahkan kalimat lintas puluhan bahasa dunia.">
+            <PageShell badge="Utilitas" title={tr("Kamus Dunia")} subtitle={tr("Cari arti kata & terjemahkan kalimat lintas puluhan bahasa dunia.")}>
               <UtilityWorldDictionary />
             </PageShell>
           }
@@ -722,7 +724,7 @@ export const App: FC = () => (
         <Route
           path="utility/html-preview"
           element={
-            <PageShell badge="Utilitas" title="HTML Preview" subtitle="Tulis HTML, CSS, dan JavaScript, lihat hasilnya langsung secara real-time.">
+            <PageShell badge="Utilitas" title={tr("HTML Preview")} subtitle={tr("Tulis HTML, CSS, dan JavaScript, lihat hasilnya langsung secara real-time.")}>
               <UtilityHtmlPreview />
             </PageShell>
           }
@@ -730,7 +732,7 @@ export const App: FC = () => (
         <Route
           path="office/diagram-rumus"
           element={
-            <PageShell badge="Office" title="Diagram & Rumus Studio" subtitle="Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).">
+            <PageShell badge={tr("Office")} title={tr("Diagram & Rumus Studio")} subtitle={tr("Buat & preview flowchart, struktur organisasi, chart, hingga rumus matematika (LaTeX).")}>
               <UtilityDiagramFormula />
             </PageShell>
           }
@@ -739,7 +741,7 @@ export const App: FC = () => (
         <Route
           path="utility/convert"
           element={
-            <PageShell badge="Utilitas" title="Universal Converter" subtitle="Ubah file/data ke format lain — gambar, dokumen, spreadsheet, data terstruktur, audio, video, dan ZIP.">
+            <PageShell badge="Utilitas" title={tr("Universal Converter")} subtitle={tr("Ubah file/data ke format lain — gambar, dokumen, spreadsheet, data terstruktur, audio, video, dan ZIP.")}>
               <UniversalConverter />
             </PageShell>
           }
@@ -748,7 +750,7 @@ export const App: FC = () => (
         <Route
           path="utility/kalkulator"
           element={
-            <PageShell badge="Utilitas" title="Kalkulator" width="medium" subtitle="Satu tempat untuk semua kalkulator: standar, pajak, bunga, investasi, cicilan, rumus, hingga HPP/COGS.">
+            <PageShell badge="Utilitas" title={tr("Kalkulator")} width="medium" subtitle={tr("Satu tempat untuk semua kalkulator: standar, pajak, bunga, investasi, cicilan, rumus, hingga HPP/COGS.")}>
               <CalculatorHub />
             </PageShell>
           }
@@ -759,7 +761,7 @@ export const App: FC = () => (
         <Route
           path="special/kwitansi"
           element={
-            <PageShell badge="Spesial" title="Kwitansi" subtitle="Kwitansi pembayaran profesional dengan logo custom — export PNG & PDF, siap cetak.">
+            <PageShell badge={tr("Spesial")} title={tr("Kwitansi")} subtitle={tr("Kwitansi pembayaran profesional dengan logo custom — export PNG & PDF, siap cetak.")}>
               <KwitansiGenerator />
             </PageShell>
           }
@@ -767,7 +769,7 @@ export const App: FC = () => (
         <Route
           path="special/invoice"
           element={
-            <PageShell badge="Spesial" title="Invoice" subtitle="Invoice profesional dengan item dinamis, logo custom, diskon & pajak — export PNG & PDF.">
+            <PageShell badge={tr("Spesial")} title={tr("Invoice")} subtitle={tr("Invoice profesional dengan item dinamis, logo custom, diskon & pajak — export PNG & PDF.")}>
               <InvoiceGenerator />
             </PageShell>
           }
@@ -775,7 +777,7 @@ export const App: FC = () => (
         <Route
           path="special/struk"
           element={
-            <PageShell badge="Spesial" title="Struk / Nota" subtitle="Struk kasir custom dengan logo — export PNG & PDF, cetak langsung ke printer USB/Bluetooth.">
+            <PageShell badge={tr("Spesial")} title={tr("Struk / Nota")} subtitle={tr("Struk kasir custom dengan logo — export PNG & PDF, cetak langsung ke printer USB/Bluetooth.")}>
               <StrukGenerator />
             </PageShell>
           }
@@ -783,7 +785,7 @@ export const App: FC = () => (
         <Route
           path="special/name-tag"
           element={
-            <PageShell badge="Spesial" title="Name Tag Studio" subtitle="Generator name tag, badge acara & ID card full custom: template siap pakai, warna otomatis per peran, foto, QR/barcode, lubang tali, meja nama lipat — satu per satu atau massal dari tabel/CSV/XLSX.">
+            <PageShell badge={tr("Spesial")} title={tr("Name Tag Studio")} subtitle={tr("Generator name tag, badge acara & ID card full custom: template siap pakai, warna otomatis per peran, foto, QR/barcode, lubang tali, meja nama lipat — satu per satu atau massal dari tabel/CSV/XLSX.")}>
               <NametagGenerator />
             </PageShell>
           }
@@ -791,7 +793,7 @@ export const App: FC = () => (
         <Route
           path="special/kartu-nama"
           element={
-            <PageShell badge="Spesial" title="Studio Kartu Nama" subtitle="Desain kartu nama full custom: template siap pakai, latar warna/gradasi/gambar, elemen bebas, ukuran & sisi depan-belakang — export PNG & PDF, siap cetak.">
+            <PageShell badge={tr("Spesial")} title={tr("Studio Kartu Nama")} subtitle={tr("Desain kartu nama full custom: template siap pakai, latar warna/gradasi/gambar, elemen bebas, ukuran & sisi depan-belakang — export PNG & PDF, siap cetak.")}>
               <BusinessCardGenerator />
             </PageShell>
           }
@@ -799,7 +801,7 @@ export const App: FC = () => (
         <Route
           path="special/kupon"
           element={
-            <PageShell badge="Spesial" title="Kupon, Voucher & Tiket" subtitle="Generator kupon diskon, voucher, tiket event, tiket masuk, gift card, dan kupon undian — 12 template, kode unik otomatis, QR & barcode, massal hingga 1.000 lembar.">
+            <PageShell badge={tr("Spesial")} title={tr("Kupon, Voucher & Tiket")} subtitle={tr("Generator kupon diskon, voucher, tiket event, tiket masuk, gift card, dan kupon undian — 12 template, kode unik otomatis, QR & barcode, massal hingga 1.000 lembar.")}>
               <CouponGenerator />
             </PageShell>
           }
@@ -807,7 +809,7 @@ export const App: FC = () => (
         <Route
           path="special/surat"
           element={
-            <PageShell badge="Spesial" title="Pembuat Surat" subtitle="Generator surat resmi, bisnis, lamaran, kuasa, pernyataan, perjanjian, dan lainnya — 17 template, kop surat kustom, nomor otomatis, tanda tangan & materai, surat massal, ekspor PDF/Word.">
+            <PageShell badge={tr("Spesial")} title={tr("Pembuat Surat")} subtitle={tr("Generator surat resmi, bisnis, lamaran, kuasa, pernyataan, perjanjian, dan lainnya — 17 template, kop surat kustom, nomor otomatis, tanda tangan & materai, surat massal, ekspor PDF/Word.")}>
               <LetterGenerator />
             </PageShell>
           }
@@ -815,7 +817,7 @@ export const App: FC = () => (
         <Route
           path="special/sertifikat"
           element={
-            <PageShell badge="Spesial" title="Sertifikat & Piagam" subtitle="Generator sertifikat massal, full custom — template, font, dan posisi bebas diatur.">
+            <PageShell badge={tr("Spesial")} title={tr("Sertifikat & Piagam")} subtitle={tr("Generator sertifikat massal, full custom — template, font, dan posisi bebas diatur.")}>
               <CertificateGenerator />
             </PageShell>
           }
@@ -823,7 +825,7 @@ export const App: FC = () => (
         <Route
           path="special/wa-link"
           element={
-            <PageShell badge="Spesial" title="WA Link" subtitle="Buka chat WhatsApp langsung tanpa perlu menyimpan kontak.">
+            <PageShell badge={tr("Spesial")} title={tr("WA Link")} subtitle={tr("Buka chat WhatsApp langsung tanpa perlu menyimpan kontak.")}>
               <WaLink />
             </PageShell>
           }
@@ -831,7 +833,7 @@ export const App: FC = () => (
         <Route
           path="special/pembuat-cv"
           element={
-            <PageShell badge="Spesial" title="Pembuat CV" subtitle="Buat CV/resume profesional dengan 8 template, susunan & judul bagian yang bisa diatur, foto, auto-muat 1 halaman — ekspor PDF (teks bisa dipilih/ATS), DOCX, dan PNG tajam.">
+            <PageShell badge={tr("Spesial")} title={tr("Pembuat CV")} subtitle={tr("Buat CV/resume profesional dengan 8 template, susunan & judul bagian yang bisa diatur, foto, auto-muat 1 halaman — ekspor PDF (teks bisa dipilih/ATS), DOCX, dan PNG tajam.")}>
               <CvMaker />
             </PageShell>
           }
@@ -842,7 +844,7 @@ export const App: FC = () => (
         <Route
           path="video/konversi"
           element={
-            <PageShell badge="Video" title="Konversi Video" subtitle="Satu alat, banyak tujuan: ganti format video, jadikan GIF, atau ambil audionya saja — pilih tab sesuai kebutuhan.">
+            <PageShell badge={tr("Video")} title={tr("Konversi Video")} subtitle={tr("Satu alat, banyak tujuan: ganti format video, jadikan GIF, atau ambil audionya saja — pilih tab sesuai kebutuhan.")}>
               <VideoConvertHub />
             </PageShell>
           }
@@ -850,7 +852,7 @@ export const App: FC = () => (
         <Route
           path="video/potong"
           element={
-            <PageShell badge="Video" title="Potong Video" subtitle="Trim satu bagian atau buang beberapa bagian sekaligus, langsung di browser.">
+            <PageShell badge={tr("Video")} title={tr("Potong Video")} subtitle={tr("Trim satu bagian atau buang beberapa bagian sekaligus, langsung di browser.")}>
               <VideoTrim />
             </PageShell>
           }
@@ -858,7 +860,7 @@ export const App: FC = () => (
         <Route
           path="video/crop"
           element={
-            <PageShell badge="Video" title="Crop & Resize Video" subtitle="Pas-kan video ke rasio 1:1, 9:16, 16:9, dan lainnya untuk media sosial.">
+            <PageShell badge={tr("Video")} title={tr("Crop & Resize Video")} subtitle={tr("Pas-kan video ke rasio 1:1, 9:16, 16:9, dan lainnya untuk media sosial.")}>
               <VideoCrop />
             </PageShell>
           }
@@ -866,7 +868,7 @@ export const App: FC = () => (
         <Route
           path="video/subtitle"
           element={
-            <PageShell badge="Video" title="Teks & Subtitle (CC)" subtitle="Tambah teks bertempo — ekspor sebagai .SRT/.VTT ringan atau bakar langsung ke video.">
+            <PageShell badge={tr("Video")} title={tr("Teks & Subtitle (CC)")} subtitle={tr("Tambah teks bertempo — ekspor sebagai .SRT/.VTT ringan atau bakar langsung ke video.")}>
               <VideoSubtitle />
             </PageShell>
           }
@@ -874,7 +876,7 @@ export const App: FC = () => (
         <Route
           path="video/gabung"
           element={
-            <PageShell badge="Video" title="Gabung & Transisi" subtitle="Satukan beberapa klip berurutan dengan transisi cut atau crossfade.">
+            <PageShell badge={tr("Video")} title={tr("Gabung & Transisi")} subtitle={tr("Satukan beberapa klip berurutan dengan transisi cut atau crossfade.")}>
               <VideoMerge />
             </PageShell>
           }
@@ -882,7 +884,7 @@ export const App: FC = () => (
         <Route
           path="video/filter"
           element={
-            <PageShell badge="Video" title="Kecepatan & Filter" subtitle="Atur kecepatan putar dan filter warna — preview langsung sesuai hasil ekspor.">
+            <PageShell badge={tr("Video")} title={tr("Kecepatan & Filter")} subtitle={tr("Atur kecepatan putar dan filter warna — preview langsung sesuai hasil ekspor.")}>
               <VideoFilter />
             </PageShell>
           }
@@ -890,7 +892,7 @@ export const App: FC = () => (
         <Route
           path="video/kompres"
           element={
-            <PageShell badge="Video" title="Kompres Video" width="medium" subtitle="Perkecil ukuran video — pilih preset, atur resolusi, fps & bitrate, atau tentukan target ukuran file. Uji 5 detik dulu sebelum memproses seluruh video.">
+            <PageShell badge={tr("Video")} title={tr("Kompres Video")} width="medium" subtitle={tr("Perkecil ukuran video — pilih preset, atur resolusi, fps & bitrate, atau tentukan target ukuran file. Uji 5 detik dulu sebelum memproses seluruh video.")}>
               <VideoCompress />
             </PageShell>
           }
@@ -898,7 +900,7 @@ export const App: FC = () => (
         <Route
           path="video/thumbnail"
           element={
-            <PageShell badge="Video" title="Tangkap Thumbnail / Screenshot" subtitle="Putar video ke posisi yang diinginkan, lalu tangkap satu frame sebagai gambar PNG.">
+            <PageShell badge={tr("Video")} title={tr("Tangkap Thumbnail / Screenshot")} subtitle={tr("Putar video ke posisi yang diinginkan, lalu tangkap satu frame sebagai gambar PNG.")}>
               <VideoThumbnail />
             </PageShell>
           }
@@ -910,7 +912,7 @@ export const App: FC = () => (
         <Route
           path="audio/konversi"
           element={
-            <PageShell badge="Audio" title="Konversi Audio" subtitle="Ubah audio ke WAV (kualitas penuh) atau format terkompresi (Opus) — semua diproses langsung di browser.">
+            <PageShell badge={tr("Audio")} title={tr("Konversi Audio")} subtitle={tr("Ubah audio ke WAV (kualitas penuh) atau format terkompresi (Opus) — semua diproses langsung di browser.")}>
               <AudioConvertHub />
             </PageShell>
           }
@@ -918,7 +920,7 @@ export const App: FC = () => (
         <Route
           path="audio/edit-audio"
           element={
-            <PageShell badge="Audio" title="Edit Audio" width="medium" subtitle="Editor waveform lengkap: pangkas, potong, tempel, fade, volume, tempo & pitch, equalizer, kompresor, reverb, noise gate, marker, hingga ekspor WAV/Opus — semua di browser.">
+            <PageShell badge={tr("Audio")} title={tr("Edit Audio")} width="medium" subtitle={tr("Editor waveform lengkap: pangkas, potong, tempel, fade, volume, tempo & pitch, equalizer, kompresor, reverb, noise gate, marker, hingga ekspor WAV/Opus — semua di browser.")}>
               <AudioEditor />
             </PageShell>
           }
@@ -926,7 +928,7 @@ export const App: FC = () => (
         <Route
           path="audio/transkrip-audio"
           element={
-            <PageShell badge="Audio" title="Transkrip Audio" subtitle="Ubah rekaman rapat, wawancara, kuliah, atau podcast menjadi transkrip berformat — stempel waktu, pembicara, paragraf, kata kunci & ringkasan — lalu ekspor ke DOCX, PDF, SRT, dan lainnya.">
+            <PageShell badge={tr("Audio")} title={tr("Transkrip Audio")} subtitle={tr("Ubah rekaman rapat, wawancara, kuliah, atau podcast menjadi transkrip berformat — stempel waktu, pembicara, paragraf, kata kunci & ringkasan — lalu ekspor ke DOCX, PDF, SRT, dan lainnya.")}>
               <AudioTranscript />
             </PageShell>
           }
@@ -934,7 +936,7 @@ export const App: FC = () => (
         <Route
           path="audio/kompres"
           element={
-            <PageShell badge="Audio" title="Kompres Audio" subtitle="Perkecil ukuran audio dengan Opus (jauh lebih kecil dari MP3) — pilih preset, atur bitrate sendiri, atau tentukan target ukuran file. Bisa banyak file sekaligus, semua di browser.">
+            <PageShell badge={tr("Audio")} title={tr("Kompres Audio")} subtitle={tr("Perkecil ukuran audio dengan Opus (jauh lebih kecil dari MP3) — pilih preset, atur bitrate sendiri, atau tentukan target ukuran file. Bisa banyak file sekaligus, semua di browser.")}>
               <AudioCompress />
             </PageShell>
           }
@@ -942,7 +944,7 @@ export const App: FC = () => (
         <Route
           path="audio/visualizer"
           element={
-            <PageShell badge="Audio" title="Audio Visualizer" subtitle="Ubah lagu jadi visual bergerak: 13 gaya, kustomisasi penuh (warna, glow, pantulan, logo, teks, latar), pratinjau real-time, lalu ekspor .mov dengan latar transparan otomatis — atau beri latar sendiri.">
+            <PageShell badge={tr("Audio")} title={tr("Audio Visualizer")} subtitle={tr("Ubah lagu jadi visual bergerak: 13 gaya, kustomisasi penuh (warna, glow, pantulan, logo, teks, latar), pratinjau real-time, lalu ekspor .mov dengan latar transparan otomatis — atau beri latar sendiri.")}>
               <AudioVisualizer />
             </PageShell>
           }
@@ -950,7 +952,7 @@ export const App: FC = () => (
         <Route
           path="audio/suara-ke-teks"
           element={
-            <PageShell badge="Audio" title="Speech to Text" subtitle="Ubah ucapan jadi teks secara langsung lewat mikrofon.">
+            <PageShell badge={tr("Audio")} title={tr("Speech to Text")} subtitle={tr("Ubah ucapan jadi teks secara langsung lewat mikrofon.")}>
               <AudioSpeechToText />
             </PageShell>
           }
@@ -958,7 +960,7 @@ export const App: FC = () => (
         <Route
           path="audio/teks-ke-suara"
           element={
-            <PageShell badge="Audio" title="Text to Speech" subtitle="Bacakan teks apa pun dengan suara pilihan langsung dari browser.">
+            <PageShell badge={tr("Audio")} title={tr("Text to Speech")} subtitle={tr("Bacakan teks apa pun dengan suara pilihan langsung dari browser.")}>
               <AudioTextToSpeech />
             </PageShell>
           }
@@ -966,7 +968,7 @@ export const App: FC = () => (
         <Route
           path="audio/pengukur-suara"
           element={
-            <PageShell badge="Audio" title="Pengukur Kekuatan Suara" subtitle="Meteran level suara real-time langsung dari mikrofon browser.">
+            <PageShell badge={tr("Audio")} title={tr("Pengukur Kekuatan Suara")} subtitle={tr("Meteran level suara real-time langsung dari mikrofon browser.")}>
               <AudioSoundMeter />
             </PageShell>
           }
@@ -974,7 +976,7 @@ export const App: FC = () => (
         <Route
           path="audio/ekstrak-audio-video"
           element={
-            <PageShell badge="Audio" title="Ekstrak Audio dari Video" subtitle="Ambil track audio dari file video sebagai file terpisah — bisa dipangkas dulu sebelum diekstrak.">
+            <PageShell badge={tr("Audio")} title={tr("Ekstrak Audio dari Video")} subtitle={tr("Ambil track audio dari file video sebagai file terpisah — bisa dipangkas dulu sebelum diekstrak.")}>
               <AudioExtractFromVideo />
             </PageShell>
           }
@@ -983,6 +985,7 @@ export const App: FC = () => (
         <Route path="about" element={<About />} />
         <Route path="privacy" element={<Privacy />} />
         <Route path="terms" element={<Terms />} />
+        <Route path="faq" element={<Faq />} />
 
         {/* Fallback — arahkan path tak dikenal ke beranda */}
         <Route path="*" element={<Navigate to="/" replace />} />

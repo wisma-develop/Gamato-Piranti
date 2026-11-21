@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, CornerDownLeft, History, Search, Sparkles, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { POPULAR_PATHS, getToolIndex, highlightRanges, searchTools, type ToolEntry } from "@/lib/toolIndex";
+import { tr } from "@/i18n";
 
 /**
  * ToolSearch — palet pencarian alat bermerek Gamato Piranti (Ctrl/⌘ + K, atau tombol "/").
@@ -80,7 +81,7 @@ function Palette({ onClose }: { onClose: () => void }) {
   type Row = { e: ToolEntry; label?: string };
   const rows: Row[] = useMemo(() => {
     if (q.trim()) return results.map((e) => ({ e }));
-    return [...recent.map((e, i) => ({ e, label: i === 0 ? "Terakhir dipakai" : undefined })), ...popular.map((e, i) => ({ e, label: i === 0 ? "Populer" : undefined }))];
+    return [...recent.map((e, i) => ({ e, label: i === 0 ? tr("Terakhir dipakai") : undefined })), ...popular.map((e, i) => ({ e, label: i === 0 ? "Populer" : undefined }))];
   }, [q, results, recent, popular]);
 
   useEffect(() => { setActive(0); }, [q]);
@@ -114,7 +115,7 @@ function Palette({ onClose }: { onClose: () => void }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Cari alat"
+        aria-label={tr("Cari alat")}
         data-testid="tool-search"
         className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/30 animate-[gamatoSearchIn_0.18s_cubic-bezier(.2,.9,.3,1.2)]"
       >
@@ -124,33 +125,33 @@ function Palette({ onClose }: { onClose: () => void }) {
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Cari alat… mis. “kompres pdf”, “peta”, “badge”"
+            placeholder={tr("Cari alat… mis. “kompres pdf”, “peta”, “badge”")}
             role="combobox"
             aria-expanded="true"
             aria-controls={`${uid}-list`}
             aria-activedescendant={rows[active] ? `${uid}-opt-${active}` : undefined}
-            aria-label="Cari alat"
+            aria-label={tr("Cari alat")}
             autoComplete="off"
             spellCheck={false}
             data-testid="tool-search-input"
             className="flex-1 min-w-0 bg-transparent py-4 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none"
           />
-          {q && <button type="button" onClick={() => { setQ(""); inputRef.current?.focus(); }} aria-label="Hapus pencarian" className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-4 h-4" /></button>}
-          <kbd className="hidden sm:inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">Esc</kbd>
+          {q && <button type="button" onClick={() => { setQ(""); inputRef.current?.focus(); }} aria-label={tr("Hapus pencarian")} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-4 h-4" /></button>}
+          <kbd className="hidden sm:inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">{tr("Esc")}</kbd>
         </div>
 
-        <div ref={listRef} id={`${uid}-list`} role="listbox" aria-label="Hasil pencarian" className="max-h-[min(56vh,420px)] overflow-y-auto overscroll-contain p-2">
+        <div ref={listRef} id={`${uid}-list`} role="listbox" aria-label={tr("Hasil pencarian")} className="max-h-[min(56vh,420px)] overflow-y-auto overscroll-contain p-2">
           {rows.length === 0 && q.trim() && (
             <div className="px-4 py-10 text-center" data-testid="tool-search-empty">
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Tidak ada alat untuk “{q}”</p>
-              <p className="text-xs text-slate-400 mt-1">Coba kata lain, misalnya “pdf”, “gambar”, “audio”, atau “surat”.</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{tr("Tidak ada alat untuk “{0}”", q)}</p>
+              <p className="text-xs text-slate-400 mt-1">{tr("Coba kata lain, misalnya “pdf”, “gambar”, “audio”, atau “surat”.")}</p>
             </div>
           )}
           {rows.map((r, i) => (
             <div key={r.e.path}>
               {r.label && (
                 <p className="flex items-center gap-1.5 px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                  {r.label === "Populer" ? <Sparkles className="w-3 h-3" /> : <History className="w-3 h-3" />}{r.label}
+                  {r.label === "Populer" ? <Sparkles className="w-3 h-3" /> : <History className="w-3 h-3" />}{r.label === "Populer" ? tr("Populer") : r.label}
                 </p>
               )}
               <button
@@ -167,7 +168,7 @@ function Palette({ onClose }: { onClose: () => void }) {
                 <span className={cn("shrink-0 w-9 h-9 rounded-xl flex items-center justify-center border", i === active ? "bg-white dark:bg-slate-800 border-indigo-200 dark:border-indigo-500/30" : "bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700")}>{r.e.icon}</span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-semibold text-slate-800 dark:text-slate-100 truncate"><Highlight text={r.e.name} query={q} /></span>
-                  <span className="block text-xs text-slate-400 dark:text-slate-500 truncate">{r.e.kind === "category" ? "Semua alat kategori ini" : `${r.e.group}${r.e.section ? ` · ${r.e.section}` : ""}`}</span>
+                  <span className="block text-xs text-slate-400 dark:text-slate-500 truncate">{r.e.kind === "category" ? tr("Semua alat kategori ini") : `${r.e.group}${r.e.section ? ` · ${r.e.section}` : ""}`}</span>
                 </span>
                 {i === active ? <CornerDownLeft className="w-4 h-4 text-indigo-400 shrink-0" /> : <ArrowRight className="w-4 h-4 text-slate-300 dark:text-slate-600 shrink-0" />}
               </button>
@@ -176,7 +177,7 @@ function Palette({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 px-4 py-2 text-[11px] text-slate-400">
-          <span className="flex items-center gap-3"><span><kbd className="font-sans font-semibold">↑↓</kbd> pilih</span><span><kbd className="font-sans font-semibold">↵</kbd> buka</span></span>
+          <span className="flex items-center gap-3"><span><kbd className="font-sans font-semibold">↑↓</kbd> {tr("pilih")}</span><span><kbd className="font-sans font-semibold">↵</kbd> {tr("buka")}</span></span>
           <span data-testid="tool-search-count">{q.trim() ? `${rows.length} hasil` : `${index.filter((e) => e.kind === "tool").length} alat`}</span>
         </div>
       </div>
@@ -193,13 +194,13 @@ export function SearchTrigger({ className, compact }: { className?: string; comp
     <button
       type="button"
       onClick={open}
-      aria-label="Cari alat"
+      aria-label={tr("Cari alat")}
       aria-keyshortcuts="Control+K Meta+K"
       data-testid="search-trigger"
       className={cn("inline-flex items-center gap-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white transition-colors", compact ? "p-2" : "px-3 py-2", className)}
     >
       <Search className={compact ? "w-5 h-5" : "w-4 h-4"} />
-      {!compact && <kbd className="hidden 2xl:inline text-[10px] font-semibold text-slate-400 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5">{isMac ? "⌘K" : "Ctrl K"}</kbd>}
+      {!compact && <kbd className="hidden 2xl:inline text-[10px] font-semibold text-slate-400 border border-slate-200 dark:border-slate-700 rounded px-1.5 py-0.5">{isMac ? tr("⌘K") : tr("Ctrl K")}</kbd>}
     </button>
   );
 }

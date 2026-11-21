@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ShieldAlert, RefreshCw, ChevronDown, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import type { PermFailure } from "@/lib/permissions";
+import { tr } from "@/i18n";
 
 /**
  * GamatoPermissionNotice — banner galat izin bermerek Gamato Piranti.
@@ -51,7 +52,7 @@ export function GamatoPermissionNotice({
                 aria-expanded={showSteps}
                 className="inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-2 mt-1"
               >
-                Cara mengaktifkan izin
+                {tr("Cara mengaktifkan izin")}
                 <ChevronDown className={cn("w-3 h-3 transition-transform", showSteps && "rotate-180")} />
               </button>
               {showSteps && (
@@ -70,12 +71,12 @@ export function GamatoPermissionNotice({
                 dark ? "border-amber-500/40 hover:bg-amber-500/15" : "border-amber-300 dark:border-amber-500/40 hover:bg-amber-100 dark:hover:bg-amber-500/15"
               )}
             >
-              <RefreshCw className="w-3 h-3" /> Coba lagi
+              <RefreshCw className="w-3 h-3" /> {tr("Coba lagi")}
             </button>
           )}
         </div>
         {onDismiss && (
-          <button type="button" onClick={onDismiss} aria-label="Tutup" className="p-1 rounded-md opacity-70 hover:opacity-100">
+          <button type="button" onClick={onDismiss} aria-label={tr("Tutup")} className="p-1 rounded-md opacity-70 hover:opacity-100">
             <X className="w-3.5 h-3.5" />
           </button>
         )}

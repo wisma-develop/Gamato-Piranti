@@ -12,6 +12,7 @@ import { ToolMarquee } from '@/components/home/ToolMarquee';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { Reveal } from '@/components/ui/Reveal';
 import { cn } from '@/utils/cn';
+import { tr } from "@/i18n";
 
 const TOTAL_TOOLS = menuGroups.reduce((n, g) => n + g.items.length, 0);
 
@@ -30,53 +31,53 @@ type Cat = {
 
 /** Urutan DOM = urutan penempatan grid bento (lihat komentar di bawah). */
 const cats: Cat[] = [
-  { id: 'dokumen', icon: <FileText className="w-7 h-7 text-white" />, title: 'PDF Lab – Suite', path: '/pdf', gradient: 'from-blue-400 to-indigo-600', glow: 'bg-blue-500', spot: 'rgba(59,130,246,.16)', feature: true,
-    desc: 'Toolkit PDF lengkap: kompres, gabung, pecah, atur ulang halaman, konversi Office dua arah, OCR, hingga keamanan & anotasi PDF.',
-    chips: pick('dokumen', ['Gabung PDF', 'Kompres PDF', 'Word ke PDF', 'PDF ke Word', 'OCR', 'Tanda Tangan PDF', 'Protect PDF', 'Edit PDF']), span: 'md:col-span-2 lg:row-span-2' },
-  { id: 'gambar', icon: <ImageIcon className="w-6 h-6 text-white" />, title: 'Image Lab', path: '/image', gradient: 'from-orange-400 to-rose-500', glow: 'bg-orange-500', spot: 'rgba(249,115,22,.16)',
-    desc: 'Photo Editor, kolase, cetak foto, hapus background, watermark, kompres, dan konversi — termasuk foto RAW.',
-    chips: pick('gambar', ['Photo Editor', 'Hapus Background', 'Kompres Gambar']), span: '' },
-  { id: 'video', icon: <Clapperboard className="w-6 h-6 text-white" />, title: 'Video Studio', path: '/video', gradient: 'from-rose-400 to-red-600', glow: 'bg-rose-500', spot: 'rgba(244,63,94,.16)',
-    desc: 'Konversi, kompres, potong, crop, subtitle, gabung dengan transisi — ringan tanpa upload.',
-    chips: pick('video', ['Potong Video', 'Kompres Video', 'Konversi Video']), span: '' },
-  { id: 'audio', icon: <AudioLines className="w-6 h-6 text-white" />, title: 'Audio Studio', path: '/audio', gradient: 'from-cyan-400 to-sky-600', glow: 'bg-cyan-500', spot: 'rgba(6,182,212,.16)',
-    desc: 'Konversi, edit, visualizer, transkrip, speech to text, text to speech, sampai ekstrak audio dari video.',
-    chips: pick('audio', ['Edit Audio', 'Speech to Text', 'Text to Speech']), span: '' },
-  { id: 'kode', icon: <QrCode className="w-6 h-6 text-white" />, title: 'QR & Barcode Studio', path: '/qr', gradient: 'from-teal-400 to-emerald-600', glow: 'bg-teal-500', spot: 'rgba(20,184,166,.16)',
-    desc: 'QR code full custom — bentuk, warna, logo bebas — plus barcode multi-format dan cetak massal ke PDF.',
-    chips: pick('kode', ['QR Code', 'Barcode', 'QR & Barcode Scanner']), span: '' },
-  { id: 'office', icon: <Presentation className="w-6 h-6 text-white" />, title: 'Office Tools', path: '/office', gradient: 'from-violet-400 to-purple-600', glow: 'bg-violet-500', spot: 'rgba(139,92,246,.16)',
-    desc: 'Doc Studio, Sheet Studio, Slide Studio, serta Diagram & Rumus — editor dokumen, spreadsheet, presentasi, diagram, dan rumus langsung di browser.',
-    chips: pick('office', ['Doc Studio', 'Sheet Studio', 'Slide Studio', 'Diagram & Rumus Studio']), span: 'md:col-span-2' },
-  { id: 'utilitas', icon: <SlidersHorizontal className="w-6 h-6 text-white" />, title: 'Rak Utilitas', path: '/utility', gradient: 'from-pink-400 to-fuchsia-600', glow: 'bg-pink-500', spot: 'rgba(236,72,153,.16)',
-    desc: 'Kalkulator, universal converter, kamus dunia, Capture Website, Koordinat, JSON, Base64, dan lainnya.',
-    chips: pick('utilitas', ['Kalkulator', 'Universal Converter', 'Koordinat']), span: '' },
-  { id: 'spesial', icon: <Award className="w-6 h-6 text-white" />, title: 'Spesial', path: '/special', gradient: 'from-amber-400 to-orange-600', glow: 'bg-amber-500', spot: 'rgba(245,158,11,.18)',
-    desc: 'Kwitansi, invoice, struk, kartu nama, name tag, surat, kupon, sertifikat, CV — banyak yang bisa dibuat massal.',
-    chips: pick('spesial', ['Invoice', 'Kartu Nama', 'Sertifikat & Piagam']), span: '' },
+  { id: 'dokumen', icon: <FileText className="w-7 h-7 text-white" />, title: tr("PDF Lab – Suite"), path: '/pdf', gradient: 'from-blue-400 to-indigo-600', glow: 'bg-blue-500', spot: 'rgba(59,130,246,.16)', feature: true,
+    desc: tr("Toolkit PDF lengkap: kompres, gabung, pecah, atur ulang halaman, konversi Office dua arah, OCR, hingga keamanan & anotasi PDF."),
+    chips: pick('dokumen', [tr("Gabung PDF"), tr("Kompres PDF"), tr("Word ke PDF"), tr("PDF ke Word"), 'OCR', tr("Tanda Tangan PDF"), tr("Protect PDF"), tr("Edit PDF")]), span: 'md:col-span-2 lg:row-span-2' },
+  { id: 'gambar', icon: <ImageIcon className="w-6 h-6 text-white" />, title: tr("Image Lab"), path: '/image', gradient: 'from-orange-400 to-rose-500', glow: 'bg-orange-500', spot: 'rgba(249,115,22,.16)',
+    desc: tr("Photo Editor, kolase, cetak foto, hapus background, watermark, kompres, dan konversi — termasuk foto RAW."),
+    chips: pick('gambar', [tr("Photo Editor"), tr("Hapus Background"), tr("Kompres Gambar")]), span: '' },
+  { id: 'video', icon: <Clapperboard className="w-6 h-6 text-white" />, title: tr("Video Studio"), path: '/video', gradient: 'from-rose-400 to-red-600', glow: 'bg-rose-500', spot: 'rgba(244,63,94,.16)',
+    desc: tr("Konversi, kompres, potong, crop, subtitle, gabung dengan transisi — ringan tanpa upload."),
+    chips: pick('video', [tr("Potong Video"), tr("Kompres Video"), tr("Konversi Video")]), span: '' },
+  { id: 'audio', icon: <AudioLines className="w-6 h-6 text-white" />, title: tr("Audio Studio"), path: '/audio', gradient: 'from-cyan-400 to-sky-600', glow: 'bg-cyan-500', spot: 'rgba(6,182,212,.16)',
+    desc: tr("Konversi, edit, visualizer, transkrip, speech to text, text to speech, sampai ekstrak audio dari video."),
+    chips: pick('audio', [tr("Edit Audio"), tr("Speech to Text"), tr("Text to Speech")]), span: '' },
+  { id: 'kode', icon: <QrCode className="w-6 h-6 text-white" />, title: tr("QR & Barcode Studio"), path: '/qr', gradient: 'from-teal-400 to-emerald-600', glow: 'bg-teal-500', spot: 'rgba(20,184,166,.16)',
+    desc: tr("QR code full custom — bentuk, warna, logo bebas — plus barcode multi-format dan cetak massal ke PDF."),
+    chips: pick('kode', [tr("QR Code"), tr("Barcode"), tr("QR & Barcode Scanner")]), span: '' },
+  { id: 'office', icon: <Presentation className="w-6 h-6 text-white" />, title: tr("Office Tools"), path: '/office', gradient: 'from-violet-400 to-purple-600', glow: 'bg-violet-500', spot: 'rgba(139,92,246,.16)',
+    desc: tr("Doc Studio, Sheet Studio, Slide Studio, serta Diagram & Rumus — editor dokumen, spreadsheet, presentasi, diagram, dan rumus langsung di browser."),
+    chips: pick('office', [tr("Doc Studio"), tr("Sheet Studio"), tr("Slide Studio"), tr("Diagram & Rumus Studio")]), span: 'md:col-span-2' },
+  { id: 'utilitas', icon: <SlidersHorizontal className="w-6 h-6 text-white" />, title: tr("Rak Utilitas"), path: '/utility', gradient: 'from-pink-400 to-fuchsia-600', glow: 'bg-pink-500', spot: 'rgba(236,72,153,.16)',
+    desc: tr("Kalkulator, universal converter, kamus dunia, Capture Website, Koordinat, JSON, Base64, dan lainnya."),
+    chips: pick('utilitas', [tr("Kalkulator"), tr("Universal Converter"), tr("Koordinat")]), span: '' },
+  { id: 'spesial', icon: <Award className="w-6 h-6 text-white" />, title: tr("Spesial"), path: '/special', gradient: 'from-amber-400 to-orange-600', glow: 'bg-amber-500', spot: 'rgba(245,158,11,.18)',
+    desc: tr("Kwitansi, invoice, struk, kartu nama, name tag, surat, kupon, sertifikat, CV — banyak yang bisa dibuat massal."),
+    chips: pick('spesial', [tr("Invoice"), tr("Kartu Nama"), tr("Sertifikat & Piagam")]), span: '' },
 ];
 
 /** Ubin aksi PDF di kartu fitur — dekoratif (ilustrasi isi suite), bukan tautan. */
 const pdfTiles = [
-  { icon: <Layers className="w-5 h-5" />, label: 'Gabung' },
-  { icon: <Scissors className="w-5 h-5" />, label: 'Pecah' },
-  { icon: <FileDown className="w-5 h-5" />, label: 'Kompres' },
-  { icon: <ScanText className="w-5 h-5" />, label: 'OCR' },
-  { icon: <PenLine className="w-5 h-5" />, label: 'Tanda tangan' },
-  { icon: <Lock className="w-5 h-5" />, label: 'Protect' },
+  { icon: <Layers className="w-5 h-5" />, label: tr("Gabung") },
+  { icon: <Scissors className="w-5 h-5" />, label: tr("Pecah") },
+  { icon: <FileDown className="w-5 h-5" />, label: tr("Kompres") },
+  { icon: <ScanText className="w-5 h-5" />, label: tr("OCR") },
+  { icon: <PenLine className="w-5 h-5" />, label: tr("Tanda tangan") },
+  { icon: <Lock className="w-5 h-5" />, label: tr("Protect") },
 ];
 
 const steps = [
-  { icon: <Search className="w-5 h-5" />, title: 'Pilih alat', text: 'Cari lewat kotak pencarian (Ctrl K) atau jelajahi kategori — semuanya satu klik.' },
-  { icon: <Upload className="w-5 h-5" />, title: 'Tarik & lepas file', text: 'File dibaca langsung oleh browser. Tidak ada proses unggah ke server.' },
-  { icon: <Download className="w-5 h-5" />, title: 'Unduh hasilnya', text: 'Hasil siap dalam hitungan detik, tanpa akun, tanpa watermark tersembunyi.' },
+  { icon: <Search className="w-5 h-5" />, title: tr("Pilih alat"), text: tr("Cari lewat kotak pencarian (Ctrl K) atau jelajahi kategori — semuanya satu klik.") },
+  { icon: <Upload className="w-5 h-5" />, title: tr("Tarik & lepas file"), text: tr("File dibaca langsung oleh browser. Tidak ada proses unggah ke server.") },
+  { icon: <Download className="w-5 h-5" />, title: tr("Unduh hasilnya"), text: tr("Hasil siap dalam hitungan detik, tanpa akun, tanpa watermark tersembunyi.") },
 ];
 
 const features = [
-  { icon: <Cpu className="w-5 h-5" />, title: 'Diproses di perangkatmu', text: 'Setiap file diolah langsung di browser — tidak pernah diunggah ke server mana pun.' },
-  { icon: <Lock className="w-5 h-5" />, title: 'Tanpa akun, tanpa jejak', text: 'Langsung pakai tanpa registrasi, tanpa pelacakan, dan tanpa biaya tersembunyi.' },
-  { icon: <ShieldCheck className="w-5 h-5" />, title: 'Privasi milikmu penuh', text: 'File dan datamu tidak pernah meninggalkan perangkat — kendali penuh di tanganmu.' },
-  { icon: <Gauge className="w-5 h-5" />, title: 'Ringan dan responsif', text: 'Dirancang agar tetap cepat dan lancar di berbagai perangkat, kapan pun dibutuhkan.' },
+  { icon: <Cpu className="w-5 h-5" />, title: tr("Diproses di perangkatmu"), text: tr("Setiap file diolah langsung di browser — tidak pernah diunggah ke server mana pun.") },
+  { icon: <Lock className="w-5 h-5" />, title: tr("Tanpa akun, tanpa jejak"), text: tr("Langsung pakai tanpa registrasi, tanpa pelacakan, dan tanpa biaya tersembunyi.") },
+  { icon: <ShieldCheck className="w-5 h-5" />, title: tr("Privasi milikmu penuh"), text: tr("File dan datamu tidak pernah meninggalkan perangkat — kendali penuh di tanganmu.") },
+  { icon: <Gauge className="w-5 h-5" />, title: tr("Ringan dan responsif"), text: tr("Dirancang agar tetap cepat dan lancar di berbagai perangkat, kapan pun dibutuhkan.") },
 ];
 
 /**
@@ -89,17 +90,17 @@ export default function HomeSections() {
     <div data-testid="home-sections">
 
       {/* ═════════════ Marquee ═════════════ */}
-      <section className="gp-cv mb-24" aria-label="Sekilas isi Gamato Piranti">
-        <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-5">{TOTAL_TOOLS}+ alat, satu tempat</p>
+      <section className="gp-cv mb-24" aria-label={tr("Sekilas isi Gamato Piranti")}>
+        <p className="text-center text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-5">{tr("{0}+ alat, satu tempat", TOTAL_TOOLS)}</p>
         <ToolMarquee />
       </section>
 
       {/* ═════════════ Kategori (bento) ═════════════ */}
       <section className="gp-cv mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-3">Suite Lengkap</p>
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">Alat yang benar-benar terpakai</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-4 max-w-xl mx-auto">Tidak perlu pindah-pindah website. Semua kebutuhan digital ada di satu tempat.</p>
+          <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-3">{tr("Suite Lengkap")}</p>
+          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white">{tr("Alat yang benar-benar terpakai")}</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-4 max-w-xl mx-auto">{tr("Tidak perlu pindah-pindah website. Semua kebutuhan digital ada di satu tempat.")}</p>
         </div>
 
         {/* lg: 4 kolom. Baris 1: Dokumen(2×2) Gambar Video · Baris 2: (Dokumen) Audio Kode · Baris 3: Office(2) Utilitas Spesial.
@@ -115,7 +116,7 @@ export default function HomeSections() {
                   </span>
                   <div className="relative flex items-start justify-between mb-5">
                     <div data-depth style={{ ['--z' as string]: '38px' }} className={cn('inline-flex rounded-2xl bg-gradient-to-br p-3 shadow-lg shadow-black/10 transition-[scale,rotate] duration-300 group-hover:scale-110 group-hover:-rotate-3', c.gradient, c.feature && 'p-4')}>{c.icon}</div>
-                    <span data-depth style={{ ['--z' as string]: '18px' }} className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-700">{c.id === 'kode' ? 'QR · Barcode' : `${countOf(c.id)} Alat`}</span>
+                    <span data-depth style={{ ['--z' as string]: '18px' }} className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-full border border-slate-100 dark:border-slate-700">{c.id === 'kode' ? tr("QR · Barcode") : tr("{0} Alat", countOf(c.id))}</span>
                   </div>
                   <h3 className={cn('relative font-bold text-slate-900 dark:text-white mb-2 transition-colors group-hover:text-indigo-700 dark:group-hover:text-indigo-300', c.feature ? 'text-2xl' : 'text-lg')}>{c.title}</h3>
                   <p className={cn('relative text-slate-500 dark:text-slate-400 leading-relaxed', c.feature ? 'text-base max-w-md' : 'text-sm')}>{c.desc}</p>
@@ -139,7 +140,7 @@ export default function HomeSections() {
                     </div>
                     <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:translate-x-0.5">
                       <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                      <span className="sr-only">Buka alat</span>
+                      <span className="sr-only">{tr("Buka alat")}</span>
                     </span>
                   </div>
                 </SpotlightCard>
@@ -152,8 +153,8 @@ export default function HomeSections() {
       {/* ═════════════ Cara kerja ═════════════ */}
       <section className="gp-cv mx-auto mt-28 max-w-6xl px-4 sm:px-6 lg:px-8" aria-labelledby="how-title">
         <div className="text-center mb-12">
-          <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-3">Cara kerja</p>
-          <h2 id="how-title" className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Tiga langkah, selesai</h2>
+          <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-widest mb-3">{tr("Cara kerja")}</p>
+          <h2 id="how-title" className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">{tr("Tiga langkah, selesai")}</h2>
         </div>
         <ol className="relative grid gap-5 md:grid-cols-3">
           <span aria-hidden="true" className="pointer-events-none absolute left-[16.6%] right-[16.6%] top-9 hidden h-px border-t-2 border-dashed border-indigo-300/70 dark:border-indigo-500/30 md:block" />
@@ -179,19 +180,19 @@ export default function HomeSections() {
 
           <div className="relative z-10 grid items-center gap-10 p-8 sm:p-10 md:p-14 lg:grid-cols-2">
             <div className="space-y-6">
-              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest">Kenapa Gamato Piranti?</p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight tracking-tight">Semua yang kamu butuhkan, dalam satu kanvas.</h2>
-              <p className="text-slate-300 text-base leading-relaxed">Berhenti loncat-loncat ke banyak website. Gamato Piranti menghadirkan semua alat digital esensial dalam satu antarmuka yang bersih, cepat, dan terpercaya.</p>
+              <p className="text-xs font-bold text-indigo-300 uppercase tracking-widest">{tr("Kenapa Gamato Piranti?")}</p>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight tracking-tight">{tr("Semua yang kamu butuhkan, dalam satu kanvas.")}</h2>
+              <p className="text-slate-300 text-base leading-relaxed">{tr("Berhenti loncat-loncat ke banyak website. Gamato Piranti menghadirkan semua alat digital esensial dalam satu antarmuka yang bersih, cepat, dan terpercaya.")}</p>
 
-              <div className="rounded-2xl border border-slate-700/70 bg-slate-950/60 p-4 font-mono text-xs leading-relaxed" aria-label="Ilustrasi: tidak ada file yang dikirim ke server">
-                <p className="mb-2 flex items-center gap-1.5 text-slate-400"><span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />monitor jaringan · saat memproses file</p>
-                <p className="flex justify-between gap-3 text-slate-300"><span>file diunggah ke server</span><span className="font-bold text-emerald-400">0</span></p>
-                <p className="flex justify-between gap-3 text-slate-300"><span>data terkirim</span><span className="font-bold text-emerald-400">0 byte</span></p>
-                <p className="flex justify-between gap-3 text-slate-300"><span>pemrosesan</span><span className="font-bold text-sky-300">di browser kamu</span></p>
+              <div className="rounded-2xl border border-slate-700/70 bg-slate-950/60 p-4 font-mono text-xs leading-relaxed" aria-label={tr("Ilustrasi: tidak ada file yang dikirim ke server")}>
+                <p className="mb-2 flex items-center gap-1.5 text-slate-400"><span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />{tr("monitor jaringan · saat memproses file")}</p>
+                <p className="flex justify-between gap-3 text-slate-300"><span>{tr("file diunggah ke server")}</span><span className="font-bold text-emerald-400">0</span></p>
+                <p className="flex justify-between gap-3 text-slate-300"><span>{tr("data terkirim")}</span><span className="font-bold text-emerald-400">{tr("0 byte")}</span></p>
+                <p className="flex justify-between gap-3 text-slate-300"><span>{tr("pemrosesan")}</span><span className="font-bold text-sky-300">{tr("di browser kamu")}</span></p>
               </div>
 
               <Link to="/about" className="inline-flex items-center gap-2 py-2 text-white font-semibold text-sm hover:text-indigo-300 transition-colors">
-                Pelajari lebih lanjut <ArrowRight className="w-4 h-4" />
+                {tr("Pelajari lebih lanjut")} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
@@ -215,14 +216,14 @@ export default function HomeSections() {
           <span aria-hidden="true" className="pointer-events-none absolute -bottom-20 -right-10 h-72 w-72 rounded-full bg-sky-300/25 gp-soft" />
           <div className="relative">
             <MousePointerClick className="mx-auto mb-4 h-9 w-9 text-white/90" aria-hidden="true" />
-            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Siap merapikan kerja harianmu?</h2>
-            <p className="mx-auto mt-3 max-w-xl text-white/90">Tanpa daftar, tanpa unggah, tanpa biaya. Cukup buka alatnya dan mulai.</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">{tr("Siap merapikan kerja harianmu?")}</h2>
+            <p className="mx-auto mt-3 max-w-xl text-white/90">{tr("Tanpa daftar, tanpa unggah, tanpa biaya. Cukup buka alatnya dan mulai.")}</p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <button type="button" onClick={openSearch} className="gp-shine inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-7 py-3.5 font-semibold text-indigo-700 shadow-lg transition-all hover:-translate-y-0.5 sm:w-auto">
-                <Search className="h-5 w-5" aria-hidden="true" />Cari alat
+                <Search className="h-5 w-5" aria-hidden="true" />{tr("Cari alat")}
               </button>
               <Link to="/qr/qr-code" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/10 px-7 py-3.5 font-semibold text-white gp-blur transition-all hover:-translate-y-0.5 hover:bg-white/20 sm:w-auto">
-                Coba QR Code <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                {tr("Coba QR Code")} <ArrowRight className="h-5 w-5" aria-hidden="true" />
               </Link>
             </div>
           </div>

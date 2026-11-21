@@ -1,5 +1,6 @@
 import { GamatoSelect } from "@/components/ui/GamatoSelect";
 import type { MediaDeviceOption } from "@/lib/permissions";
+import { tr } from "@/i18n";
 
 /**
  * MediaDevicePicker — pilih kamera / mikrofon (memakai GamatoSelect, bukan <select> bawaan).
@@ -29,7 +30,7 @@ export function MediaDevicePicker({
       onChange={(e) => onChange(e.target.value)}
       data-testid={testId}
     >
-      <option value="">Otomatis (bawaan)</option>
+      <option value="">{tr("Otomatis (bawaan)")}</option>
       {devices.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label}</option>)}
     </GamatoSelect>
   );

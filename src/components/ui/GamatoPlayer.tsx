@@ -4,6 +4,7 @@ import { AnchoredPortal, useEscapeClose, useOutsideClose } from "@/components/ui
 import { Play, Pause, Volume2, Volume1, VolumeX, Maximize, Minimize, RotateCcw, Gauge, Zap } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { GamatoSlider } from "@/components/ui/GamatoSlider";
+import { tr } from "@/i18n";
 
 /**
  * GamatoPlayer — engine pemutar video kustom bermerek Gamato Piranti.
@@ -151,7 +152,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
       {label && (
         <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">
           <Zap className="w-3 h-3 text-indigo-300" />
-          Gamato Piranti
+          {tr("Gamato Piranti")}
         </div>
       )}
 
@@ -182,7 +183,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
         <button
           type="button"
           onClick={togglePlay}
-          aria-label="Putar"
+          aria-label={tr("Putar")}
           className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors"
         >
           <span className="w-16 h-16 rounded-full bg-white/95 shadow-xl flex items-center justify-center text-slate-900 group-hover:scale-105 transition-transform">
@@ -213,15 +214,15 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
         </div>
 
         <div className="flex items-center gap-2 text-white">
-          <button type="button" onClick={togglePlay} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label={playing ? "Jeda" : "Putar"}>
+          <button type="button" onClick={togglePlay} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label={playing ? tr("Jeda") : tr("Putar")}>
             {playing ? <Pause className="w-4 h-4" fill="currentColor" /> : <Play className="w-4 h-4" fill="currentColor" />}
           </button>
-          <button type="button" onClick={restart} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label="Ulang dari awal">
+          <button type="button" onClick={restart} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label={tr("Ulang dari awal")}>
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
 
           <div className="flex items-center gap-1.5 gp-vol-group">
-            <button type="button" onClick={toggleMute} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label="Volume">
+            <button type="button" onClick={toggleMute} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label={tr("Volume")}>
               <VolIcon className="w-4 h-4" />
             </button>
             <GamatoSlider
@@ -230,7 +231,7 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
               step={0.05}
               value={muted ? 0 : volume}
               onChange={changeVolume}
-              aria-label="Volume"
+              aria-label={tr("Volume")}
               className="gp-volume-track transition-all duration-200 h-1 bg-white/25"
             />
           </div>
@@ -248,26 +249,22 @@ export const GamatoPlayer = forwardRef<GamatoPlayerHandle, GamatoPlayerProps>(fu
               type="button"
               onClick={() => setShowSpeed((v) => !v)}
               className="flex items-center gap-1 px-2 py-1 hover:bg-white/15 rounded-lg transition-colors text-[11px] font-bold"
-              aria-label="Kecepatan putar"
+              aria-label={tr("Kecepatan putar")}
             >
-              <Gauge className="w-3.5 h-3.5" />
-              {speed}×
-            </button>
-            <AnchoredPortal anchorRef={speedWrapRef} open={showSpeed} side="top" align="end" offset={8} panelRef={speedPopRef} role="menu" aria-label="Kecepatan putar" className="bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl min-w-[64px]">
+              <Gauge className="w-3.5 h-3.5" />{tr("{0}×", speed)}</button>
+            <AnchoredPortal anchorRef={speedWrapRef} open={showSpeed} side="top" align="end" offset={8} panelRef={speedPopRef} role="menu" aria-label={tr("Kecepatan putar")} className="bg-slate-900/95 backdrop-blur rounded-xl border border-white/10 py-1 shadow-xl min-w-[64px]">
                 {SPEEDS.map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => changeSpeed(s)}
                     className={cn("w-full text-center px-3 py-1.5 text-xs font-semibold hover:bg-white/10", s === speed ? "text-indigo-300" : "text-white/80")}
-                  >
-                    {s}×
-                  </button>
+                  >{tr("{0}×", s)}</button>
                 ))}
             </AnchoredPortal>
           </div>
 
-          <button type="button" onClick={toggleFullscreen} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label="Layar penuh">
+          <button type="button" onClick={toggleFullscreen} className="p-1.5 hover:bg-white/15 rounded-lg transition-colors" aria-label={tr("Layar penuh")}>
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
         </div>

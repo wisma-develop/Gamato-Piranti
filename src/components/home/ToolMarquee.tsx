@@ -1,6 +1,7 @@
 import { cloneElement, isValidElement, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { menuGroups } from "@/components/layout/Header";
+import { tr } from "@/i18n";
 
 type Chip = { name: string; path: string; icon: ReactNode };
 
@@ -36,7 +37,7 @@ function Row({ items, reverse }: { items: Chip[]; reverse?: boolean }) {
 export function ToolMarquee() {
   const half = Math.ceil(ALL.length / 2);
   return (
-    <div className="space-y-3" data-testid="home-marquee" aria-label="Daftar alat">
+    <div className="space-y-3" data-testid="home-marquee" aria-label={tr("Daftar alat")}>
       <Row items={ALL.slice(0, half)} />
       <Row items={ALL.slice(half)} reverse />
     </div>

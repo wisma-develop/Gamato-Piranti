@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { siteUrl } from "@/lib/site";
 
+import { applyLangAttrs, applyMeta } from "@/hooks/useDocMeta";
 /**
  * Menjaga <link rel="canonical"> dan og:url selalu menunjuk ke URL halaman aktif di domain resmi
  * (https://gamatopiranti.zone.id/…) — walau situs dibuka lewat alamat lain (preview, www, dll.).
@@ -9,6 +10,11 @@ import { siteUrl } from "@/lib/site";
  */
 export default function SeoSync() {
   const { pathname } = useLocation();
+  useEffect(() => {
+    applyLangAttrs();
+    // Halaman tanpa hook judul sendiri (beranda, kategori) memakai judul bawaan sesuai bahasa
+    applyMeta(null);
+  }, [pathname]);
   useEffect(() => {
     const clean = pathname.length > 1 ? pathname.replace(/\/+$/, "") : "/";
     const url = siteUrl(clean);

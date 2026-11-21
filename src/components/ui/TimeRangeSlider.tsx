@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { cn } from "@/utils/cn";
 import { formatTime } from "@/lib/videoEngine";
+import { tr } from "@/i18n";
 
 export const TimeRangeSlider: React.FC<{
   duration: number;
@@ -48,14 +49,14 @@ export const TimeRangeSlider: React.FC<{
           onPointerDown={beginDrag("start")}
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-indigo-500 shadow cursor-ew-resize touch-none"
           style={{ left: pct(start) }}
-          aria-label="Awal"
+          aria-label={tr("Awal")}
         />
         <button
           type="button"
           onPointerDown={beginDrag("end")}
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-2 border-indigo-500 shadow cursor-ew-resize touch-none"
           style={{ left: pct(end) }}
-          aria-label="Akhir"
+          aria-label={tr("Akhir")}
         />
       </div>
       <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
