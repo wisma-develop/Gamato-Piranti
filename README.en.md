@@ -79,7 +79,7 @@
 
 | Category | Tools | Highlights |
 |---|:--:|---|
-| 🔳 **Code** | 5 | Fully custom QR (dot/corner shapes, colors, logo), 6-format barcodes + bulk PDF printing, QR/barcode scanner, HID scanner input, Morse code |
+| 🔳 **Code** | 5 | Fully custom QR (dot/corner shapes, colors, logo), 21-format barcodes + bulk PDF/ZIP printing, bulk QR (ZIP), multi-code QR/barcode scanner with smart results, HID scanner input + recap, Morse code + tap practice |
 | 📄 **Documents** | 28 | Merge/split/compress/edit/sign/watermark/protect/redact PDF, Office ⇄ PDF conversion, OCR, document scan, document reader |
 | 🗂️ **Office** | 4 | Doc, Sheet (formulas + .xlsx), Slide, plus Diagram & Formula (Mermaid + LaTeX) |
 | 🖼️ **Image** | 21 | Photo Editor (30+ presets), collage (46 templates), photo print, background removal, watermark, memes, compress/resize/convert, RAW photos, documents → images |
@@ -94,8 +94,9 @@
 <summary><b>🔳 Code — QR, barcode, scanner</b></summary>
 
 - **QR Code** — URL/text/WiFi/email/phone/SMS/WhatsApp/vCard/location/event/crypto templates; dot shapes, outer/inner corners, colors & gradients, center logo, "SCAN ME" frame; PNG/JPG/WEBP/SVG export
-- **Barcode** — CODE128, EAN-13, EAN-8, UPC, CODE39, ITF-14 with automatic validation + bulk PDF printing
-- **Scanner** — from an image or the live camera · **HID scanner** (USB/Bluetooth) · **Morse code** + `.wav` audio
+- **Barcode** — 21 formats (CODE128 A/B/C, EAN-13/8/5/2, UPC-A/E, ITF/ITF-14, MSI, CODE39/93, Codabar, Pharmacode) · real-time preview · automatic check digits with one-click fix · PNG (1–8×)/SVG/copy export · bulk PDF/ZIP from a list or number series
+- **Scanner** — many images/paste Ctrl+V/camera (torch, zoom, beep) · many codes per image with numbered boxes · smart results (WiFi, contact, calendar, SMS, location, suspicious-link warnings) · CSV/TXT/JSON history export
+- **HID scanner** (USB/Bluetooth) — duplicate policy, quantity recap, scanners without Enter, persistent log, formula-injection-safe CSV · **Morse code** — prosigns, Farnsworth, signal lamp, tap practice, `.wav` audio
 
 </details>
 

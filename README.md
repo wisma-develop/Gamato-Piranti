@@ -79,7 +79,7 @@
 
 | Kategori | Alat | Sorotan |
 |---|:--:|---|
-| 🔳 **Kode** | 5 | QR kustom penuh (bentuk titik/sudut, warna, logo), barcode 6 format + cetak massal PDF, pemindai QR/barcode, input scanner HID, kode Morse |
+| 🔳 **Kode** | 5 | QR kustom penuh (bentuk titik/sudut, warna, logo), barcode 21 format + cetak massal PDF/ZIP, QR massal (ZIP), pemindai QR/barcode multi-kode dengan hasil cerdas, input scanner HID + rekap, kode Morse + latihan ketuk |
 | 📄 **Dokumen** | 28 | Gabung/pecah/kompres/edit/tanda tangan/watermark/proteksi/sensor PDF, konversi Office ⇄ PDF, OCR, scan dokumen, pembaca dokumen |
 | 🗂️ **Office** | 4 | Doc, Sheet (rumus + .xlsx), Slide, serta Diagram & Rumus (Mermaid + LaTeX) |
 | 🖼️ **Gambar** | 21 | Photo Editor (30+ preset), kolase (46 template), cetak foto, hapus latar, watermark, meme, kompres/resize/konversi, foto RAW, dokumen → gambar |
@@ -94,8 +94,9 @@
 <summary><b>🔳 Kode — QR, barcode, scanner</b></summary>
 
 - **QR Code** — template URL/teks/WiFi/email/telepon/SMS/WhatsApp/vCard/lokasi/event/crypto; bentuk titik, sudut luar/dalam, warna & gradien, logo tengah, bingkai "SCAN ME"; ekspor PNG/JPG/WEBP/SVG
-- **Barcode** — CODE128, EAN-13, EAN-8, UPC, CODE39, ITF-14 dengan validasi otomatis + cetak massal ke PDF
-- **Pemindai** — dari gambar atau kamera langsung · **Scanner HID** (USB/Bluetooth) · **Kode Morse** + audio `.wav`
+- **Barcode** — 21 format (CODE128 A/B/C, EAN-13/8/5/2, UPC-A/E, ITF/ITF-14, MSI, CODE39/93, Codabar, Pharmacode) · preview real-time · digit cek otomatis & perbaikan 1 klik · ekspor PNG (1–8×)/SVG/salin · cetak massal PDF/ZIP dari daftar atau deret nomor
+- **Pemindai** — banyak gambar/tempel Ctrl+V/kamera (senter, zoom, bunyi) · banyak kode per gambar dengan kotak bernomor · hasil cerdas (WiFi, kontak, kalender, SMS, lokasi, peringatan link mencurigakan) · ekspor riwayat CSV/TXT/JSON
+- **Scanner HID** (USB/Bluetooth) — kebijakan duplikat, rekap jumlah, scanner tanpa Enter, log tersimpan, CSV anti-injeksi rumus · **Kode Morse** — prosign, Farnsworth, lampu sinyal, latihan ketuk, audio `.wav`
 
 </details>
 
