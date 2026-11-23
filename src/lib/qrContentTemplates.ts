@@ -45,11 +45,44 @@ export interface QrTemplateDef {
   fields: QrFieldDef[];
   defaultData: QrFieldValues;
   buildPayload: (d: QrFieldValues) => string;
+  /**
+   * Pesan validasi untuk isian yang SUDAH diisi tapi tidak valid (mis. URL rusak, koordinat di luar rentang).
+   * `null` = tidak ada masalah. Dipakai UI untuk memberi tahu kenapa QR belum muncul, bukan sekadar kotak kosong.
+   */
+  validate?: (d: QrFieldValues) => string | null;
   note?: string;
 }
 
 const str = (d: QrFieldValues, key: string) => sanitizeText(String(d[key] ?? "")).trim();
 const raw = (d: QrFieldValues, key: string) => String(d[key] ?? "");
+
+/**
+ * Teks untuk ISI QR. Beda dengan `sanitizeText` (yang membuang `<` `>` demi keamanan HTML): isi QR digambar sebagai
+ * modul, bukan disisipkan ke HTML, jadi karakter itu HARUS dipertahankan — kalau tidak, password WiFi / teks bebas
+ * yang mengandung `<` atau `>` diam-diam berubah dan QR berisi data yang berbeda dari yang diketik.
+ * Hanya karakter kontrol yang dibuang.
+ */
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const payloadText = (v: string) => v.replace(CONTROL_CHARS, " ").replace(/\r\n?/g, "\n");
+const pstr = (d: QrFieldValues, key: string) => payloadText(String(d[key] ?? "")).trim();
+
+/** Escape nilai bidang WIFI: sesuai format ZXing — `\ ; , " :` di-escape; nilai yang tampak seperti hex dibungkus tanda kutip. */
+export function wifiEscape(v: string): string {
+  const esc = v.replace(/([\\;,":])/g, "\\$1");
+  return /^[0-9A-Fa-f]+$/.test(v) ? `"${esc}"` : esc;
+}
+
+/** Normalisasi isian URL: tambahkan https:// bila pengguna hanya mengetik domain (mis. "contoh.com/menu"). */
+export function normalizeWebUrl(input: string): string {
+  const v = (input || "").trim();
+  if (!v) return "";
+  // Skema eksplisit (http:, javascript:, mailto: …). Titik dua yang langsung diikuti angka = port ("localhost:3000"), bukan skema.
+  if (/^[a-z][a-z0-9+.-]*:(?!\d)/i.test(v)) return sanitizeUrl(v);
+  if (/^(localhost|[\w-]+(\.[\w-]+)+)(:\d+)?([/?#].*)?$/i.test(v)) return sanitizeUrl("https://" + v);
+  return "";
+}
+
+const BTC_AMOUNT = /^\d+(\.\d{1,8})?$/;
 
 // ─── Helpers for structured payload formats ─────────────────────────────────
 
@@ -101,7 +134,8 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     icon: Link2,
     fields: [{ key: "url", label: tr("URL / Link"), type: "url", placeholder: "https://example.com" }],
     defaultData: { url: SITE_URL },
-    buildPayload: (d) => sanitizeUrl(raw(d, "url")),
+    buildPayload: (d) => normalizeWebUrl(raw(d, "url")),
+    validate: (d) => (raw(d, "url").trim() && !normalizeWebUrl(raw(d, "url")) ? tr("URL belum valid. Contoh: https://contoh.com atau contoh.com/menu") : null),
   },
   {
     id: "text",
@@ -110,7 +144,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     icon: Type,
     fields: [{ key: "text", label: tr("Teks Bebas"), type: "textarea", rows: 5, placeholder: tr("Ketik pesan, catatan, atau instruksi…") }],
     defaultData: { text: "" },
-    buildPayload: (d) => str(d, "text"),
+    buildPayload: (d) => pstr(d, "text"),
   },
   {
     id: "wifi",
@@ -125,12 +159,19 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     ],
     defaultData: { ssid: "", enc: "WPA", password: "", hidden: false },
     buildPayload: (d) => {
-      const ssid = str(d, "ssid");
+      const ssid = pstr(d, "ssid");
       if (!ssid) return "";
       const enc = raw(d, "enc") || "WPA";
-      const pass = str(d, "password");
-      const passPart = enc === "nopass" ? "" : `P:${pass};`;
-      return `WIFI:T:${enc};S:${ssid};${passPart}H:${d.hidden ? "true" : "false"};;`;
+      // Password tidak di-trim: spasi di ujung bisa jadi bagian sah dari password.
+      const pass = payloadText(String(d.password ?? ""));
+      const passPart = enc === "nopass" || !pass ? "" : `P:${wifiEscape(pass)};`;
+      return `WIFI:T:${enc};S:${wifiEscape(ssid)};${passPart}H:${d.hidden ? "true" : "false"};;`;
+    },
+    validate: (d) => {
+      const enc = raw(d, "enc") || "WPA";
+      const pass = String(d.password ?? "");
+      if (str(d, "ssid") && enc === "WPA" && pass && pass.length < 8) return tr("Password WPA/WPA2 minimal 8 karakter — QR tetap dibuat, tapi jaringan yang password-nya lebih pendek biasanya menolak.");
+      return null;
     },
   },
   {
@@ -148,11 +189,15 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
       const to = str(d, "to").replace(/\s+/g, "");
       if (!to) return "";
       const params: string[] = [];
-      const subj = str(d, "subject");
-      const body = str(d, "body");
+      const subj = pstr(d, "subject");
+      const body = pstr(d, "body");
       if (subj) params.push(`subject=${encodeURIComponent(subj)}`);
       if (body) params.push(`body=${encodeURIComponent(body)}`);
       return `mailto:${to}${params.length ? `?${params.join("&")}` : ""}`;
+    },
+    validate: (d) => {
+      const to = str(d, "to").replace(/\s+/g, "");
+      return to && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to) ? tr("Alamat email belum valid (contoh: nama@domain.com).") : null;
     },
   },
   {
@@ -180,7 +225,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     buildPayload: (d) => {
       const phone = sanitizePhone(raw(d, "phone"));
       if (!phone) return "";
-      const message = str(d, "message");
+      const message = pstr(d, "message");
       return `SMSTO:${phone}:${message}`;
     },
     note: tr("Format SMSTO: dikenali luas oleh aplikasi kamera & pemindai bawaan HP."),
@@ -198,7 +243,7 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
     buildPayload: (d) => {
       const phone = sanitizePhone(raw(d, "phone")).replace(/^\+/, "").replace(/\D/g, "");
       if (!phone) return "";
-      const message = str(d, "message");
+      const message = pstr(d, "message");
       return `https://wa.me/${phone}${message ? `?text=${encodeURIComponent(message)}` : ""}`;
     },
   },
@@ -259,8 +304,18 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
       const lat = sanitizeNumberString(raw(d, "lat"));
       const lng = sanitizeNumberString(raw(d, "lng"));
       if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) return "";
+      if (Math.abs(Number(lat)) > 90 || Math.abs(Number(lng)) > 180) return "";
       const label = str(d, "label");
       return label ? `geo:${lat},${lng}?q=${lat},${lng}(${encodeURIComponent(label)})` : `geo:${lat},${lng}`;
+    },
+    validate: (d) => {
+      const lat = sanitizeNumberString(raw(d, "lat"));
+      const lng = sanitizeNumberString(raw(d, "lng"));
+      if (!lat && !lng) return null;
+      if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) return tr("Isi latitude DAN longitude dengan angka desimal, mis. -6.2 dan 106.8.");
+      if (Math.abs(Number(lat)) > 90) return tr("Latitude harus di antara -90 dan 90.");
+      if (Math.abs(Number(lng)) > 180) return tr("Longitude harus di antara -180 dan 180.");
+      return null;
     },
     note: tr("Dipindai langsung membuka aplikasi peta bawaan pada koordinat ini."),
   },
@@ -292,6 +347,11 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
       if (str(d, "description")) lines.push(`DESCRIPTION:${icalEscape(str(d, "description"))}`);
       lines.push("END:VEVENT", "END:VCALENDAR");
       return lines.join("\n");
+    },
+    validate: (d) => {
+      const s0 = toIcalDateTime(raw(d, "startDate"), raw(d, "startTime"));
+      const e0 = toIcalDateTime(raw(d, "endDate") || raw(d, "startDate"), raw(d, "endTime"));
+      return s0 && e0 && e0 < s0 ? tr("Waktu selesai lebih awal dari waktu mulai.") : null;
     },
     note: tr("Dipindai memunculkan opsi \"Tambah ke Kalender\" di HP."),
   },
@@ -363,11 +423,19 @@ export const QR_TEMPLATES: QrTemplateDef[] = [
       if (!address) return "";
       const amount = sanitizeNumberString(raw(d, "amount"));
       const coin = raw(d, "coin") || "bitcoin";
+      if (amount && !BTC_AMOUNT.test(amount) && coin !== "ethereum") return "";
       if (coin === "ethereum") {
         const wei = amount ? toSmallestUnit(amount, 18) : "";
         return `ethereum:${address}${wei ? `?value=${wei}` : ""}`;
       }
       return `bitcoin:${address}${amount ? `?amount=${amount}` : ""}`;
+    },
+    validate: (d) => {
+      const amount = sanitizeNumberString(raw(d, "amount"));
+      if (!amount) return null;
+      return /^\d+(\.\d+)?$/.test(amount) && (raw(d, "coin") === "ethereum" || BTC_AMOUNT.test(amount))
+        ? null
+        : tr("Jumlah tidak valid. Pakai angka desimal positif (Bitcoin maksimal 8 angka di belakang koma).");
     },
     note: tr("Format BIP21 (Bitcoin) / ERC-681 (Ethereum) — dikenali dompet kripto populer."),
   },
