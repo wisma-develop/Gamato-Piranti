@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  Upload, Download, Sparkles, AlertTriangle, RefreshCw, Palette,
+  QrCode as QrCodeIcon, Upload, Download, Sparkles, AlertTriangle, RefreshCw, Palette,
   Frame as FrameIcon, Square, Circle as CircleIcon, ClipboardCopy, Check,
-  Ruler, ImagePlus, Wand2,
+  Ruler, ImagePlus, Wand2, Layers, Archive, ScanLine, CheckCircle2, Loader2, X,
 } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import { cn } from "@/utils/cn";
 import { downloadBlob, fileToDataUrl } from "@/lib/file";
+import { renderQrBlob, verifyQrCanvas, qrUtf8Data, type QrExt, type QrVerifyResult } from "@/lib/qrRender";
+import { sanitizeFileName } from "@/utils/sanitize";
+import { GamatoInlineAlert } from "@/components/ui/GamatoInlineAlert";
 import { buildFramedLogoDataUrl, type QrLogoShape } from "@/lib/qrLogo";
-import { composeFramedQrCanvas, canvasToBlob } from "@/lib/qrFrame";
 import { AUTO_ICONS, resolveAutoIconId, buildAutoIconDataUrl, getAutoIcon } from "@/lib/qrAutoIcons";
-import { QR_TEMPLATES, QR_TEMPLATE_CATEGORIES, getQrTemplate, type QrFieldDef, type QrFieldValues } from "@/lib/qrContentTemplates";
+import { QR_TEMPLATES, QR_TEMPLATE_CATEGORIES, getQrTemplate, normalizeWebUrl, type QrFieldDef, type QrFieldValues } from "@/lib/qrContentTemplates";
 import { QR_STYLE_PRESETS, type DotType, type CornerSquareType, type CornerDotType, type QrShape, type QrStylePreset } from "@/features/qr-barcode/qrStylePresets";
 import { ColorModeControl, defaultColorState, toQrColorOptions, type ColorState } from "@/components/ui/ColorModeControl";
 import { Label, Input, Select, Textarea, Btn, SectionBadge } from "@/components/ui/primitives";
@@ -57,6 +59,12 @@ const LOGO_SHAPE_OPTIONS: { id: QrLogoShape; label: string }[] = [
   { id: "square", label: tr("Kotak") },
   { id: "none", label: tr("Asli") },
 ];
+
+const EXPORT_SIZES = [512, 1024, 2048, 4096] as const;
+const BATCH_MAX = 500;
+const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const csvCell = (v: string) => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+type BatchEntry = { content: string; name: string };
 
 type LogoMode = "auto" | "gallery" | "upload" | "none";
 
@@ -111,6 +119,8 @@ type QrConfig = {
   frameTextColor: string;
   frameBgColor: string;
   framePosition: "top" | "bottom";
+  /** Ukuran ekspor (px). 0 = otomatis (mengikuti resolusi preview). */
+  exportPx: number;
 };
 
 const DEFAULT_QR_CONFIG: QrConfig = {
@@ -140,6 +150,7 @@ const DEFAULT_QR_CONFIG: QrConfig = {
   frameTextColor: "#ffffff",
   frameBgColor: "#4f46e5",
   framePosition: "bottom",
+  exportPx: 0,
 };
 
 // ─── Data-driven template field rendering ───────────────────────────────────
@@ -214,7 +225,7 @@ export function QrCodeGenerator() {
     qrTemplate, templateData, size, margin, shape, errorCorrection,
     dotsType, cornersSquareType, cornersDotType, dots, cornersSquare, cornersDot, background, bgTransparent, bgRound,
     logoMode, logoGalleryId, logoSizeRatio, logoMargin, logoHideBackgroundDots, logoShape,
-    frameEnabled, frameText, frameTextColor, frameBgColor, framePosition,
+    frameEnabled, frameText, frameTextColor, frameBgColor, framePosition, exportPx,
   } = qrConfig;
 
   const setQrTemplate = (v: string) => setQrField("qrTemplate", v);
@@ -242,11 +253,27 @@ export function QrCodeGenerator() {
   const setFrameTextColor = (v: string) => setQrField("frameTextColor", v);
   const setFrameBgColor = (v: string) => setQrField("frameBgColor", v);
   const setFramePosition = (v: "top" | "bottom") => setQrField("framePosition", v);
+  const setExportPx = (v: number) => setQrField("exportPx", v);
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
   const [copyError, setCopyError] = useState<string | null>(null);
+
+  // ── Mode massal (ZIP) ──
+  const [qrMode, setQrMode] = useState<"single" | "batch">("single");
+  const [batchKind, setBatchKind] = useState<"list" | "series">("list");
+  const [batchText, setBatchText] = useState("");
+  const [batchAsUrl, setBatchAsUrl] = useState(true);
+  const [seriesTpl, setSeriesTpl] = useState("https://contoh.com/meja/{n}");
+  const [seriesStart, setSeriesStart] = useState(1);
+  const [seriesCount, setSeriesCount] = useState(10);
+  const [seriesPad, setSeriesPad] = useState(0);
+  const [batchExt, setBatchExt] = useState<QrExt>("png");
+  const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
+  const [batchMsg, setBatchMsg] = useState<{ tone: "success" | "warning" | "error"; text: string } | null>(null);
+  const cancelBatchRef = useRef(false);
+  const [verify, setVerify] = useState<QrVerifyResult | "idle" | "checking">("idle");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const qrInstanceRef = useRef<QRCodeStyling | null>(null);
@@ -271,6 +298,45 @@ export function QrCodeGenerator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [qrTemplate, templateData]
   );
+
+  const validationMsg = activeTemplate.validate?.(activeData) ?? null;
+
+  // Entri massal: daftar baris ("isi" atau "isi | nama-file") ATAU deret nomor ("…/meja/{n}").
+  const batch = useMemo(() => {
+    const raw: { content: string; name: string }[] = [];
+    if (batchKind === "list") {
+      for (const line of batchText.split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        const bar = line.lastIndexOf("|");
+        const content = (bar >= 0 ? line.slice(0, bar) : line).replace(CONTROL_CHARS, " ").trim();
+        const name = bar >= 0 ? line.slice(bar + 1).trim() : "";
+        raw.push({ content, name });
+      }
+    } else if (seriesTpl.includes("{n}")) {
+      const count = Math.max(0, Math.min(Math.floor(seriesCount) || 0, BATCH_MAX + 1));
+      for (let i = 0; i < count; i++) {
+        const n = String(Math.floor(seriesStart) + i).padStart(Math.max(0, Math.floor(seriesPad)), "0");
+        raw.push({ content: seriesTpl.split("{n}").join(n), name: n });
+      }
+    }
+    let skipped = 0;
+    const entries: BatchEntry[] = [];
+    const used = new Map<string, number>();
+    const width = String(Math.min(raw.length, BATCH_MAX)).length;
+    for (const r of raw) {
+      const content = batchAsUrl ? normalizeWebUrl(r.content) : r.content;
+      if (!content) { skipped++; continue; }
+      if (entries.length >= BATCH_MAX) { skipped++; continue; }
+      const base = sanitizeFileName(r.name || String(entries.length + 1).padStart(width, "0"), "qr").replace(/^\.+|\.+$/g, "") || "qr";
+      const seen = used.get(base.toLowerCase()) ?? 0;
+      used.set(base.toLowerCase(), seen + 1);
+      entries.push({ content, name: seen ? `${base}-${seen + 1}` : base });
+    }
+    return { entries, skipped, templateMissing: batchKind === "series" && !seriesTpl.includes("{n}") };
+  }, [batchKind, batchText, batchAsUrl, seriesTpl, seriesStart, seriesCount, seriesPad]);
+  const isBatch = qrMode === "batch";
+  const verifyStatus = typeof verify === "string" ? verify : verify.status;
+  const effectivePayload = isBatch ? (batch.entries[0]?.content ?? "") : payload;
 
   // Which built-in icon naturally matches the current template + subtype
   // (e.g. the "social" template's icon follows whichever platform field is
@@ -306,29 +372,32 @@ export function QrCodeGenerator() {
     return () => { cancelled = true; };
   }, [logoMode, logoFile, logoGalleryId, autoIconId, logoShape]);
 
-  const currentOptions = () => {
+  // Opsi pustaka pada ukuran `px` & isi `data` tertentu — satu-satunya sumber opsi, dipakai preview, unduhan, dan ekspor massal.
+  const buildOptions = (px: number, data: string) => {
+    const ratio = px / size;
     const dotsOpt = toQrColorOptions(dots);
     const cornersSquareOpt = toQrColorOptions(cornersSquare);
     const cornersDotOpt = toQrColorOptions(cornersDot);
     const bgOpt = bgTransparent ? { color: "transparent", gradient: undefined } : toQrColorOptions(background);
     const effectiveErrorCorrection = errorCorrection === "auto" ? (logoDataUrl ? "H" : "Q") : errorCorrection;
-    const renderSize = Math.round(size * renderScale);
     return {
-      width: renderSize,
-      height: renderSize,
+      width: px,
+      height: px,
       type: "canvas" as const,
       shape,
-      data: payload.trim() || " ",
-      margin: Math.round(margin * renderScale),
+      data: data.trim() ? qrUtf8Data(data) : " ",
+      margin: Math.round(margin * ratio),
       qrOptions: { errorCorrectionLevel: effectiveErrorCorrection as "L" | "M" | "Q" | "H" },
       dotsOptions: { type: dotsType, color: dotsOpt.color, gradient: dotsOpt.gradient },
       backgroundOptions: { color: bgOpt.color, gradient: bgOpt.gradient, round: bgTransparent ? 0 : bgRound },
       cornersSquareOptions: { type: cornersSquareType, color: cornersSquareOpt.color, gradient: cornersSquareOpt.gradient },
       cornersDotOptions: { type: cornersDotType, color: cornersDotOpt.color, gradient: cornersDotOpt.gradient },
       image: logoDataUrl || undefined,
-      imageOptions: { hideBackgroundDots: logoHideBackgroundDots, imageSize: logoSizeRatio, margin: Math.round(logoMargin * renderScale), crossOrigin: "anonymous" as const },
+      imageOptions: { hideBackgroundDots: logoHideBackgroundDots, imageSize: logoSizeRatio, margin: Math.round(logoMargin * ratio), crossOrigin: "anonymous" as const },
     };
   };
+  const previewPx = Math.round(size * renderScale);
+  const currentOptions = () => buildOptions(previewPx, effectivePayload);
 
   // Create the QR instance once and mount it into the DOM.
   useEffect(() => {
@@ -342,11 +411,14 @@ export function QrCodeGenerator() {
   }, []);
 
   // Push every style/content change into the live instance (no re-mount needed).
+  const skipFirstUpdateRef = useRef(true);
   useEffect(() => {
+    // Efek pembuatan instance di atas sudah merender dengan opsi yang sama persis — jangan render kedua kali saat mount.
+    if (skipFirstUpdateRef.current) { skipFirstUpdateRef.current = false; return; }
     qrInstanceRef.current?.update(currentOptions());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    payload, size, margin, shape, errorCorrection,
+    effectivePayload, size, margin, shape, errorCorrection,
     dotsType, cornersSquareType, cornersDotType, dots, cornersSquare, cornersDot, background, bgTransparent, bgRound,
     logoDataUrl, logoSizeRatio, logoMargin, logoHideBackgroundDots,
   ]);
@@ -366,45 +438,62 @@ export function QrCodeGenerator() {
 
   const getPreviewCanvas = (): HTMLCanvasElement | null => containerRef.current?.querySelector("canvas") ?? null;
 
-  const buildExportBlob = async (extension: "png" | "jpeg" | "webp" | "svg"): Promise<{ blob: Blob } | null> => {
-    if (frameEnabled && extension !== "svg") {
-      const qrCanvas = getPreviewCanvas();
-      if (qrCanvas) {
-        try {
-          const framed = await composeFramedQrCanvas(qrCanvas, { text: frameText, textColor: frameTextColor, bgColor: frameBgColor, position: framePosition });
-          const mime = extension === "png" ? "image/png" : extension === "jpeg" ? "image/jpeg" : "image/webp";
-          const blob = await canvasToBlob(framed, mime, extension === "jpeg" ? 0.95 : undefined);
-          if (blob) return { blob };
-        } catch {
-          // fall through to the library's own raw export as a safe fallback
-        }
-      }
-    }
-    const raw = await qrInstanceRef.current?.getRawData(extension);
-    if (!raw) return null;
-    const blob = raw instanceof Blob ? raw : new Blob([raw as BlobPart]);
-    return { blob };
-  };
+  const frameOpts = frameEnabled ? { text: frameText, textColor: frameTextColor, bgColor: frameBgColor, position: framePosition } : null;
+  const exportSize = exportPx > 0 ? exportPx : previewPx;
+  const exportBlob = (ext: QrExt, data: string) =>
+    renderQrBlob(buildOptions(exportSize, data), ext, ext === "svg" ? null : frameOpts, bgTransparent ? "#ffffff" : background.color);
 
-  const download = async (extension: "png" | "jpeg" | "webp" | "svg") => {
-    const result = await buildExportBlob(extension);
-    if (!result) { qrInstanceRef.current?.download({ name: "gamato-qr", extension }); return; }
-    downloadBlob(result.blob, `gamato-qr.${extension}`);
+  const download = async (extension: QrExt) => {
+    try {
+      downloadBlob(await exportBlob(extension, effectivePayload), `gamato-qr.${extension}`);
+    } catch {
+      // Jalur cadangan: ekspor bawaan pustaka dari instance preview.
+      qrInstanceRef.current?.download({ name: "gamato-qr", extension });
+    }
   };
 
   const copyToClipboard = async () => {
     setCopyError(null);
     try {
       if (!navigator.clipboard || typeof ClipboardItem === "undefined") throw new Error("unsupported");
-      const result = await buildExportBlob("png");
-      if (!result) throw new Error("empty");
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": result.blob })]);
+      const blob = await exportBlob("png", effectivePayload);
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 1500);
     } catch {
       setCopyState("error");
       setCopyError(tr("Salin gambar tidak didukung di browser ini. Gunakan tombol unduh sebagai gantinya."));
       setTimeout(() => setCopyState("idle"), 2500);
+    }
+  };
+
+  const runBatch = async () => {
+    const entries = batch.entries;
+    if (!entries.length) return;
+    cancelBatchRef.current = false;
+    setBatchMsg(null);
+    setBatchProgress({ done: 0, total: entries.length });
+    try {
+      const { default: JSZip } = await import("jszip");
+      const zip = new JSZip();
+      const rows = ["no,file,isi"];
+      const ext = batchExt === "jpeg" ? "jpg" : batchExt;
+      for (let i = 0; i < entries.length; i++) {
+        if (cancelBatchRef.current) { setBatchMsg({ tone: "warning", text: tr("Dibatalkan — tidak ada file yang diunduh.") }); return; }
+        const e = entries[i];
+        const file = `${e.name}.${ext}`;
+        zip.file(file, await exportBlob(batchExt, e.content));
+        rows.push(`${i + 1},${csvCell(file)},${csvCell(e.content)}`);
+        setBatchProgress({ done: i + 1, total: entries.length });
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      zip.file("daftar.csv", "\ufeff" + rows.join("\r\n"));
+      downloadBlob(await zip.generateAsync({ type: "blob" }), "gamato-qr-massal.zip");
+      setBatchMsg({ tone: "success", text: tr("{0} QR berhasil dibuat dan dikemas dalam ZIP (beserta daftar.csv).", entries.length) });
+    } catch (err) {
+      setBatchMsg({ tone: "error", text: tr("Gagal membuat ZIP: {0}", err instanceof Error ? err.message : String(err)) });
+    } finally {
+      setBatchProgress(null);
     }
   };
 
@@ -421,6 +510,38 @@ export function QrCodeGenerator() {
   const contrast = useMemo(() => contrastRatio(dots.color, bgTransparent ? "#ffffff" : background.color), [dots.color, bgTransparent, background.color]);
   const lowContrast = !bgTransparent && contrast < 2.2;
 
+  // Verifikasi nyata: hasil render di-decode ulang (jsQR) & dibandingkan dengan isi yang dimaksud.
+  // Render canvas pustaka asinkron (terutama saat ada logo), jadi dicoba lagi bila percobaan pertama belum terbaca.
+  useEffect(() => {
+    if (!effectivePayload.trim()) { setVerify("idle"); return; }
+    setVerify("checking");
+    let cancelled = false;
+    const timers: number[] = [];
+    const attempt = async (n: number) => {
+      const canvas = getPreviewCanvas();
+      const r: QrVerifyResult = canvas
+        ? await verifyQrCanvas(canvas, effectivePayload).catch((): QrVerifyResult => ({ status: "unreadable" }))
+        : { status: "unreadable" };
+      if (cancelled) return;
+      if (r.status !== "ok" && n < 2) { timers.push(window.setTimeout(() => void attempt(n + 1), 700)); return; }
+      setVerify(r);
+    };
+    // Tunggu render selesai, lalu jalankan saat browser idle supaya verifikasi tidak bersaing dengan render/interaksi.
+    let idleId: number | undefined;
+    const run = () => { idleId = typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(() => void attempt(0), { timeout: 1500 }) : window.setTimeout(() => void attempt(0), 0); };
+    timers.push(window.setTimeout(run, 650));
+    return () => {
+      cancelled = true;
+      timers.forEach((t) => window.clearTimeout(t));
+      if (idleId !== undefined && typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idleId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    effectivePayload, size, margin, shape, errorCorrection,
+    dotsType, cornersSquareType, cornersDotType, dots, cornersSquare, cornersDot, background, bgTransparent, bgRound,
+    logoDataUrl, logoSizeRatio, logoMargin, logoHideBackgroundDots,
+  ]);
+
   const activeAutoIcon = autoIconId ? getAutoIcon(autoIconId) : undefined;
   const activeGalleryIcon = logoGalleryId ? getAutoIcon(logoGalleryId) : undefined;
   const boxSizePx = size + 40; // matches the p-5 (20px) padding around the QR canvas in the preview card — this is the VISUAL/display size; the canvas itself renders internally at size*renderScale for sharpness, then CSS scales it back down to this box.
@@ -435,12 +556,56 @@ export function QrCodeGenerator() {
             <UndoRedoBar canUndo={qrHistory.canUndo} canRedo={qrHistory.canRedo} onUndo={qrHistory.undo} onRedo={qrHistory.redo} />
           </div>
 
+          <div role="tablist" aria-label={tr("Mode pembuatan")} className="grid grid-cols-2 gap-2">
+            {([["single", tr("Tunggal"), tr("Satu QR, kustom penuh"), QrCodeIcon], ["batch", tr("Massal (ZIP)"), tr("Banyak QR sekaligus"), Layers]] as const).map(([id, label, sub, Icon]) => (
+              <button key={id} type="button" role="tab" aria-selected={qrMode === id} data-testid={`qr-mode-${id}`} onClick={() => setQrMode(id)}
+                className={cn("flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all", qrMode === id ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300")}>
+                <Icon className={cn("w-5 h-5 shrink-0", qrMode === id ? "text-indigo-600 dark:text-indigo-300" : "text-slate-400")} />
+                <span className="min-w-0">
+                  <span className={cn("block text-sm font-bold", qrMode === id ? "text-indigo-700 dark:text-indigo-300" : "text-slate-800 dark:text-slate-100")}>{label}</span>
+                  <span className="block text-[11px] text-slate-600 dark:text-slate-300 truncate">{sub}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
           {/* Isi QR — template selector, grouped by category, + the active template's form */}
-          <CollapsibleSection title={tr("Isi QR")} subtitle={tr("Pilih jenis konten lalu isi datanya")} badge={tr("{0} Tipe", QR_TEMPLATES.length)} defaultOpen>
+          {isBatch && (
+            <CollapsibleSection title={tr("Isi QR Massal")} subtitle={tr("Daftar baris atau deret nomor → satu ZIP")} icon={<Layers className="w-4 h-4" />} badge={tr("maks. {0}", BATCH_MAX)} defaultOpen>
+              <div className="flex flex-wrap gap-1.5">
+                {([["list", tr("Daftar baris")], ["series", tr("Deret nomor")]] as const).map(([id, label]) => (
+                  <button key={id} type="button" data-testid={`batch-kind-${id}`} onClick={() => setBatchKind(id)} className={pillClass(batchKind === id)}>{label}</button>
+                ))}
+              </div>
+
+              {batchKind === "list" ? (
+                <Textarea id="qr-batch-text" label={tr("Satu QR per baris — opsional nama file setelah tanda |")} rows={8} value={batchText} onChange={(e) => setBatchText(e.target.value)}
+                  placeholder={"https://contoh.com/menu | menu-utama\nhttps://contoh.com/promo | promo\ncontoh.com/kontak"} />
+              ) : (
+                <div className="space-y-3">
+                  <Input id="qr-series-tpl" label={tr("Pola isi — tulis {n} di tempat nomor")} value={seriesTpl} onChange={(e) => setSeriesTpl(e.target.value)} placeholder="https://contoh.com/meja/{n}" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input id="qr-series-start" label={tr("Mulai dari")} type="number" value={seriesStart} onChange={(e) => setSeriesStart(Number(e.target.value) || 0)} />
+                    <Input id="qr-series-count" label={tr("Jumlah")} type="number" min={1} max={BATCH_MAX} value={seriesCount} onChange={(e) => setSeriesCount(Math.min(BATCH_MAX, Math.max(0, Number(e.target.value) || 0)))} />
+                    <Input id="qr-series-pad" label={tr("Digit (isi 0)")} type="number" min={0} max={8} value={seriesPad} onChange={(e) => setSeriesPad(Math.min(8, Math.max(0, Number(e.target.value) || 0)))} />
+                  </div>
+                  {batch.templateMissing && <GamatoInlineAlert tone="warning" message={tr("Pola harus memuat {n}, kalau tidak semua QR akan sama persis.")} />}
+                </div>
+              )}
+
+              <GamatoCheckbox checked={batchAsUrl} onChange={setBatchAsUrl} label={tr("Perlakukan sebagai URL (tambah https:// otomatis, tolak yang tidak valid)")} testId="batch-as-url" />
+              <p className="text-xs text-slate-500 dark:text-slate-400" data-testid="batch-count">
+                {tr("{0} QR siap dibuat", batch.entries.length)}{batch.skipped > 0 ? ` · ${tr("{0} baris dilewati (kosong/tidak valid/melebihi batas)", batch.skipped)}` : ""}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{tr("Gaya, warna, logo, bingkai, dan ukuran di bawah berlaku untuk semua QR. Preview menampilkan baris pertama.")}</p>
+            </CollapsibleSection>
+          )}
+
+          {!isBatch && <CollapsibleSection title={tr("Isi QR")} subtitle={tr("Pilih jenis konten lalu isi datanya")} badge={tr("{0} Tipe", QR_TEMPLATES.length)} defaultOpen>
             <div className="space-y-4">
               {QR_TEMPLATE_CATEGORIES.map((cat) => (
                 <div key={cat}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">{cat}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-1.5">{cat}</p>
                   <div className="flex flex-wrap gap-2">
                     {QR_TEMPLATES.filter((t) => t.category === cat).map((t) => {
                       const Icon = t.icon;
@@ -459,9 +624,10 @@ export function QrCodeGenerator() {
 
             <div className="pt-4 mt-1 border-t border-slate-100 dark:border-slate-800 space-y-4">
               {renderTemplateFields(activeTemplate.fields, activeData, updateTemplateField)}
+              {validationMsg && <GamatoInlineAlert tone="warning" message={validationMsg} />}
               {activeTemplate.note && <p className="text-xs text-slate-400 dark:text-slate-500">{activeTemplate.note}</p>}
             </div>
-          </CollapsibleSection>
+          </CollapsibleSection>}
 
           {/* Style presets */}
           <CollapsibleSection title={tr("Gaya Instan")} subtitle={tr("Sentuh sekali, langsung jadi")} icon={<Sparkles className="w-4 h-4" />} badge={tr("{0} Preset", QR_STYLE_PRESETS.length)} defaultOpen>
@@ -578,7 +744,11 @@ export function QrCodeGenerator() {
                 <GamatoSlider min={0} max={40} step={2} value={margin} onChange={setMargin} aria-label={tr("Margin QR")} />
               </div>
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">{tr("File diekspor pada resolusi {0}× lebih tinggi dari angka di atas supaya hasilnya tetap tajam saat dicetak atau di-zoom.", renderScale)}</p>
+            <Select id="qr-export-size" label={tr("Ukuran File Ekspor")} value={String(exportPx)} onChange={(e) => setExportPx(Number(e.target.value) || 0)}>
+              <option value="0">{tr("Otomatis ({0}px, tajam di layar & cetak biasa)", previewPx)}</option>
+              {EXPORT_SIZES.map((px) => <option key={px} value={px}>{tr("{0}×{0}px", px)}{px >= 2048 ? ` — ${tr("untuk cetak besar")}` : ""}</option>)}
+            </Select>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{exportPx > 0 ? tr("File PNG/JPEG/WEBP diekspor tepat {0}×{0}px (SVG selalu vektor, bebas ukuran).", exportPx) : tr("File diekspor pada resolusi {0}× lebih tinggi dari angka di atas supaya hasilnya tetap tajam saat dicetak atau di-zoom.", renderScale)}</p>
 
             <div>
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -747,7 +917,7 @@ export function QrCodeGenerator() {
                 width is capped at 100% of the card so it shrinks gracefully
                 on narrow screens instead of overflowing the card. */}
             <div
-              className={cn("flex flex-col items-stretch max-w-full mx-auto", !payload.trim() && "absolute opacity-0 pointer-events-none")}
+              className={cn("flex flex-col items-stretch max-w-full mx-auto", !effectivePayload.trim() && "absolute opacity-0 pointer-events-none")}
               style={{ width: boxSizePx }}
             >
               {frameEnabled && framePosition === "top" && (
@@ -775,32 +945,68 @@ export function QrCodeGenerator() {
                 </div>
               )}
             </div>
-            {!payload.trim() && (
-              <div className="w-56 h-56 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center">
-                <p className="text-sm text-slate-400 dark:text-slate-500 text-center px-6">{tr("Isi form di kiri untuk melihat preview QR")}</p>
+            {!effectivePayload.trim() && (
+              <div className="w-56 min-h-56 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center" data-testid="qr-empty-hint">
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center px-6">
+                  {isBatch ? tr("Isi daftar atau pola di kiri untuk melihat preview QR") : validationMsg ?? tr("Isi form di kiri untuk melihat preview QR")}
+                </p>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Btn onClick={() => download("png")} disabled={!payload.trim()} className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-lg shadow-indigo-600/20">
-              <Download className="w-4 h-4" />{tr("PNG")}
-            </Btn>
-            <Btn onClick={() => download("svg")} disabled={!payload.trim()} variant="secondary" className="py-3">
-              <Download className="w-4 h-4" />{tr("SVG")}
-            </Btn>
-            <Btn onClick={() => download("jpeg")} disabled={!payload.trim()} variant="secondary" className="py-3 text-sm">
-              {tr("JPEG")}
-            </Btn>
-            <Btn onClick={() => download("webp")} disabled={!payload.trim()} variant="secondary" className="py-3 text-sm">
-              {tr("WEBP")}
-            </Btn>
-          </div>
+          {/* Badge verifikasi: QR hasil render benar-benar di-decode ulang */}
+          {effectivePayload.trim() && (
+            <div data-testid="qr-verify" data-status={verifyStatus} role="status" aria-live="polite"
+              className={cn("flex items-start gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium",
+                verifyStatus === "ok" ? "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/30"
+                : verifyStatus !== "idle" && verifyStatus !== "checking" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/30"
+                : "bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700")}>
+              {typeof verify === "string" ? <><Loader2 className="w-4 h-4 shrink-0 animate-spin" /><span>{tr("Memeriksa keterbacaan QR…")}</span></>
+              : verify.status === "ok" ? <><CheckCircle2 className="w-4 h-4 shrink-0" /><span>{tr("Terverifikasi: QR ini berhasil dibaca ulang dan isinya cocok.")}</span></>
+              : verify.status === "mismatch" ? <><AlertTriangle className="w-4 h-4 shrink-0" /><span>{tr("QR terbaca tapi isinya berbeda dari yang dimaksud — coba naikkan koreksi error atau kecilkan logo.")}</span></>
+              : <><ScanLine className="w-4 h-4 shrink-0" /><span>{tr("QR belum bisa dibaca pemindai uji — periksa kontras warna, ukuran logo, atau naikkan tingkat koreksi error.")}</span></>}
+            </div>
+          )}
 
-          <Btn onClick={copyToClipboard} disabled={!payload.trim()} variant="secondary" className="w-full py-3">
-            {copyState === "copied" ? <><Check className="w-4 h-4 text-emerald-500" />{tr("Tersalin!")}</> : <><ClipboardCopy className="w-4 h-4" />{tr("Salin ke Clipboard")}</>}
-          </Btn>
-          {copyError && copyState === "error" && <p className="text-xs text-center text-amber-600 dark:text-amber-400">{copyError}</p>}
+          {!isBatch ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Btn onClick={() => download("png")} disabled={!effectivePayload.trim()} className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-lg shadow-indigo-600/20">
+                  <Download className="w-4 h-4" />{tr("PNG")}
+                </Btn>
+                <Btn onClick={() => download("svg")} disabled={!effectivePayload.trim()} variant="secondary" className="py-3">
+                  <Download className="w-4 h-4" />{tr("SVG")}
+                </Btn>
+                <Btn onClick={() => download("jpeg")} disabled={!effectivePayload.trim()} variant="secondary" className="py-3 text-sm">
+                  {tr("JPEG")}
+                </Btn>
+                <Btn onClick={() => download("webp")} disabled={!effectivePayload.trim()} variant="secondary" className="py-3 text-sm">
+                  {tr("WEBP")}
+                </Btn>
+              </div>
+
+              <Btn onClick={copyToClipboard} disabled={!effectivePayload.trim()} variant="secondary" className="w-full py-3">
+                {copyState === "copied" ? <><Check className="w-4 h-4 text-emerald-500" />{tr("Tersalin!")}</> : <><ClipboardCopy className="w-4 h-4" />{tr("Salin ke Clipboard")}</>}
+              </Btn>
+              {copyError && copyState === "error" && <p className="text-xs text-center text-amber-600 dark:text-amber-400">{copyError}</p>}
+            </>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap justify-center gap-1.5" role="group" aria-label={tr("Format file di dalam ZIP")}>
+                {(["png", "svg", "jpeg", "webp"] as const).map((e) => (
+                  <button key={e} type="button" data-testid={`batch-ext-${e}`} onClick={() => setBatchExt(e)} className={pillClass(batchExt === e)}>{e.toUpperCase()}</button>
+                ))}
+              </div>
+              <Btn onClick={runBatch} disabled={!batch.entries.length || !!batchProgress} data-testid="batch-run" className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-lg shadow-indigo-600/20">
+                {batchProgress ? <><Loader2 className="w-4 h-4 animate-spin" />{tr("Memproses {0}/{1}…", batchProgress.done, batchProgress.total)}</> : <><Archive className="w-4 h-4" />{tr("Unduh ZIP ({0} QR)", batch.entries.length)}</>}
+              </Btn>
+              {batchProgress && (
+                <Btn variant="secondary" onClick={() => { cancelBatchRef.current = true; }} className="w-full"><X className="w-4 h-4" />{tr("Batalkan")}</Btn>
+              )}
+              {exportSize >= 2048 && batch.entries.length > 100 && <p className="text-xs text-center text-amber-600 dark:text-amber-400">{tr("Ukuran besar × banyak QR membutuhkan memori dan waktu lebih — pertimbangkan 1024px.")}</p>}
+              {batchMsg && <GamatoInlineAlert tone={batchMsg.tone} message={batchMsg.text} />}
+            </div>
+          )}
 
           <div className="text-center"><SectionBadge>{tr("Diproses langsung di perangkatmu")}</SectionBadge></div>
         </div>
