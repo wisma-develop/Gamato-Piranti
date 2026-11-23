@@ -22,7 +22,7 @@ export default function KodeCategory() {
               },
               {
                 name: tr("Barcode"),
-                desc: tr("6 format barcode (CODE128, EAN, UPC, dll) dengan cetak massal langsung ke PDF."),
+                desc: tr("21 format barcode (CODE128, EAN, UPC, dll) dengan digit cek otomatis dan cetak massal PDF/ZIP."),
                 path: "/qr/barcode",
                 icon: <Barcode className="w-6 h-6" />,
               },
@@ -40,7 +40,7 @@ export default function KodeCategory() {
               },
               {
                 name: tr("QR & Barcode Scanner"),
-                desc: tr("Baca QR code dan barcode dari gambar yang diunggah atau langsung dari kamera."),
+                desc: tr("Baca QR code dan barcode dari gambar (banyak sekaligus) atau kamera; hasil dikenali otomatis dan dilengkapi aksi cepat."),
                 path: "/qr/scan-qr",
                 icon: <ScanLine className="w-6 h-6" />,
               },

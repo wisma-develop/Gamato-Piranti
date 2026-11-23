@@ -156,6 +156,8 @@ export default function Layout() {
   // Font generator (Google Fonts) hanya dimuat saat sebuah alat dibuka — bukan di beranda / halaman informasi.
   useEffect(() => {
     if (pathname === "/" || /^\/(about|faq|privacy|terms)\/?$/.test(pathname)) return;
+    // Alat Kode (QR, Barcode, Scan HID, Morse, Scanner) tidak memakai font generator — jangan bayar request pihak ketiga.
+    if (/^\/qr(\/|$)/.test(pathname)) return;
     loadWebFonts();
   }, [pathname]);
   const isHome = pathname === '/';

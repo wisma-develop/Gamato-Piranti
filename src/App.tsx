@@ -148,7 +148,7 @@ export const App: FC = () => (
         <Route
           path="qr/barcode"
           element={
-            <PageShell badge={tr("Kode")} title={tr("Barcode")} subtitle={tr("6 format barcode (CODE128, EAN-13, EAN-8, UPC, CODE39, ITF-14) dengan validasi otomatis dan cetak massal ke PDF.")}>
+            <PageShell badge={tr("Kode")} title={tr("Barcode")} subtitle={tr("21 format barcode (CODE128, EAN-13, UPC, ITF-14, CODE39, dll) dengan preview real-time, digit cek otomatis, ekspor PNG/SVG, dan cetak massal PDF/ZIP.")}>
               <BarcodeGenerator />
             </PageShell>
           }
@@ -172,7 +172,7 @@ export const App: FC = () => (
         <Route
           path="qr/scan-qr"
           element={
-            <PageShell badge={tr("Kode")} title={tr("QR & Barcode Scanner")} subtitle={tr("Baca QR code dan barcode dari gambar yang diunggah atau langsung dari kamera.")}>
+            <PageShell badge={tr("Kode")} title={tr("QR & Barcode Scanner")} subtitle={tr("Baca QR code dan barcode dari gambar (banyak sekaligus) atau kamera; hasil dikenali otomatis dan dilengkapi aksi cepat.")}>
               <QrScanner />
             </PageShell>
           }
